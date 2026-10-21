@@ -1,0 +1,5 @@
+@reference "@/index.css";
+
+.root {
+    @apply max-h-[36rem] lg:max-h-none;
+}

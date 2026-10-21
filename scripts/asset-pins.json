@@ -1,0 +1,20 @@
+{
+    "heroesData": [
+        {
+            "repo": "HeroesToolChest/heroes-data",
+            "commit": "2a2207d08bdb2bac8038e8bc0e10c13a952ee043",
+            "version": "2.55.9.93640",
+            "locale": "enus"
+        },
+        {
+            "repo": "HeroesToolChest/heroes-data2",
+            "version": "2.57.0.98348",
+            "locale": "enus",
+            "sha256": "bc73ac95cbd77a99f4618e5732c62ba976b919182555b5c5dacca3e1d145acb6"
+        }
+    ],
+    "heroesImages": {
+        "repo": "HeroesToolChest/heroes-images",
+        "commit": "ea99cc6327291e6354770f458ab06c52812b9a61"
+    }
+}

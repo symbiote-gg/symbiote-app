@@ -1,0 +1,9 @@
+@reference "@/index.css";
+
+.root {
+    @apply size-8 shrink-0 rounded-md object-contain;
+}
+
+.fallback {
+    @apply inline-flex items-center justify-center border border-line bg-surface-2 text-xs font-semibold text-fg-muted;
+}

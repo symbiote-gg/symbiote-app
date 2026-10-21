@@ -1,0 +1,31 @@
+@reference "@/index.css";
+
+.events {
+    @apply grid grid-cols-[auto_auto_1fr] gap-x-2.5 gap-y-1.5;
+}
+
+.row {
+    @apply col-span-full grid grid-cols-subgrid items-center rounded-md py-1.5;
+    background: color-mix(in srgb, var(--side, transparent) 8%, transparent);
+}
+
+.row > :first-child {
+    @apply ml-2.5;
+}
+
+.row > :last-child {
+    @apply mr-2.5;
+}
+
+.offset {
+    @apply font-mono text-xs text-fg-muted;
+}
+
+.tile {
+    @apply flex size-8 items-center justify-center rounded-md bg-surface;
+    color: var(--side, var(--color-fg-muted));
+}
+
+.icon {
+    @apply size-4;
+}

@@ -1,0 +1,16 @@
+@reference "@/index.css";
+
+.axis {
+    @apply pointer-events-none absolute inset-x-0 h-px bg-[#4a4060];
+}
+
+.bookend {
+    @apply absolute flex size-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border;
+    border-color: var(--side);
+    background: color-mix(in srgb, var(--side) 18%, var(--color-surface));
+    color: var(--side);
+}
+
+.bookendIcon {
+    @apply size-4;
+}

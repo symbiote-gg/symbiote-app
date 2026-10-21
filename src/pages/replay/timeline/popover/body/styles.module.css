@@ -1,0 +1,5 @@
+@reference "@/index.css";
+
+.body {
+    @apply flex flex-col gap-1;
+}

@@ -1,0 +1,63 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex flex-col gap-3 self-stretch;
+}
+
+.card {
+    @apply overflow-hidden;
+}
+
+.headerRow {
+    @apply bg-surface-2 py-2.5 tracking-wider;
+}
+
+.table {
+    @apply grid grid-cols-[minmax(12rem,3fr)_repeat(2,minmax(4.5rem,1fr))_max-content] gap-x-2;
+
+    @variant lg {
+        @apply grid-cols-[minmax(14rem,3fr)_minmax(4.5rem,1fr)_repeat(4,minmax(5.5rem,1fr))_max-content];
+    }
+}
+
+.teamGrid {
+    @apply col-span-full grid grid-cols-subgrid items-center px-6;
+}
+
+.teamGrid .wide {
+    @apply hidden;
+}
+
+.teamGrid .wide {
+    @variant lg {
+        @apply block;
+    }
+}
+
+.number {
+    @apply text-right;
+}
+
+.teamTitle {
+    @apply col-span-full flex items-center gap-3 border-t border-line px-6 pt-6 pb-4;
+}
+
+.ally .title {
+    @apply text-team-blue;
+}
+
+.enemy .title {
+    @apply text-team-red;
+}
+
+.teamTitle .chip {
+    @apply rounded-full border border-line bg-surface-2 px-2.5 py-0.5;
+}
+
+.totalRow {
+    @apply border-t border-line bg-surface-2/50 py-3 tracking-wider;
+}
+
+.totalValue {
+    @apply px-2;
+}

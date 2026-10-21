@@ -1,0 +1,13 @@
+@reference "@/index.css";
+
+.life {
+    @apply flex items-start gap-3;
+}
+
+.bar {
+    @apply flex flex-col gap-1 pt-3.5;
+}
+
+.times {
+    @apply flex justify-between gap-4 font-mono text-[10px] text-fg-muted;
+}

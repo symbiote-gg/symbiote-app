@@ -1,0 +1,37 @@
+@reference "@/index.css";
+
+.altar {
+    @apply flex items-center justify-between rounded-md px-3 py-2.5;
+    background: color-mix(in srgb, var(--side, transparent) 8%, transparent);
+}
+
+.team {
+    @apply flex size-8 shrink-0 items-center justify-center rounded-full border-2;
+    border-color: var(--side);
+    color: var(--side);
+}
+
+.icon {
+    @apply size-4;
+}
+
+.crosshair {
+    @apply size-4 justify-self-center text-fg-muted;
+}
+
+.towns {
+    @apply flex items-center gap-2;
+}
+
+.townPips {
+    @apply flex gap-1;
+}
+
+.townPip {
+    @apply size-2.5 rounded-sm border border-fg-muted/40;
+}
+
+.townPipOn {
+    border-color: var(--side);
+    background: var(--side);
+}

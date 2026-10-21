@@ -1,0 +1,9 @@
+@reference "@/index.css";
+
+.main {
+    @apply flex flex-col items-start gap-4;
+}
+
+.section {
+    @apply flex flex-col gap-3;
+}

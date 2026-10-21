@@ -1,0 +1,9 @@
+@reference "@/index.css";
+
+.times {
+    @apply relative h-5;
+}
+
+.time {
+    @apply absolute top-0 -translate-x-1/2;
+}

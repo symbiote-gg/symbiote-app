@@ -1,0 +1,5 @@
+@reference "@/index.css";
+
+.trigger {
+    @apply inline-flex;
+}

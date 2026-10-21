@@ -1,0 +1,38 @@
+@reference "@/index.css";
+
+.tier {
+    @apply pointer-events-auto absolute -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[10px] whitespace-nowrap;
+}
+
+/* Opaque so the level line ends at the chip's border. */
+.tierAlly {
+    @apply top-0 text-team-blue;
+    background: color-mix(
+        in srgb,
+        var(--color-team-blue) 15%,
+        var(--color-surface)
+    );
+}
+
+.tierEnemy {
+    @apply bottom-0 text-team-red;
+    background: color-mix(
+        in srgb,
+        var(--color-team-red) 15%,
+        var(--color-surface)
+    );
+}
+
+.levelLine {
+    @apply pointer-events-none absolute w-0 border-l;
+}
+
+.levelLineAlly {
+    @apply top-0 border-team-blue/45 text-team-blue;
+    bottom: 50%;
+}
+
+.levelLineEnemy {
+    @apply bottom-0 border-team-red/45 text-team-red;
+    top: 50%;
+}

@@ -1,0 +1,61 @@
+@reference "@/index.css";
+
+.root {
+    @apply transition-colors hover:bg-surface-2/60;
+}
+
+.new {
+    @apply bg-primary/10 shadow-[inset_3px_0_0_var(--color-primary)] hover:bg-primary/15;
+}
+
+.badge {
+    @apply inline-block shrink-0 rounded-full bg-primary/20 px-1.5 text-[0.625rem] font-semibold tracking-wider text-primary-text uppercase;
+}
+
+.root .portrait {
+    @apply size-9;
+}
+
+.text {
+    @apply flex min-w-0 flex-1 items-center gap-2;
+}
+
+.text > :not(.title) {
+    @apply shrink-0;
+}
+
+.title {
+    @apply min-w-0;
+}
+
+.hero {
+    @apply text-[0.9375rem] font-semibold;
+}
+
+.map {
+    @apply ml-2 text-fg-muted;
+}
+
+.kda .kills {
+    @apply font-semibold text-fg;
+}
+
+.kda .slash {
+    @apply opacity-40;
+}
+
+.kda .deaths {
+    @apply text-loss/80;
+}
+
+.kda .deathless {
+    @apply text-win;
+}
+
+.topDamage {
+    @apply underline decoration-primary decoration-2 underline-offset-4;
+}
+
+.modeIcon {
+    @apply mr-1.5 inline-block align-[-2px] text-fg-muted;
+}

@@ -1,0 +1,21 @@
+@reference "@/index.css";
+
+.card {
+    @apply max-h-[48rem] lg:h-full lg:max-h-none;
+}
+
+.error {
+    @apply px-8 py-4 text-loss;
+}
+
+.track {
+    @apply relative;
+}
+
+.slot {
+    @apply absolute inset-x-0 top-0;
+}
+
+.skeleton {
+    @apply h-full border-b border-line/50 bg-surface-2/30;
+}

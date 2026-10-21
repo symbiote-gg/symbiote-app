@@ -1,0 +1,154 @@
+@reference "@/index.css";
+
+.dimmed {
+    @apply opacity-35;
+}
+
+.dimmed:hover,
+.dimmed:focus-visible,
+.dimmed.selected {
+    @apply opacity-100;
+}
+
+/* A box-shadow ring follows each shape's radius and leaves the outline to focus and selection */
+.mark.mine,
+.tick.mine .tickVisual {
+    box-shadow:
+        0 0 0 2px var(--color-surface),
+        0 0 0 4px var(--color-primary);
+}
+
+.tick {
+    @apply absolute z-10 flex size-7 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center outline-none;
+}
+
+.tickVisual {
+    @apply block;
+}
+
+.merged {
+    @apply size-2.5;
+}
+
+.tickBadge {
+    @apply relative flex size-[22px] items-center justify-center rounded-full border;
+    border-color: var(--side);
+    background: color-mix(in srgb, var(--side) 18%, var(--color-surface));
+    color: var(--side);
+}
+
+.tickBadge.merged {
+    @apply size-6;
+}
+
+.tickIcon {
+    @apply size-3.5;
+}
+
+/* Camps sit a step below kills: smaller and untinted. */
+.tickBadge.minor {
+    @apply size-[18px];
+    background: var(--color-surface);
+}
+
+.tickBadge.minor.merged {
+    @apply size-5;
+}
+
+.minor .tickIcon {
+    @apply size-3;
+}
+
+.tickCount {
+    @apply absolute -top-1.5 -right-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full border bg-surface-2 px-0.5 font-mono text-[9px] leading-none;
+    border-color: var(--side);
+    color: var(--side);
+}
+
+.ring {
+    @apply rounded-full border-[1.5px];
+    width: 9px;
+    height: 9px;
+    border-color: var(--side);
+}
+
+.tickBadge.spawn {
+    --side: #6e6582;
+}
+
+.mark {
+    @apply absolute z-10 inline-flex -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center gap-1 border text-xs font-semibold whitespace-nowrap text-fg outline-none;
+    border-color: var(--side);
+    background: color-mix(in srgb, var(--side) 18%, var(--color-surface));
+}
+
+.mark .glyph {
+    color: var(--side);
+}
+
+.glyph {
+    @apply size-3.5 shrink-0;
+}
+
+.kill {
+    @apply size-[22px] rounded-full;
+}
+
+.fight {
+    @apply rounded-full;
+    width: var(--size, 26px);
+    height: var(--size, 26px);
+}
+
+.fight .glyph {
+    width: calc(var(--size, 26px) * 0.55);
+    height: calc(var(--size, 26px) * 0.55);
+}
+
+.boss {
+    @apply size-[26px] rounded-full;
+}
+
+.fort {
+    @apply size-[26px] rounded-md;
+}
+
+.keep {
+    @apply size-8 rounded-lg;
+}
+
+.keep .glyph {
+    @apply size-4;
+}
+
+/* Centred by layout around --x rather than a -50% translate: the label makes
+   the width fractional, and a fractional translate blurs the border thicker
+   than the other marks'. */
+.objective {
+    @apply h-7 translate-x-0 rounded-md px-2;
+    left: calc(var(--x) - 300px);
+    right: calc(100% - var(--x) - 300px);
+    width: fit-content;
+    margin-inline: auto;
+}
+
+/* Between the resting items and the hover tooltip, so a hovered mark is never
+   hidden behind a neighbour. */
+.tick:hover,
+.tick:focus-visible,
+.tick.selected,
+.mark:hover,
+.mark:focus-visible,
+.mark.selected {
+    @apply z-[15];
+}
+
+.tick:focus-visible .tickVisual,
+.tick:focus-visible .spawn,
+.mark:focus-visible {
+    @apply outline-3 outline-offset-2 outline-primary-text;
+}
+
+.mark.selected {
+    @apply outline-2 outline-offset-2 outline-fg/60;
+}

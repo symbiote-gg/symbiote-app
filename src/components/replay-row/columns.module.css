@@ -1,0 +1,41 @@
+@reference "@/index.css";
+
+.row {
+    @apply @container block h-16 border-b border-line/50;
+}
+
+.inner {
+    @apply flex h-full items-center gap-4 px-8;
+}
+
+.game {
+    @apply flex min-w-0 flex-[3] basis-0 items-center gap-3;
+}
+
+.col {
+    @apply hidden flex-1 basis-0 text-right;
+}
+
+.inner .duration {
+    @apply min-w-14 @2xl:block;
+}
+
+.inner .kda {
+    @apply min-w-20 @4xl:block;
+}
+
+.inner .damage {
+    @apply min-w-24 @4xl:block;
+}
+
+.inner .mode {
+    @apply min-w-32 truncate @5xl:block;
+}
+
+.time {
+    @apply min-w-24 flex-1 basis-0 text-right;
+}
+
+.inner .result {
+    @apply w-20 shrink-0 text-center;
+}

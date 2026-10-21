@@ -1,0 +1,123 @@
+import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "use-intl";
+
+import type { ReplayPlayerDetail, TimelineEvent } from "@/api/replays";
+import { useHiddenFilters } from "@/hooks/useHiddenFilters";
+import { useMeFilter } from "@/hooks/useMeFilter";
+import { useTimelineText } from "@/hooks/useTimelineText";
+import { Card, Typography } from "@/ui";
+import { FILTERS, type Filter } from "@/utils/timeline/filters";
+import { levelCurves } from "@/utils/timeline/levels";
+import { buildMarkers, involves } from "@/utils/timeline/markers";
+import type { Marker } from "@/utils/timeline/types";
+import { Filters } from "./filters";
+import { Track } from "./track";
+
+import styles from "./styles.module.css";
+
+interface TimelineProps {
+    events: TimelineEvent[];
+    duration: number;
+    players: ReplayPlayerDetail[];
+    allyTeam: number;
+    ownerSlot: number | null;
+    ownerWin: boolean | null;
+}
+
+export function Timeline({
+    events,
+    duration,
+    players,
+    allyTeam,
+    ownerSlot,
+    ownerWin,
+}: TimelineProps) {
+    const t = useTranslations("replay.timeline");
+    const text = useTimelineText(players);
+    const [hidden, toggle] = useHiddenFilters();
+    const [me, toggleMe] = useMeFilter();
+    const [hoverTime, setHoverTime] = useState<number | null>(null);
+    const [selected, setSelected] = useState<Marker | null>(null);
+
+    const markers = useMemo(
+        () => buildMarkers(events, duration, allyTeam),
+        [events, duration, allyTeam],
+    );
+    const curves = useMemo(
+        () => levelCurves(events, allyTeam),
+        [events, allyTeam],
+    );
+
+    const counts = useMemo(() => {
+        const counts: Record<Filter, number> = {
+            fights: 0,
+            objectives: 0,
+            structures: 0,
+            camps: 0,
+        };
+        for (const marker of markers) counts[marker.filter]++;
+        return counts;
+    }, [markers]);
+
+    const disabled = new Set<Filter>(
+        markers.some((marker) => marker.filter === "objectives")
+            ? []
+            : ["objectives"],
+    );
+    const shown = (filter: Filter) =>
+        !hidden.has(filter) && !disabled.has(filter);
+    const visible = markers.filter((marker) => shown(marker.filter));
+    const meCount =
+        ownerSlot === null
+            ? 0
+            : markers.filter((marker) => involves(marker, ownerSlot)).length;
+
+    useEffect(() => {
+        if (!selected) return;
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setSelected(null);
+        };
+        document.addEventListener("keydown", onKeyDown);
+        return () => document.removeEventListener("keydown", onKeyDown);
+    }, [selected]);
+
+    const onToggle = (filter: Filter) => {
+        toggle(filter);
+        if (selected?.filter === filter) setSelected(null);
+    };
+
+    return (
+        <Card className={styles.timeline}>
+            <header className={styles.header}>
+                <Typography size="xl2" weight="semibold" display>
+                    {t("title")}
+                </Typography>
+                <Filters
+                    hidden={hidden}
+                    disabled={disabled}
+                    counts={counts}
+                    me={me}
+                    meDisabled={ownerSlot === null}
+                    meCount={meCount}
+                    onToggle={onToggle}
+                    onToggleMe={toggleMe}
+                />
+            </header>
+            <Track
+                markers={visible}
+                curves={curves}
+                duration={duration}
+                players={players}
+                allyTeam={allyTeam}
+                highlightSlot={me ? ownerSlot : null}
+                winner={ownerWin === null ? null : ownerWin ? "ally" : "enemy"}
+                text={text}
+                hoverTime={hoverTime}
+                selectedId={selected?.id ?? null}
+                empty={FILTERS.every((filter) => !shown(filter))}
+                onHover={setHoverTime}
+                onSelect={setSelected}
+            />
+        </Card>
+    );
+}

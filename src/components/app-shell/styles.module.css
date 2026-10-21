@@ -1,0 +1,53 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex h-full flex-col;
+}
+
+.header {
+    @apply flex h-17 shrink-0 select-none items-center gap-6 border-b border-line bg-bg/90 px-10 backdrop-blur;
+}
+
+.brand {
+    @apply flex items-center gap-3;
+}
+
+.logo {
+    @apply size-8;
+}
+
+.clinger {
+    @apply fill-brand-orange;
+}
+
+.core {
+    @apply fill-primary;
+}
+
+.wordmark {
+    @apply font-display text-base font-bold tracking-[0.3em] uppercase;
+}
+
+.suffix {
+    @apply text-brand-orange;
+}
+
+.nav {
+    @apply flex items-center gap-1;
+}
+
+.link {
+    @apply rounded-lg px-3.5 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:text-fg;
+}
+
+.active {
+    @apply bg-primary/25 text-primary-text hover:text-primary-text;
+}
+
+.about {
+    @apply ml-auto;
+}
+
+.content {
+    @apply min-h-0 flex-1 overflow-y-auto overscroll-contain;
+}

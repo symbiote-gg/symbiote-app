@@ -1,0 +1,222 @@
+{
+    "nav": {
+        "home": "Home",
+        "replays": "Replays",
+        "profile": "Profile",
+        "heroes": "Heroes",
+        "about": "About"
+    },
+    "home": {
+        "replays": {
+            "title": "Replays",
+            "subtitle": "{total, plural, one {# game} other {# games}}, {new} new today",
+            "all": "All replays",
+            "empty": "No replays yet. Play a game and it shows up here."
+        },
+        "profile": {
+            "title": "Profile",
+            "subtitle": "You across all heroes",
+            "last": "Last {count} games",
+            "winRate": "Win rate",
+            "mainRole": "Main role",
+            "mvps": "MVPs",
+            "topDamage": "Top hero damage on your team in <b>{pct}%</b> of games.",
+            "empty": "Your stats show up after your first game.",
+            "cta": "View profile"
+        },
+        "heroes": {
+            "title": "Heroes",
+            "played": "{played} of {total} played",
+            "empty": "No heroes played yet.",
+            "columns": {
+                "hero": "Hero",
+                "winRate": "Win rate",
+                "games": "Games"
+            },
+            "cta": "All heroes"
+        }
+    },
+    "replays": {
+        "title": "Replays",
+        "refresh": "Refresh",
+        "count": "{count, plural, one {# game} other {# games}}"
+    },
+    "replayRow": {
+        "new": "New",
+        "topDamage": "Top 10% of your {hero} games",
+        "columns": {
+            "game": "Game",
+            "mode": "Mode",
+            "kda": "K/A/D",
+            "heroDamage": "Hero dmg",
+            "length": "Length",
+            "played": "Played",
+            "result": "Result"
+        }
+    },
+    "replay": {
+        "back": "← Back to replays",
+        "result": "{result, select, win {Victory} loss {Defeat} other {-}}",
+        "level": "Lv {level}",
+        "team": "{side, select, ally {Your team} other {Enemy team}}",
+        "kills": "{kills, plural, one {# kill} other {# kills}}",
+        "teamTotal": "Team total",
+        "player": "Player",
+        "kda": "K/A/D",
+        "heroDamage": "Hero dmg",
+        "siegeDamage": "Siege dmg",
+        "healing": "Healing",
+        "xpContribution": "XP",
+        "talents": "Talents",
+        "talentLevel": "Level {level}",
+        "you": "You",
+        "timeline": {
+            "title": "Timeline",
+            "side": {
+                "ally": "Your team",
+                "enemy": "Enemy"
+            },
+            "team": "{side, select, ally {Your team} enemy {Enemy} other {-}}",
+            "filter": {
+                "label": "Show on timeline",
+                "fights": "Fights",
+                "objectives": "Objectives",
+                "structures": "Structures",
+                "camps": "Camps",
+                "me": "Me"
+            },
+            "empty": {
+                "filtered": "Nothing selected"
+            },
+            "tier": {
+                "ahead": "Lv{level} +{seconds}s",
+                "reached": "Lv{level}"
+            },
+            "at": "{time}, {label}",
+            "range": "{start} - {end}",
+            "events": "{count} events",
+            "death": "{victim} killed by {killers}",
+            "deathNoKiller": "{victim} died",
+            "fight": "Fight {ally}-{enemy}",
+            "camp": "{camp} captured",
+            "campUnknown": "Camp captured",
+            "fort": "Fort destroyed",
+            "keep": "Keep destroyed",
+            "objectiveCount": "{label} ×{count}",
+            "objective": {
+                "shrine": "Shrine",
+                "punisher": "Punisher",
+                "frozen": "Frozen",
+                "arcane": "Arcane",
+                "bombard": "Bombard",
+                "immortal": "Immortal",
+                "ghostShip": "Ghost ship",
+                "spiders": "Webweavers",
+                "curse": "Curse",
+                "tribute": "Tribute",
+                "dragonKnight": "Dragon Knight",
+                "golem": "Golems",
+                "temple": "Temple",
+                "altar": "Altar",
+                "allAltars": "All altars",
+                "protector": "Protector",
+                "zergWave": "Zerg wave",
+                "cavalry": "Cavalry",
+                "terror": "Garden Terror",
+                "nuke": "Nuke",
+                "payload": "Payload",
+                "nukePickup": "Nuke picked up",
+                "nukeDrop": "Nuke dropped",
+                "nukesSpawned": "Nukes spawned",
+                "pointSpawned": "Control point",
+                "bossDuel": "Boss duel"
+            },
+            "detail": {
+                "time": "Time",
+                "score": "Score",
+                "siegeDamage": "Siege dmg",
+                "heroDamage": "Hero dmg",
+                "camp": "Camp",
+                "capturer": "Captured by",
+                "capture": "Capture",
+                "seconds": "{value}s",
+                "percent": "{value}%",
+                "nth": "#{nth}"
+            },
+            "fightRange": "{start}-{end} ({seconds}s)",
+            "offset": "+{seconds}s",
+            "assists": "Assists: {heroes}",
+            "noKillingBlow": "No hero landed the killing blow",
+            "noHeroCredit": "No heroes nearby",
+            "gatesOpen": "Gates open",
+            "gameEnded": "{side, select, ally {Victory} enemy {Defeat} other {Game ended}}",
+            "structureTitle": "{keep, select, true {Keep} other {Fort}}",
+            "structureResult": "{side, select, ally {Destroyed} other {Lost}}",
+            "campTitle": "Camp",
+            "campGroup": "{count, plural, one {# camp} other {# camps}}",
+            "campResult": "{side, select, ally {Captured} enemy {Enemy captured} other {Captured}}",
+            "lane": "{lane, select, top {Top lane} middle {Middle lane} bottom {Bottom lane} other {Lane}}",
+            "fightKind": "{kind, select, pick {Pick} gank {Gank} skirmish {Skirmish} teamFight {Team fight} other {Fight}}",
+            "fightResult": "{result, select, ally {Won} enemy {Lost} other {Traded}} {ally}-{enemy}",
+            "raceResult": "{kind, select, golem {{side, select, ally {Stronger} enemy {Enemy stronger} other {Even}}} wave {{side, select, ally {Yours stronger} enemy {Enemy stronger} other {Even}}} capture {{side, select, ally {Captured} other {Lost}}} curse {{side, select, ally {Cursed enemy} other {Cursed by enemy}}} ship {{side, select, ally {Bought} other {Enemy bought}}} gems {{side, select, ally {Summoned} other {Enemy summoned}}} temple {{side, select, ally {Siege damage} other {Enemy siege damage}}} other {{side, select, ally {Won} other {Lost}}}}",
+            "summonTitle": "{label, select, punisher {Punisher} other {{name} punisher}}",
+            "summonSpawn": "spawn {time}",
+            "summonDied": "died {time}",
+            "knightActivated": "activated {time}",
+            "knightTakedowns": "Takedowns",
+            "knightStructures": "Structures",
+            "knightPilot": "Piloted by {hero}",
+            "knightAlive": "Alive at the end",
+            "summonSiege": "Siege",
+            "summonHeroes": "Heroes",
+            "summonImpact": "{impact, select, big {Big push} solid {Solid push} other {Low impact}}",
+            "duelResult": "{side, select, ally {Won} other {Enemy won}}",
+            "duelRange": "{start}-{end} {length} fight",
+            "altarResult": "{side, select, ally {Captured} other {Enemy captured}}",
+            "altarTowns": "Towns",
+            "altarCore": "Enemy core",
+            "altarHits": "{hits, plural, one {# core hit} other {# core hits}}",
+            "heldResult": "{side, select, ally {Held} other {Enemy held}}",
+            "heldTook": "took all {time}",
+            "heldLost": "lost one {time}",
+            "heldFor": "Held {seconds}s",
+            "duelDead": "dead",
+            "duelPush": "{push, select, strong {Strong push} solid {Solid push} other {Weak push}}",
+            "duelPower": "power {value}%"
+        }
+    },
+    "result": {
+        "win": "Victory",
+        "loss": "Defeat",
+        "unknown": "-"
+    },
+    "modes": {
+        "quick_match": "Quick Match",
+        "versus_ai": "Versus AI",
+        "brawl": "Brawl",
+        "unranked_draft": "Unranked Draft",
+        "hero_league": "Hero League",
+        "team_league": "Team League",
+        "storm_league": "Storm League",
+        "aram": "ARAM",
+        "custom": "Custom",
+        "unknown": "Unknown"
+    },
+    "roles": {
+        "tank": "Tank",
+        "bruiser": "Bruiser",
+        "healer": "Healer",
+        "support": "Support",
+        "melee_assassin": "Melee Assassin",
+        "ranged_assassin": "Ranged Assassin"
+    },
+    "about": {
+        "title": "About",
+        "version": "Version {version}",
+        "blizzard": "Blizzard content"
+    },
+    "dates": {
+        "yesterday": "Yesterday"
+    },
+    "comingSoon": "Coming soon"
+}

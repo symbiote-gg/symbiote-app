@@ -1,0 +1,38 @@
+@reference "@/index.css";
+
+.root {
+    @apply max-h-[28rem] shrink-0 lg:max-h-none lg:min-h-64 lg:flex-1 lg:shrink;
+}
+
+.list {
+    @apply flex flex-col gap-2 px-8 pt-3 pb-6;
+}
+
+.row {
+    @apply grid grid-cols-[auto_minmax(0,1fr)_8.5rem_3rem] items-center gap-3;
+}
+
+.head {
+    @apply shrink-0 grid-cols-[minmax(0,1fr)_8.5rem_3rem] overflow-y-hidden border-y border-line bg-surface-2/40 px-8 py-2;
+    scrollbar-gutter: stable;
+}
+
+.head .heading {
+    @apply font-semibold tracking-[0.15em] uppercase;
+}
+
+.rate {
+    @apply flex items-center justify-end gap-3;
+}
+
+.head .rate {
+    @apply text-right;
+}
+
+.pct {
+    @apply w-9 text-right;
+}
+
+.games {
+    @apply text-right;
+}

@@ -1,0 +1,34 @@
+{
+    "tabWidth": 4,
+    "useTabs": false,
+    "proseWrap": "always",
+    "semi": true,
+    "plugins": ["@trivago/prettier-plugin-sort-imports"],
+    "importOrder": [
+        "<BUILTIN_MODULES>",
+        "<THIRD_PARTY_MODULES>",
+        "<SEPARATOR>",
+        "^@/(?!.*\\.css$).*$",
+        "^[./](?!.*\\.css$).*$",
+        "<SEPARATOR>",
+        "^.+\\.css$"
+    ],
+    "importOrderSeparation": true,
+    "importOrderSortSpecifiers": true,
+    "overrides": [
+        {
+            "files": ["*.yaml", "*.yml", "*.md"],
+            "options": {
+                "printWidth": 80,
+                "proseWrap": "always",
+                "tabWidth": 2
+            }
+        },
+        {
+            "files": ["*.json", ".prettierrc"],
+            "options": {
+                "trailingComma": "none"
+            }
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+@reference "@/index.css";
+
+.header {
+    @apply mb-3 flex items-center gap-2.5 border-b border-line pb-3;
+}
+
+.header:last-child {
+    @apply mb-0 border-b-0 pb-0;
+}
+
+.icon {
+    @apply size-5 shrink-0;
+    color: var(--side, var(--color-fg-muted));
+}

@@ -1,0 +1,9 @@
+node_modules
+dist
+pnpm-lock.yaml
+.tanstack
+/replays
+public/game
+src-tauri/target
+src-tauri/gen
+src-tauri/data

@@ -1,0 +1,25 @@
+@reference "@/index.css";
+
+.root {
+    @apply shrink-0;
+}
+
+.body {
+    @apply flex flex-col gap-8 px-8 pt-2 pb-7;
+}
+
+.recent {
+    @apply flex flex-col gap-3;
+}
+
+.recentLabels {
+    @apply flex items-baseline justify-between;
+}
+
+.recentLabels .eyebrow {
+    @apply font-semibold tracking-[0.2em] uppercase;
+}
+
+.stats {
+    @apply flex flex-col overflow-hidden rounded-xl bg-surface-2/70;
+}

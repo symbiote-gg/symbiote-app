@@ -1,0 +1,17 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex min-w-0 items-center justify-between gap-4 border-b border-line/60 px-4 py-3 last:border-b-0;
+}
+
+.label {
+    @apply shrink-0 font-semibold tracking-[0.2em] uppercase;
+}
+
+.root .value {
+    @apply text-xl leading-none font-bold;
+}
+
+.root .mvp {
+    @apply text-mvp;
+}

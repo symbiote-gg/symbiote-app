@@ -1,0 +1,3 @@
+# Runtime env for `cargo run` / `tauri dev` only, never compiled into the binary.
+[env]
+SYMBIOTE_ACCOUNTS_DIR = { value = "../replays/Accounts", relative = true }

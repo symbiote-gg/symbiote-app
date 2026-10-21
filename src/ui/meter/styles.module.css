@@ -1,0 +1,21 @@
+@reference "@/index.css";
+
+.root {
+    @apply block h-1 w-20 overflow-hidden rounded-full bg-surface-2;
+}
+
+.fill {
+    @apply block h-full rounded-full;
+}
+
+.high {
+    @apply bg-win;
+}
+
+.mid {
+    @apply bg-fg-muted;
+}
+
+.low {
+    @apply bg-warn;
+}

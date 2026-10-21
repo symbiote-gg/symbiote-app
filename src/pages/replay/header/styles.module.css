@@ -1,0 +1,128 @@
+@reference "@/index.css";
+
+.root {
+    --tone: var(--color-fg-muted);
+    @apply relative flex min-h-80 items-stretch self-stretch overflow-hidden rounded-xl border;
+    border-color: color-mix(in oklab, var(--tone) 40%, var(--color-line));
+}
+
+.win {
+    --tone: var(--color-win);
+}
+
+.loss {
+    --tone: var(--color-loss);
+}
+
+.art {
+    @apply absolute inset-0 size-full object-cover object-top;
+}
+
+.shade {
+    @apply absolute inset-0;
+    background:
+        linear-gradient(
+            to top,
+            color-mix(in oklab, var(--color-bg) 85%, transparent) 0%,
+            color-mix(in oklab, var(--color-bg) 30%, transparent) 45%,
+            transparent 70%
+        ),
+        linear-gradient(
+            to right,
+            color-mix(in oklab, var(--color-bg) 75%, transparent),
+            transparent 45%
+        ),
+        linear-gradient(
+            to left,
+            color-mix(in oklab, var(--color-bg) 60%, transparent),
+            transparent 35%
+        );
+}
+
+.glow {
+    @apply absolute inset-0;
+    background: radial-gradient(
+        ellipse 55% 70% at 0% 100%,
+        color-mix(in oklab, var(--tone) 25%, transparent),
+        transparent
+    );
+}
+
+.content {
+    @apply relative flex w-full flex-col justify-between gap-16 px-6 pt-5 pb-6;
+}
+
+.back {
+    @apply self-start;
+}
+
+.summary {
+    @apply flex flex-wrap items-end justify-between gap-6;
+}
+
+.identity {
+    @apply flex min-w-0 flex-1 items-center gap-5;
+}
+
+.portrait {
+    @apply relative shrink-0;
+}
+
+.portrait .portraitImage {
+    @apply ring-2;
+    --tw-ring-color: var(--tone);
+}
+
+.portrait .level {
+    @apply absolute -right-1 -bottom-1 rounded-full border border-line bg-bg px-1.5 py-0.5 text-[10px] leading-none;
+}
+
+.text {
+    @apply flex min-w-0 flex-1 flex-col gap-2;
+}
+
+.text .title {
+    @apply text-4xl leading-none sm:text-5xl;
+}
+
+.meta {
+    @apply flex flex-wrap items-center gap-2;
+}
+
+.meta .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-bg/60 px-2.5 py-1 text-fg;
+}
+
+.meta .chip svg {
+    @apply size-4 text-fg-muted;
+}
+
+.outcome {
+    @apply flex flex-col items-end gap-2 text-right;
+}
+
+.outcome .result {
+    @apply text-4xl leading-none font-bold tracking-wider;
+    color: var(--tone);
+    text-shadow: 0 0 24px color-mix(in oklab, var(--tone) 45%, transparent);
+}
+
+.stats {
+    @apply mt-1 flex flex-wrap justify-end gap-2;
+}
+
+.stat {
+    @apply flex flex-col items-start gap-0.5 rounded-md border border-line bg-bg/70 px-3 py-1.5 text-left;
+}
+
+.stat .statLabel {
+    @apply text-[10px] tracking-[0.15em];
+}
+
+.stat .statValue {
+    @apply text-base leading-none;
+}
+
+.awards {
+    @apply flex flex-wrap justify-end gap-1.5;
+}

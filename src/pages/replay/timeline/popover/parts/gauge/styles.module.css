@@ -1,0 +1,30 @@
+@reference "@/index.css";
+
+.badge {
+    @apply flex size-8 shrink-0 items-center justify-center rounded-full border-2;
+    border-color: var(--side);
+    color: var(--side);
+}
+
+.badge svg {
+    @apply size-4;
+}
+
+.track {
+    @apply h-1.5 w-44 overflow-hidden rounded-full;
+    background: color-mix(in srgb, var(--side) 15%, transparent);
+}
+
+.fill {
+    @apply block h-full rounded-full;
+    background: var(--side);
+}
+
+/* The trailing team reads as the weaker one at a glance. */
+.faded {
+    @apply opacity-55;
+}
+
+.value {
+    @apply ml-auto min-w-10 text-right;
+}

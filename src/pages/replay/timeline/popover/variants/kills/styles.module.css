@@ -1,0 +1,81 @@
+@reference "@/index.css";
+
+/* One grid for every row, which joins it as a subgrid to keep its own tint, so
+   all rows are as wide as the widest and the swords line up. The column gap
+   lives here: WebKit sizes the tracks without a gap set on the subgrid, which
+   lets a wide assist stack run under the sword. */
+.kills {
+    @apply grid grid-cols-[auto_minmax(1.5rem,1fr)_auto] gap-x-2.5 gap-y-1.5;
+}
+
+.offsets {
+    @apply grid-cols-[auto_auto_minmax(1.5rem,1fr)_auto];
+}
+
+.row {
+    @apply col-span-full grid grid-cols-subgrid items-center rounded-md py-1.5;
+    background: color-mix(in srgb, var(--side, transparent) 8%, transparent);
+}
+
+/* Inset with margins, not padding: WebKit leaves a subgrid's padding out of the
+   track sizes, which pushed the victim past the row's edge. */
+.row > :first-child {
+    @apply ml-2.5;
+}
+
+.row > :last-child {
+    @apply mr-2.5;
+}
+
+.offset {
+    @apply font-mono text-xs text-fg-muted;
+}
+
+.noKiller {
+    @apply flex size-8 shrink-0 items-center justify-center rounded-full bg-surface text-fg-muted ring-2;
+    --tw-ring-color: var(--side, var(--color-fg-muted));
+}
+
+.tileIcon {
+    @apply size-4;
+}
+
+.killer {
+    @apply flex items-center gap-2.5;
+}
+
+.assists {
+    @apply flex cursor-default -space-x-1.5;
+}
+
+.sword {
+    @apply size-4 justify-self-center text-fg-muted;
+}
+
+/* The ring sits on a wrapper: on the filtered element itself, WebKit clips the
+   ring's box-shadow. */
+.victim,
+.structure {
+    @apply flex shrink-0 ring-2 ring-fg-muted/60;
+}
+
+.victim {
+    @apply rounded-full;
+}
+
+.structure {
+    @apply size-8 items-center justify-center rounded-md bg-surface text-fg-muted;
+}
+
+.mine {
+    @apply ring-2 ring-primary;
+}
+
+.fallen {
+    @apply grayscale-100 transition-[filter];
+}
+
+.victim:hover .fallen,
+.structure:hover .fallen {
+    @apply grayscale-0;
+}

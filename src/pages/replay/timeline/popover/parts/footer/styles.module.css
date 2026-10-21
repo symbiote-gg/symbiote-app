@@ -1,0 +1,9 @@
+@reference "@/index.css";
+
+.footer {
+    @apply flex items-center justify-between gap-4 px-1 pt-2;
+}
+
+.footer .strong {
+    color: var(--side);
+}

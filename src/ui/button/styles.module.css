@@ -1,0 +1,13 @@
+@reference "@/index.css";
+
+.root {
+    @apply inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-lg px-4.5 py-2.5 text-sm font-semibold whitespace-nowrap transition disabled:cursor-default disabled:opacity-50;
+}
+
+.primary {
+    @apply bg-primary text-primary-ink hover:brightness-110 disabled:hover:brightness-100;
+}
+
+.secondary {
+    @apply border border-line bg-surface-2 text-fg hover:border-fg-muted/40 disabled:hover:border-line;
+}

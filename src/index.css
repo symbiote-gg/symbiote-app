@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+    --color-bg: #0d0a13;
+    --color-surface: #15111d;
+    --color-surface-2: #201a2b;
+    --color-line: #2a2338;
+    --color-fg: #ede9f5;
+    --color-fg-muted: #9a90ad;
+
+    --color-primary: #7733ff;
+    --color-primary-ink: #ffffff;
+    --color-primary-text: #af7aff;
+    --color-brand-orange: #f59a3d;
+
+    --color-win: #1fb86a;
+    --color-loss: #f46670;
+    --color-team-blue: #3d8bff;
+    --color-team-red: #ff4d4d;
+    --color-warn: #e8c547;
+    --color-mvp: #ffd27a;
+
+    --font-sans: "Inter Variable", Inter, system-ui, sans-serif;
+    --font-display: "Saira Variable", "Inter Variable", system-ui, sans-serif;
+    --font-mono:
+        "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+
+    --shadow-glow: 0 0 12px rgb(119 51 255 / 0.45);
+}
+
+@layer base {
+    :root {
+        color-scheme: dark;
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-line) transparent;
+    }
+
+    html,
+    body,
+    #root {
+        @apply h-full overflow-hidden;
+    }
+
+    body {
+        @apply bg-bg font-sans text-fg antialiased;
+    }
+
+    *,
+    ::before,
+    ::after {
+        border-color: var(--color-line);
+    }
+
+    :focus-visible {
+        @apply shadow-glow outline-2 outline-offset-2 outline-primary-text;
+    }
+}

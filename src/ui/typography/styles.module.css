@@ -1,0 +1,61 @@
+@reference "@/index.css";
+
+.root {
+    @apply font-sans;
+}
+
+.uppercase {
+    @apply uppercase;
+}
+
+.noWrap {
+    @apply whitespace-nowrap;
+}
+
+.truncate {
+    @apply truncate;
+}
+
+.xs {
+    @apply text-xs;
+}
+
+.sm {
+    @apply text-sm;
+}
+
+.base {
+    @apply text-base;
+}
+
+.lg {
+    @apply text-lg;
+}
+
+.xl2 {
+    @apply text-2xl;
+}
+
+.primary {
+    @apply text-fg;
+}
+
+.secondary {
+    @apply text-fg-muted;
+}
+
+.regular {
+    @apply font-normal;
+}
+
+.semibold {
+    @apply font-semibold;
+}
+
+.mono {
+    @apply font-mono;
+}
+
+.display {
+    @apply font-display;
+}

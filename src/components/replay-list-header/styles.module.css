@@ -1,0 +1,10 @@
+@reference "@/index.css";
+
+.root {
+    @apply h-9 shrink-0 overflow-y-hidden bg-surface-2;
+    scrollbar-gutter: stable;
+}
+
+.root .heading {
+    @apply font-semibold tracking-wider;
+}

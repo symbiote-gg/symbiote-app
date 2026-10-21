@@ -1,0 +1,5 @@
+@reference "@/index.css";
+
+.root {
+    @apply px-8 pb-7;
+}

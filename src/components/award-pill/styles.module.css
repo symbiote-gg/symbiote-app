@@ -1,0 +1,17 @@
+@reference "@/index.css";
+
+.root {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-fg/15 bg-fg/8 py-0.5 pr-2.5 pl-0.5;
+}
+
+.mvp {
+    @apply border-mvp/40 bg-mvp/15 text-mvp;
+}
+
+.mvp .label {
+    color: inherit;
+}
+
+.root .icon {
+    @apply size-6 rounded-full;
+}

@@ -1,0 +1,29 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex gap-1;
+}
+
+.trigger {
+    @apply min-w-0 flex-1;
+}
+
+.cell {
+    @apply aspect-square min-w-0 flex-1 rounded-[3px] border;
+}
+
+.win {
+    @apply border-win bg-win/90;
+}
+
+.loss {
+    @apply border-loss/80 bg-loss/25;
+}
+
+.unknown {
+    @apply border-line bg-surface-2;
+}
+
+.empty {
+    @apply border-dashed border-line;
+}

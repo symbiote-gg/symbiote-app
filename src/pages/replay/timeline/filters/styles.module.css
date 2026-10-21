@@ -1,0 +1,49 @@
+@reference "@/index.css";
+
+.filters {
+    @apply ml-auto flex flex-wrap gap-1 rounded-lg border border-line bg-bg p-1;
+}
+
+.chip {
+    @apply inline-flex cursor-pointer items-center gap-2 rounded-md border border-transparent px-3 py-1.5 text-sm font-semibold text-fg-muted transition-colors;
+}
+
+.chipIcon {
+    @apply size-4 shrink-0;
+}
+
+.chipCount {
+    @apply font-mono text-xs font-normal text-fg-muted;
+}
+
+.chipOn {
+    @apply bg-surface-2 text-fg;
+}
+
+.chipOff {
+    @apply text-fg-muted/70;
+}
+
+.chip:not(.chipOn):hover:enabled {
+    @apply bg-surface-2/50;
+}
+
+.chip:disabled {
+    @apply cursor-not-allowed border-dashed border-line opacity-50;
+}
+
+.chip:focus-visible {
+    @apply outline-3 outline-primary-text;
+}
+
+.chipMe.chipOn {
+    @apply bg-primary/20 text-primary-text;
+}
+
+.chipMe.chipOn .chipCount {
+    @apply text-primary-text/70;
+}
+
+.filterDivider {
+    @apply mx-0.5 w-px self-stretch bg-line;
+}

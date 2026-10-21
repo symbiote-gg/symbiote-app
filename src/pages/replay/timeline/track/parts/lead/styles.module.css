@@ -1,0 +1,23 @@
+@reference "@/index.css";
+
+.lead {
+    @apply pointer-events-none absolute inset-0 block size-full overflow-visible;
+}
+
+.leadAlly {
+    @apply fill-team-blue;
+    fill-opacity: 0.11;
+}
+
+.leadEnemy {
+    @apply fill-team-red;
+    fill-opacity: 0.11;
+}
+
+.leadLine {
+    fill: none;
+    stroke: rgb(255 255 255 / 0.22);
+    stroke-width: 1.5px;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}

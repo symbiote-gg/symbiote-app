@@ -1,0 +1,11 @@
+.ally {
+    --side: var(--color-team-blue);
+}
+
+.enemy {
+    --side: var(--color-team-red);
+}
+
+.neutral {
+    --side: var(--color-fg-muted);
+}

@@ -1,0 +1,28 @@
+@reference "@/index.css";
+
+.headerText {
+    @apply flex min-w-0 flex-1 flex-col gap-0.5;
+}
+
+.headerTitle {
+    @apply flex items-center gap-3;
+}
+
+.headerTag {
+    @apply ml-auto shrink-0 rounded border px-1.5 py-0.5 leading-none;
+    color: var(--side, var(--color-fg-muted));
+    background: color-mix(
+        in srgb,
+        var(--side, var(--color-fg-muted)) 15%,
+        transparent
+    );
+    border-color: color-mix(
+        in srgb,
+        var(--side, var(--color-fg-muted)) 40%,
+        transparent
+    );
+}
+
+.headerMeta {
+    @apply flex items-baseline justify-between gap-3;
+}

@@ -1,0 +1,33 @@
+@reference "@/index.css";
+
+.root {
+    @apply shrink-0 rounded-full object-cover;
+}
+
+.xs {
+    @apply size-6 text-[10px];
+}
+
+.sm {
+    @apply size-8 text-xs;
+}
+
+.md {
+    @apply size-10 text-sm;
+}
+
+.lg {
+    @apply size-24 text-2xl;
+}
+
+.highlight {
+    @apply ring-2 ring-mvp;
+}
+
+.fallback {
+    @apply inline-flex items-center justify-center bg-surface-2 font-semibold text-fg-muted uppercase;
+}
+
+.fallback.highlight {
+    @apply bg-mvp/10 text-mvp;
+}

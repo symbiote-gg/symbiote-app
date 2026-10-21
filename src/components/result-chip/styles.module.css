@@ -1,0 +1,25 @@
+@reference "@/index.css";
+
+.root {
+    @apply inline-flex min-w-14 items-center justify-center rounded border px-2 py-0.5 tracking-wider;
+}
+
+.lg {
+    @apply rounded-lg px-4 py-1;
+}
+
+.root .label {
+    color: inherit;
+}
+
+.win {
+    @apply border-win/40 bg-win/15 text-win;
+}
+
+.loss {
+    @apply border-loss/40 bg-loss/15 text-loss;
+}
+
+.unknown {
+    @apply border-line bg-surface-2 text-fg-muted;
+}
