@@ -1,6 +1,6 @@
 [package]
 name = "symbiote-app"
-version = "0.1.1"
+version = "0.1.2"
 description = "Heroes of the Storm replay tracker"
 authors = ["guerrap"]
 edition = "2021"
