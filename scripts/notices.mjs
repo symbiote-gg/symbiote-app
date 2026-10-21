@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { writeJson } from "./assets/io.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const OUTPUT = join(ROOT, "public/licenses.json");
+const OUTPUT = join(ROOT, "src/generated/licenses.json");
 const LICENSE_FILE = /^(licen[cs]e|copying|notice)/i;
 
 const run = (cmd, args, cwd = ROOT) =>

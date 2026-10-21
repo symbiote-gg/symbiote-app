@@ -12,7 +12,5 @@ export type ThirdPartyLicenses = {
 };
 
 export async function getThirdPartyLicenses(): Promise<ThirdPartyLicenses> {
-    const res = await fetch("/licenses.json");
-    if (!res.ok) throw new Error(`${res.status} /licenses.json`);
-    return res.json();
+    return (await import("@/generated/licenses.json")).default;
 }
