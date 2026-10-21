@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-21
+
+### Added
+
+- Fix failing `notices` script on CI.
+
 ## [0.1.1] - 2026-10-21
 
 ### Added
