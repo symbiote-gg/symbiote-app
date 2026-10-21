@@ -4042,7 +4042,7 @@ dependencies = [
 
 [[package]]
 name = "symbiote-app"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "heck 0.5.0",
