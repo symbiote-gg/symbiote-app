@@ -11,7 +11,9 @@
         "preview": "vite preview",
         "tauri": "tauri",
         "lint": "prettier --check .",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "commitlint": "commitlint -e",
+        "prepare": "husky"
     },
     "dependencies": {
         "@floating-ui/react-dom": "^2.1.9",
@@ -30,12 +32,15 @@
         "wouter": "^3.13.0"
     },
     "devDependencies": {
+        "@commitlint/cli": "^21.2.3",
+        "@commitlint/config-conventional": "^21.2.3",
         "@tailwindcss/vite": "^4.3.3",
         "@tauri-apps/cli": "^2",
         "@trivago/prettier-plugin-sort-imports": "^6.0.2",
         "@types/react": "^19.1.8",
         "@types/react-dom": "^19.1.6",
         "@vitejs/plugin-react": "^6.0.2",
+        "husky": "^9.1.7",
         "prettier": "^3.9.6",
         "sharp": "^0.35.5",
         "tailwindcss": "^4.3.3",

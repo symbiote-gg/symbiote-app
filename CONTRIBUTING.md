@@ -18,6 +18,13 @@ are downloaded automatically. Run `pnpm assets` once by hand before using
 On Linux, point the app at a folder of replays with `SYMBIOTE_ACCOUNTS_DIR`. On
 Windows it finds `Documents/Heroes of the Storm/Accounts` by itself.
 
+## Commits
+
+`pnpm install` sets up git hooks with husky. Before each commit they run
+`pnpm lint` (Prettier check; fix with `pnpm format`) and check the message
+against [Conventional Commits](https://www.conventionalcommits.org/), e.g.
+`feat: show talent builds` or `fix(ingester): skip corrupt replays`.
+
 ## Updating the hero data pins
 
 Hero data and images come from the pins in
