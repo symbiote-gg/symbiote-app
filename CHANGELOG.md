@@ -8,6 +8,13 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-21
+
+### Added
+
+- Remove fetch for `licenses.json` that was causing a load error for the
+  licenses in the `about` page.
+
 ## [0.1.2] - 2026-10-21
 
 ### Added
