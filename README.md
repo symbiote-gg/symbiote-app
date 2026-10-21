@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/static/logo.svg" alt="SymbioteGG logo" width="128" />
+</p>
+
 # SymbioteGG
 
 A free desktop app for browsing your own replays. Built with Tauri, React and
