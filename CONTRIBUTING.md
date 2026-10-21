@@ -25,6 +25,24 @@ Windows it finds `Documents/Heroes of the Storm/Accounts` by itself.
 against [Conventional Commits](https://www.conventionalcommits.org/), e.g.
 `feat: show talent builds` or `fix(ingester): skip corrupt replays`.
 
+## Releasing
+
+Releases are built for Windows by the [`publish`](.github/workflows/publish.yml)
+workflow, run by hand.
+
+1. Bump `version` in [`package.json`](package.json). The app reads its version
+   from there, so there's no need to touch `src-tauri/tauri.conf.json` or
+   `src-tauri/Cargo.toml`.
+
+2. Commit and push, e.g. `v0.2.0`.
+
+3. On GitHub, open Actions, select `publish` and click Run workflow on `main`.
+   It builds the app and creates a draft release `v<version>` with the
+   installers attached.
+
+4. Check the draft and publish it. GitHub creates the `v<version>` tag on the
+   built commit at that point; run `git fetch --tags` to get it locally.
+
 ## Updating the hero data pins
 
 Hero data and images come from the pins in
