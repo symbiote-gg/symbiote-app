@@ -17,6 +17,8 @@ const run = (cmd, args, cwd = ROOT) =>
         cwd,
         encoding: "utf8",
         maxBuffer: 256 * 1024 * 1024,
+        // pnpm is a .cmd shim on Windows, which only runs through a shell.
+        shell: process.platform === "win32",
     });
 
 // REUSE-style packages keep their texts in a LICENSES folder instead.
