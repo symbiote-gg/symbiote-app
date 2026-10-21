@@ -25,6 +25,9 @@ Windows it finds `Documents/Heroes of the Storm/Accounts` by itself.
 against [Conventional Commits](https://www.conventionalcommits.org/), e.g.
 `feat: show talent builds` or `fix(ingester): skip corrupt replays`.
 
+Pushes to `main` and pull requests run the [`qa`](.github/workflows/qa.yml)
+workflow: Prettier, `tsc`, `cargo fmt`, `cargo clippy` and `cargo test`.
+
 ## Releasing
 
 Releases are built for Windows by the [`publish`](.github/workflows/publish.yml)
