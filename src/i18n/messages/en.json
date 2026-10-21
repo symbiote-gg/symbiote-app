@@ -212,8 +212,31 @@
     },
     "about": {
         "title": "About",
-        "version": "Version {version}",
-        "blizzard": "Blizzard content"
+        "tagline": "Dig into your Heroes of the Storm replays.",
+        "source": "Source code",
+        "issues": "Report an issue",
+        "meta": {
+            "version": "Version",
+            "versionValue": "v{version}",
+            "license": "License"
+        },
+        "footer": "Fan-made, not affiliated",
+        "licenses": {
+            "title": "Built with open source",
+            "app": "SymbioteGG is free software under the <link>{license}</link>. It stands on {count, plural, one {# package} other {# packages}}, each under its own license.",
+            "search": "Search packages",
+            "columns": {
+                "package": "Package",
+                "version": "Version",
+                "license": "License"
+            },
+            "showing": "Showing {shown} of {total}",
+            "showAll": "Show all",
+            "noMatches": "No packages match your search.",
+            "source": "Source",
+            "noText": "This package doesn't ship its license text. See its source for the full terms.",
+            "unavailable": "The license list couldn't be loaded."
+        }
     },
     "dates": {
         "yesterday": "Yesterday"

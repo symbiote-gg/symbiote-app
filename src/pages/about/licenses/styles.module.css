@@ -1,0 +1,51 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line bg-surface;
+}
+
+.intro {
+    @apply flex shrink-0 flex-col gap-3 px-8 pt-7 pb-5;
+}
+
+.root .title {
+    @apply text-2xl leading-tight;
+}
+
+.search {
+    @apply mt-2 flex w-full max-w-md items-center gap-2 rounded-lg border border-line bg-bg px-3;
+}
+
+.searchIcon {
+    @apply shrink-0 text-fg-muted;
+}
+
+.input {
+    @apply w-full bg-transparent py-2 text-sm text-fg shadow-none outline-none placeholder:text-fg-muted;
+}
+
+.table {
+    @apply flex min-h-0 flex-1 flex-col;
+}
+
+.head {
+    @apply grid shrink-0 grid-cols-[minmax(0,1fr)_10rem_14rem_1.5rem] gap-4 overflow-y-hidden border-y border-line bg-surface-2/40 px-8 py-2 text-xs font-semibold tracking-[0.15em] text-fg-muted uppercase;
+    scrollbar-gutter: stable;
+}
+
+.list {
+    @apply max-h-112 overflow-y-auto overscroll-contain lg:max-h-none lg:min-h-0 lg:flex-1;
+    scrollbar-gutter: stable;
+}
+
+.empty {
+    @apply px-8 py-6 text-center;
+}
+
+.footer {
+    @apply shrink-0 px-8 py-3;
+}
+
+.showAll {
+    @apply cursor-pointer text-primary-text underline-offset-2 hover:underline;
+}

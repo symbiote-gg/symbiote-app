@@ -1,0 +1,29 @@
+@reference "@/index.css";
+
+.root {
+    @apply border-b border-line;
+}
+
+.summary {
+    @apply grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_10rem_14rem_1.5rem] items-center gap-4 px-8 py-2.5 hover:bg-surface-2/40;
+}
+
+.summary::-webkit-details-marker {
+    @apply hidden;
+}
+
+.chevron {
+    @apply justify-self-end text-fg-muted transition-transform;
+}
+
+.root[open] .chevron {
+    @apply rotate-180;
+}
+
+.body {
+    @apply flex flex-col items-start gap-3 px-8 pb-4;
+}
+
+.text {
+    @apply max-h-48 w-full overflow-y-auto rounded-md border border-line bg-bg p-4 font-mono text-[11px] leading-relaxed whitespace-pre-wrap text-fg-muted;
+}

@@ -7,8 +7,9 @@
     "packageManager": "pnpm@12.14.0",
     "scripts": {
         "assets": "node scripts/fetch-assets.mjs",
-        "dev": "pnpm assets && vite",
-        "build": "pnpm assets && tsc && vite build",
+        "notices": "node scripts/notices.mjs",
+        "dev": "pnpm assets && pnpm notices && vite",
+        "build": "pnpm assets && pnpm notices && tsc && vite build",
         "preview": "vite preview",
         "tauri": "tauri",
         "lint": "prettier --check .",

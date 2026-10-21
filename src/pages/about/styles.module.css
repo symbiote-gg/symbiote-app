@@ -1,9 +1,57 @@
 @reference "@/index.css";
 
-.main {
-    @apply flex flex-col items-start gap-4;
+.top {
+    @apply flex shrink-0 flex-col gap-6 lg:flex-row lg:items-center lg:justify-between;
 }
 
-.section {
-    @apply flex flex-col gap-3;
+.hero {
+    @apply flex items-center gap-6 py-2;
+}
+
+.logo {
+    @apply size-24 shrink-0;
+}
+
+.identity {
+    @apply flex min-w-0 flex-col gap-2;
+}
+
+.wordmark {
+    @apply font-display text-3xl font-bold tracking-[0.3em] uppercase;
+}
+
+.suffix {
+    @apply text-brand-orange;
+}
+
+.actions {
+    @apply mt-2 flex flex-wrap gap-2;
+}
+
+.meta {
+    @apply flex shrink-0 flex-col rounded-2xl border border-line bg-surface lg:w-[22rem];
+}
+
+.metaRow {
+    @apply flex items-center justify-between gap-4 border-b border-line/60 px-4 py-3 last:border-b-0;
+}
+
+.label {
+    @apply text-xs font-semibold tracking-[0.2em] text-fg-muted uppercase;
+}
+
+.metaValue {
+    @apply text-sm;
+}
+
+.version {
+    @apply font-mono text-sm;
+}
+
+.footer {
+    @apply grid shrink-0 gap-4 border-t border-line pt-6 md:grid-cols-[12rem_minmax(0,1fr)];
+}
+
+.notices {
+    @apply flex max-w-3xl flex-col gap-2;
 }

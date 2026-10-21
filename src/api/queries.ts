@@ -6,6 +6,7 @@ import {
     queryOptions,
 } from "@tanstack/react-query";
 
+import { getThirdPartyLicenses } from "./licenses";
 import {
     PAGE_SIZE,
     type Replay,
@@ -157,6 +158,11 @@ export const profileSummaryQuery = (since: Date) =>
         gcTime: Infinity,
         queryFn: () => getProfileSummary(since),
     });
+
+export const thirdPartyLicensesQuery = queryOptions({
+    queryKey: ["licenses"],
+    queryFn: getThirdPartyLicenses,
+});
 
 export const mostPlayedHeroesQuery = (limit: number) =>
     queryOptions({
