@@ -21,10 +21,6 @@
     @apply flex h-6 min-w-0 items-center gap-2;
 }
 
-.playerName .ownerTag {
-    @apply shrink-0 rounded bg-primary/20 px-1.5 text-primary-text;
-}
-
 .playerName > :not(:first-child) {
     @apply shrink-0;
 }

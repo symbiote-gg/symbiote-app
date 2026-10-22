@@ -122,7 +122,3 @@
 .stat .statValue {
     @apply text-base leading-none;
 }
-
-.awards {
-    @apply flex flex-wrap justify-end gap-1.5;
-}

@@ -8,7 +8,6 @@ import type { ReplayDetail, ReplayPlayerDetail } from "@/api/replays";
 import { HeroPortrait, ModeIcon } from "@/components";
 import { Typography } from "@/ui";
 import { formatDuration, playedFormat } from "@/utils/dates";
-import { AwardChip } from "./award-chip";
 
 import styles from "./styles.module.css";
 
@@ -27,9 +26,6 @@ export function Header({ replay, owner, level }: HeaderProps) {
 
     const result =
         replay.ownerWin === null ? "unknown" : replay.ownerWin ? "win" : "loss";
-    const awards = [...(owner?.awards ?? [])].sort(
-        (a, b) => Number(b.type === "mvp") - Number(a.type === "mvp"),
-    );
 
     const formatStat = (value: number | null | undefined) =>
         value
@@ -173,13 +169,6 @@ export function Header({ replay, owner, level }: HeaderProps) {
                                 </div>
                             ))}
                         </div>
-                        {awards.length > 0 && (
-                            <div className={styles.awards}>
-                                {awards.map((award) => (
-                                    <AwardChip key={award.type} award={award} />
-                                ))}
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
