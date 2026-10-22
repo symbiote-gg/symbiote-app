@@ -15,8 +15,16 @@ are downloaded automatically. Run `pnpm assets` once by hand before using
 `cargo` or rust-analyzer directly: the Rust build embeds
 `src-tauri/data/heroes.json` and fails if it's missing.
 
-On Linux, point the app at a folder of replays with `SYMBIOTE_ACCOUNTS_DIR`. On
-Windows it finds `Documents/Heroes of the Storm/Accounts` by itself.
+By default, the app looks for replays in `../replays/Accounts`, as configured in
+`config.toml`. To test it, create the following folder structure and add some
+replays to it:
+
+```
+replays/Accounts/dev/2-Hero-1-0000000/Replays/Multiplayer
+```
+
+`2-Hero-1-0000000` follows the naming of the folder the game creates, which
+encodes the player's region and ID.
 
 ## Commits
 

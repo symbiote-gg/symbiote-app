@@ -41,8 +41,8 @@ account to create.
 - **Profile** - win rate, main role, MVPs and your recent form across all
   heroes.
 - **Heroes** - win rate and games played for every hero you've touched.
-- **Zero setup** - it automatically read replays from the default folder on its
-  and picks up new replays while it runs. Finish a game and it's there.
+- **Zero setup** - it automatically read replays from the default folder and
+  picks up new replays while it runs. Finish a game and it's there.
 - **Old replays still work** - heroes, talents and awards since removed from the
   game are kept, so older games still show up right.
 - **Stays on your machine** - replays are decoded locally by
