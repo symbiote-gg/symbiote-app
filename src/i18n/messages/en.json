@@ -66,6 +66,8 @@
         "heroDamage": "Hero dmg",
         "siegeDamage": "Siege dmg",
         "healing": "Healing",
+        "selfHealing": "Self heal",
+        "damageTaken": "Dmg taken",
         "xpContribution": "XP",
         "talents": "Talents",
         "talentLevel": "Level {level}",
