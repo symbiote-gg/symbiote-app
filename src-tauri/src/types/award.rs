@@ -1,9 +1,9 @@
 use heck::ToSnakeCase;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 const BUNDLED_AWARDS_FACTS: &str = include_str!("../../data/awards.json");
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AwardFact {
     pub id: String,
     pub name: String,

@@ -1,8 +1,8 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 const BUNDLED_MAPS_FACTS: &str = include_str!("../../data/maps.json");
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct MapFact {
     pub id: String,
     pub name: String,

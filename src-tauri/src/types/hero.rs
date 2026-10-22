@@ -20,7 +20,7 @@ pub enum HeroRole {
     RangedAssassin,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct HeroFact {
     pub id: String,
     pub name: String,

@@ -1,9 +1,9 @@
 use heck::ToSnakeCase;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 const BUNDLED_TALENTS_FACTS: &str = include_str!("../../data/talents.json");
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct TalentFact {
     pub id: String,
     pub hero_id: String,

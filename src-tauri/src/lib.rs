@@ -65,7 +65,9 @@ pub fn run() {
         )
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            let started = std::time::Instant::now();
             let pool = tauri::async_runtime::block_on(db::init(app.handle()))?;
+            log::info!("database ready in {:?}", started.elapsed());
             app.manage(pool);
             app.manage(ingester::IngestSubscribers::default());
             app.manage(ingester::Progress::default());
