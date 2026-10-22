@@ -16,10 +16,6 @@ mod types;
 const ACCOUNTS_DIR_ENV: &str = "SYMBIOTE_ACCOUNTS_DIR";
 
 /// Resolves the Heroes of the Storm `Accounts` folder, where the game saves replays.
-///
-/// The [`ACCOUNTS_DIR_ENV`] environment variable takes precedence. Otherwise the
-/// game's default location is used on Windows and macOS; on other platforms there is
-/// no default and `None` is returned.
 fn accounts_dir(app: &tauri::AppHandle) -> Option<PathBuf> {
     if let Some(dir) = std::env::var_os(ACCOUNTS_DIR_ENV) {
         return Some(dir.into());
