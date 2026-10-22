@@ -2,14 +2,23 @@
 // for the About page. Build-only dependencies are left out: they don't end up
 // in the binary.
 import { execFileSync } from "node:child_process";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { writeJson } from "./assets/io.mjs";
+import { exists, hashTree, sha256, writeJson } from "./assets/io.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUTPUT = join(ROOT, "src/generated/licenses.json");
+const KEY = join(ROOT, "src/generated/licenses.key");
+// The notices only change with the dependency set, the build host or this script.
+const INPUTS = [
+    "scripts/notices.mjs",
+    "package.json",
+    "pnpm-lock.yaml",
+    "src-tauri/Cargo.toml",
+    "src-tauri/Cargo.lock",
+].map((path) => join(ROOT, path));
 const LICENSE_FILE = /^(licen[cs]e|copying|notice)/i;
 
 const run = (cmd, args, cwd = ROOT) =>
@@ -58,9 +67,8 @@ async function npmPackages() {
 
 // Walks normal dependency edges from the app crate, for the platform being
 // built, so dev, build and other platforms' dependencies are skipped.
-async function cargoPackages() {
+async function cargoPackages(host) {
     const cwd = join(ROOT, "src-tauri");
-    const host = run("rustc", ["-vV"], cwd).match(/^host: (.+)$/m)[1];
     const metadata = JSON.parse(
         run(
             "cargo",
@@ -108,8 +116,20 @@ async function cargoPackages() {
     );
 }
 
+async function isUpToDate(key) {
+    if (!(await exists(OUTPUT)) || !(await exists(KEY))) return false;
+    return (await readFile(KEY, "utf8")) === key;
+}
+
 async function main() {
-    const packages = [...(await npmPackages()), ...(await cargoPackages())];
+    const host = run("rustc", ["-vV"]).match(/^host: (.+)$/m)[1];
+    const key = sha256(`${host}\n${await hashTree(INPUTS)}`);
+    if (!process.argv.includes("--force") && (await isUpToDate(key))) {
+        console.log("notices: up to date");
+        return;
+    }
+
+    const packages = [...(await npmPackages()), ...(await cargoPackages(host))];
     packages.sort(
         (a, b) =>
             a.name.localeCompare(b.name) || a.version.localeCompare(b.version),
@@ -130,6 +150,7 @@ async function main() {
         texts,
         packages: packages.map((p) => ({ ...p, texts: p.texts.map(textId) })),
     });
+    await writeFile(KEY, key);
 
     const missing = packages.filter((p) => !p.texts.length);
     console.log(
