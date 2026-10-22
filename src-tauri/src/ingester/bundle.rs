@@ -15,6 +15,20 @@ use crate::types::replay::{
     Mode, NewEvent, NewReplay, NewReplayBundle, NewReplayPlayer, NewTalent,
 };
 
+/// Score screen stats kept per player; the parser emits ~130, mostly unused or zero.
+const SCORE_KEYS: [&str; 10] = [
+    "SoloKill",
+    "Deaths",
+    "Assists",
+    "Takedowns",
+    "HeroDamage",
+    "SiegeDamage",
+    "Healing",
+    "SelfHealing",
+    "DamageTaken",
+    "ExperienceContribution",
+];
+
 #[derive(Debug, Default)]
 pub(super) struct SeededHeroes {
     ids_by_name: HashMap<String, String>,
@@ -157,7 +171,7 @@ pub(super) fn build_bundle(
             time_dead_secs: player.time_dead_secs,
             upvotes: player.upvotes.into(),
             xp: player.xp.map(serde_json::to_value).transpose()?,
-            score: serde_json::to_value(&player.score)?,
+            score: score(&player.score),
             talents: player
                 .talents
                 .iter()
@@ -226,6 +240,15 @@ fn owner_toon(path: &Path) -> Option<String> {
 /// events) into event rows, keyed by kind and team.
 ///
 /// Map events use their snake_cased name as kind.
+fn score<'a>(score: impl IntoIterator<Item = (&'a String, &'a i64)>) -> serde_json::Value {
+    score
+        .into_iter()
+        .filter(|(key, _)| SCORE_KEYS.contains(&key.as_str()))
+        .map(|(key, value)| (key.clone(), (*value).into()))
+        .collect::<serde_json::Map<_, _>>()
+        .into()
+}
+
 fn events(summary: &ReplaySummary) -> Result<Vec<NewEvent>> {
     fn event(
         kind: &str,
@@ -342,5 +365,18 @@ mod tests {
         let path = Path::new("Accounts/123/2-Hero-1-456/Replays/Multiplayer/game.StormReplay");
         assert_eq!(owner_toon(path).as_deref(), Some("2-Hero-1-456"));
         assert_eq!(owner_toon(Path::new("Downloads/game.StormReplay")), None);
+    }
+
+    #[test]
+    fn score_keeps_only_the_read_stats() {
+        let raw = [
+            ("HeroDamage".to_owned(), 85611),
+            ("EndOfMatchAwardMVPBoolean".to_owned(), 1),
+            ("Deaths".to_owned(), 0),
+        ];
+        assert_eq!(
+            score(raw.iter().map(|(key, value)| (key, value))),
+            serde_json::json!({ "HeroDamage": 85611, "Deaths": 0 })
+        );
     }
 }

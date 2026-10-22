@@ -1,6 +1,8 @@
 use serde::Serialize;
 use sha2::{Digest, Sha256};
-use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous};
+use sqlx::sqlite::{
+    SqliteAutoVacuum, SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous,
+};
 use sqlx::SqlitePool;
 use tauri::Manager;
 
@@ -40,6 +42,7 @@ pub async fn init(app: &tauri::AppHandle) -> Result<SqlitePool> {
         .filename(dir.join(DB_FILE))
         .create_if_missing(true)
         .foreign_keys(true)
+        .auto_vacuum(SqliteAutoVacuum::Full)
         .journal_mode(SqliteJournalMode::Wal)
         // Safe with WAL: a power loss can only drop the last commits, never corrupt the file.
         .synchronous(SqliteSynchronous::Normal);
