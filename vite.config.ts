@@ -1,4 +1,3 @@
-// @ts-expect-error type error without @types/node package
 import process from "node:process";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
@@ -32,6 +31,10 @@ export default defineConfig(() => ({
         watch: {
             // 3. tell Vite to ignore watching `src-tauri`
             ignored: ["**/src-tauri/**"],
+        },
+        // 4. transform the app's modules on startup, not on the webview's first load
+        warmup: {
+            clientFiles: ["./src/main.tsx"],
         },
     },
 }));
