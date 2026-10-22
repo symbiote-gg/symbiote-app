@@ -1,5 +1,5 @@
 import type { TimelineEvent } from "@/api/replays";
-import { BANDS } from "./constants";
+import { BAND_Y } from "./constants";
 import {
     MAP_EVENTS,
     type MapEventData,
@@ -31,7 +31,7 @@ export function fightKind(deaths: DeathEntry[]) {
 const OBJECTIVE_MERGE = 15;
 
 export const isBandMarker = (marker: Marker): marker is BandMarker =>
-    marker.shape in BANDS;
+    marker.shape in BAND_Y;
 
 /** Only deaths and structures record which players were in on them. */
 export const involves = (marker: Marker, slot: number) =>

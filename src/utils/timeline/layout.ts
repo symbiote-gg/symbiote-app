@@ -1,10 +1,9 @@
-import { AXIS, BANDS, CAMP_Y, TICK_Y } from "./constants";
+import { BAND_Y, CAMP_Y, TICK_Y } from "./constants";
 import { isBandMarker } from "./markers";
 import type { Marker, TickMarker } from "./types";
 
 const TICK_MERGE_PX = 6;
 const MARK_STEP_PX = 14;
-const EDGE = 22;
 
 const FIGHT_MIN = 22;
 const FIGHT_MAX = 38;
@@ -75,8 +74,8 @@ export function layout(markers: Marker[], width: number, duration: number) {
             continue;
         }
 
-        const band = BANDS[marker.shape];
-        const key = `${band.y}:${marker.side}`;
+        const band = BAND_Y[marker.shape];
+        const key = `${band}:${marker.side}`;
         const previous = lastMark.get(key);
         const step =
             width > 0 && previous && x(marker.time) - previous.x < MARK_STEP_PX
@@ -84,19 +83,7 @@ export function layout(markers: Marker[], width: number, duration: number) {
                 : 0;
         lastMark.set(key, { x: x(marker.time), step });
 
-        const height =
-            marker.shape === "fight"
-                ? fightSize(marker.participants)
-                : band.height;
-        const outward = band.y + step * MARK_STEP_PX;
-
-        placed.push({
-            marker,
-            y:
-                outward + height / 2 <= AXIS - EDGE
-                    ? outward
-                    : band.y - step * MARK_STEP_PX,
-        });
+        placed.push({ marker, y: band + step * MARK_STEP_PX });
     }
 
     return placed;
