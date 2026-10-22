@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { dirname, posix } from "node:path";
+import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { dirname, join, posix } from "node:path";
 import { Parser } from "tar";
 
 export const sha256 = (data) => createHash("sha256").update(data).digest("hex");
@@ -19,6 +19,32 @@ export async function exists(path) {
         () => true,
         () => false,
     );
+}
+
+// Hashes every file under the given files or folders, in a stable order.
+export async function hashTree(paths) {
+    const files = [];
+    for (const path of paths) {
+        if ((await stat(path)).isDirectory()) {
+            const entries = await readdir(path, {
+                recursive: true,
+                withFileTypes: true,
+            });
+            for (const entry of entries) {
+                if (entry.isFile())
+                    files.push(join(entry.parentPath, entry.name));
+            }
+        } else {
+            files.push(path);
+        }
+    }
+
+    const hash = createHash("sha256");
+    for (const file of files.sort()) {
+        hash.update(file).update(await readFile(file));
+    }
+
+    return hash.digest("hex");
 }
 
 export async function readJson(path) {

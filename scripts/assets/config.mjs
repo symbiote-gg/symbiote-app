@@ -10,6 +10,10 @@ export const PINS = JSON.parse(
 export const ASSETS_DIR = join(ROOT, "public/game");
 export const MANIFEST = join(ASSETS_DIR, "manifest.json");
 export const DATA_DIR = join(ROOT, "src-tauri/data");
+export const SOURCES = [
+    join(ROOT, "scripts/fetch-assets.mjs"),
+    join(ROOT, "scripts/assets"),
+];
 
 export const IMAGE = { format: "webp", quality: 85 };
 // Tolerate a few missing upstream files per category, but not a broken pin.

@@ -3,6 +3,7 @@
 // outputs live in gitignored folders.
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
+import process from "node:process";
 
 import {
     ASSETS_DIR,
@@ -10,9 +11,10 @@ import {
     IMAGE,
     MANIFEST,
     PINS,
+    SOURCES,
 } from "./assets/config.mjs";
 import { downloadImages, webp } from "./assets/images.mjs";
-import { exists, readJson, writeJson } from "./assets/io.mjs";
+import { exists, hashTree, readJson, writeJson } from "./assets/io.mjs";
 import { loadFacts } from "./assets/sources/index.mjs";
 
 // The heroes-images category, fact field and maximum size of each kind of
@@ -39,6 +41,26 @@ const IMAGES = [
     },
 ];
 
+// Pins fully determine upstream content, so outputs only go stale when the pins
+// or this script change, or when an output was deleted.
+async function isUpToDate(pins, source) {
+    if (!(await exists(MANIFEST))) return false;
+
+    const manifest = await readJson(MANIFEST);
+    if (JSON.stringify(manifest.pins) !== JSON.stringify(pins)) return false;
+    if (manifest.source !== source) return false;
+
+    const outputs = [
+        ...IMAGES.map(({ kind }) => join(DATA_DIR, `${kind}.json`)),
+        ...Object.keys(manifest.files).map((file) => join(ASSETS_DIR, file)),
+    ];
+    for (const output of outputs) {
+        if (!(await exists(output))) return false;
+    }
+
+    return true;
+}
+
 // Any pin change invalidates the downloaded images.
 async function clearStaleAssets(pins) {
     const previous = (await exists(MANIFEST)) ? await readJson(MANIFEST) : null;
@@ -58,6 +80,11 @@ async function main() {
             ),
         },
     };
+    const source = await hashTree(SOURCES);
+    if (!process.argv.includes("--force") && (await isUpToDate(pins, source))) {
+        console.log("assets: up to date");
+        return;
+    }
     await clearStaleAssets(pins);
 
     const facts = await loadFacts(PINS.heroesData);
@@ -93,6 +120,7 @@ async function main() {
     }
     await writeJson(MANIFEST, {
         pins,
+        source,
         files: Object.fromEntries(Object.entries(files).sort()),
     });
 
