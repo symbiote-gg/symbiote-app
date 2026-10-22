@@ -5,7 +5,7 @@ import type { ReplayPlayerDetail } from "@/api/replays";
 import type { TimelineText } from "@/hooks/useTimelineText";
 import { Popover as PopoverSurface } from "@/ui";
 import { markerView } from "@/utils/timeline/markers";
-import type { Marker } from "@/utils/timeline/types";
+import type { Marker, Side } from "@/utils/timeline/types";
 import { Body } from "./body";
 import { Header } from "./header";
 
@@ -18,7 +18,7 @@ interface PopoverProps {
     highlightSlot: number | null;
     text: TimelineText;
     track: HTMLElement | null;
-    below: boolean;
+    side: Side;
     onPointerEnter: () => void;
     onPointerLeave: (e: PointerEvent<HTMLElement>) => void;
 }
@@ -30,7 +30,7 @@ export function Popover({
     highlightSlot,
     text,
     track,
-    below,
+    side,
     onPointerEnter,
     onPointerLeave,
 }: PopoverProps) {
@@ -50,8 +50,9 @@ export function Popover({
     return (
         <PopoverSurface
             anchor={anchor}
-            placement="side"
-            align={below ? "start" : "end"}
+            placement={
+                side === "ally" ? "top" : side === "enemy" ? "bottom" : "left"
+            }
             role="dialog"
             aria-label={text.markerLabel(marker)}
             className={classNames({

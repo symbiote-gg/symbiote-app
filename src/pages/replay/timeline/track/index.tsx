@@ -263,7 +263,7 @@ export function Track({
                         highlightSlot={highlightSlot}
                         text={text}
                         track={ref.current}
-                        below={selected.marker.side !== "enemy"}
+                        side={selected.marker.side}
                         onPointerEnter={cancelClose}
                         onPointerLeave={scheduleClose}
                     />

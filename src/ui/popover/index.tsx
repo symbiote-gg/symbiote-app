@@ -15,7 +15,7 @@ import styles from "./styles.module.css";
 const GAP = 8;
 const MARGIN = 8;
 
-export type PopoverPlacement = "side" | "top";
+export type PopoverPlacement = "side" | "top" | "bottom" | "left";
 export type PopoverAlign = "start" | "end";
 
 const stop = (e: PointerEvent<HTMLDivElement>) => e.stopPropagation();
@@ -52,11 +52,11 @@ export function Popover({
     const { refs, floatingStyles, isPositioned, middlewareData } = useFloating({
         elements: { reference: anchor },
         placement:
-            placement === "top"
-                ? "top"
-                : align === "start"
-                  ? "right-start"
-                  : "right-end",
+            placement === "side"
+                ? align === "start"
+                    ? "right-start"
+                    : "right-end"
+                : placement,
         strategy: "fixed",
         middleware: [
             offset(GAP),
