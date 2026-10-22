@@ -19,6 +19,8 @@ export type DeathEntry = {
     killers: number[];
     /** Null when no hero landed it: minions, structures, mercenaries. */
     killingBlow: number | null;
+    /** Null when unknown, e.g. replays ingested before it was tracked. */
+    alone: boolean | null;
 };
 
 export type StructureEntry = {

@@ -2,7 +2,12 @@ import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
 import type { TimelineText } from "@/hooks/useTimelineText";
-import { campGlyph, entryGlyph, tickGlyph } from "@/utils/timeline/glyphs";
+import {
+    campGlyph,
+    entryGlyph,
+    fightGlyph,
+    tickGlyph,
+} from "@/utils/timeline/glyphs";
 import type { Glyph } from "@/utils/timeline/map-events";
 import { type MarkerView, fightKind } from "@/utils/timeline/markers";
 import type { Marker } from "@/utils/timeline/types";
@@ -14,7 +19,7 @@ import styles from "./styles.module.css";
 
 function headerGlyph(marker: Marker, view: MarkerView): Glyph | null {
     const { kills, deaths, structure, camp, group, map } = view;
-    if (kills) return deaths.length > 1 ? "swords" : "skull";
+    if (kills) return fightGlyph(deaths);
     if (structure) return structure.keep ? "keep" : "castle";
     if (camp) {
         return marker.shape === "boss" ? "crown" : campGlyph(camp.campType);

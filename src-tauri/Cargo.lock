@@ -1686,9 +1686,9 @@ dependencies = [
 
 [[package]]
 name = "hots-replay-parser"
-version = "0.1.8"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b9666182889eadf896cf6aaabedd19c40d9b7ff87d7446e47302e16f103ebaf"
+checksum = "f680d11fd63e44396722aba058595d87571e6793f29094f1f613257003a40798"
 dependencies = [
  "bzip2",
  "flate2",

@@ -2,10 +2,10 @@ import classNames from "classnames";
 import type { FocusEvent, MouseEvent, PointerEvent } from "react";
 
 import type { TimelineText } from "@/hooks/useTimelineText";
-import { tickGlyph } from "@/utils/timeline/glyphs";
+import { fightGlyph, tickGlyph } from "@/utils/timeline/glyphs";
 import { fightSize, position } from "@/utils/timeline/layout";
 import { isBandMarker } from "@/utils/timeline/markers";
-import type { Marker } from "@/utils/timeline/types";
+import type { DeathEntry, Marker } from "@/utils/timeline/types";
 import { GlyphIcon } from "../../../glyphs";
 import { sideClass } from "../../../side";
 
@@ -20,7 +20,12 @@ interface MarkContentProps {
 function MarkContent({ marker, longGame, text }: MarkContentProps) {
     switch (marker.shape) {
         case "kill":
-            return <GlyphIcon glyph="skull" className={styles.glyph} />;
+            return (
+                <GlyphIcon
+                    glyph={fightGlyph(marker.entries as DeathEntry[])}
+                    className={styles.glyph}
+                />
+            );
         case "fight":
             return <GlyphIcon glyph="swords" className={styles.glyph} />;
         case "boss":

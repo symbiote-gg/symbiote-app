@@ -21,11 +21,14 @@ export const LONG_GAME = 35 * 60;
 const TEAM_FIGHT_DEATHS = 3;
 const GANK_KILLERS = 3;
 
-/** Pick or gank for one death (by how many were in on it), else by death count. */
+/** Gank when a lone hero dies to several killers, else pick; more deaths go by count. */
 export function fightKind(deaths: DeathEntry[]) {
     if (deaths.length >= TEAM_FIGHT_DEATHS) return "teamFight";
     if (deaths.length === 2) return "skirmish";
-    return deaths[0].killers.length >= GANK_KILLERS ? "gank" : "pick";
+    const [death] = deaths;
+    return death.alone === true && death.killers.length >= GANK_KILLERS
+        ? "gank"
+        : "pick";
 }
 
 const OBJECTIVE_MERGE = 15;
@@ -72,6 +75,7 @@ export function buildMarkers(
                     victim: data.victim as number,
                     killers: data.killers as number[],
                     killingBlow: data.killing_blow as number | null,
+                    alone: (data.alone as boolean | null | undefined) ?? null,
                 });
                 return;
             case "camp_capture": {

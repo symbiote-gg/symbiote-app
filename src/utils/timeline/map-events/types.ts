@@ -15,6 +15,7 @@ export type Glyph =
     | "flag"
     | "frost"
     | "gem"
+    | "ghost"
     | "golem"
     | "keep"
     | "knight"
