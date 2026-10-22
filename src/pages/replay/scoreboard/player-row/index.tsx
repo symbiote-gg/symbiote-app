@@ -49,16 +49,6 @@ export function PlayerRow({
                         <Typography weight="semibold" truncate>
                             {player.name}
                         </Typography>
-                        {owner && (
-                            <Typography
-                                size="xs"
-                                weight="semibold"
-                                uppercase
-                                className={styles.ownerTag}
-                            >
-                                {t("you")}
-                            </Typography>
-                        )}
                         {player.awards.map((award) => (
                             <AwardPill key={award.type} award={award} />
                         ))}

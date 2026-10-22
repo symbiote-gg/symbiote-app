@@ -33,7 +33,15 @@ export function ReplayDetail() {
     const teams: ScoreboardTeam[] = [allyTeam, 1 - allyTeam].map((team) => ({
         ally: team === allyTeam,
         level: teamLevel(team),
-        players: replay ? replay.players.filter((p) => p.team === team) : [],
+        players: replay
+            ? replay.players
+                  .filter((p) => p.team === team)
+                  .sort(
+                      (a, b) =>
+                          Number(b.playerId === replay.ownerPlayerId) -
+                          Number(a.playerId === replay.ownerPlayerId),
+                  )
+            : [],
     }));
 
     return (
