@@ -4,7 +4,8 @@ export type Stat =
     | "damageTaken"
     | "healing"
     | "selfHealing"
-    | "xp";
+    | "xp"
+    | "upvotes";
 
 export const STATS: {
     stat: Stat;
@@ -14,8 +15,10 @@ export const STATS: {
         | "damageTaken"
         | "healing"
         | "selfHealing"
-        | "xpContribution";
+        | "xpContribution"
+        | "upvotes";
     wide?: boolean;
+    plain?: boolean;
 }[] = [
     { stat: "siegeDamage", label: "siegeDamage", wide: true },
     { stat: "heroDamage", label: "heroDamage" },
@@ -23,4 +26,5 @@ export const STATS: {
     { stat: "healing", label: "healing", wide: true },
     { stat: "selfHealing", label: "selfHealing", wide: true },
     { stat: "xp", label: "xpContribution", wide: true },
+    { stat: "upvotes", label: "upvotes", wide: true, plain: true },
 ];

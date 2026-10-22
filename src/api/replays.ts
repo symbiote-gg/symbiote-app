@@ -136,6 +136,7 @@ export type ReplayPlayerDetail = ReplayPlayer & {
     selfHealing: number | null;
     damageTaken: number | null;
     xp: number | null;
+    upvotes: number;
     talents: TalentPick[];
     awards: Award[];
 };

@@ -505,7 +505,8 @@ pub async fn get_detail(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<Repla
              json_extract(rp.score, '$.Healing') AS healing,
              json_extract(rp.score, '$.SelfHealing') AS self_healing,
              json_extract(rp.score, '$.DamageTaken') AS damage_taken,
-             json_extract(rp.score, '$.ExperienceContribution') AS xp
+             json_extract(rp.score, '$.ExperienceContribution') AS xp,
+             rp.upvotes
          FROM replays_players rp
          JOIN players p ON p.id = rp.player_id
          JOIN heroes h ON h.id = rp.hero_id
@@ -969,6 +970,7 @@ mod tests {
             .unwrap();
         let mut known = bundle("a", 1000);
         known.replay_players[0].score = serde_json::json!({ "SoloKill": 7, "HeroDamage": 70100, "DamageTaken": 52300, "SelfHealing": 8400 });
+        known.replay_players[0].upvotes = 3;
         let InsertOutcome::Inserted(known) = insert_bundle(&pool, known).await.unwrap() else {
             panic!("the replay should be inserted");
         };
@@ -987,6 +989,7 @@ mod tests {
         assert_eq!(detail.players[0].healing, None);
         assert_eq!(detail.players[0].damage_taken, Some(52300));
         assert_eq!(detail.players[0].self_healing, Some(8400));
+        assert_eq!(detail.players[0].upvotes, 3);
 
         let row = get_list_row(&pool, unknown).await.unwrap().unwrap();
         assert_eq!(row.replay.map_name, "New Map");

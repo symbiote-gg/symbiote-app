@@ -58,63 +58,6 @@ export function PlayerRow({
                     </Typography>
                 </span>
             </span>
-            <Typography
-                size="sm"
-                variant="secondary"
-                mono
-                noWrap
-                className={classNames(styles.number, styles.kda)}
-            >
-                {player.kills === null ? (
-                    "-"
-                ) : (
-                    <>
-                        <span className={styles.kills}>{player.kills}</span>/
-                        {player.assists ?? 0}/
-                        <span
-                            className={
-                                player.deaths ? styles.deaths : styles.deathless
-                            }
-                        >
-                            {player.deaths ?? 0}
-                        </span>
-                    </>
-                )}
-            </Typography>
-            {STATS.map(({ stat, wide }) => {
-                const value = player[stat] ?? 0;
-                const max = maxByStat[stat];
-                const top = max > 0 && value === max;
-
-                return (
-                    <span
-                        key={stat}
-                        className={classNames(styles.statCell, {
-                            [styles.wide]: wide,
-                            [styles.top]: top,
-                            [styles.allyBar]: ally,
-                            [styles.enemyBar]: !ally,
-                        })}
-                    >
-                        {value > 0 && (
-                            <span
-                                className={styles.bar}
-                                style={{ width: `${(value / max) * 100}%` }}
-                            />
-                        )}
-                        <Typography
-                            size="sm"
-                            mono
-                            noWrap
-                            weight={top ? "semibold" : "regular"}
-                            variant={top ? "primary" : "secondary"}
-                            className={styles.statValue}
-                        >
-                            {formatStat(player[stat])}
-                        </Typography>
-                    </span>
-                );
-            })}
             <span className={styles.icons}>
                 {TIERS.map((tier) => {
                     const talent = player.talents.find(
@@ -152,6 +95,63 @@ export function PlayerRow({
                     );
                 })}
             </span>
+            <Typography
+                size="sm"
+                variant="secondary"
+                mono
+                noWrap
+                className={classNames(styles.number, styles.kda)}
+            >
+                {player.kills === null ? (
+                    "-"
+                ) : (
+                    <>
+                        <span className={styles.kills}>{player.kills}</span>/
+                        {player.assists ?? 0}/
+                        <span
+                            className={
+                                player.deaths ? styles.deaths : styles.deathless
+                            }
+                        >
+                            {player.deaths ?? 0}
+                        </span>
+                    </>
+                )}
+            </Typography>
+            {STATS.map(({ stat, wide, plain }) => {
+                const value = player[stat] ?? 0;
+                const max = maxByStat[stat];
+                const top = !plain && max > 0 && value === max;
+
+                return (
+                    <span
+                        key={stat}
+                        className={classNames(styles.statCell, {
+                            [styles.wide]: wide,
+                            [styles.top]: top,
+                            [styles.allyBar]: ally,
+                            [styles.enemyBar]: !ally,
+                        })}
+                    >
+                        {!plain && value > 0 && (
+                            <span
+                                className={styles.bar}
+                                style={{ width: `${(value / max) * 100}%` }}
+                            />
+                        )}
+                        <Typography
+                            size="sm"
+                            mono
+                            noWrap
+                            weight={top ? "semibold" : "regular"}
+                            variant={top ? "primary" : "secondary"}
+                            className={styles.statValue}
+                        >
+                            {formatStat(player[stat])}
+                        </Typography>
+                    </span>
+                );
+            })}
         </div>
     );
 }

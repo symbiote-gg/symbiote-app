@@ -13,10 +13,10 @@
 }
 
 .table {
-    @apply grid grid-cols-[minmax(12rem,3fr)_repeat(2,minmax(4.5rem,1fr))_max-content] gap-x-2;
+    @apply grid grid-cols-[minmax(11rem,2fr)_max-content_repeat(2,minmax(4.5rem,1fr))] gap-x-4;
 
     @variant lg {
-        @apply grid-cols-[minmax(14rem,3fr)_minmax(4.5rem,1fr)_repeat(6,minmax(5.5rem,1fr))_max-content];
+        @apply grid-cols-[minmax(13rem,2fr)_max-content_minmax(4.5rem,1fr)_repeat(6,minmax(5.5rem,1fr))_max-content];
     }
 }
 
@@ -36,6 +36,10 @@
 
 .number {
     @apply text-right;
+}
+
+.talents {
+    @apply pl-4;
 }
 
 .teamTitle {

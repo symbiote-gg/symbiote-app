@@ -135,6 +135,7 @@ pub struct ReplayPlayerDetail {
     pub self_healing: Option<i64>,
     pub damage_taken: Option<i64>,
     pub xp: Option<i64>,
+    pub upvotes: i64,
     #[sqlx(skip)]
     pub talents: Vec<TalentPick>,
     #[sqlx(skip)]

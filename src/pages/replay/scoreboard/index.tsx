@@ -62,6 +62,14 @@ export function Scoreboard({ teams, ownerId }: ScoreboardProps) {
                             size="xs"
                             variant="secondary"
                             uppercase
+                            className={styles.talents}
+                        >
+                            {t("talents")}
+                        </Typography>
+                        <Typography
+                            size="xs"
+                            variant="secondary"
+                            uppercase
                             className={styles.number}
                         >
                             {t("kda")}
@@ -80,9 +88,6 @@ export function Scoreboard({ teams, ownerId }: ScoreboardProps) {
                                 {t(label)}
                             </Typography>
                         ))}
-                        <Typography size="xs" variant="secondary" uppercase>
-                            {t("talents")}
-                        </Typography>
                     </div>
                     {teams.map(({ ally, level, players }) => {
                         const kills = sum(players, (p) => p.kills);
@@ -154,6 +159,7 @@ export function Scoreboard({ teams, ownerId }: ScoreboardProps) {
                                     >
                                         {t("teamTotal")}
                                     </Typography>
+                                    <span />
                                     <Typography
                                         size="xs"
                                         variant="secondary"
@@ -181,7 +187,6 @@ export function Scoreboard({ teams, ownerId }: ScoreboardProps) {
                                             )}
                                         </Typography>
                                     ))}
-                                    <span />
                                 </div>
                             </Fragment>
                         );

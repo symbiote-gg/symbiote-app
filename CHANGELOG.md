@@ -9,6 +9,7 @@ and this project adheres to
 ## [Unreleased]
 
 - Bump frontend dependencies.
+- Add upvotes to players scoreboard and adjust columns order.
 
 ## [0.2.0] - 2026-10-22
 
