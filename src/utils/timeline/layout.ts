@@ -5,8 +5,8 @@ import type { Marker, TickMarker } from "./types";
 const TICK_MERGE_PX = 6;
 const MARK_STEP_PX = 14;
 
-const FIGHT_MIN = 22;
-const FIGHT_MAX = 38;
+const FIGHT_MIN = 24;
+const FIGHT_MAX = 42;
 
 export const fightSize = (participants: number) =>
     FIGHT_MIN +

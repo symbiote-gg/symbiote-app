@@ -19,7 +19,7 @@
 }
 
 .tick {
-    @apply absolute z-10 flex size-7 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center outline-none;
+    @apply absolute z-10 flex size-8 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center outline-none;
 }
 
 .tickVisual {
@@ -27,36 +27,36 @@
 }
 
 .merged {
-    @apply size-2.5;
+    @apply size-3;
 }
 
 .tickBadge {
-    @apply relative flex size-[22px] items-center justify-center rounded-full border;
+    @apply relative flex size-6 items-center justify-center rounded-full border;
     border-color: var(--side);
     background: color-mix(in srgb, var(--side) 18%, var(--color-surface));
     color: var(--side);
 }
 
 .tickBadge.merged {
-    @apply size-6;
+    @apply size-[26px];
 }
 
 .tickIcon {
-    @apply size-3.5;
+    @apply size-4;
 }
 
 /* Camps sit a step below kills: smaller and untinted. */
 .tickBadge.minor {
-    @apply size-[18px];
+    @apply size-5;
     background: var(--color-surface);
 }
 
 .tickBadge.minor.merged {
-    @apply size-5;
+    @apply size-[22px];
 }
 
 .minor .tickIcon {
-    @apply size-3;
+    @apply size-3.5;
 }
 
 .tickCount {
@@ -67,8 +67,8 @@
 
 .ring {
     @apply rounded-full border-[1.5px];
-    width: 9px;
-    height: 9px;
+    width: 11px;
+    height: 11px;
     border-color: var(--side);
 }
 
@@ -87,45 +87,45 @@
 }
 
 .glyph {
-    @apply size-3.5 shrink-0;
+    @apply size-4 shrink-0;
 }
 
 .kill {
-    @apply size-[22px] rounded-full;
+    @apply size-6 rounded-full;
 }
 
 .fight {
     @apply rounded-full;
-    width: var(--size, 26px);
-    height: var(--size, 26px);
+    width: var(--size, 28px);
+    height: var(--size, 28px);
 }
 
 .fight .glyph {
-    width: calc(var(--size, 26px) * 0.55);
-    height: calc(var(--size, 26px) * 0.55);
+    width: calc(var(--size, 28px) * 0.55);
+    height: calc(var(--size, 28px) * 0.55);
 }
 
 .boss {
-    @apply size-[26px] rounded-full;
+    @apply size-7 rounded-full;
 }
 
 .fort {
-    @apply size-[26px] rounded-md;
+    @apply size-7 rounded-md;
 }
 
 .keep {
-    @apply size-8 rounded-lg;
+    @apply size-9 rounded-lg;
 }
 
 .keep .glyph {
-    @apply size-4;
+    @apply size-[18px];
 }
 
 /* Centred by layout around --x rather than a -50% translate: the label makes
    the width fractional, and a fractional translate blurs the border thicker
    than the other marks'. */
 .objective {
-    @apply h-7 translate-x-0 rounded-md px-2;
+    @apply h-8 translate-x-0 rounded-md px-2;
     left: calc(var(--x) - 300px);
     right: calc(100% - var(--x) - 300px);
     width: fit-content;
