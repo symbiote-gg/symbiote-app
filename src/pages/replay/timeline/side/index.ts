@@ -9,5 +9,4 @@ export function sideClasses(side: Side) {
     };
 }
 
-/** Like `sideClasses`, but null gets the neutral colour instead of inheriting one. */
 export const sideClass = (side: Side) => (side ? styles[side] : styles.neutral);

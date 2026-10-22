@@ -25,8 +25,10 @@ export function levelAt(curve: LevelCurve, time: number) {
     for (let i = curve.length - 1; i >= 0; i--) {
         const [start, level] = curve[i];
         if (time < start) continue;
+
         const next = curve[i + 1];
         if (!next) return level;
+
         return level + ((time - start) / (next[0] - start)) * (next[1] - level);
     }
 

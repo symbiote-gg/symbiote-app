@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
+import { AXIS, AXIS_GAP } from "@/utils/timeline/constants";
 import { position } from "@/utils/timeline/layout";
 import {
     type LevelCurve,
@@ -32,7 +33,12 @@ export function Tiers({ curves, duration }: TiersProps) {
                     ? styles.levelLineAlly
                     : styles.levelLineEnemy,
             )}
-            style={{ left: position(reached.time, duration) }}
+            style={{
+                left: position(reached.time, duration),
+                ...(reached.side === "ally"
+                    ? { height: AXIS - AXIS_GAP }
+                    : { top: AXIS + AXIS_GAP }),
+            }}
         >
             <span
                 className={classNames(

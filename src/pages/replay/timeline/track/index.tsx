@@ -14,7 +14,12 @@ import { useTranslations } from "use-intl";
 import type { ReplayPlayerDetail } from "@/api/replays";
 import type { TimelineText } from "@/hooks/useTimelineText";
 import { Typography } from "@/ui";
-import { AXIS, CAMP_Y, TRACK_HEIGHT } from "@/utils/timeline/constants";
+import {
+    AXIS,
+    AXIS_GAP,
+    CAMP_Y,
+    TRACK_HEIGHT,
+} from "@/utils/timeline/constants";
 import { type Placed, layout, position } from "@/utils/timeline/layout";
 import type { LevelCurve } from "@/utils/timeline/levels";
 import { LONG_GAME } from "@/utils/timeline/markers";
@@ -212,8 +217,11 @@ export function Track({
                             )}
                             style={{
                                 left: position(p.marker.time, duration),
-                                top: Math.min(top(p), AXIS),
-                                height: p.y,
+                                top:
+                                    p.marker.side === "ally"
+                                        ? AXIS - p.y
+                                        : AXIS + AXIS_GAP,
+                                height: p.y - AXIS_GAP,
                             }}
                         />
                     ) : null,

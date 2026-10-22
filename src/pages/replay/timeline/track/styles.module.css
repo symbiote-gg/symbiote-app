@@ -10,7 +10,7 @@
 
 .stem {
     @apply pointer-events-none absolute w-0 -translate-x-1/2 border-l-[1.5px] border-dotted;
-    border-color: color-mix(in srgb, var(--side) 50%, transparent);
+    border-color: var(--side);
 }
 
 .empty {
