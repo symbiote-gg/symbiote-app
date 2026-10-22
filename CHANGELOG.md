@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+- Bump frontend dependencies.
+
 ## [0.2.0] - 2026-10-22
 
 ### Added
