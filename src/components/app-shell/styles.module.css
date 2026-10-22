@@ -36,8 +36,8 @@
     @apply bg-primary/25 text-primary-text hover:text-primary-text;
 }
 
-.about {
-    @apply ml-auto;
+.end {
+    @apply ml-auto flex items-center gap-3;
 }
 
 .content {

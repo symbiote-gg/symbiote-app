@@ -1,0 +1,50 @@
+@reference "@/index.css";
+
+.pill {
+    @apply flex items-center gap-2.5 rounded-full border border-primary/40 bg-primary/10 px-3.5 py-2 text-sm font-medium text-fg cursor-pointer;
+}
+
+.ring {
+    @apply size-4.5 -rotate-90;
+}
+
+.ringTrack {
+    @apply fill-none stroke-line stroke-2;
+}
+
+.ringArc {
+    @apply fill-none stroke-primary-text stroke-2 transition-[stroke-dashoffset] duration-200;
+    stroke-linecap: round;
+}
+
+.percent {
+    @apply font-semibold text-primary-text tabular-nums;
+}
+
+.panel {
+    @apply flex max-h-none w-[26rem] max-w-[calc(100vw-16px)] flex-col gap-4 bg-surface p-5;
+}
+
+.title {
+    @apply text-base font-semibold text-fg;
+}
+
+.description {
+    @apply text-sm leading-relaxed text-fg-muted;
+}
+
+.track {
+    @apply block h-1.5 overflow-hidden rounded-full bg-surface-2;
+}
+
+.fill {
+    @apply block h-full rounded-full bg-primary-text transition-[width] duration-200;
+}
+
+.count {
+    @apply -mt-1 font-mono text-sm text-fg-muted tabular-nums;
+}
+
+.done {
+    @apply text-fg;
+}

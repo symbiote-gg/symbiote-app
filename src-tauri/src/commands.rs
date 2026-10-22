@@ -4,7 +4,7 @@ use tauri::ipc::Channel;
 use tauri::State;
 
 use crate::error::{Error, Result};
-use crate::ingester::IngestSubscribers;
+use crate::ingester::{IngestProgress, IngestSubscribers, Progress};
 use crate::types::replay::{ReplayCursor, ReplayDetail, ReplayPage};
 use crate::types::stats::{MostPlayedHeroes, ProfileSummary};
 
@@ -79,4 +79,11 @@ pub fn subscribe_ingest(subscribers: State<'_, IngestSubscribers>, channel: Chan
 #[tauri::command]
 pub fn unsubscribe_ingest(subscribers: State<'_, IngestSubscribers>, id: u32) {
     subscribers.unsubscribe(id);
+}
+
+/// Returns how far the scan and re-parse backlogs are, to show before the first
+/// `ingest-progress` event arrives.
+#[tauri::command]
+pub fn get_ingest_progress(progress: State<'_, Progress>) -> IngestProgress {
+    progress.snapshot()
 }

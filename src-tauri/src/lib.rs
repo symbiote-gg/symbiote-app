@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
 use commands::{
-    count_replays, get_most_played_heroes, get_profile_summary, get_replay, list_replays,
-    mark_replay_as_seen, subscribe_ingest, unsubscribe_ingest,
+    count_replays, get_ingest_progress, get_most_played_heroes, get_profile_summary, get_replay,
+    list_replays, mark_replay_as_seen, subscribe_ingest, unsubscribe_ingest,
 };
 use tauri::webview::PageLoadEvent;
 use tauri::Manager;
@@ -68,6 +68,7 @@ pub fn run() {
             let pool = tauri::async_runtime::block_on(db::init(app.handle()))?;
             app.manage(pool);
             app.manage(ingester::IngestSubscribers::default());
+            app.manage(ingester::Progress::default());
             match accounts_dir(app.handle()) {
                 Some(dir) => ingester::start(app.handle().clone(), dir),
                 None => log::warn!("couldn't find the replays folder, set {ACCOUNTS_DIR_ENV}"),
@@ -88,7 +89,8 @@ pub fn run() {
             get_profile_summary,
             get_most_played_heroes,
             subscribe_ingest,
-            unsubscribe_ingest
+            unsubscribe_ingest,
+            get_ingest_progress
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

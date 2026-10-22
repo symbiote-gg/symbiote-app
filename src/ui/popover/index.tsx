@@ -15,7 +15,8 @@ import styles from "./styles.module.css";
 const GAP = 8;
 const MARGIN = 8;
 
-export type PopoverPlacement = "side" | "top" | "bottom" | "left";
+export type PopoverPlacement =
+    "side" | "top" | "bottom" | "bottom-start" | "left";
 export type PopoverAlign = "start" | "end";
 
 const stop = (e: PointerEvent<HTMLDivElement>) => e.stopPropagation();

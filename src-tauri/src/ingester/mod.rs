@@ -17,8 +17,10 @@ use crate::error::Result;
 use crate::types::map::MapFact;
 use crate::types::replay::{NewReplayBundle, ReplayIngested};
 use bundle::{SeededHeroes, SeededMaps};
+pub use progress::{IngestProgress, Progress};
 
 mod bundle;
+mod progress;
 mod scan;
 mod watcher;
 
@@ -93,8 +95,9 @@ impl IngestSubscribers {
 
 /// Starts ingesting the replays under `dir` in the background, and returns immediately.
 ///
-/// Streams each replay stored to the [`IngestSubscribers`]. Both it and the
-/// [`SqlitePool`] must already be registered as managed state.
+/// Streams each replay stored to the [`IngestSubscribers`], and the scan and re-parse
+/// backlogs to [`Progress`]. They and the [`SqlitePool`] must already be registered as
+/// managed state.
 pub fn start(app: tauri::AppHandle, dir: PathBuf) {
     let pool = app.state::<SqlitePool>().inner().clone();
     let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<FoundReplay>();
@@ -106,7 +109,9 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
     // Scan only once the watch is up, so a replay saved meanwhile is caught by one or the other.
     // Both feed the same queue, so a file found twice is skipped by hash instead of racing.
     let scan_pool = pool.clone();
+    let scan_app = app.clone();
     tauri::async_runtime::spawn(async move {
+        let progress = scan_app.state::<Progress>();
         match scan::scan(&scan_pool, dir).await {
             Ok(scan) => {
                 // An unreadable root (e.g. an unmounted drive) would look like every file got
@@ -117,6 +122,8 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
                         log::error!("failed to prune the superseded replays: {e}");
                     }
                 }
+                // Counted before they're sent, so none can settle before it's queued.
+                progress.queue(&scan_app, Source::Scan, scan.unseen.len());
                 scan.unseen.into_iter().for_each(|path| {
                     let _ = tx.send(FoundReplay {
                         path,
@@ -130,12 +137,15 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
         // Queued after the new replays, which matter more. A stale replay whose file is
         // gone keeps its old data, and is refreshed if the file turns up again.
         match scan::stale(&scan_pool).await {
-            Ok(stale) => stale.into_iter().for_each(|path| {
-                let _ = tx.send(FoundReplay {
-                    path,
-                    source: Source::Reparse,
+            Ok(stale) => {
+                progress.queue(&scan_app, Source::Reparse, stale.len());
+                stale.into_iter().for_each(|path| {
+                    let _ = tx.send(FoundReplay {
+                        path,
+                        source: Source::Reparse,
+                    });
                 });
-            }),
+            }
             Err(e) => log::error!("failed to list the stale replays: {e}"),
         }
     });
@@ -162,13 +172,19 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
         let in_flight = Arc::new(Mutex::new(HashSet::new()));
         let (bundle_tx, bundle_rx) = tokio::sync::mpsc::channel(workers * 2);
 
-        tauri::async_runtime::spawn(store(app, pool.clone(), bundle_rx, in_flight.clone()));
+        tauri::async_runtime::spawn(store(
+            app.clone(),
+            pool.clone(),
+            bundle_rx,
+            in_flight.clone(),
+        ));
 
         while let Some(found) = rx.recv().await {
             let Ok(permit) = permits.clone().acquire_owned().await else {
                 break;
             };
-            let (pool, heroes, maps, in_flight, bundle_tx) = (
+            let (app, pool, heroes, maps, in_flight, bundle_tx) = (
+                app.clone(),
                 pool.clone(),
                 heroes.clone(),
                 maps.clone(),
@@ -178,16 +194,20 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
             tauri::async_runtime::spawn(async move {
                 let _permit = permit;
                 let path = found.path.clone();
+                let source = found.source;
                 match prepare(&pool, found, heroes, maps, &in_flight).await {
                     Ok(Some(bundle)) => {
                         let hash = bundle.replay.hash.clone();
-                        if bundle_tx.send(bundle).await.is_err() {
-                            lock(&in_flight).remove(&hash);
+                        // Settled by the writer once stored.
+                        if bundle_tx.send((source, bundle)).await.is_ok() {
+                            return;
                         }
+                        lock(&in_flight).remove(&hash);
                     }
                     Ok(None) => {}
                     Err(e) => log::warn!("failed to ingest {}: {e}", path.display()),
                 }
+                app.state::<Progress>().settle(&app, source);
             });
         }
     });
@@ -201,10 +221,11 @@ const MAX_BATCH: usize = 32;
 async fn store(
     app: tauri::AppHandle,
     pool: SqlitePool,
-    mut bundles: tokio::sync::mpsc::Receiver<NewReplayBundle>,
+    mut bundles: tokio::sync::mpsc::Receiver<(Source, NewReplayBundle)>,
     in_flight: Arc<Mutex<HashSet<String>>>,
 ) {
     let subscribers = app.state::<IngestSubscribers>();
+    let progress = app.state::<Progress>();
     // Only this task stores replays, so the count can be kept up to date without
     // recounting after each one.
     let mut total = db::replays::count(&pool).await.unwrap_or_else(|e| {
@@ -215,7 +236,8 @@ async fn store(
     let mut batch = Vec::with_capacity(MAX_BATCH);
     while bundles.recv_many(&mut batch, MAX_BATCH).await > 0 {
         let started = Instant::now();
-        let stored = std::mem::take(&mut batch);
+        let (sources, stored): (Vec<Source>, Vec<NewReplayBundle>) =
+            std::mem::take(&mut batch).into_iter().unzip();
         let hashes: Vec<String> = stored.iter().map(|b| b.replay.hash.clone()).collect();
         let paths: Vec<String> = stored.iter().map(|b| b.replay.path.clone()).collect();
         let size = stored.len();
@@ -232,11 +254,15 @@ async fn store(
             Ok(outcomes) => outcomes,
             Err(e) => {
                 log::error!("failed to store {size} replays: {e}");
+                for source in sources {
+                    progress.settle(&app, source);
+                }
                 continue;
             }
         };
 
-        for (outcome, path) in outcomes.into_iter().zip(&paths) {
+        for ((outcome, path), source) in outcomes.into_iter().zip(&paths).zip(sources) {
+            progress.settle(&app, source);
             let (id, removed, refreshed) = match outcome {
                 Ok(InsertOutcome::Inserted(id)) => {
                     total += 1;

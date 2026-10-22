@@ -2,6 +2,7 @@ export * from "./app-shell";
 export * from "./award-pill";
 export * from "./game-icon";
 export * from "./hero-portrait";
+export * from "./ingest-progress";
 export * from "./mode-icon";
 export * from "./page";
 export * from "./replay-list-header";

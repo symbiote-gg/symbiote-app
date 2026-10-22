@@ -6,6 +6,13 @@
         "heroes": "Heroes",
         "about": "About"
     },
+    "ingest": {
+        "importing": "Importing replays",
+        "updating": "Updating replays",
+        "importingDescription": "Importing new replays from your replays folder. You can keep using the app.",
+        "updatingDescription": "SymbioteGG now reads more from each game. Reimporting your replays to add the new stats. You can keep using the app.",
+        "count": "<b>{done, number}</b> of {total, number}"
+    },
     "home": {
         "replays": {
             "title": "Replays",

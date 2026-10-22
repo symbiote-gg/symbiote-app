@@ -4,6 +4,7 @@ import { useTranslations } from "use-intl";
 import { Link, useLocation } from "wouter";
 
 import { SymbioteLogo } from "@/assets";
+import { IngestProgress } from "../ingest-progress";
 
 import styles from "./styles.module.css";
 
@@ -50,14 +51,17 @@ export function AppShell({ children }: { children: ReactNode }) {
                         </Link>
                     ))}
                 </nav>
-                <Link
-                    href="/about"
-                    className={classNames(styles.link, styles.about, {
-                        [styles.active]: location === "/about",
-                    })}
-                >
-                    {t("about")}
-                </Link>
+                <div className={styles.end}>
+                    <IngestProgress />
+                    <Link
+                        href="/about"
+                        className={classNames(styles.link, {
+                            [styles.active]: location === "/about",
+                        })}
+                    >
+                        {t("about")}
+                    </Link>
+                </div>
             </header>
             <main ref={main} className={styles.content}>
                 {children}
