@@ -5,7 +5,7 @@
 }
 
 .track {
-    @apply relative select-none;
+    @apply relative select-none will-change-transform;
 }
 
 .stem {

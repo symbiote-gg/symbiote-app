@@ -253,9 +253,7 @@ export function Track({
                         {t("empty.filtered")}
                     </Typography>
                 )}
-                {hoverTime !== null && (
-                    <Cursor time={hoverTime} duration={duration} text={text} />
-                )}
+                <Cursor time={hoverTime} duration={duration} text={text} />
                 {selected && (
                     <Popover
                         key={selected.marker.id}

@@ -7,16 +7,18 @@ import { position } from "@/utils/timeline/layout";
 import styles from "./styles.module.css";
 
 interface CursorProps {
-    time: number;
+    time: number | null;
     duration: number;
     text: TimelineText;
 }
 
 export function Cursor({ time, duration, text }: CursorProps) {
+    if (time === null) return <div className={styles.overlay} />;
+
     const left = position(time, duration);
 
     return (
-        <>
+        <div className={styles.overlay}>
             <span className={styles.crosshair} style={{ left }} />
             <div
                 className={classNames(styles.tooltip, {
@@ -28,6 +30,6 @@ export function Cursor({ time, duration, text }: CursorProps) {
                     {text.at(time)}
                 </Typography>
             </div>
-        </>
+        </div>
     );
 }

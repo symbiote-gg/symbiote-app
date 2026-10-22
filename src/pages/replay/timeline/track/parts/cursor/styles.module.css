@@ -1,11 +1,15 @@
 @reference "@/index.css";
 
+.overlay {
+    @apply pointer-events-none absolute inset-0 z-20 will-change-transform;
+}
+
 .crosshair {
-    @apply pointer-events-none absolute inset-y-0 w-px -translate-x-1/2 bg-fg-muted/50;
+    @apply absolute inset-y-0 w-px -translate-x-1/2 bg-fg-muted/50;
 }
 
 .tooltip {
-    @apply pointer-events-none absolute top-1 z-20 ml-2 flex flex-col gap-0.5 rounded-md border border-line bg-surface-2 px-2 py-1 shadow-lg;
+    @apply absolute top-1 ml-2 flex flex-col gap-0.5 rounded-md border border-line bg-surface-2 px-2 py-1 shadow-lg;
 }
 
 .tooltipLeft {
