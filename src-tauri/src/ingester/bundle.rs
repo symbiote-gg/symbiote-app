@@ -131,6 +131,7 @@ pub(super) fn build_bundle(
         game_loops: summary.game_loops.into(),
         gates_open_loop: summary.gates_open_loop.unwrap_or(0).into(),
         is_new,
+        ingest_version: super::INGEST_VERSION,
     };
 
     let mut heroes = Vec::new();
@@ -180,6 +181,7 @@ pub(super) fn build_bundle(
         players,
         replay_players,
         events: events(&summary)?,
+        refreshes: None,
     })
 }
 

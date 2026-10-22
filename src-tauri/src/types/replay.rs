@@ -56,6 +56,7 @@ pub struct NewReplay {
     pub game_loops: i64,
     pub gates_open_loop: i64,
     pub is_new: bool,
+    pub ingest_version: i64,
 }
 
 #[derive(Debug, Serialize)]
@@ -162,6 +163,8 @@ pub struct ReplayDetail {
 pub struct ReplayIngested {
     pub replay: ReplayWithPlayers,
     pub removed: Option<i64>,
+    /// Whether it was already stored and got re-parsed in place.
+    pub refreshed: bool,
     pub total: i64,
 }
 
@@ -232,4 +235,6 @@ pub struct NewReplayBundle {
     pub players: Vec<Player>,
     pub replay_players: Vec<NewReplayPlayer>,
     pub events: Vec<NewEvent>,
+    /// The stored replay this one re-parses, keeping its id, or `None` for a new one.
+    pub refreshes: Option<i64>,
 }

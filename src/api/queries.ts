@@ -81,7 +81,11 @@ export function applyIngested<TPageParam>(
             }
         }
 
-        if (pages.some((page) => page.some((r) => r.id === replay.id))) {
+        const current = pages.find((page) =>
+            page.some((r) => r.id === replay.id),
+        );
+        if (current) {
+            current[current.findIndex((r) => r.id === replay.id)] = replay;
             continue;
         }
 

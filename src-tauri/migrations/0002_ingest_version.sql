@@ -1,0 +1,1 @@
+ALTER TABLE "replays" ADD COLUMN "ingest_version" INTEGER NOT NULL DEFAULT 0;

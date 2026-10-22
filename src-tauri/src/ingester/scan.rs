@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use sqlx::SqlitePool;
 
-use super::has_replay_extension;
+use super::{has_replay_extension, INGEST_VERSION};
 use crate::db;
 use crate::error::Result;
 
@@ -20,6 +20,20 @@ pub(super) async fn scan(pool: &SqlitePool, dir: PathBuf) -> Result<Scan> {
         .collect();
 
     Ok(tauri::async_runtime::spawn_blocking(move || find_unseen_replays(&dir, &stored)).await?)
+}
+
+/// Lists the stored replays below [`INGEST_VERSION`] whose file is still there, newest
+/// first.
+pub(super) async fn stale(pool: &SqlitePool) -> Result<Vec<PathBuf>> {
+    let paths = db::replays::list_stale_paths(pool, INGEST_VERSION).await?;
+    Ok(tauri::async_runtime::spawn_blocking(move || {
+        paths
+            .into_iter()
+            .map(PathBuf::from)
+            .filter(|path| path.is_file())
+            .collect()
+    })
+    .await?)
 }
 
 /// Walks `dir` recursively, collecting every replay file and the ones whose path isn't in

@@ -12,7 +12,7 @@ use tauri::Manager;
 use tokio::sync::Semaphore;
 
 use crate::db;
-use crate::db::replays::InsertOutcome;
+use crate::db::replays::{HashStatus, InsertOutcome};
 use crate::error::Result;
 use crate::types::map::MapFact;
 use crate::types::replay::{NewReplayBundle, ReplayIngested};
@@ -24,10 +24,20 @@ mod watcher;
 
 const REPLAY_EXTENSION: &str = "StormReplay";
 
+/// Version of the data parsed and stored for each replay, not of the parser crate.
+///
+/// Bump it whenever what gets stored changes, e.g. a parser upgrade adding fields or a
+/// change in [`bundle::build_bundle`], so the replays stored before are re-parsed in place.
+/// A parser upgrade that stores nothing new needs no bump, and schema-only changes go in
+/// a migration instead.
+pub const INGEST_VERSION: i64 = 1;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Source {
     Watcher,
     Scan,
+    /// A stored replay below [`INGEST_VERSION`].
+    Reparse,
 }
 
 /// A replay file found on disk, waiting to be ingested.
@@ -116,6 +126,18 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
             }
             Err(e) => log::error!("failed to scan for existing replays: {e}"),
         }
+
+        // Queued after the new replays, which matter more. A stale replay whose file is
+        // gone keeps its old data, and is refreshed if the file turns up again.
+        match scan::stale(&scan_pool).await {
+            Ok(stale) => stale.into_iter().for_each(|path| {
+                let _ = tx.send(FoundReplay {
+                    path,
+                    source: Source::Reparse,
+                });
+            }),
+            Err(e) => log::error!("failed to list the stale replays: {e}"),
+        }
     });
 
     tauri::async_runtime::spawn(async move {
@@ -199,7 +221,7 @@ async fn store(
         let size = stored.len();
 
         let outcomes = db::replays::insert_bundles(&pool, stored).await;
-        // Stored or not, the hashes are settled: a known one is caught by `is_known_hash`.
+        // Stored or not, the hashes are settled: a known one is caught by `hash_status`.
         {
             let mut in_flight = lock(&in_flight);
             hashes.iter().for_each(|hash| {
@@ -215,12 +237,13 @@ async fn store(
         };
 
         for (outcome, path) in outcomes.into_iter().zip(&paths) {
-            let (id, removed) = match outcome {
+            let (id, removed, refreshed) = match outcome {
                 Ok(InsertOutcome::Inserted(id)) => {
                     total += 1;
-                    (id, None)
+                    (id, None, false)
                 }
-                Ok(InsertOutcome::Replaced { removed, id }) => (id, Some(removed)),
+                Ok(InsertOutcome::Replaced { removed, id }) => (id, Some(removed), false),
+                Ok(InsertOutcome::Refreshed(id)) => (id, None, true),
                 Ok(InsertOutcome::Skipped) => continue,
                 Err(e) => {
                     log::warn!("failed to store {path}: {e}");
@@ -231,6 +254,7 @@ async fn store(
                 Ok(Some(replay)) => subscribers.notify(&ReplayIngested {
                     replay,
                     removed,
+                    refreshed,
                     total,
                 }),
                 Ok(None) => {}
@@ -274,7 +298,8 @@ async fn prepare(
     bundle
 }
 
-/// Parses the replay at `path`, unless a file with the same content was already handled.
+/// Parses the replay at `path`, unless a file with the same content was already handled
+/// at the current [`INGEST_VERSION`].
 async fn parse_unknown(
     pool: &SqlitePool,
     path: PathBuf,
@@ -283,16 +308,19 @@ async fn parse_unknown(
     heroes: Arc<SeededHeroes>,
     maps: Arc<SeededMaps>,
 ) -> Result<Option<NewReplayBundle>> {
-    if db::replays::is_known_hash(pool, &hash).await? {
-        return Ok(None);
-    }
+    let refreshes = match db::replays::hash_status(pool, &hash, INGEST_VERSION).await? {
+        HashStatus::Current => return Ok(None),
+        HashStatus::Unknown => None,
+        HashStatus::Stale(id) => Some(id),
+    };
 
     let is_new = source == Source::Watcher;
     // Parsing is CPU-heavy and synchronous, so keep it off the async runtime.
-    let bundle = tauri::async_runtime::spawn_blocking(move || {
+    let mut bundle = tauri::async_runtime::spawn_blocking(move || {
         bundle::build_bundle(&path, hash, is_new, &heroes, &maps)
     })
     .await??;
+    bundle.refreshes = refreshes;
     Ok(Some(bundle))
 }
 

@@ -45,7 +45,18 @@ impl ReplayPlayerRow {
 pub enum InsertOutcome {
     Inserted(i64),
     Replaced { removed: i64, id: i64 },
+    Refreshed(i64),
     Skipped,
+}
+
+/// What is stored for a replay file's content.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HashStatus {
+    Unknown,
+    /// Stored at the current ingest version, or superseded by a longer replay.
+    Current,
+    /// Stored at an older ingest version, as the replay with this id.
+    Stale(i64),
 }
 
 /// Stores replays with their heroes, players and events, each atomically: either all of
@@ -55,6 +66,9 @@ pub enum InsertOutcome {
 /// a game is kept per owner: a shorter one is skipped, a longer one replaces the stored
 /// replay. Either way the file left out is recorded as superseded, so it isn't parsed
 /// again.
+///
+/// A bundle that [`refreshes`](NewReplayBundle::refreshes) a stored replay overwrites
+/// it in place instead.
 ///
 /// Heroes and players are upserted first, since the replay rows reference them.
 ///
@@ -69,7 +83,10 @@ pub async fn insert_bundles(
 
     for bundle in bundles {
         let mut savepoint = tx.begin().await?;
-        let outcome = insert_bundle_in(&mut savepoint, bundle).await;
+        let outcome = match bundle.refreshes {
+            Some(id) => refresh_bundle_in(&mut savepoint, id, bundle).await,
+            None => insert_bundle_in(&mut savepoint, bundle).await,
+        };
         match outcome {
             Ok(_) => savepoint.commit().await?,
             Err(_) => savepoint.rollback().await?,
@@ -137,13 +154,96 @@ async fn insert_bundle_in(
     })
 }
 
-pub async fn is_known_hash(pool: &SqlitePool, hash: &str) -> sqlx::Result<bool> {
-    sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM replays WHERE hash = ?1)
-             OR EXISTS(SELECT 1 FROM superseded_replays WHERE hash = ?1)",
+/// Overwrites the stored replay `id` with `bundle`, keeping its id, hash, seen state and
+/// superseded files.
+async fn refresh_bundle_in(
+    tx: &mut SqliteConnection,
+    id: i64,
+    bundle: NewReplayBundle,
+) -> sqlx::Result<InsertOutcome> {
+    heroes::upsert_many(tx, &bundle.heroes).await?;
+    players::upsert_many(tx, &bundle.players).await?;
+
+    let replay = &bundle.replay;
+    let updated = sqlx::query(
+        "UPDATE replays SET path = ?, game_id = ?, timestamp = ?, mode = ?, map = ?,
+             owner_hero_id = ?, owner_player_id = ?, owner_win = ?, duration = ?,
+             game_loops = ?, gates_open_loop = ?, ingest_version = ?
+         WHERE id = ?",
     )
-    .bind(hash)
-    .fetch_one(pool)
+    .bind(&replay.path)
+    .bind(&replay.game_id)
+    .bind(replay.timestamp.timestamp())
+    .bind(replay.mode)
+    .bind(&replay.map)
+    .bind(&replay.owner_hero_id)
+    .bind(&replay.owner_player_id)
+    .bind(replay.owner_win)
+    .bind(replay.duration)
+    .bind(replay.game_loops)
+    .bind(replay.gates_open_loop)
+    .bind(replay.ingest_version)
+    .bind(id)
+    .execute(&mut *tx)
+    .await?;
+    // Replaced by a longer replay of the game since it was found stale.
+    if updated.rows_affected() == 0 {
+        return Ok(InsertOutcome::Skipped);
+    }
+
+    // Talents and awards cascade with the players.
+    sqlx::query("DELETE FROM replays_players WHERE replay_id = ?")
+        .bind(id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM events WHERE replay_id = ?")
+        .bind(id)
+        .execute(&mut *tx)
+        .await?;
+
+    insert_players(tx, id, &bundle.replay_players).await?;
+    insert_talents(tx, id, &bundle.replay_players).await?;
+    insert_awards(tx, id, &bundle.replay_players).await?;
+    insert_events(tx, id, &bundle.events).await?;
+
+    Ok(InsertOutcome::Refreshed(id))
+}
+
+/// Looks up what is stored for `hash`, a replay being stale below ingest `version`.
+pub async fn hash_status(pool: &SqlitePool, hash: &str, version: i64) -> sqlx::Result<HashStatus> {
+    let stored: Option<(i64, i64)> =
+        sqlx::query_as("SELECT id, ingest_version FROM replays WHERE hash = ?")
+            .bind(hash)
+            .fetch_optional(pool)
+            .await?;
+    if let Some((id, stored_version)) = stored {
+        return Ok(if stored_version < version {
+            HashStatus::Stale(id)
+        } else {
+            HashStatus::Current
+        });
+    }
+
+    let superseded: bool =
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM superseded_replays WHERE hash = ?)")
+            .bind(hash)
+            .fetch_one(pool)
+            .await?;
+    Ok(if superseded {
+        HashStatus::Current
+    } else {
+        HashStatus::Unknown
+    })
+}
+
+/// Lists the paths of the replays stored below ingest `version`, newest first.
+pub async fn list_stale_paths(pool: &SqlitePool, version: i64) -> sqlx::Result<Vec<String>> {
+    sqlx::query_scalar(
+        "SELECT path FROM replays WHERE ingest_version < ?
+         ORDER BY timestamp DESC, id DESC",
+    )
+    .bind(version)
+    .fetch_all(pool)
     .await
 }
 
@@ -494,8 +594,9 @@ pub async fn get_detail(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<Repla
 async fn insert_replay(executor: impl SqliteExecutor<'_>, replay: &NewReplay) -> sqlx::Result<i64> {
     sqlx::query(
         "INSERT INTO replays (hash, path, game_id, timestamp, mode, map, owner_hero_id,
-             owner_player_id, owner_win, duration, game_loops, gates_open_loop, is_new)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+             owner_player_id, owner_win, duration, game_loops, gates_open_loop, is_new,
+             ingest_version)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(&replay.hash)
     .bind(&replay.path)
@@ -510,6 +611,7 @@ async fn insert_replay(executor: impl SqliteExecutor<'_>, replay: &NewReplay) ->
     .bind(replay.game_loops)
     .bind(replay.gates_open_loop)
     .bind(replay.is_new)
+    .bind(replay.ingest_version)
     .execute(executor)
     .await
     .map(|res| res.last_insert_rowid())
@@ -644,6 +746,7 @@ mod tests {
     use sqlx::sqlite::SqlitePoolOptions;
 
     use super::*;
+    use crate::ingester::INGEST_VERSION;
     use crate::types::hero::Hero;
     use crate::types::player::Player;
     use crate::types::replay::Mode;
@@ -653,6 +756,10 @@ mod tests {
         bundle: NewReplayBundle,
     ) -> sqlx::Result<InsertOutcome> {
         insert_bundles(pool, vec![bundle]).await?.remove(0)
+    }
+
+    async fn status(pool: &SqlitePool, hash: &str) -> HashStatus {
+        hash_status(pool, hash, INGEST_VERSION).await.unwrap()
     }
 
     async fn pool() -> SqlitePool {
@@ -681,6 +788,7 @@ mod tests {
                 game_loops,
                 gates_open_loop: 0,
                 is_new: false,
+                ingest_version: INGEST_VERSION,
             },
             heroes: vec![Hero {
                 id: "Wizard".to_owned(),
@@ -703,6 +811,7 @@ mod tests {
                 awards: vec!["mvp".to_owned()],
             }],
             events: vec![],
+            refreshes: None,
         }
     }
 
@@ -717,7 +826,7 @@ mod tests {
 
         let shorter = insert_bundle(&pool, bundle("b", 500)).await.unwrap();
         assert_eq!(shorter, InsertOutcome::Skipped);
-        assert!(is_known_hash(&pool, "b").await.unwrap());
+        assert_eq!(status(&pool, "b").await, HashStatus::Current);
 
         let InsertOutcome::Replaced { removed, id } =
             insert_bundle(&pool, bundle("c", 2000)).await.unwrap()
@@ -727,8 +836,9 @@ mod tests {
         assert_eq!(removed, first);
         assert_eq!(count(&pool).await.unwrap(), 1);
         for hash in ["a", "b", "c"] {
-            assert!(
-                is_known_hash(&pool, hash).await.unwrap(),
+            assert_ne!(
+                status(&pool, hash).await,
+                HashStatus::Unknown,
                 "{hash} forgotten"
             );
         }
@@ -737,6 +847,67 @@ mod tests {
         assert_eq!(detail.replay.hash, "c");
         assert_eq!(detail.players.len(), 1);
         assert_eq!(detail.players[0].awards.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn refreshes_a_stale_replay_in_place() {
+        let pool = pool().await;
+        let mut stale = bundle("a", 1000);
+        stale.replay.ingest_version = INGEST_VERSION - 1;
+        stale.replay.is_new = true;
+        stale.events = vec![NewEvent {
+            kind: "death".to_owned(),
+            gameloop: 100,
+            team: Some(0),
+            data: serde_json::json!({ "victim": 1 }),
+        }];
+        let InsertOutcome::Inserted(id) = insert_bundle(&pool, stale).await.unwrap() else {
+            panic!("the replay should be inserted");
+        };
+        insert_bundle(&pool, bundle("b", 500)).await.unwrap();
+        assert_eq!(status(&pool, "a").await, HashStatus::Stale(id));
+        assert_eq!(status(&pool, "c").await, HashStatus::Unknown);
+
+        let mut fresh = bundle("a", 1000);
+        fresh.replay.path = "moved/a.StormReplay".to_owned();
+        fresh.replay_players[0].awards = vec![];
+        fresh.events = vec![NewEvent {
+            kind: "death".to_owned(),
+            gameloop: 100,
+            team: Some(0),
+            data: serde_json::json!({ "victim": 1, "alone": true }),
+        }];
+        fresh.refreshes = Some(id);
+        let outcome = insert_bundle(&pool, fresh).await.unwrap();
+        assert_eq!(outcome, InsertOutcome::Refreshed(id));
+        assert_eq!(status(&pool, "a").await, HashStatus::Current);
+        assert_eq!(status(&pool, "b").await, HashStatus::Current);
+
+        let detail = get_detail(&pool, id).await.unwrap().unwrap();
+        assert_eq!(detail.replay.path, "moved/a.StormReplay");
+        assert!(detail.replay.is_new);
+        assert!(detail.players[0].awards.is_empty());
+        assert_eq!(detail.events.len(), 1);
+        assert_eq!(detail.events[0].data.0["alone"], true);
+    }
+
+    #[tokio::test]
+    async fn lists_stale_paths_newest_first() {
+        let pool = pool().await;
+        for (hash, timestamp, version) in [
+            ("old", 100, INGEST_VERSION - 1),
+            ("new", 200, INGEST_VERSION - 1),
+            ("current", 300, INGEST_VERSION),
+        ] {
+            let mut game = bundle(hash, 1000);
+            game.replay.game_id = hash.to_owned();
+            game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
+            game.replay.ingest_version = version;
+            insert_bundle(&pool, game).await.unwrap();
+        }
+
+        let paths = list_stale_paths(&pool, INGEST_VERSION).await.unwrap();
+        assert_eq!(paths, ["new.StormReplay", "old.StormReplay"]);
     }
 
     async fn insert_game(pool: &SqlitePool, game_id: &str, timestamp: i64) {

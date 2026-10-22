@@ -42,10 +42,15 @@ export function useIngestInvalidation() {
                 replaysQuery.queryKey,
                 (data) => data && applyIngested(data, ingested),
             );
-            for (const { removed } of ingested) {
+            for (const { replay, removed, refreshed } of ingested) {
                 if (removed !== null) {
                     queryClient.removeQueries({
                         queryKey: replayQuery(removed).queryKey,
+                    });
+                }
+                if (refreshed) {
+                    queryClient.invalidateQueries({
+                        queryKey: replayQuery(replay.id).queryKey,
                     });
                 }
             }

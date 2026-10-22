@@ -62,6 +62,8 @@ export type ReplayPage = {
 export type ReplayIngested = {
     replay: Replay;
     removed: number | null;
+    /** Already stored, re-parsed in place after a INGEST_VERSION update. */
+    refreshed: boolean;
     total: number;
 };
 
