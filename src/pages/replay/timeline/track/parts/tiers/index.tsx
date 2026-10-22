@@ -3,11 +3,7 @@ import { useTranslations } from "use-intl";
 
 import { AXIS, AXIS_GAP } from "@/utils/timeline/constants";
 import { position } from "@/utils/timeline/layout";
-import {
-    type LevelCurve,
-    type TierReached,
-    tiersReached,
-} from "@/utils/timeline/levels";
+import { type LevelCurve, tiersReached } from "@/utils/timeline/levels";
 
 import styles from "./styles.module.css";
 
@@ -18,11 +14,6 @@ interface TiersProps {
 
 export function Tiers({ curves, duration }: TiersProps) {
     const t = useTranslations("replay.timeline");
-
-    const reachedText = ({ level, secondsAhead }: TierReached) =>
-        secondsAhead > 0
-            ? t("tier.ahead", { level, seconds: secondsAhead })
-            : t("tier.reached", { level });
 
     return tiersReached(curves, duration).map((reached) => (
         <span
@@ -48,7 +39,19 @@ export function Tiers({ curves, duration }: TiersProps) {
                         : styles.tierEnemy,
                 )}
             >
-                {reachedText(reached)}
+                <span className={styles.tierLevel}>
+                    {t.rich("tier.level", {
+                        level: reached.level,
+                        label: (chunks) => (
+                            <span className={styles.tierLabel}>{chunks}</span>
+                        ),
+                    })}
+                </span>
+                {reached.secondsAhead > 0 && (
+                    <span className={styles.tierAhead}>
+                        {t("tier.ahead", { seconds: reached.secondsAhead })}
+                    </span>
+                )}
             </span>
         </span>
     ));

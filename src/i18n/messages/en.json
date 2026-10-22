@@ -89,8 +89,8 @@
                 "filtered": "Nothing selected"
             },
             "tier": {
-                "ahead": "Lv{level} +{seconds}s",
-                "reached": "Lv{level}"
+                "level": "<label>LV</label> {level}",
+                "ahead": "+{seconds}s"
             },
             "at": "{time}, {label}",
             "range": "{start} - {end}",
