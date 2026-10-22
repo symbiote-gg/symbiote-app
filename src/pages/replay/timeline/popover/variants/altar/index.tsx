@@ -2,8 +2,8 @@ import classNames from "classnames";
 import { Crosshair, Hexagon } from "lucide-react";
 import { useTranslations } from "use-intl";
 
+import type { Altar as AltarData } from "@/api/replays";
 import { Tooltip, Typography } from "@/ui";
-import type { Altar as AltarData } from "@/utils/timeline/map-events";
 import { sideOf } from "@/utils/timeline/markers";
 import { GlyphIcon } from "../../../glyphs";
 import { sideClasses } from "../../../side";

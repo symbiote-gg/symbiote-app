@@ -132,12 +132,7 @@
                 "cavalry": "Cavalry",
                 "terror": "Garden Terror",
                 "nuke": "Nuke",
-                "payload": "Payload",
-                "nukePickup": "Nuke picked up",
-                "nukeDrop": "Nuke dropped",
-                "nukesSpawned": "Nukes spawned",
-                "pointSpawned": "Control point",
-                "bossDuel": "Boss duel"
+                "payload": "Payload"
             },
             "detail": {
                 "time": "Time",

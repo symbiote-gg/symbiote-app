@@ -1,63 +1,29 @@
-import type { TimelineEvent } from "@/api/replays";
-import type { Filter } from "./filters";
 import type {
-    Glyph,
-    Knight,
-    MapEventSpec,
-    ObjectiveLabel,
-    Race,
-} from "./map-events";
+    Objective,
+    TimelineCamp,
+    TimelineDeath,
+    TimelineStructure,
+} from "@/api/replays";
+import type { Filter } from "./filters";
+import type { Glyph, MapEventSpec, ObjectiveLabel } from "./map-events";
 
 export type Side = "ally" | "enemy" | null;
-export type Lane = "top" | "middle" | "bottom";
 
-export type DeathEntry = {
-    type: "death";
-    time: number;
-    side: Side;
-    victim: number;
-    killers: number[];
-    /** Null when no hero landed it: minions, structures, mercenaries. */
-    killingBlow: number | null;
-    /** Null when unknown, e.g. replays ingested before it was tracked. */
-    alone: boolean | null;
-};
-
-export type StructureEntry = {
+export type DeathEntry = TimelineDeath & { type: "death"; side: Side };
+export type StructureEntry = TimelineStructure & {
     type: "structure";
+    side: Side;
+};
+export type CampEntry = TimelineCamp & { type: "camp"; side: Side };
+export type MapEntry = {
+    type: "map";
     time: number;
     side: Side;
-    keep: boolean;
-    /** Null on maps without distinct lanes. */
-    lane: Lane | null;
-    killers: number[];
-    /** Null when no hero landed it: minions, mercenaries. */
-    killingBlow: number | null;
+    objective: Objective;
+    spec: MapEventSpec | null;
 };
 
-export type CampEntry = {
-    type: "camp";
-    time: number;
-    side: Side;
-    team: number | null;
-    campType: string | null;
-    nth: number;
-};
-
-export type Entry =
-    | DeathEntry
-    | StructureEntry
-    | CampEntry
-    | {
-          type: "map";
-          time: number;
-          side: Side;
-          event: TimelineEvent;
-          spec: MapEventSpec | null;
-          held: [number, number] | null;
-          race: Race | null;
-          knight: Knight | null;
-      };
+export type Entry = DeathEntry | StructureEntry | CampEntry | MapEntry;
 
 interface MarkerBase {
     id: string;

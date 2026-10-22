@@ -1,4 +1,4 @@
-import { type Glyph, type MapEventData, specGlyph } from "./map-events";
+import { type Glyph, specGlyph } from "./map-events";
 import { fightKind } from "./markers";
 import type { DeathEntry, Entry } from "./types";
 
@@ -16,7 +16,7 @@ export const entryGlyph = (entry: Entry): Glyph => {
             return entry.keep ? "keep" : "castle";
         case "map":
             return entry.spec
-                ? specGlyph(entry.spec, entry.event.data as MapEventData)
+                ? specGlyph(entry.spec, entry.objective.variant)
                 : "flag";
     }
 };

@@ -1,24 +1,14 @@
-import type { TimelineEvent } from "@/api/replays";
+import type { Timeline } from "@/api/replays";
 
 const TALENT_TIERS = [4, 7, 10, 13, 16, 20];
 
 export type LevelCurve = [number, number][];
 
-export function levelCurves(
-    events: TimelineEvent[],
+/** Both teams' level curves, ally first. */
+export const levelCurves = (
+    levels: Timeline["levels"],
     allyTeam: number,
-): [LevelCurve, LevelCurve] {
-    const curve = (team: number): LevelCurve => [
-        [0, 1],
-        ...events
-            .filter(
-                (e) => e.kind === "team_level" && e.team === team && e.time > 0,
-            )
-            .map((e): [number, number] => [e.time, e.data.level as number]),
-    ];
-
-    return [curve(allyTeam), curve(1 - allyTeam)];
-}
+): [LevelCurve, LevelCurve] => [levels[allyTeam], levels[1 - allyTeam]];
 
 /** Fractional level: progress towards the next level-up is linear in time. */
 export function levelAt(curve: LevelCurve, time: number) {

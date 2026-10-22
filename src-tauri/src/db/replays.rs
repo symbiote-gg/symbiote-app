@@ -9,8 +9,9 @@ use crate::types::hero::HeroRole;
 use crate::types::replay::{
     AwardInfo, NewEvent, NewReplay, NewReplayBundle, NewReplayPlayer, NewTalent, OwnerStats,
     Replay, ReplayCursor, ReplayDetail, ReplayPage, ReplayPlayerDetail, ReplayPlayerInfo,
-    ReplayWithPlayers, TalentPick, TimelineEvent, XpSample,
+    ReplayWithPlayers, TalentPick, XpSample,
 };
+use crate::types::timeline::RawEvent;
 
 #[derive(Debug, FromRow)]
 struct ReplayPlayerRow {
@@ -539,12 +540,12 @@ pub async fn get_detail(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<Repla
     .fetch_all(&mut *tx)
     .await?;
 
-    detail.events = sqlx::query_as::<_, TimelineEvent>(
+    let events = sqlx::query_as::<_, RawEvent>(
         "SELECT e.kind, CAST(e.gameloop - r.gates_open_loop AS REAL) / ? AS time, e.team, e.data
          FROM events e
          JOIN replays r ON r.id = e.replay_id
          WHERE e.replay_id = ? AND e.kind != 'xp'
-         ORDER BY e.gameloop",
+         ORDER BY e.gameloop, e.id",
     )
     .bind(LOOPS_PER_SECOND)
     .bind(id)
@@ -569,6 +570,7 @@ pub async fn get_detail(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<Repla
     .await?;
     tx.commit().await?;
 
+    detail.timeline = crate::timeline::build(events);
     for row in talents {
         if let Some(player) = detail
             .players
@@ -875,7 +877,14 @@ mod tests {
             kind: "death".to_owned(),
             gameloop: 100,
             team: Some(0),
-            data: serde_json::json!({ "victim": 1, "alone": true }),
+            data: serde_json::json!({
+                "gameloop": 100,
+                "victim": 1,
+                "killers": [],
+                "x": 0.0,
+                "y": 0.0,
+                "alone": true,
+            }),
         }];
         fresh.refreshes = Some(id);
         let outcome = insert_bundle(&pool, fresh).await.unwrap();
@@ -887,8 +896,8 @@ mod tests {
         assert_eq!(detail.replay.path, "moved/a.StormReplay");
         assert!(detail.replay.is_new);
         assert!(detail.players[0].awards.is_empty());
-        assert_eq!(detail.events.len(), 1);
-        assert_eq!(detail.events[0].data.0["alone"], true);
+        assert_eq!(detail.timeline.deaths.len(), 1);
+        assert_eq!(detail.timeline.deaths[0].alone, Some(true));
     }
 
     #[tokio::test]

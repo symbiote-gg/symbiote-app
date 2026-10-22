@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "use-intl";
 
-import type { ReplayPlayerDetail, TimelineEvent } from "@/api/replays";
+import type {
+    ReplayPlayerDetail,
+    Timeline as TimelineData,
+} from "@/api/replays";
 import { useHiddenFilters } from "@/hooks/useHiddenFilters";
 import { useMeFilter } from "@/hooks/useMeFilter";
 import { useTimelineText } from "@/hooks/useTimelineText";
@@ -16,7 +19,7 @@ import { Track } from "./track";
 import styles from "./styles.module.css";
 
 interface TimelineProps {
-    events: TimelineEvent[];
+    timeline: TimelineData;
     duration: number;
     players: ReplayPlayerDetail[];
     allyTeam: number;
@@ -25,7 +28,7 @@ interface TimelineProps {
 }
 
 export function Timeline({
-    events,
+    timeline,
     duration,
     players,
     allyTeam,
@@ -40,12 +43,12 @@ export function Timeline({
     const [selected, setSelected] = useState<Marker | null>(null);
 
     const markers = useMemo(
-        () => buildMarkers(events, duration, allyTeam),
-        [events, duration, allyTeam],
+        () => buildMarkers(timeline, duration, allyTeam),
+        [timeline, duration, allyTeam],
     );
     const curves = useMemo(
-        () => levelCurves(events, allyTeam),
-        [events, allyTeam],
+        () => levelCurves(timeline.levels, allyTeam),
+        [timeline.levels, allyTeam],
     );
 
     const counts = useMemo(() => {

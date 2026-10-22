@@ -43,8 +43,8 @@ function content(
         return <StructureKill entry={view.structure} roster={roster} />;
     }
     if (view.camp) return null;
-    if (view.map?.held) {
-        return <Held range={view.map.held} side={side} text={text} />;
+    if (view.held) {
+        return <Held range={view.held} side={side} text={text} />;
     }
     if (view.knight) {
         return (

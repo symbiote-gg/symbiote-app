@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::types::Json;
 use sqlx::FromRow;
 
 use super::hero::{Hero, HeroRole};
 use super::player::Player;
+use super::timeline::Timeline;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, sqlx::Type)]
 #[sqlx(type_name = "TEXT", rename_all = "snake_case")]
@@ -153,7 +153,7 @@ pub struct ReplayDetail {
     #[sqlx(skip)]
     pub players: Vec<ReplayPlayerDetail>,
     #[sqlx(skip)]
-    pub events: Vec<TimelineEvent>,
+    pub timeline: Timeline,
     #[sqlx(skip)]
     pub xp: Vec<XpSample>,
 }
@@ -200,15 +200,6 @@ pub struct NewTalent {
     pub tier: i64,
     pub talent_id: String,
     pub gameloop: i64,
-}
-
-#[derive(Debug, FromRow, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct TimelineEvent {
-    pub kind: String,
-    pub time: f64,
-    pub team: Option<i64>,
-    pub data: Json<serde_json::Value>,
 }
 
 #[derive(Debug, FromRow, Serialize)]

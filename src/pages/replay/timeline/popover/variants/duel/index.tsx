@@ -1,8 +1,8 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
+import type { Duel as DuelData } from "@/api/replays";
 import { Typography } from "@/ui";
-import type { Duel as DuelData } from "@/utils/timeline/map-events";
 import { sideOf } from "@/utils/timeline/markers";
 import type { Side } from "@/utils/timeline/types";
 import { sideClasses } from "../../../side";

@@ -140,14 +140,118 @@ export type ReplayPlayerDetail = ReplayPlayer & {
     awards: Award[];
 };
 
-export type TimelineEvent = {
-    kind: string;
+export type Lane = "top" | "middle" | "bottom";
+
+export type TimelineDeath = {
     time: number;
+    /** The victim's team. */
     team: number | null;
-    data: Record<string, unknown>;
+    victim: number;
+    killers: number[];
+    /** Null when no hero landed it: minions, structures, mercenaries. */
+    killingBlow: number | null;
+    /** Null when unknown, e.g. replays ingested before it was tracked. */
+    alone: boolean | null;
 };
 
-/** A team's cumulative XP at one periodic sample, timed like `TimelineEvent`. */
+export type TimelineStructure = {
+    time: number;
+    /** The team that owned it. */
+    team: number | null;
+    keep: boolean;
+    /** Null on maps without distinct lanes. */
+    lane: Lane | null;
+    killers: number[];
+    /** Null when no hero landed it: minions, mercenaries. */
+    killingBlow: number | null;
+};
+
+export type TimelineCamp = {
+    time: number;
+    team: number | null;
+    campType: string | null;
+    /** Which capture of this camp it is, from 1. */
+    nth: number;
+};
+
+/** Both teams' progress towards one objective, drawn as two bars. */
+export type Race = {
+    kind:
+        | "capture"
+        | "curse"
+        | "gems"
+        | "golem"
+        | "shrine"
+        | "ship"
+        | "temple"
+        | "wave";
+    teamValues: [number, number];
+    unit: "percent" | null;
+    /** The team listed first, else the leader. */
+    topTeam: number | null;
+};
+
+/** A summoned unit's life, spawn to death, and the damage it did. */
+export type Summon = {
+    range: [number, number];
+    siege: number;
+    heroes: number;
+};
+
+/** An immortal fight: who won and how much of their immortal survived. */
+export type Duel = {
+    range: [number, number];
+    winner: number;
+    power: number;
+};
+
+/** An altar capture: the firing team and the towns adding shots to its core. */
+export type Altar = {
+    winner: number;
+    towns: number;
+};
+
+/** A Dragon Knight's ride: its pilot and what they took down while it lived. */
+export type Knight = {
+    /** End is null while the knight outlived the game. */
+    range: [number, number | null];
+    pilot: number;
+    takedowns: number;
+    structures: number;
+};
+
+export type Objective = {
+    time: number;
+    kind: string;
+    /** The team that gained from it. */
+    team: number | null;
+    /** Picks a glyph and label among the kind's, e.g. a punisher's type. */
+    variant: string | null;
+    race: Race | null;
+    /** A state's start and end, shown in the popover, not on the track. */
+    held: [number, number] | null;
+    summon: Summon | null;
+    duel: Duel | null;
+    altar: Altar | null;
+    knight: Knight | null;
+    /** The event's own values, only for kinds no map knows. */
+    raw: {
+        ints: Record<string, number>;
+        strings: Record<string, string>;
+    } | null;
+};
+
+/** What happened over a game, from the gates opening. */
+export type Timeline = {
+    deaths: TimelineDeath[];
+    structures: TimelineStructure[];
+    camps: TimelineCamp[];
+    /** Each team's level-ups as `[time, level]`, from level 1 at 0. */
+    levels: [[number, number][], [number, number][]];
+    objectives: Objective[];
+};
+
+/** A team's cumulative XP at one periodic sample, timed like the timeline. */
 export type XpSample = {
     time: number;
     team: number;
@@ -168,7 +272,7 @@ export type ReplayDetail = Omit<
     | "ownerAwards"
 > & {
     players: ReplayPlayerDetail[];
-    events: TimelineEvent[];
+    timeline: Timeline;
     xp: XpSample[];
 };
 

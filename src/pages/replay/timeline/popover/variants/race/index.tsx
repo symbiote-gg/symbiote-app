@@ -1,8 +1,9 @@
 import classNames from "classnames";
 import { useFormatter, useTranslations } from "use-intl";
 
+import type { Race as RaceData } from "@/api/replays";
 import { Typography } from "@/ui";
-import type { Glyph, Race as RaceData } from "@/utils/timeline/map-events";
+import type { Glyph } from "@/utils/timeline/map-events";
 import { sideOf } from "@/utils/timeline/markers";
 import type { Side } from "@/utils/timeline/types";
 import { sideClasses } from "../../../side";
@@ -37,7 +38,7 @@ export function Race({
 
     const scale = unit === "percent" ? 100 : Math.max(...teamValues, 1);
     const ranked = [0, 1].sort((a, b) => teamValues[b] - teamValues[a]);
-    const teams = topTeam === undefined ? ranked : [topTeam, 1 - topTeam];
+    const teams = topTeam === null ? ranked : [topTeam, 1 - topTeam];
     const valueText = (value: number) =>
         unit === "percent"
             ? t("detail.percent", { value })

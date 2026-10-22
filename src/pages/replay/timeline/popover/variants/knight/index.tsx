@@ -1,9 +1,9 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
+import type { Knight as KnightData } from "@/api/replays";
 import type { TimelineText } from "@/hooks/useTimelineText";
 import { Typography } from "@/ui";
-import type { Knight as KnightData } from "@/utils/timeline/map-events";
 import { type Roster, heroName } from "@/utils/timeline/roster";
 import type { Side } from "@/utils/timeline/types";
 import { sideClasses } from "../../../side";

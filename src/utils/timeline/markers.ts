@@ -1,17 +1,11 @@
-import type { TimelineEvent } from "@/api/replays";
+import type { Timeline } from "@/api/replays";
 import { BAND_Y } from "./constants";
-import {
-    MAP_EVENTS,
-    type MapEventData,
-    specGlyph,
-    unknownTeam,
-} from "./map-events";
+import { MAP_EVENTS, specGlyph, specLabel } from "./map-events";
 import type {
     BandMarker,
     CampEntry,
     DeathEntry,
     Entry,
-    Lane,
     Marker,
     ObjectiveMarker,
     Side,
@@ -48,119 +42,63 @@ export const involves = (marker: Marker, slot: number) =>
     );
 
 export function buildMarkers(
-    events: TimelineEvent[],
+    timeline: Timeline,
     duration: number,
     allyTeam: number,
 ): Marker[] {
     const other = (team: number | null) => (team === null ? null : 1 - team);
 
     const markers: Marker[] = [];
-    const deaths: DeathEntry[] = [];
     const objectives: ObjectiveMarker[] = [];
-    const captures = new Map<number, number>();
 
-    events.forEach((event, index) => {
-        if (event.time < 0) return;
-        const { data, time } = event;
-        const id = `${event.kind}-${index}`;
+    const deaths = timeline.deaths.map((death): DeathEntry => ({
+        ...death,
+        type: "death",
+        side: sideOf(other(death.team), allyTeam),
+    }));
 
-        switch (event.kind) {
-            case "team_level":
-                return;
-            case "death":
-                deaths.push({
-                    type: "death",
-                    time,
-                    side: sideOf(other(event.team), allyTeam),
-                    victim: data.victim as number,
-                    killers: data.killers as number[],
-                    killingBlow: data.killing_blow as number | null,
-                    alone: (data.alone as boolean | null | undefined) ?? null,
-                });
-                return;
-            case "camp_capture": {
-                const campId = data.camp_id as number;
-                const nth = (captures.get(campId) ?? 0) + 1;
-
-                captures.set(campId, nth);
-
-                const campType = data.camp_type as string | null;
-                const entry: Entry = {
-                    type: "camp",
-                    time,
-                    side: sideOf(event.team, allyTeam),
-                    team: event.team,
-                    campType,
-                    nth,
-                };
-                const base = {
-                    id,
-                    time,
-                    side: entry.side,
-                    filter: "camps" as const,
-                    entries: [entry],
-                };
-
-                markers.push(
-                    campType === "Boss Camp"
-                        ? { ...base, shape: "boss" }
-                        : { ...base, shape: "camp", merged: false },
-                );
-
-                return;
-            }
-            case "structure_death": {
-                const keep = data.unit_type === "TownTownHallL3";
-                const side = sideOf(other(event.team), allyTeam);
-
-                markers.push({
-                    id,
-                    time,
-                    side,
-                    filter: "structures",
-                    shape: keep ? "keep" : "fort",
-                    entries: [
-                        {
-                            type: "structure",
-                            time,
-                            side,
-                            keep,
-                            lane: data.lane as Lane | null,
-                            killers: data.killers as number[],
-                            killingBlow: data.killing_blow as number | null,
-                        },
-                    ],
-                });
-
-                return;
-            }
-        }
-
-        const spec = MAP_EVENTS[event.kind] ?? null;
-        if (
-            spec?.role === "ignore" ||
-            (spec?.when && !spec.when(event, events))
-        ) {
-            return;
-        }
-
-        const mapData = data as MapEventData;
-        const team = spec
-            ? (spec.team?.(mapData, event.team) ?? event.team)
-            : unknownTeam(event);
-        const side = spec?.role === "spawn" ? null : sideOf(team, allyTeam);
-        const entry: Entry = {
-            type: "map",
-            time,
-            side,
-            event,
-            spec,
-            held: spec?.held?.(event, events) ?? null,
-            race: spec?.race?.(mapData, event, events) ?? null,
-            knight: spec?.knight?.(mapData, event, events) ?? null,
+    timeline.camps.forEach((camp, index) => {
+        const entry: CampEntry = {
+            ...camp,
+            type: "camp",
+            side: sideOf(camp.team, allyTeam),
         };
         const base = {
-            id,
+            id: `camp-${index}`,
+            time: camp.time,
+            side: entry.side,
+            filter: "camps" as const,
+            entries: [entry],
+        };
+
+        markers.push(
+            camp.campType === "Boss Camp"
+                ? { ...base, shape: "boss" }
+                : { ...base, shape: "camp", merged: false },
+        );
+    });
+
+    timeline.structures.forEach((structure, index) => {
+        const side = sideOf(other(structure.team), allyTeam);
+
+        markers.push({
+            id: `structure-${index}`,
+            time: structure.time,
+            side,
+            filter: "structures",
+            shape: structure.keep ? "keep" : "fort",
+            entries: [{ ...structure, type: "structure", side }],
+        });
+    });
+
+    timeline.objectives.forEach((objective, index) => {
+        const { kind, time, variant } = objective;
+        const spec = MAP_EVENTS[kind] ?? null;
+        const side =
+            spec?.role === "spawn" ? null : sideOf(objective.team, allyTeam);
+        const entry: Entry = { type: "map", time, side, objective, spec };
+        const base = {
+            id: `objective-${index}`,
             time,
             side,
             filter: "objectives" as const,
@@ -173,15 +111,15 @@ export function buildMarkers(
             markers.push({
                 ...base,
                 shape: "spawn",
-                glyph: specGlyph(spec, mapData),
+                glyph: specGlyph(spec, variant),
             });
         } else {
             objectives.push({
                 ...base,
                 shape: "objective",
-                kind: event.kind,
-                glyph: spec ? specGlyph(spec, mapData) : "flag",
-                label: spec?.label(mapData) ?? null,
+                kind,
+                glyph: spec ? specGlyph(spec, variant) : "flag",
+                label: spec ? specLabel(spec, variant) : null,
                 count: 1,
             });
         }
@@ -281,11 +219,12 @@ export function markerView(marker: Marker) {
         marker.entries.length === 1 && marker.entries[0].type === "map"
             ? marker.entries[0]
             : null;
-    const race = map?.race ?? null;
-    const summon = map?.spec?.summon?.(map.event.data, map.event) ?? null;
-    const duel = map?.spec?.duel?.(map.event.data, map.event) ?? null;
-    const altar = map?.spec?.altar?.(map.event.data, map.event) ?? null;
-    const knight = map?.knight ?? null;
+    const held = map?.objective.held ?? null;
+    const race = map?.objective.race ?? null;
+    const summon = map?.objective.summon ?? null;
+    const duel = map?.objective.duel ?? null;
+    const altar = map?.objective.altar ?? null;
+    const knight = map?.objective.knight ?? null;
     const group = marker.entries.length > 1 && !kills;
     const camps = marker.entries.every((entry) => entry.type === "camp");
     const offsets = deaths.length > 1;
@@ -304,6 +243,7 @@ export function markerView(marker: Marker) {
         structure,
         camp,
         map,
+        held,
         race,
         summon,
         duel,

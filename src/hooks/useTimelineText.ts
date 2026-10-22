@@ -2,8 +2,13 @@ import { useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
 import { formatDuration } from "@/utils/dates";
-import { humanize } from "@/utils/timeline/map-events";
-import type { Entry, Marker, ObjectiveMarker } from "@/utils/timeline/types";
+import { humanize, specLabel } from "@/utils/timeline/map-events";
+import type {
+    Entry,
+    MapEntry,
+    Marker,
+    ObjectiveMarker,
+} from "@/utils/timeline/types";
 
 export function useTimelineText(players: ReplayPlayerDetail[]) {
     const t = useTranslations("replay.timeline");
@@ -13,10 +18,10 @@ export function useTimelineText(players: ReplayPlayerDetail[]) {
 
     const at = (time: number) => formatDuration(Math.round(time));
 
-    const mapLabel = (entry: Extract<Entry, { type: "map" }>) => {
-        const label = entry.spec?.label(entry.event.data);
-        return label ? t(`objective.${label}`) : humanize(entry.event.kind);
-    };
+    const mapLabel = ({ spec, objective }: MapEntry) =>
+        spec
+            ? t(`objective.${specLabel(spec, objective.variant)}`)
+            : humanize(objective.kind);
 
     const entryText = (entry: Entry) => {
         switch (entry.type) {

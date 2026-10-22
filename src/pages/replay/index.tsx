@@ -69,7 +69,7 @@ export function ReplayDetail() {
                             teams={teams}
                         />
                         <Timeline
-                            events={replay.events}
+                            timeline={replay.timeline}
                             duration={replay.duration}
                             players={replay.players}
                             allyTeam={allyTeam}

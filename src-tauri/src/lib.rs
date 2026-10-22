@@ -11,6 +11,7 @@ mod commands;
 mod db;
 mod error;
 mod ingester;
+mod timeline;
 mod types;
 
 const ACCOUNTS_DIR_ENV: &str = "SYMBIOTE_ACCOUNTS_DIR";

@@ -8,7 +8,7 @@ import {
     fightGlyph,
     tickGlyph,
 } from "@/utils/timeline/glyphs";
-import type { Glyph } from "@/utils/timeline/map-events";
+import { type Glyph, specLabel } from "@/utils/timeline/map-events";
 import { type MarkerView, fightKind } from "@/utils/timeline/markers";
 import type { Marker } from "@/utils/timeline/types";
 import { GlyphIcon } from "../../glyphs";
@@ -39,7 +39,7 @@ function Title({ marker, view, text }: HeaderProps) {
     const t = useTranslations("replay.timeline");
 
     const { deaths, score, end, structure, camp, map, race } = view;
-    const { summon, duel, altar, knight } = view;
+    const { held, summon, duel, altar, knight } = view;
     const timeRange =
         end > marker.time
             ? t("fightRange", {
@@ -111,7 +111,9 @@ function Title({ marker, view, text }: HeaderProps) {
             title={
                 map && summon
                     ? t("summonTitle", {
-                          label: map.spec?.label(map.event.data) ?? "punisher",
+                          label: map.spec
+                              ? specLabel(map.spec, map.objective.variant)
+                              : "punisher",
                           name: text.entryText(map),
                       })
                     : map
@@ -119,7 +121,7 @@ function Title({ marker, view, text }: HeaderProps) {
                       : text.markerText(marker)
             }
             tag={
-                map?.held
+                held
                     ? t("heldResult", { side: marker.side ?? "none" })
                     : altar
                       ? t("altarResult", { side: marker.side ?? "none" })
@@ -148,10 +150,10 @@ function Title({ marker, view, text }: HeaderProps) {
                             start: text.at(summon.range[0]),
                             end: text.at(summon.range[1]),
                         })
-                      : map?.held
+                      : held
                         ? t("range", {
-                              start: text.at(map.held[0]),
-                              end: text.at(map.held[1]),
+                              start: text.at(held[0]),
+                              end: text.at(held[1]),
                           })
                         : knight?.range[1] != null
                           ? t("range", {

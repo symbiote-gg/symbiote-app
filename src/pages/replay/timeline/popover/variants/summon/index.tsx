@@ -1,8 +1,8 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
+import type { Summon as SummonData } from "@/api/replays";
 import type { TimelineText } from "@/hooks/useTimelineText";
-import type { Summon as SummonData } from "@/utils/timeline/map-events";
 import type { Side } from "@/utils/timeline/types";
 import { sideClasses } from "../../../side";
 import { Footer, FooterImpact } from "../../parts/footer";
