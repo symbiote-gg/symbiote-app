@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .header {
-    @apply mb-3 flex items-center gap-2.5 border-b border-line pb-3;
+    @apply mb-3 flex items-center gap-2.5;
 }
 
 .header:last-child {

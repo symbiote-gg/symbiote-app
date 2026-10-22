@@ -129,13 +129,9 @@ export function ReplayRow({ replay, now, className }: ReplayRowProps) {
                 >
                     {replay.ownerHeroDamageTop ? (
                         <Tooltip
-                            content={
-                                <Typography size="xs">
-                                    {t("replayRow.topDamage", {
-                                        hero: replay.heroName,
-                                    })}
-                                </Typography>
-                            }
+                            content={t("replayRow.topDamage", {
+                                hero: replay.heroName,
+                            })}
                         >
                             <span className={styles.topDamage}>
                                 {heroDamage}

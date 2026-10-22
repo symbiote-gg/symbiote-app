@@ -72,6 +72,7 @@ function content(
         if (details.length === 0) return null;
         return <Details items={details} side={side} />;
     }
+
     return <Events entries={marker.entries} time={marker.time} text={text} />;
 }
 

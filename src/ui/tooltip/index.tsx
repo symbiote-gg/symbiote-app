@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { type ReactNode, useId, useState } from "react";
 
 import { Popover } from "../popover";
+import { Typography } from "../typography";
 
 import styles from "./styles.module.css";
 
@@ -39,7 +40,11 @@ export function Tooltip({ content, children, className }: TooltipProps) {
                     compact
                     interactive={false}
                 >
-                    {content}
+                    {typeof content === "string" ? (
+                        <Typography size="xs">{content}</Typography>
+                    ) : (
+                        content
+                    )}
                 </Popover>
             )}
         </span>

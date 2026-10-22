@@ -100,6 +100,7 @@ function Title({ marker, view, text }: HeaderProps) {
             />
         );
     }
+
     return (
         <HeaderText
             title={

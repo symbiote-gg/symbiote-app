@@ -147,7 +147,7 @@
             "offset": "+{seconds}s",
             "assists": "Assists: {heroes}",
             "noKillingBlow": "No hero landed the killing blow",
-            "noHeroCredit": "No heroes nearby",
+            "aiCredit": "AI",
             "gatesOpen": "Gates open",
             "gameEnded": "{side, select, ally {Victory} enemy {Defeat} other {Game ended}}",
             "structureTitle": "{keep, select, true {Keep} other {Fort}}",
