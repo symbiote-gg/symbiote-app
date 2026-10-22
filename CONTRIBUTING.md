@@ -26,6 +26,17 @@ replays/Accounts/dev/2-Hero-1-0000000/Replays/Multiplayer
 `2-Hero-1-0000000` follows the naming of the folder the game creates, which
 encodes the player's region and ID.
 
+## Changing ingested data
+
+When you change what gets stored for each replay, e.g. a parser upgrade adding
+fields or a change in `build_bundle`
+([`src-tauri/src/ingester/bundle.rs`](src-tauri/src/ingester/bundle.rs)), bump
+`INGEST_VERSION` in
+[`src-tauri/src/ingester/mod.rs`](src-tauri/src/ingester/mod.rs). Replays stored
+at a lower version are re-parsed in place on the next scan. A parser upgrade
+that stores nothing new needs no bump, and schema-only changes go in a migration
+instead.
+
 ## Commits
 
 `pnpm install` sets up git hooks with husky. Before each commit they run
