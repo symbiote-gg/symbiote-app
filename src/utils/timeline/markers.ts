@@ -17,7 +17,7 @@ import type {
     Side,
 } from "./types";
 
-const LONG_GAME = 30 * 60;
+export const LONG_GAME = 35 * 60;
 const TEAM_FIGHT_DEATHS = 3;
 const GANK_KILLERS = 3;
 
@@ -179,7 +179,6 @@ export function buildMarkers(
                 glyph: spec ? specGlyph(spec, mapData) : "flag",
                 label: spec?.label(mapData) ?? null,
                 count: 1,
-                lifetime: spec?.lifetime?.(event, events) ?? null,
             });
         }
     });
@@ -246,7 +245,6 @@ function mergeObjectives(objectives: ObjectiveMarker[]) {
         if (current && last && objective.time - last.time <= OBJECTIVE_MERGE) {
             current.count += 1;
             current.entries.push(...objective.entries);
-            current.lifetime = null;
             continue;
         }
 

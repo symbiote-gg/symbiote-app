@@ -84,7 +84,6 @@ export type ObjectiveMarker = MarkerBase & {
     glyph: Glyph;
     label: ObjectiveLabel | null;
     count: number;
-    lifetime: [number, number] | null;
 };
 
 export type Marker =

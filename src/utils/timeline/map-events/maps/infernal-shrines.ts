@@ -50,7 +50,6 @@ export const INFERNAL_SHRINES: Record<string, MapEventSpec> = {
             PUNISHER_LABELS[data.strings?.["Punisher Type"] ?? ""] ??
             "punisher",
         team: fromInt("Owning Team of Punisher"),
-        lifetime: (event) => punisherRange(event.data as MapEventData, event),
         summon: (data, event) => {
             const range = punisherRange(data, event);
             return range

@@ -107,10 +107,6 @@ export interface MapEventSpec {
         event: TimelineEvent,
         events: TimelineEvent[],
     ) => Race | null;
-    lifetime?: (
-        event: TimelineEvent,
-        events: TimelineEvent[],
-    ) => [number, number] | null;
     /** A state's start and end, shown in the popover, not on the track. */
     held?: (
         event: TimelineEvent,

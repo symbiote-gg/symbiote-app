@@ -13,11 +13,6 @@
     border-color: color-mix(in srgb, var(--side) 50%, transparent);
 }
 
-.lifetime {
-    @apply pointer-events-none absolute h-1 -translate-y-1/2 rounded-full;
-    background: color-mix(in srgb, var(--side) 60%, transparent);
-}
-
 .empty {
     @apply pointer-events-none absolute inset-x-0 text-center;
     top: calc(50% + 16px);

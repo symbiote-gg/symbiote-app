@@ -17,6 +17,7 @@ import { Typography } from "@/ui";
 import { AXIS, CAMP_Y, TRACK_HEIGHT } from "@/utils/timeline/constants";
 import { type Placed, layout, position } from "@/utils/timeline/layout";
 import type { LevelCurve } from "@/utils/timeline/levels";
+import { LONG_GAME } from "@/utils/timeline/markers";
 import { involves, isBandMarker } from "@/utils/timeline/markers";
 import type { Marker, Side } from "@/utils/timeline/types";
 import { Popover } from "../popover";
@@ -31,9 +32,7 @@ import { Tiers } from "./parts/tiers";
 import styles from "./styles.module.css";
 
 const DRAG_PX = 8;
-/** Long enough to cross the gap between a mark and its popover. */
-const CLOSE_DELAY = 200;
-const LONG_GAME = 30 * 60;
+const CLOSE_DELAY_MS = 200;
 
 function useElementWidth(ref: RefObject<HTMLElement | null>) {
     const [width, setWidth] = useState(0);
@@ -148,7 +147,7 @@ export function Track({
         cancelClose();
         closeTimer.current = window.setTimeout(
             () => onSelect(null),
-            CLOSE_DELAY,
+            CLOSE_DELAY_MS,
         );
     };
 
@@ -215,26 +214,6 @@ export function Track({
                                 left: position(p.marker.time, duration),
                                 top: Math.min(top(p), AXIS),
                                 height: p.y,
-                            }}
-                        />
-                    ) : null,
-                )}
-                {placed.map((p) =>
-                    p.marker.shape === "objective" && p.marker.lifetime ? (
-                        <span
-                            key={`life-${p.marker.id}`}
-                            className={classNames(
-                                styles.lifetime,
-                                sideClass(p.marker.side),
-                                { [styles.dimmed]: dimmed(p.marker) },
-                            )}
-                            style={{
-                                left: position(p.marker.lifetime[0], duration),
-                                width: position(
-                                    p.marker.lifetime[1] - p.marker.lifetime[0],
-                                    duration,
-                                ),
-                                top: top(p),
                             }}
                         />
                     ) : null,
