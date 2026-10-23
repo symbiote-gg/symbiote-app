@@ -26,6 +26,8 @@ export type ReplayPlayer = {
     slot: number;
     team: number;
     heroId: string;
+    heroName: string;
+    heroPortrait: string | null;
 };
 
 export type Replay = {
@@ -125,8 +127,6 @@ export type Award = {
 };
 
 export type ReplayPlayerDetail = ReplayPlayer & {
-    heroName: string;
-    heroPortrait: string | null;
     kills: number | null;
     assists: number | null;
     deaths: number | null;

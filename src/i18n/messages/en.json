@@ -51,8 +51,10 @@
     "replayRow": {
         "new": "New",
         "topDamage": "Top 10% of your {hero} games",
+        "teamsPlayer": "{player} ({hero})",
         "columns": {
             "game": "Game",
+            "teams": "Teams",
             "mode": "Mode",
             "kda": "K/A/D",
             "heroDamage": "Hero dmg",

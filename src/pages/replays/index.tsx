@@ -79,7 +79,7 @@ export function Replays() {
                     divided
                 />
                 {error && <p className={styles.error}>{String(error)}</p>}
-                <ReplayListHeader />
+                <ReplayListHeader wide />
                 <CardBody ref={scroller} onScroll={onScroll}>
                     <div
                         className={styles.track}
@@ -97,7 +97,11 @@ export function Replays() {
                                     }}
                                 >
                                     {replay ? (
-                                        <ReplayRow replay={replay} now={now} />
+                                        <ReplayRow
+                                            replay={replay}
+                                            now={now}
+                                            wide
+                                        />
                                     ) : (
                                         <div
                                             className={styles.skeleton}

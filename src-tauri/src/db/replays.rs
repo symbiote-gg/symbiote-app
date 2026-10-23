@@ -27,6 +27,8 @@ struct ReplayPlayerRow {
     player_slot: Option<i64>,
     player_team: Option<i64>,
     player_hero_id: Option<String>,
+    player_hero_name: Option<String>,
+    player_hero_portrait: Option<String>,
 }
 
 impl ReplayPlayerRow {
@@ -38,6 +40,8 @@ impl ReplayPlayerRow {
             slot: self.player_slot.take()?,
             team: self.player_team.take()?,
             hero_id: self.player_hero_id.take()?,
+            hero_name: self.player_hero_name.take()?,
+            hero_portrait: self.player_hero_portrait.take(),
         })
     }
 }
@@ -325,7 +329,9 @@ fn list_rows_sql(source: &str) -> String {
              COALESCE(dr.hero_games >= {TOP_DAMAGE_MIN_GAMES}
                  AND dr.damage_rank >= {TOP_DAMAGE_RANK}, 0) AS owner_hero_damage_top,
              rp.player_id, p.name AS player_name, rp.slot AS player_slot,
-             rp.team AS player_team, rp.hero_id AS player_hero_id
+             rp.team AS player_team, rp.hero_id AS player_hero_id,
+             COALESCE(ph.name, rp.hero_id) AS player_hero_name,
+             ph.portrait AS player_hero_portrait
          FROM ({source}) r
          JOIN heroes h ON h.id = r.owner_hero_id
          LEFT JOIN maps m ON m.id = r.map
@@ -343,6 +349,7 @@ fn list_rows_sql(source: &str) -> String {
          ) dr ON dr.id = r.id
          LEFT JOIN replays_players rp ON rp.replay_id = r.id
          LEFT JOIN players p ON p.id = rp.player_id
+         LEFT JOIN heroes ph ON ph.id = rp.hero_id
          ORDER BY r.timestamp DESC, r.id DESC, rp.slot"
     )
 }
@@ -994,6 +1001,8 @@ mod tests {
         let row = get_list_row(&pool, unknown).await.unwrap().unwrap();
         assert_eq!(row.replay.map_name, "New Map");
         assert_eq!(row.replay.map_loading_screen, None);
+        assert_eq!(row.players[0].hero_name, "Li-Ming");
+        assert_eq!(row.players[0].hero_portrait, None);
     }
 
     async fn insert_damage_game(pool: &SqlitePool, game_id: &str, hero_damage: i64) {

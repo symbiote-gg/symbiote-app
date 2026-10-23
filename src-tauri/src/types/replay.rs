@@ -67,6 +67,8 @@ pub struct ReplayPlayerInfo {
     pub slot: i64,
     pub team: i64,
     pub hero_id: String,
+    pub hero_name: String,
+    pub hero_portrait: Option<String>,
 }
 
 #[derive(Debug, FromRow, Serialize)]

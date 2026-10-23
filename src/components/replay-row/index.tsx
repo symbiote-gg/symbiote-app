@@ -11,6 +11,7 @@ import { AwardPill } from "../award-pill";
 import { HeroPortrait } from "../hero-portrait";
 import { ModeIcon } from "../mode-icon";
 import { ResultChip } from "../result-chip";
+import { Teams } from "./teams";
 
 import columns from "./columns.module.css";
 import styles from "./styles.module.css";
@@ -18,10 +19,11 @@ import styles from "./styles.module.css";
 export interface ReplayRowProps {
     replay: Replay;
     now?: Date;
+    wide?: boolean;
     className?: string;
 }
 
-export function ReplayRow({ replay, now, className }: ReplayRowProps) {
+export function ReplayRow({ replay, now, wide, className }: ReplayRowProps) {
     const t = useTranslations();
     const format = useFormatter();
     const playedAt = usePlayedAt();
@@ -52,6 +54,7 @@ export function ReplayRow({ replay, now, className }: ReplayRowProps) {
             href={`/replays/${replay.id}`}
             className={classNames(className, columns.row, styles.root, {
                 [styles.new]: replay.isNew,
+                [columns.wide]: wide,
             })}
             onPointerEnter={onPointerEnter}
             onClick={onClick}
@@ -82,6 +85,7 @@ export function ReplayRow({ replay, now, className }: ReplayRowProps) {
                         )}
                     </span>
                 </span>
+                {wide && <Teams replay={replay} className={columns.teams} />}
                 <Typography
                     size="sm"
                     variant="secondary"

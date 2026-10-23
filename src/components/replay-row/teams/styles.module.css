@@ -1,0 +1,25 @@
+@reference "@/index.css";
+
+.root {
+    @apply items-center gap-2;
+}
+
+.team {
+    @apply flex items-center gap-1;
+}
+
+.vs {
+    @apply size-3.5 shrink-0 text-fg-muted;
+}
+
+.portrait {
+    @apply ring-1;
+}
+
+.ally {
+    @apply ring-team-blue;
+}
+
+.enemy {
+    @apply ring-team-red;
+}
