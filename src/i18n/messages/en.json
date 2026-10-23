@@ -56,7 +56,7 @@
             "mode": "Mode",
             "kda": "K/A/D",
             "heroDamage": "Hero dmg",
-            "length": "Length",
+            "gameTime": "Game time",
             "played": "Played",
             "result": "Result"
         }

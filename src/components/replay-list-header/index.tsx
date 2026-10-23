@@ -11,7 +11,7 @@ const COLUMNS = [
     { key: "mode", className: classNames(columns.col, columns.mode) },
     { key: "kda", className: classNames(columns.col, columns.kda) },
     { key: "heroDamage", className: classNames(columns.col, columns.damage) },
-    { key: "length", className: classNames(columns.col, columns.duration) },
+    { key: "gameTime", className: classNames(columns.col, columns.duration) },
     { key: "played", className: columns.time },
     { key: "result", className: columns.result },
 ] as const;

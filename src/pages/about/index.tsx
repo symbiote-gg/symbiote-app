@@ -3,7 +3,7 @@ import { Code, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslations } from "use-intl";
 
-import { SymbioteLogo } from "@/assets";
+import { SymbioteLogo, SymbioteWordmark } from "@/assets";
 import { Page } from "@/components";
 import {
     APP_LICENSE,
@@ -34,10 +34,7 @@ export function About() {
                 <header className={styles.hero}>
                     <SymbioteLogo className={styles.logo} />
                     <div className={styles.identity}>
-                        <span className={styles.wordmark}>
-                            Symbiote
-                            <span className={styles.suffix}>GG</span>
-                        </span>
+                        <SymbioteWordmark className={styles.wordmark} />
                         <Typography variant="secondary">
                             {t("tagline")}
                         </Typography>

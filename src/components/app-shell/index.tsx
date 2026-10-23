@@ -3,7 +3,7 @@ import { type ReactNode, useEffect, useRef } from "react";
 import { useTranslations } from "use-intl";
 import { Link, useLocation } from "wouter";
 
-import { SymbioteLogo } from "@/assets";
+import { SymbioteLogo, SymbioteWordmark } from "@/assets";
 import { IngestProgress } from "../ingest-progress";
 
 import styles from "./styles.module.css";
@@ -34,9 +34,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <header className={styles.header}>
                 <Link href="/" className={styles.brand}>
                     <SymbioteLogo className={styles.logo} />
-                    <span className={styles.wordmark}>
-                        Symbiote<span className={styles.suffix}>GG</span>
-                    </span>
+                    <SymbioteWordmark className={styles.wordmark} />
                 </Link>
                 <nav className={styles.nav}>
                     {NAV.map(({ key, href }) => (

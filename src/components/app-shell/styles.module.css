@@ -17,11 +17,7 @@
 }
 
 .wordmark {
-    @apply font-display text-base font-bold tracking-[0.3em] uppercase;
-}
-
-.suffix {
-    @apply text-brand-orange;
+    @apply h-4 w-auto;
 }
 
 .nav {
