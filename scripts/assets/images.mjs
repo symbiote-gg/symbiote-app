@@ -9,13 +9,20 @@ import { exists, rawGithub, sha256 } from "./io.mjs";
 
 export const webp = (name) => name.replace(/\.[^.]+$/, ".webp");
 
+// Names come from upstream data and become local paths: no separators or
+// leading dot, so they can't point outside the category folder. Other names
+// count as missing.
+const SAFE_NAME = /^[\w'-][\w'.-]*\.(png|jpe?g)$/i;
+
 export async function downloadImages(pin, category, names, { width, height }) {
+    const unique = [...new Set(names.filter(Boolean))];
+    const queue = unique.filter((name) => SAFE_NAME.test(name));
+    const missing = unique.filter((name) => !SAFE_NAME.test(name));
+
     const dir = join(ASSETS_DIR, category);
     await mkdir(dir, { recursive: true });
 
-    const queue = [...new Set(names.filter(Boolean))];
     const hashes = {};
-    const missing = [];
 
     async function worker() {
         for (let name; (name = queue.shift()) !== undefined;) {

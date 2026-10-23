@@ -1,0 +1,25 @@
+@reference "@/index.css";
+
+.header {
+    @apply mb-3 flex items-center gap-2.5;
+}
+
+.header:last-child {
+    @apply mb-0;
+}
+
+.icon {
+    @apply size-10 shrink-0 rounded-md;
+}
+
+.headerText {
+    @apply flex h-10 min-w-0 flex-col justify-between;
+}
+
+.headerText .title {
+    @apply leading-5;
+}
+
+.badges {
+    @apply flex items-center gap-1.5;
+}

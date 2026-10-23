@@ -41,6 +41,10 @@
 }
 
 .secondary {
+    @apply text-fg/80;
+}
+
+.tertiary {
     @apply text-fg-muted;
 }
 

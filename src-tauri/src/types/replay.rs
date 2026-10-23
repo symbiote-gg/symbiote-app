@@ -108,6 +108,7 @@ pub struct TalentPick {
     pub talent_id: String,
     pub gameloop: i64,
     pub name: Option<String>,
+    pub description: Option<String>,
     pub icon: Option<String>,
 }
 

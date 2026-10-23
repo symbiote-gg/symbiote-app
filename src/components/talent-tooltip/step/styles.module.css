@@ -1,0 +1,26 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex flex-col gap-1.5 rounded-lg border p-3;
+}
+
+.quest {
+    @apply border-warn/30 bg-warn/8 text-warn;
+}
+
+.reward {
+    @apply border-win/30 bg-win/8 text-win;
+}
+
+.label {
+    @apply flex items-center gap-1.5;
+}
+
+.icon {
+    @apply size-3.5 shrink-0;
+}
+
+.label .labelText {
+    @apply tracking-wider;
+    color: inherit;
+}

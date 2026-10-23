@@ -66,10 +66,8 @@
     "replay": {
         "replays": "Replays",
         "showInFolder": "Show in folder",
+        "team": "{side, select, ally {Ally} other {Enemy}}",
         "result": "{result, select, win {Victory} loss {Defeat} other {-}}",
-        "level": "Lv {level}",
-        "team": "{side, select, ally {Ally team} other {Enemy team}}",
-        "kills": "{kills, plural, one {# kill} other {# kills}}",
         "teamKills": {
             "title": "Kills",
             "breakdown": "{ai, plural, =0 {All by heroes} other {{heroes} by heroes, # by AI}}",
@@ -88,7 +86,6 @@
         "timeDead": "Time dead",
         "upvotes": "Upvotes",
         "talents": "Talents",
-        "talentLevel": "Level {level}",
         "timeline": {
             "title": "Timeline",
             "side": {
@@ -261,6 +258,14 @@
     "dates": {
         "yesterday": "Yesterday",
         "dateAtTime": "{date} at {time}"
+    },
+    "gameText": {
+        "scaling": " (+{percent}% per level)"
+    },
+    "talent": {
+        "level": "Level {level}",
+        "quest": "Quest",
+        "storm": "Storm talent"
     },
     "comingSoon": "Coming soon"
 }

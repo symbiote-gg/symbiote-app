@@ -60,12 +60,12 @@ export function Knight({
             <Footer side={side}>
                 <span className={styles.pilot}>
                     <TeamPortrait slot={pilot} size="xs" roster={roster} />
-                    <Typography size="xs" variant="secondary">
+                    <Typography size="xs" variant="tertiary">
                         {t("knightPilot", { hero: heroName(roster, pilot) })}
                     </Typography>
                 </span>
                 {end === null && (
-                    <Typography size="xs" variant="secondary">
+                    <Typography size="xs" variant="tertiary">
                         {t("knightAlive")}
                     </Typography>
                 )}

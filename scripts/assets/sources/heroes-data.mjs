@@ -1,5 +1,12 @@
 // The archived heroes-data repo: localized full JSON files per version folder.
-import { awardIcon, awardId, plain, role, talentFacts } from "../facts.mjs";
+import {
+    awardIcon,
+    awardId,
+    markup,
+    plain,
+    role,
+    talentFacts,
+} from "../facts.mjs";
 import { fetchOk, rawGithub } from "../io.mjs";
 
 export async function load({ repo, commit, version, locale }) {
@@ -18,11 +25,13 @@ export async function load({ repo, commit, version, locale }) {
     ]);
 
     // Gamestring keys are `nameId|buttonId|abilityType|isPassive`.
-    const talentNames = new Map();
-    for (const [key, name] of Object.entries(strings.abiltalent.name)) {
-        const [nameId, buttonId] = key.split("|");
-        talentNames.set(`${nameId}|${buttonId}`, name);
-    }
+    const talentKey = (talent) =>
+        [
+            talent.nameId,
+            talent.buttonId,
+            talent.abilityType,
+            talent.isPassive ? "True" : "False",
+        ].join("|");
 
     return {
         heroes: Object.entries(heroes).map(([id, hero]) => ({
@@ -33,9 +42,8 @@ export async function load({ repo, commit, version, locale }) {
         })),
         talents: talentFacts(heroes, (talent) => ({
             id: talent.nameId,
-            name:
-                talentNames.get(`${talent.nameId}|${talent.buttonId}`) ??
-                talent.nameId,
+            name: strings.abiltalent.name[talentKey(talent)] ?? talent.nameId,
+            description: markup(strings.abiltalent.full[talentKey(talent)]),
             icon: talent.icon ?? null,
         })),
         awards: Object.entries(awards).map(([key, award]) => ({

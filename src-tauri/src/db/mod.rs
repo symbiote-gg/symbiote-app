@@ -133,6 +133,7 @@ mod tests {
             hero_id: "Abathur".to_owned(),
             tier: 1,
             name: name.to_owned(),
+            description: None,
             icon: None,
         }
     }

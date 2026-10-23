@@ -44,7 +44,7 @@ export function Altar({ altar: { winner, towns }, allyTeam }: AltarProps) {
             </div>
             <Footer side={side}>
                 <span className={styles.towns}>
-                    <Typography size="xs" variant="secondary">
+                    <Typography size="xs" variant="tertiary">
                         {t("altarTowns")}
                     </Typography>
                     <span className={styles.townPips}>

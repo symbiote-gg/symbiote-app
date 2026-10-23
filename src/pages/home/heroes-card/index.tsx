@@ -78,7 +78,7 @@ export function HeroesCard({ heroes }: HeroesCardProps) {
                                             <Meter value={rate} />
                                             <Typography
                                                 size="xs"
-                                                variant="secondary"
+                                                variant="tertiary"
                                                 mono
                                                 className={styles.pct}
                                             >
@@ -87,7 +87,7 @@ export function HeroesCard({ heroes }: HeroesCardProps) {
                                         </span>
                                         <Typography
                                             size="xs"
-                                            variant="secondary"
+                                            variant="tertiary"
                                             mono
                                             className={styles.games}
                                         >

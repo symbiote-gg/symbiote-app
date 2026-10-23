@@ -35,7 +35,7 @@ export function About() {
                     <SymbioteLogo className={styles.logo} />
                     <div className={styles.identity}>
                         <SymbioteWordmark className={styles.wordmark} />
-                        <Typography variant="secondary">
+                        <Typography variant="tertiary">
                             {t("tagline")}
                         </Typography>
                         <div className={styles.actions}>
@@ -71,13 +71,13 @@ export function About() {
             <footer className={styles.footer}>
                 <p className={styles.label}>{t("footer")}</p>
                 <div className={styles.notices}>
-                    <Typography size="sm" variant="secondary">
+                    <Typography size="sm" variant="tertiary">
                         {DISCLAIMER}
                     </Typography>
-                    <Typography size="xs" variant="secondary">
+                    <Typography size="xs" variant="tertiary">
                         {BLIZZARD_NOTICES.join(" ")}
                     </Typography>
-                    <Typography size="xs" variant="secondary">
+                    <Typography size="xs" variant="tertiary">
                         {IMAGES_CREDIT}
                     </Typography>
                 </div>

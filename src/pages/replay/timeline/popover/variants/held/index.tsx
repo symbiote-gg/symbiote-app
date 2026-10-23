@@ -31,7 +31,7 @@ export function Held({ range: [start, end], side, text }: HeldProps) {
                 />
             </div>
             <Footer side={side}>
-                <Typography size="xs" variant="secondary">
+                <Typography size="xs" variant="tertiary">
                     {t("heldFor", { seconds })}
                 </Typography>
             </Footer>

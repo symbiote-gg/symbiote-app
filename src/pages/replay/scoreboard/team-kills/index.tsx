@@ -60,7 +60,7 @@ function TeamLabel({ side, kills, level }: TeamLabelProps) {
                     </Typography>
                 )}
             </div>
-            <Typography size="xs" variant="secondary" noWrap>
+            <Typography size="xs" variant="tertiary" noWrap>
                 {t("teamKills.breakdown", { ...kills })}
             </Typography>
         </div>
@@ -86,14 +86,14 @@ export function TeamKills({
                 <Typography
                     size="xs"
                     weight="semibold"
-                    variant="secondary"
+                    variant="tertiary"
                     uppercase
                     noWrap
                     className={styles.title}
                 >
                     {t("teamKills.title")}
                 </Typography>
-                <Typography size="xs" variant="secondary" mono noWrap>
+                <Typography size="xs" variant="tertiary" mono noWrap>
                     {formatDuration(duration)}
                 </Typography>
             </div>

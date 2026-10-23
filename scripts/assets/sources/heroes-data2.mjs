@@ -1,6 +1,13 @@
 // The heroes-data2 repo. Only its releases carry the full JSON files: the
 // version folders are mostly JSON patches against an older version.
-import { awardIcon, awardId, plain, role, talentFacts } from "../facts.mjs";
+import {
+    awardIcon,
+    awardId,
+    markup,
+    plain,
+    role,
+    talentFacts,
+} from "../facts.mjs";
 import { fetchOk, sha256, untarJson } from "../io.mjs";
 
 // Replays carry the map name in the language of the recording client, so map
@@ -59,6 +66,7 @@ export async function load({ repo, version, locale, sha256: expected }) {
         talents: talentFacts(heroes, (talent) => ({
             id: talent.talentId,
             name: strings.talent.name[talent.linkId] ?? talent.talentId,
+            description: markup(strings.talent.fullText[talent.linkId]),
             icon: talent.icon ?? null,
         })),
         awards: Object.entries(awards).map(([key, award]) => ({

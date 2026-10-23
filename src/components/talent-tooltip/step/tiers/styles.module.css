@@ -1,0 +1,20 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex flex-col gap-2;
+}
+
+.tier {
+    @apply relative pl-5;
+}
+
+/* Dot centered on the first text line, joined to the next tier's dot. */
+.tier::before {
+    @apply absolute top-1.25 left-0 z-1 size-2.5 rounded-full bg-current;
+    content: "";
+}
+
+.tier:not(:last-child)::after {
+    @apply absolute top-2.5 -bottom-4.5 left-1 w-0.5 bg-current/40;
+    content: "";
+}

@@ -10,15 +10,19 @@ export interface TooltipProps {
     content: ReactNode;
     /** Shows `content` as a bold title above this. */
     description?: ReactNode;
+    compact?: boolean;
     children: ReactNode;
     className?: string;
+    panelClassName?: string;
 }
 
 export function Tooltip({
     content,
     description,
+    compact = true,
     children,
     className,
+    panelClassName,
 }: TooltipProps) {
     const id = useId();
     const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
@@ -32,7 +36,7 @@ export function Tooltip({
             <Typography size="xs" weight="semibold">
                 {content}
             </Typography>
-            <Typography size="xs" variant="secondary">
+            <Typography size="xs" variant="tertiary">
                 {description}
             </Typography>
         </>
@@ -59,8 +63,9 @@ export function Tooltip({
                     role="tooltip"
                     anchor={anchor}
                     placement="top"
-                    compact
+                    compact={compact}
                     interactive={false}
+                    className={panelClassName}
                 >
                     {body}
                 </Popover>

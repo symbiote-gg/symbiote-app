@@ -29,7 +29,7 @@ export function FooterImpact({ strong, children }: FooterImpactProps) {
     return (
         <Typography
             size="xs"
-            variant={strong ? "primary" : "secondary"}
+            variant={strong ? "primary" : "tertiary"}
             weight={strong ? "semibold" : undefined}
             className={classNames({ [styles.strong]: strong })}
         >

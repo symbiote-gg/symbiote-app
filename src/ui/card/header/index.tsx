@@ -29,7 +29,7 @@ export function CardHeader({
                     {title}
                 </Typography>
                 {subtitle && (
-                    <Typography variant="secondary">{subtitle}</Typography>
+                    <Typography variant="tertiary">{subtitle}</Typography>
                 )}
             </div>
             {action}

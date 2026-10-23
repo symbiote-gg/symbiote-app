@@ -53,7 +53,7 @@ export function Licenses() {
                 <Typography display weight="semibold" className={styles.title}>
                     {t("title")}
                 </Typography>
-                <Typography size="sm" variant="secondary">
+                <Typography size="sm" variant="tertiary">
                     {t.rich("app", {
                         license: APP_LICENSE,
                         count: data?.packages.length ?? 0,
@@ -65,7 +65,7 @@ export function Licenses() {
                     })}
                 </Typography>
                 {error && (
-                    <Typography size="sm" variant="secondary">
+                    <Typography size="sm" variant="tertiary">
                         {t("unavailable")}
                     </Typography>
                 )}
@@ -104,7 +104,7 @@ export function Licenses() {
                         {packages.length === 0 && (
                             <Typography
                                 size="sm"
-                                variant="secondary"
+                                variant="tertiary"
                                 className={styles.empty}
                             >
                                 {t("noMatches")}
@@ -114,7 +114,7 @@ export function Licenses() {
                     {visible.length < packages.length && (
                         <Typography
                             size="xs"
-                            variant="secondary"
+                            variant="tertiary"
                             className={styles.footer}
                         >
                             {t("showing", {

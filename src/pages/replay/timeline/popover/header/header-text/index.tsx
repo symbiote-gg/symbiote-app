@@ -39,11 +39,11 @@ export function HeaderText({
                 )}
             </div>
             <div className={styles.headerMeta}>
-                <Typography size="xs" variant="secondary" mono>
+                <Typography size="xs" variant="tertiary" mono>
                     {meta}
                 </Typography>
                 {metaEnd && (
-                    <Typography size="xs" variant="secondary" noWrap>
+                    <Typography size="xs" variant="tertiary" noWrap>
                         {metaEnd}
                     </Typography>
                 )}

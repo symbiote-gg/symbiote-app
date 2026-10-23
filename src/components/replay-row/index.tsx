@@ -92,7 +92,7 @@ export const ReplayRow = memo(function ReplayRow({
                 {wide && <Teams replay={replay} className={columns.teams} />}
                 <Typography
                     size="sm"
-                    variant="secondary"
+                    variant="tertiary"
                     noWrap
                     className={classNames(columns.col, columns.mode)}
                 >
@@ -103,7 +103,7 @@ export const ReplayRow = memo(function ReplayRow({
                 </Typography>
                 <Typography
                     size="sm"
-                    variant="secondary"
+                    variant="tertiary"
                     mono
                     noWrap
                     className={classNames(columns.col, columns.kad)}
@@ -137,7 +137,7 @@ export const ReplayRow = memo(function ReplayRow({
                 </Typography>
                 <Typography
                     size="sm"
-                    variant="secondary"
+                    variant="tertiary"
                     mono
                     noWrap
                     className={classNames(columns.col, columns.duration)}
@@ -146,7 +146,7 @@ export const ReplayRow = memo(function ReplayRow({
                 </Typography>
                 <Typography
                     size="xs"
-                    variant="secondary"
+                    variant="tertiary"
                     mono
                     noWrap
                     className={columns.time}

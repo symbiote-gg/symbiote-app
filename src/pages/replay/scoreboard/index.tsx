@@ -99,51 +99,13 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                             })),
                         ]}
                     />
-                    {teams.map(({ ally, level, players }) => {
+                    {teams.map(({ ally, players }) => {
                         const kills = sum(players, (p) => p.kills);
                         const assists = sum(players, (p) => p.assists);
                         const deaths = sum(players, (p) => p.deaths);
 
                         return (
                             <Fragment key={ally ? "ally" : "enemy"}>
-                                <div
-                                    className={classNames(
-                                        styles.teamTitle,
-                                        ally ? styles.ally : styles.enemy,
-                                    )}
-                                >
-                                    <Typography
-                                        size="lg"
-                                        weight="semibold"
-                                        display
-                                        uppercase
-                                        className={styles.title}
-                                    >
-                                        {t("team", {
-                                            side: ally ? "ally" : "enemy",
-                                        })}
-                                    </Typography>
-                                    <Typography
-                                        size="xs"
-                                        variant="secondary"
-                                        mono
-                                        noWrap
-                                        className={styles.chip}
-                                    >
-                                        {t("kills", { kills })}
-                                    </Typography>
-                                    {level !== null && (
-                                        <Typography
-                                            size="xs"
-                                            variant="secondary"
-                                            mono
-                                            noWrap
-                                            className={styles.chip}
-                                        >
-                                            {t("level", { level })}
-                                        </Typography>
-                                    )}
-                                </div>
                                 {players.map((player) => (
                                     <PlayerRow
                                         key={player.playerId}
@@ -164,7 +126,7 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                     <Typography
                                         size="xs"
                                         weight="semibold"
-                                        variant="secondary"
+                                        variant="tertiary"
                                         uppercase
                                     >
                                         {t("teamTotal")}
@@ -172,7 +134,7 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                     <span />
                                     <Typography
                                         size="xs"
-                                        variant="secondary"
+                                        variant="tertiary"
                                         mono
                                         noWrap
                                         className={styles.number}
@@ -187,7 +149,7 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                         <Typography
                                             key={stat}
                                             size="xs"
-                                            variant="secondary"
+                                            variant="tertiary"
                                             mono
                                             noWrap
                                             className={classNames(

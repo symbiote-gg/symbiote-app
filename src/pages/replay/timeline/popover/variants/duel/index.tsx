@@ -44,7 +44,7 @@ export function Duel({ duel: { winner, power }, side, allyTeam }: DuelProps) {
                             <Typography
                                 size="xs"
                                 weight="semibold"
-                                variant={index === 0 ? "primary" : "secondary"}
+                                variant={index === 0 ? "primary" : "tertiary"}
                                 mono
                             >
                                 {index === 0

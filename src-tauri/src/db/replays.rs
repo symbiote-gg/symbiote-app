@@ -500,7 +500,7 @@ pub async fn get_detail(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<Repla
     .await?;
 
     let talents = sqlx::query_as::<_, PlayerTalentRow>(
-        "SELECT rpt.player_id, rpt.tier, rpt.talent_id, rpt.gameloop, t.name, t.icon
+        "SELECT rpt.player_id, rpt.tier, rpt.talent_id, rpt.gameloop, t.name, t.description, t.icon
          FROM replays_players_talents rpt
          JOIN replays_players rp
              ON rp.replay_id = rpt.replay_id AND rp.player_id = rpt.player_id

@@ -18,7 +18,7 @@ export function AxisTimes({ duration, text }: AxisTimesProps) {
                     className={styles.time}
                     style={{ left: position(time, duration) }}
                 >
-                    <Typography size="xs" variant="secondary" mono>
+                    <Typography size="xs" variant="tertiary" mono>
                         {text.at(time)}
                     </Typography>
                 </span>

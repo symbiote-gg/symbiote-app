@@ -27,7 +27,7 @@ export function PackageEntry({ pkg, texts }: PackageEntryProps) {
                 <Typography size="sm" weight="semibold" truncate>
                     {pkg.name}
                 </Typography>
-                <Typography size="xs" variant="secondary" mono truncate>
+                <Typography size="xs" variant="tertiary" mono truncate>
                     {pkg.version}
                 </Typography>
                 <Typography size="sm" truncate>
@@ -44,7 +44,7 @@ export function PackageEntry({ pkg, texts }: PackageEntryProps) {
                         </ExternalLink>
                     </div>
                     {pkg.texts.length === 0 && (
-                        <Typography size="xs" variant="secondary">
+                        <Typography size="xs" variant="tertiary">
                             {t("noText")}
                         </Typography>
                     )}

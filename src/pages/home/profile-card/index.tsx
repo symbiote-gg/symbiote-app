@@ -46,12 +46,12 @@ export function ProfileCard({ profile }: ProfileCardProps) {
                         <div className={styles.recentLabels}>
                             <Typography
                                 size="xs"
-                                variant="secondary"
+                                variant="tertiary"
                                 className={styles.eyebrow}
                             >
                                 {t("last", { count: recent.length })}
                             </Typography>
-                            <Typography size="xs" variant="secondary" mono>
+                            <Typography size="xs" variant="tertiary" mono>
                                 {recentWins}-{recentLosses}
                             </Typography>
                         </div>

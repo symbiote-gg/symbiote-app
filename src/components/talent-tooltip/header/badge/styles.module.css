@@ -1,0 +1,17 @@
+@reference "@/index.css";
+
+.root {
+    @apply rounded border px-1.5 py-0.5 leading-none;
+}
+
+.root.level {
+    @apply border-fg/10 bg-fg/8 text-fg-muted;
+}
+
+.root.quest {
+    @apply border-warn/40 bg-warn/15 text-warn;
+}
+
+.root.storm {
+    @apply border-primary-text/40 bg-primary-text/15 text-primary-text;
+}

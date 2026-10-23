@@ -14,7 +14,7 @@ export interface StatTileProps {
 export function StatTile({ label, value, accent }: StatTileProps) {
     return (
         <div className={styles.root}>
-            <Typography size="xs" variant="secondary" className={styles.label}>
+            <Typography size="xs" variant="tertiary" className={styles.label}>
                 {label}
             </Typography>
             <Typography

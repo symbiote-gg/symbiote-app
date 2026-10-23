@@ -1,0 +1,17 @@
+@reference "@/index.css";
+
+.highlight {
+    @apply font-semibold text-fg;
+}
+
+.number {
+    @apply font-mono font-semibold text-fg;
+}
+
+.muted {
+    @apply text-fg-muted;
+}
+
+.quest {
+    @apply font-semibold text-warn;
+}

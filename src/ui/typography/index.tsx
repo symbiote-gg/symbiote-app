@@ -8,7 +8,7 @@ export type TypographySize = "xs" | "sm" | "base" | "lg" | "xl2";
 interface BaseTypographyProps {
     size?: TypographySize;
     weight?: "regular" | "semibold";
-    variant?: "primary" | "secondary";
+    variant?: "primary" | "secondary" | "tertiary";
     uppercase?: boolean;
     noWrap?: boolean;
     truncate?: boolean;

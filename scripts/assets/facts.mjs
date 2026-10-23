@@ -21,12 +21,52 @@ export function role(heroId, display) {
 
 // Gamestrings keep the game's markup. `<lang>` blocks list gender or plural
 // variants separated by commas (e.g. `Moneybags,Moneybags`): keep the first.
+const LANG = /<lang\b[^>]*>(.*?)<\/lang>/g;
+const firstForm = (_, forms) => forms.split(",")[0].trim();
+
 export const plain = (text) =>
-    text
-        ?.replace(/<lang\b[^>]*>(.*?)<\/lang>/g, (_, forms) =>
-            forms.split(",")[0].trim(),
-        )
-        .replace(/<[^>]*>/g, "") ?? null;
+    text?.replace(LANG, firstForm).replace(/<[^>]*>/g, "") ?? null;
+
+const TONES = {
+    ColorGray: "muted",
+    TooltipSubscript: "muted",
+    StandardTooltipDetails: "muted",
+    TooltipQuest: "quest",
+};
+
+// Rewrites gamestrings markup to the minimal form the app renders: `<c>`/`<s>`
+// color runs become `<highlight>`, `<muted>` or `<quest>`, `<n/>` breaks and
+// `~~0.04~~` scaling stay, everything else (icons included) is dropped. A
+// closing tag closes up to its own opening tag, so the output is well-formed.
+export function markup(text) {
+    if (text == null) return null;
+
+    const open = [];
+    const close = (from) =>
+        open
+            .splice(from)
+            .reverse()
+            .map(({ tone }) => `</${tone}>`)
+            .join("");
+
+    const body = text
+        .replace(LANG, firstForm)
+        .replace(/<(\/?)(\w+)([^>]*?)\/?>/g, (_, closing, tag, attributes) => {
+            if (tag === "n") return "<n/>";
+            if (tag !== "c" && tag !== "s") return "";
+            if (closing) {
+                const index = open.findLastIndex((run) => run.tag === tag);
+                return index < 0 ? "" : close(index);
+            }
+
+            const name = /hlt-name="#?(\w+)"/.exec(attributes)?.[1];
+            const tone = TONES[name] ?? "highlight";
+            open.push({ tag, tone });
+            return `<${tone}>`;
+        });
+
+    return body + close(0);
+}
 
 const level = (key) => Number(key.replace(/^level/i, ""));
 

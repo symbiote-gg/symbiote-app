@@ -9,6 +9,7 @@ pub struct TalentFact {
     pub hero_id: String,
     pub tier: i64,
     pub name: String,
+    pub description: Option<String>,
     pub icon: Option<String>,
 }
 

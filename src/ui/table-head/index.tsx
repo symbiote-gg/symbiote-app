@@ -28,7 +28,7 @@ export function TableHead({ columns, strip, className }: TableHeadProps) {
                     key={key}
                     size="xs"
                     weight="semibold"
-                    variant="secondary"
+                    variant="tertiary"
                     uppercase
                     noWrap
                     className={className}

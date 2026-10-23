@@ -247,7 +247,7 @@ export function Track({
                 {empty && (
                     <Typography
                         size="sm"
-                        variant="secondary"
+                        variant="tertiary"
                         className={styles.empty}
                     >
                         {t("empty.filtered")}

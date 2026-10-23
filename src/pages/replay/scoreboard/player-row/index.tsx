@@ -1,9 +1,14 @@
 import classNames from "classnames";
-import { useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
-import { AwardPills, GameIcon, HeroPortrait, Kad } from "@/components";
-import { Tooltip, Typography } from "@/ui";
+import {
+    AwardPills,
+    GameIcon,
+    HeroPortrait,
+    Kad,
+    TalentTooltip,
+} from "@/components";
+import { Typography } from "@/ui";
 import { STATS, type Stat } from "../stats";
 
 import styles from "./styles.module.css";
@@ -28,8 +33,6 @@ export function PlayerRow({
     formatStat,
     className,
 }: PlayerRowProps) {
-    const t = useTranslations("replay");
-
     return (
         <div
             className={classNames(className, styles.root, {
@@ -53,7 +56,7 @@ export function PlayerRow({
                         </Typography>
                         <AwardPills awards={player.awards} />
                     </span>
-                    <Typography size="xs" variant="secondary" truncate>
+                    <Typography size="xs" variant="tertiary" truncate>
                         {player.heroName}
                     </Typography>
                 </span>
@@ -67,29 +70,25 @@ export function PlayerRow({
                         return <span key={tier} className={styles.emptySlot} />;
                     }
 
-                    const name = talent.name ?? talent.talentId;
-
                     return (
-                        <Tooltip
+                        <TalentTooltip
                             key={tier}
-                            content={name}
-                            description={t("talentLevel", {
-                                level: TIER_LEVELS[tier - 1],
-                            })}
+                            talent={talent}
+                            level={TIER_LEVELS[tier - 1]}
                         >
                             <GameIcon
                                 category="abilitytalents"
                                 icon={talent.icon}
-                                label={name}
+                                label={talent.name ?? talent.talentId}
                                 className={styles.talent}
                             />
-                        </Tooltip>
+                        </TalentTooltip>
                     );
                 })}
             </span>
             <Typography
                 size="sm"
-                variant="secondary"
+                variant="tertiary"
                 mono
                 noWrap
                 className={styles.number}
@@ -126,7 +125,7 @@ export function PlayerRow({
                             mono
                             noWrap
                             weight={top ? "semibold" : "regular"}
-                            variant={top ? "primary" : "secondary"}
+                            variant={top ? "primary" : "tertiary"}
                             className={styles.statValue}
                         >
                             {formatStat(player[stat])}

@@ -190,7 +190,7 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                                             >
                                                 <Typography
                                                     size="xs"
-                                                    variant="secondary"
+                                                    variant="tertiary"
                                                     noWrap
                                                 >
                                                     {t(
@@ -240,7 +240,7 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                                 <div key={label} className={styles.stat}>
                                     <Typography
                                         size="xs"
-                                        variant="secondary"
+                                        variant="tertiary"
                                         uppercase
                                         noWrap
                                         className={styles.statLabel}
