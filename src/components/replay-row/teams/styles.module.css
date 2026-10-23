@@ -5,7 +5,15 @@
 }
 
 .team {
-    @apply flex items-center gap-1;
+    @apply flex items-center -space-x-1.5;
+}
+
+.team > * {
+    @apply relative;
+}
+
+.team > :hover {
+    @apply z-10;
 }
 
 .vs {
