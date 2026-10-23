@@ -34,8 +34,8 @@ pub struct Replay {
     pub map: String,
     pub map_name: String,
     pub map_loading_screen: Option<String>,
-    pub owner_hero_id: String,
-    pub owner_player_id: String,
+    pub owner_hero_id: i64,
+    pub owner_player_id: i64,
     pub owner_win: Option<bool>,
     pub duration: i64,
     pub is_new: bool,
@@ -49,8 +49,8 @@ pub struct NewReplay {
     pub timestamp: DateTime<Utc>,
     pub mode: Mode,
     pub map: String,
-    pub owner_hero_id: String,
-    pub owner_player_id: String,
+    pub owner_hero_slug: String,
+    pub owner_toon: String,
     pub owner_win: Option<bool>,
     pub duration: i64,
     pub game_loops: i64,
@@ -62,11 +62,11 @@ pub struct NewReplay {
 #[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplayPlayerInfo {
-    pub player_id: String,
+    pub player_id: i64,
     pub name: String,
     pub slot: i64,
     pub team: i64,
-    pub hero_id: String,
+    pub hero_id: i64,
     pub hero_name: String,
     pub hero_portrait: Option<String>,
 }
@@ -105,7 +105,8 @@ pub struct ReplayWithPlayers {
 #[serde(rename_all = "camelCase")]
 pub struct TalentPick {
     pub tier: i64,
-    pub talent_id: String,
+    pub talent_id: i64,
+    pub slug: String,
     pub gameloop: i64,
     pub name: Option<String>,
     pub description: Option<String>,
@@ -125,11 +126,11 @@ pub struct AwardInfo {
 #[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplayPlayerDetail {
-    pub player_id: String,
+    pub player_id: i64,
     pub name: String,
     pub slot: i64,
     pub team: i64,
-    pub hero_id: String,
+    pub hero_id: i64,
     pub hero_name: String,
     pub hero_portrait: Option<String>,
     pub kills: Option<i64>,
@@ -193,10 +194,10 @@ pub struct ReplayPage {
 
 #[derive(Debug)]
 pub struct NewReplayPlayer {
-    pub player_id: String,
+    pub toon: String,
     pub slot: i64,
     pub team: i64,
-    pub hero_id: String,
+    pub hero_slug: String,
     pub time_dead_secs: Option<f64>,
     pub upvotes: i64,
     pub xp: Option<serde_json::Value>,
@@ -208,7 +209,7 @@ pub struct NewReplayPlayer {
 #[derive(Debug)]
 pub struct NewTalent {
     pub tier: i64,
-    pub talent_id: String,
+    pub slug: String,
     pub gameloop: i64,
 }
 

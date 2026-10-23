@@ -13,6 +13,7 @@ use crate::types::map::MapFact;
 use crate::types::talent::TalentFact;
 
 pub mod awards;
+pub mod event_kinds;
 pub mod heroes;
 pub mod maps;
 pub mod players;
@@ -129,8 +130,8 @@ mod tests {
 
     fn talent(name: &str) -> TalentFact {
         TalentFact {
-            id: "abathur_mastery_pressurized_glands".to_owned(),
-            hero_id: "Abathur".to_owned(),
+            slug: "abathur_mastery_pressurized_glands".to_owned(),
+            hero_slug: "Abathur".to_owned(),
             tier: 1,
             name: name.to_owned(),
             description: None,

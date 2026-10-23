@@ -4,7 +4,7 @@ const BUNDLED_HEROES_FACTS: &str = include_str!("../../data/heroes.json");
 
 #[derive(Debug)]
 pub struct Hero {
-    pub id: String,
+    pub slug: String,
     pub name: String,
 }
 
@@ -22,7 +22,8 @@ pub enum HeroRole {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct HeroFact {
-    pub id: String,
+    #[serde(rename = "id")]
+    pub slug: String,
     pub name: String,
     pub role: Option<HeroRole>,
     pub portrait: Option<String>,

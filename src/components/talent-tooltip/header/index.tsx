@@ -18,7 +18,7 @@ export interface HeaderProps {
 export function Header({ talent, level, quest }: HeaderProps) {
     const t = useTranslations("talent");
 
-    const name = talent.name ?? talent.talentId;
+    const name = talent.name ?? talent.slug;
 
     return (
         <header className={styles.header}>

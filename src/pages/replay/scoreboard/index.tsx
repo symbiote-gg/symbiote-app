@@ -19,7 +19,7 @@ export interface ScoreboardTeam {
 
 export interface ScoreboardProps {
     teams: ScoreboardTeam[];
-    ownerId: string;
+    ownerId: number;
     duration: number;
 }
 

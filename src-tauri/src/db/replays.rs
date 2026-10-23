@@ -1,10 +1,12 @@
+use std::collections::{BTreeSet, HashMap};
+
 use hots_replay_parser::summary::LOOPS_PER_SECOND;
 use sqlx::types::Json;
 use sqlx::{
     Connection, FromRow, QueryBuilder, Sqlite, SqliteConnection, SqliteExecutor, SqlitePool,
 };
 
-use super::{chunk_rows, heroes, players};
+use super::{chunk_rows, event_kinds, heroes, players, talents};
 use crate::types::replay::{
     AwardInfo, NewEvent, NewReplay, NewReplayBundle, NewReplayPlayer, NewTalent, ReplayCursor,
     ReplayDetail, ReplayPage, ReplayPlayerDetail, ReplayPlayerInfo, ReplayWithPlayers, TalentPick,
@@ -74,10 +76,11 @@ async fn insert_bundle_in(
     bundle: NewReplayBundle,
 ) -> sqlx::Result<InsertOutcome> {
     let existing: Option<(i64, i64)> = sqlx::query_as(
-        "SELECT id, game_loops FROM replays WHERE game_id = ? AND owner_player_id = ?",
+        "SELECT id, game_loops FROM replays
+         WHERE game_id = ? AND owner_player_id = (SELECT id FROM players WHERE toon = ?)",
     )
     .bind(&bundle.replay.game_id)
-    .bind(&bundle.replay.owner_player_id)
+    .bind(&bundle.replay.owner_toon)
     .fetch_optional(&mut *tx)
     .await?;
 
@@ -105,14 +108,17 @@ async fn insert_bundle_in(
             .await?;
     }
 
-    heroes::upsert_many(tx, &bundle.heroes).await?;
-    players::upsert_many(tx, &bundle.players).await?;
+    let hero_ids = heroes::upsert_many(tx, &bundle.heroes).await?;
+    let player_ids = players::upsert_many(tx, &bundle.players).await?;
 
-    let replay_id = insert_replay(&mut *tx, &bundle.replay).await?;
+    let owner_hero_id = id_of(&hero_ids, "hero", &bundle.replay.owner_hero_slug)?;
+    let owner_player_id = id_of(&player_ids, "player", &bundle.replay.owner_toon)?;
+    let replay_id = insert_replay(&mut *tx, &bundle.replay, owner_hero_id, owner_player_id).await?;
 
-    insert_players(tx, replay_id, &bundle.replay_players).await?;
-    insert_talents(tx, replay_id, &bundle.replay_players).await?;
-    insert_awards(tx, replay_id, &bundle.replay_players).await?;
+    let players = &bundle.replay_players;
+    insert_players(tx, replay_id, players, &hero_ids, &player_ids).await?;
+    insert_talents(tx, replay_id, players, &hero_ids, &player_ids).await?;
+    insert_awards(tx, replay_id, players, &player_ids).await?;
     insert_events(tx, replay_id, &bundle.events).await?;
     insert_superseded(tx, replay_id, &superseded).await?;
 
@@ -132,8 +138,8 @@ async fn refresh_bundle_in(
     id: i64,
     bundle: NewReplayBundle,
 ) -> sqlx::Result<InsertOutcome> {
-    heroes::upsert_many(tx, &bundle.heroes).await?;
-    players::upsert_many(tx, &bundle.players).await?;
+    let hero_ids = heroes::upsert_many(tx, &bundle.heroes).await?;
+    let player_ids = players::upsert_many(tx, &bundle.players).await?;
 
     let replay = &bundle.replay;
     let updated = sqlx::query(
@@ -147,8 +153,8 @@ async fn refresh_bundle_in(
     .bind(replay.timestamp.timestamp())
     .bind(replay.mode)
     .bind(&replay.map)
-    .bind(&replay.owner_hero_id)
-    .bind(&replay.owner_player_id)
+    .bind(id_of(&hero_ids, "hero", &replay.owner_hero_slug)?)
+    .bind(id_of(&player_ids, "player", &replay.owner_toon)?)
     .bind(replay.owner_win)
     .bind(replay.duration)
     .bind(replay.game_loops)
@@ -172,9 +178,10 @@ async fn refresh_bundle_in(
         .execute(&mut *tx)
         .await?;
 
-    insert_players(tx, id, &bundle.replay_players).await?;
-    insert_talents(tx, id, &bundle.replay_players).await?;
-    insert_awards(tx, id, &bundle.replay_players).await?;
+    let players = &bundle.replay_players;
+    insert_players(tx, id, players, &hero_ids, &player_ids).await?;
+    insert_talents(tx, id, players, &hero_ids, &player_ids).await?;
+    insert_awards(tx, id, players, &player_ids).await?;
     insert_events(tx, id, &bundle.events).await?;
 
     Ok(InsertOutcome::Refreshed(id))
@@ -376,10 +383,10 @@ async fn attach_players(
     }
     let mut query = QueryBuilder::<Sqlite>::new(
         "SELECT rp.replay_id, rp.player_id, p.name, rp.slot, rp.team, rp.hero_id,
-             COALESCE(h.name, rp.hero_id) AS hero_name, h.portrait AS hero_portrait
+             h.name AS hero_name, h.portrait AS hero_portrait
          FROM replays_players rp
          JOIN players p ON p.id = rp.player_id
-         LEFT JOIN heroes h ON h.id = rp.hero_id
+         JOIN heroes h ON h.id = rp.hero_id
          WHERE rp.replay_id IN (",
     );
     let mut ids = query.separated(", ");
@@ -440,14 +447,14 @@ async fn attach_owner_awards(
 
 #[derive(FromRow)]
 struct PlayerTalentRow {
-    player_id: String,
+    player_id: i64,
     #[sqlx(flatten)]
     talent: TalentPick,
 }
 
 #[derive(FromRow)]
 struct PlayerAwardRow {
-    player_id: String,
+    player_id: i64,
     #[sqlx(flatten)]
     award: AwardInfo,
 }
@@ -500,11 +507,10 @@ pub async fn get_detail(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<Repla
     .await?;
 
     let talents = sqlx::query_as::<_, PlayerTalentRow>(
-        "SELECT rpt.player_id, rpt.tier, rpt.talent_id, rpt.gameloop, t.name, t.description, t.icon
+        "SELECT rpt.player_id, rpt.tier, rpt.talent_id, t.slug, rpt.gameloop, t.name,
+             t.description, t.icon
          FROM replays_players_talents rpt
-         JOIN replays_players rp
-             ON rp.replay_id = rpt.replay_id AND rp.player_id = rpt.player_id
-         LEFT JOIN talents t ON t.hero_id = rp.hero_id AND t.id = rpt.talent_id
+         JOIN talents t ON t.id = rpt.talent_id
          WHERE rpt.replay_id = ?
          ORDER BY rpt.tier",
     )
@@ -524,10 +530,12 @@ pub async fn get_detail(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<Repla
     .await?;
 
     let events = sqlx::query_as::<_, RawEvent>(
-        "SELECT e.kind, CAST(e.gameloop - r.gates_open_loop AS REAL) / ? AS time, e.team, e.data
+        "SELECT k.name AS kind, CAST(e.gameloop - r.gates_open_loop AS REAL) / ? AS time,
+             e.team, json(e.data) AS data
          FROM events e
          JOIN replays r ON r.id = e.replay_id
-         WHERE e.replay_id = ? AND e.kind != 'xp'
+         JOIN event_kinds k ON k.id = e.kind_id
+         WHERE e.replay_id = ? AND k.name != 'xp'
          ORDER BY e.gameloop, e.id",
     )
     .bind(LOOPS_PER_SECOND)
@@ -544,7 +552,8 @@ pub async fn get_detail(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<Repla
                  + json_extract(e.data, '$.xp.trickle') AS REAL) AS total
          FROM events e
          JOIN replays r ON r.id = e.replay_id
-         WHERE e.replay_id = ? AND e.kind = 'xp'
+         JOIN event_kinds k ON k.id = e.kind_id
+         WHERE e.replay_id = ? AND k.name = 'xp'
          ORDER BY e.gameloop, e.team",
     )
     .bind(LOOPS_PER_SECOND)
@@ -576,7 +585,21 @@ pub async fn get_detail(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<Repla
     Ok(Some(detail))
 }
 
-async fn insert_replay(executor: impl SqliteExecutor<'_>, replay: &NewReplay) -> sqlx::Result<i64> {
+/// Looks up the id of a row upserted with the replay, e.g. a hero by slug.
+fn id_of(ids: &HashMap<String, i64>, what: &str, key: &str) -> sqlx::Result<i64> {
+    ids.get(key).copied().ok_or_else(|| missing_id(what, key))
+}
+
+fn missing_id(what: &str, key: &str) -> sqlx::Error {
+    sqlx::Error::Protocol(format!("no stored {what} id for {key:?}"))
+}
+
+async fn insert_replay(
+    executor: impl SqliteExecutor<'_>,
+    replay: &NewReplay,
+    owner_hero_id: i64,
+    owner_player_id: i64,
+) -> sqlx::Result<i64> {
     sqlx::query(
         "INSERT INTO replays (hash, path, game_id, timestamp, mode, map, owner_hero_id,
              owner_player_id, owner_win, duration, game_loops, gates_open_loop, is_new,
@@ -589,8 +612,8 @@ async fn insert_replay(executor: impl SqliteExecutor<'_>, replay: &NewReplay) ->
     .bind(replay.timestamp.timestamp())
     .bind(replay.mode)
     .bind(&replay.map)
-    .bind(&replay.owner_hero_id)
-    .bind(&replay.owner_player_id)
+    .bind(owner_hero_id)
+    .bind(owner_player_id)
     .bind(replay.owner_win)
     .bind(replay.duration)
     .bind(replay.game_loops)
@@ -606,22 +629,38 @@ async fn insert_players(
     conn: &mut SqliteConnection,
     replay_id: i64,
     players: &[NewReplayPlayer],
+    hero_ids: &HashMap<String, i64>,
+    player_ids: &HashMap<String, i64>,
 ) -> sqlx::Result<()> {
-    for chunk in players.chunks(chunk_rows(9)) {
+    let rows = players
+        .iter()
+        .map(|player| {
+            Ok((
+                player,
+                id_of(player_ids, "player", &player.toon)?,
+                id_of(hero_ids, "hero", &player.hero_slug)?,
+            ))
+        })
+        .collect::<sqlx::Result<Vec<_>>>()?;
+    for chunk in rows.chunks(chunk_rows(9)) {
         QueryBuilder::<Sqlite>::new(
             "INSERT INTO replays_players (replay_id, player_id, slot, team, hero_id,
                  time_dead_secs, upvotes, xp, score) ",
         )
-        .push_values(chunk, |mut row, player| {
+        .push_values(chunk, |mut row, (player, player_id, hero_id)| {
             row.push_bind(replay_id)
-                .push_bind(&player.player_id)
+                .push_bind(*player_id)
                 .push_bind(player.slot)
                 .push_bind(player.team)
-                .push_bind(&player.hero_id)
+                .push_bind(*hero_id)
                 .push_bind(player.time_dead_secs)
                 .push_bind(player.upvotes)
-                .push_bind(player.xp.as_ref().map(Json))
-                .push_bind(Json(&player.score));
+                .push("jsonb(")
+                .push_bind_unseparated(player.xp.as_ref().map(Json))
+                .push_unseparated(")")
+                .push("jsonb(")
+                .push_bind_unseparated(Json(&player.score))
+                .push_unseparated(")");
         })
         .build()
         .persistent(false)
@@ -635,20 +674,46 @@ async fn insert_talents(
     conn: &mut SqliteConnection,
     replay_id: i64,
     players: &[NewReplayPlayer],
+    hero_ids: &HashMap<String, i64>,
+    player_ids: &HashMap<String, i64>,
 ) -> sqlx::Result<()> {
-    let talents: Vec<(&str, &NewTalent)> = players
+    let mut picks: Vec<(i64, i64, &NewTalent)> = Vec::new();
+    for player in players {
+        let player_id = id_of(player_ids, "player", &player.toon)?;
+        let hero_id = id_of(hero_ids, "hero", &player.hero_slug)?;
+        picks.extend(
+            player
+                .talents
+                .iter()
+                .map(|talent| (player_id, hero_id, talent)),
+        );
+    }
+    let hero_talents: Vec<(i64, &NewTalent)> = picks
         .iter()
-        .flat_map(|p| p.talents.iter().map(|t| (p.player_id.as_str(), t)))
+        .map(|&(_, hero_id, talent)| (hero_id, talent))
         .collect();
-    for chunk in talents.chunks(chunk_rows(5)) {
+    let talent_ids = talents::upsert_many(conn, &hero_talents).await?;
+
+    let rows = picks
+        .into_iter()
+        .map(|(player_id, hero_id, talent)| {
+            let talent_id = talent_ids
+                .get(&hero_id)
+                .and_then(|ids| ids.get(&talent.slug))
+                .copied()
+                .ok_or_else(|| missing_id("talent", &talent.slug))?;
+            Ok((player_id, talent_id, talent))
+        })
+        .collect::<sqlx::Result<Vec<_>>>()?;
+    for chunk in rows.chunks(chunk_rows(5)) {
         QueryBuilder::<Sqlite>::new(
             "INSERT INTO replays_players_talents (replay_id, player_id, tier, talent_id, gameloop) ",
         )
-        .push_values(chunk, |mut row, (player_id, talent)| {
+        .push_values(chunk, |mut row, (player_id, talent_id, talent)| {
             row.push_bind(replay_id)
                 .push_bind(*player_id)
                 .push_bind(talent.tier)
-                .push_bind(&talent.talent_id)
+                .push_bind(*talent_id)
                 .push_bind(talent.gameloop);
         })
         .build()
@@ -663,11 +728,18 @@ async fn insert_awards(
     conn: &mut SqliteConnection,
     replay_id: i64,
     players: &[NewReplayPlayer],
+    player_ids: &HashMap<String, i64>,
 ) -> sqlx::Result<()> {
-    let awards: Vec<(&str, &str)> = players
-        .iter()
-        .flat_map(|p| p.awards.iter().map(|a| (p.player_id.as_str(), a.as_str())))
-        .collect();
+    let mut awards: Vec<(i64, &str)> = Vec::new();
+    for player in players {
+        let player_id = id_of(player_ids, "player", &player.toon)?;
+        awards.extend(
+            player
+                .awards
+                .iter()
+                .map(|award| (player_id, award.as_str())),
+        );
+    }
     for chunk in awards.chunks(chunk_rows(3)) {
         QueryBuilder::<Sqlite>::new(
             "INSERT INTO replays_players_awards (replay_id, player_id, award) ",
@@ -690,19 +762,29 @@ async fn insert_events(
     replay_id: i64,
     events: &[NewEvent],
 ) -> sqlx::Result<()> {
-    for chunk in events.chunks(chunk_rows(5)) {
-        QueryBuilder::<Sqlite>::new("INSERT INTO events (replay_id, kind, gameloop, team, data) ")
-            .push_values(chunk, |mut row, event| {
-                row.push_bind(replay_id)
-                    .push_bind(&event.kind)
-                    .push_bind(event.gameloop)
-                    .push_bind(event.team)
-                    .push_bind(Json(&event.data));
-            })
-            .build()
-            .persistent(false)
-            .execute(&mut *conn)
-            .await?;
+    let kinds: BTreeSet<&str> = events.iter().map(|event| event.kind.as_str()).collect();
+    let kind_ids = event_kinds::upsert_many(conn, &kinds).await?;
+    let rows = events
+        .iter()
+        .map(|event| Ok((id_of(&kind_ids, "event kind", &event.kind)?, event)))
+        .collect::<sqlx::Result<Vec<_>>>()?;
+    for chunk in rows.chunks(chunk_rows(5)) {
+        QueryBuilder::<Sqlite>::new(
+            "INSERT INTO events (replay_id, kind_id, gameloop, team, data) ",
+        )
+        .push_values(chunk, |mut row, (kind_id, event)| {
+            row.push_bind(replay_id)
+                .push_bind(*kind_id)
+                .push_bind(event.gameloop)
+                .push_bind(event.team)
+                .push("jsonb(")
+                .push_bind_unseparated(Json(&event.data))
+                .push_unseparated(")");
+        })
+        .build()
+        .persistent(false)
+        .execute(&mut *conn)
+        .await?;
     }
     Ok(())
 }
@@ -728,6 +810,7 @@ async fn insert_superseded(
 #[cfg(test)]
 mod tests {
     use chrono::DateTime;
+    use sha2::{Digest, Sha256};
     use sqlx::sqlite::SqlitePoolOptions;
 
     use super::*;
@@ -743,8 +826,12 @@ mod tests {
         insert_bundles(pool, vec![bundle]).await?.remove(0)
     }
 
-    async fn status(pool: &SqlitePool, hash: &str) -> HashStatus {
-        hash_status(pool, hash, INGEST_VERSION).await.unwrap()
+    fn hex(name: &str) -> String {
+        format!("{:x}", Sha256::digest(name))
+    }
+
+    async fn status(pool: &SqlitePool, name: &str) -> HashStatus {
+        hash_status(pool, &hex(name), INGEST_VERSION).await.unwrap()
     }
 
     async fn pool() -> SqlitePool {
@@ -757,17 +844,17 @@ mod tests {
         pool
     }
 
-    fn bundle(hash: &str, game_loops: i64) -> NewReplayBundle {
+    fn bundle(name: &str, game_loops: i64) -> NewReplayBundle {
         NewReplayBundle {
             replay: NewReplay {
-                hash: hash.to_owned(),
-                path: format!("{hash}.StormReplay"),
-                game_id: "game".to_owned(),
+                hash: hex(name),
+                path: format!("{name}.StormReplay"),
+                game_id: hex("game"),
                 timestamp: DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
                 mode: Mode::QuickMatch,
                 map: "cursed_hollow".to_owned(),
-                owner_hero_id: "Wizard".to_owned(),
-                owner_player_id: "owner".to_owned(),
+                owner_hero_slug: "Wizard".to_owned(),
+                owner_toon: "owner".to_owned(),
                 owner_win: Some(true),
                 duration: game_loops / 16,
                 game_loops,
@@ -776,18 +863,18 @@ mod tests {
                 ingest_version: INGEST_VERSION,
             },
             heroes: vec![Hero {
-                id: "Wizard".to_owned(),
+                slug: "Wizard".to_owned(),
                 name: "Li-Ming".to_owned(),
             }],
             players: vec![Player {
-                id: "owner".to_owned(),
+                toon: "owner".to_owned(),
                 name: "Owner".to_owned(),
             }],
             replay_players: vec![NewReplayPlayer {
-                player_id: "owner".to_owned(),
-                slot: 0,
+                toon: "owner".to_owned(),
+                slot: 1,
                 team: 0,
-                hero_id: "Wizard".to_owned(),
+                hero_slug: "Wizard".to_owned(),
                 time_dead_secs: None,
                 upvotes: 0,
                 xp: None,
@@ -829,7 +916,7 @@ mod tests {
         }
 
         let detail = get_detail(&pool, id).await.unwrap().unwrap();
-        assert_eq!(detail.replay.hash, "c");
+        assert_eq!(detail.replay.hash, hex("c"));
         assert_eq!(detail.players.len(), 1);
         assert_eq!(detail.players[0].awards.len(), 1);
     }
@@ -861,7 +948,6 @@ mod tests {
             gameloop: 100,
             team: Some(0),
             data: serde_json::json!({
-                "gameloop": 100,
                 "victim": 1,
                 "killers": [],
                 "x": 0.0,
@@ -881,6 +967,14 @@ mod tests {
         assert!(detail.players[0].awards.is_empty());
         assert_eq!(detail.timeline.deaths.len(), 1);
         assert_eq!(detail.timeline.deaths[0].alone, Some(true));
+
+        let kind: String =
+            sqlx::query_scalar("SELECT typeof(data) FROM events WHERE replay_id = ?")
+                .bind(id)
+                .fetch_one(&pool)
+                .await
+                .unwrap();
+        assert_eq!(kind, "blob");
     }
 
     #[tokio::test]
@@ -892,7 +986,7 @@ mod tests {
             ("current", 300, INGEST_VERSION),
         ] {
             let mut game = bundle(hash, 1000);
-            game.replay.game_id = hash.to_owned();
+            game.replay.game_id = hex(hash);
             game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
             game.replay.ingest_version = version;
             insert_bundle(&pool, game).await.unwrap();
@@ -904,7 +998,7 @@ mod tests {
 
     async fn insert_game(pool: &SqlitePool, game_id: &str, timestamp: i64) {
         let mut game = bundle(game_id, 1000);
-        game.replay.game_id = game_id.to_owned();
+        game.replay.game_id = hex(game_id);
         game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
         insert_bundle(pool, game).await.unwrap();
     }
@@ -932,14 +1026,14 @@ mod tests {
         insert_game(&pool, "d", 100).await;
 
         let first = list_page(&pool, None, 2).await.unwrap();
-        assert_eq!(hashes(&first), ["a", "c"]);
+        assert_eq!(hashes(&first), [hex("a"), hex("c")]);
 
         // A newer replay ingested between pages must not shift the next one.
         insert_game(&pool, "e", 400).await;
         let second = list_page(&pool, Some(cursor(&first.replays[1])), 2)
             .await
             .unwrap();
-        assert_eq!(hashes(&second), ["b", "d"]);
+        assert_eq!(hashes(&second), [hex("b"), hex("d")]);
         assert_eq!(second.total, 5);
     }
 
@@ -957,7 +1051,7 @@ mod tests {
             panic!("the replay should be inserted");
         };
         let mut unknown = bundle("b", 1000);
-        unknown.replay.game_id = "other".to_owned();
+        unknown.replay.game_id = hex("other");
         unknown.replay.map = "New Map".to_owned();
         let InsertOutcome::Inserted(unknown) = insert_bundle(&pool, unknown).await.unwrap() else {
             panic!("the replay should be inserted");
@@ -980,9 +1074,59 @@ mod tests {
         assert_eq!(row.players[0].hero_portrait, None);
     }
 
+    fn pick(tier: i64, slug: &str) -> NewTalent {
+        NewTalent {
+            tier,
+            slug: slug.to_owned(),
+            gameloop: tier * 1000,
+        }
+    }
+
+    #[tokio::test]
+    async fn stores_picks_of_seeded_and_unseeded_talents() {
+        let pool = pool().await;
+        sqlx::query("INSERT INTO heroes (slug, name) VALUES ('Wizard', 'Li-Ming')")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query(
+            "INSERT INTO talents (hero_id, slug, tier, name)
+             SELECT id, 'seeded', 1, 'Seeded' FROM heroes",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+
+        let mut ids = Vec::new();
+        for game in ["a", "b"] {
+            let mut replay = bundle(game, 1000);
+            replay.replay.game_id = hex(game);
+            replay.replay_players[0].talents = vec![pick(1, "seeded"), pick(4, "unseeded")];
+            let InsertOutcome::Inserted(id) = insert_bundle(&pool, replay).await.unwrap() else {
+                panic!("the replay should be inserted");
+            };
+            ids.push(id);
+        }
+
+        let first = get_detail(&pool, ids[0]).await.unwrap().unwrap();
+        let second = get_detail(&pool, ids[1]).await.unwrap().unwrap();
+        let talents = &first.players[0].talents;
+        assert_eq!(talents[0].slug, "seeded");
+        assert_eq!(talents[0].name.as_deref(), Some("Seeded"));
+        assert_eq!(talents[1].slug, "unseeded");
+        assert_eq!(talents[1].name, None);
+        assert_eq!(talents[1].talent_id, second.players[0].talents[1].talent_id);
+
+        let stored: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM talents")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(stored, 2);
+    }
+
     async fn insert_damage_game(pool: &SqlitePool, game_id: &str, hero_damage: i64) {
         let mut game = bundle(game_id, 1000);
-        game.replay.game_id = game_id.to_owned();
+        game.replay.game_id = hex(game_id);
         game.replay_players[0].score = serde_json::json!({ "HeroDamage": hero_damage });
         game.replay_players[0].awards = vec!["mvp".to_owned(), "escape_artist".to_owned()];
         insert_bundle(pool, game).await.unwrap();
@@ -1014,6 +1158,6 @@ mod tests {
 
         insert_damage_game(&pool, "best", 100_000).await;
         let page = list_page(&pool, None, 50).await.unwrap();
-        assert_eq!(top_damage_hashes(&page), ["best"]);
+        assert_eq!(top_damage_hashes(&page), [hex("best")]);
     }
 }

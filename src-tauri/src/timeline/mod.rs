@@ -1,18 +1,48 @@
 //! Reads a replay's stored event rows back into its [`Timeline`].
 //!
-//! Rows hold the parser's own structs as JSON, so they deserialize back into them.
+//! Rows hold the parser's own structs as JSON, minus what their columns already store
+//! (gameloop, team, a map event's name). They're read back into the slim structs here,
+//! which take only the fields the timeline shows.
 
 mod maps;
 
 use std::collections::HashMap;
 
-use hots_replay_parser::summary::{self, CampCapture, MapEvent, StructureDeath, TeamLevel};
+use hots_replay_parser::summary::Lane;
 use serde::de::DeserializeOwned;
+use serde::Deserialize;
 
 use crate::types::timeline::{Camp, Death, RawEvent, Structure, Timeline};
-use maps::MapRow;
+use maps::{MapData, MapRow};
 
 const KEEP_UNIT: &str = "TownTownHallL3";
+
+#[derive(Deserialize)]
+struct DeathData {
+    victim: u8,
+    killers: Vec<u8>,
+    killing_blow: Option<u8>,
+    alone: Option<bool>,
+}
+
+#[derive(Deserialize)]
+struct LevelData {
+    level: u32,
+}
+
+#[derive(Deserialize)]
+struct CampData {
+    camp_id: i64,
+    camp_type: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct StructureData {
+    unit_type: Option<String>,
+    lane: Option<Lane>,
+    killers: Vec<u8>,
+    killing_blow: Option<u8>,
+}
 
 pub fn build(rows: Vec<RawEvent>) -> Timeline {
     let mut timeline = Timeline {
@@ -36,7 +66,7 @@ pub fn build(rows: Vec<RawEvent>) -> Timeline {
             // Map events keep theirs: their maps look across all of a kind's events.
             "death" | "team_level" | "camp_capture" | "structure_death" if time < 0.0 => {}
             "death" => {
-                let Some(death) = parse::<summary::Death>(&kind, data.0) else {
+                let Some(death) = parse::<DeathData>(&kind, data.0) else {
                     continue;
                 };
                 timeline.deaths.push(Death {
@@ -49,18 +79,20 @@ pub fn build(rows: Vec<RawEvent>) -> Timeline {
                 });
             }
             "team_level" => {
-                let Some(level) = parse::<TeamLevel>(&kind, data.0) else {
+                let Some(level) = parse::<LevelData>(&kind, data.0) else {
                     continue;
                 };
                 // Level 1 at 0 is already there.
                 if time > 0.0 {
-                    if let Some(curve) = timeline.levels.get_mut(usize::from(level.team)) {
+                    if let Some(curve) =
+                        team.and_then(|team| timeline.levels.get_mut(usize::from(team)))
+                    {
                         curve.push((time, level.level));
                     }
                 }
             }
             "camp_capture" => {
-                let Some(camp) = parse::<CampCapture>(&kind, data.0) else {
+                let Some(camp) = parse::<CampData>(&kind, data.0) else {
                     continue;
                 };
                 let nth = captures.entry(camp.camp_id).or_default();
@@ -73,7 +105,7 @@ pub fn build(rows: Vec<RawEvent>) -> Timeline {
                 });
             }
             "structure_death" => {
-                let Some(structure) = parse::<StructureDeath>(&kind, data.0) else {
+                let Some(structure) = parse::<StructureData>(&kind, data.0) else {
                     continue;
                 };
                 timeline.structures.push(Structure {
@@ -86,7 +118,7 @@ pub fn build(rows: Vec<RawEvent>) -> Timeline {
                 });
             }
             _ => {
-                let Some(event) = parse::<MapEvent>(&kind, data.0) else {
+                let Some(event) = parse::<MapData>(&kind, data.0) else {
                     continue;
                 };
                 map_rows.push(MapRow {
@@ -137,14 +169,7 @@ mod tests {
             kind,
             time,
             team,
-            json!({
-                "name": kind,
-                "gameloop": 0,
-                "team": team,
-                "ints": ints,
-                "strings": strings,
-                "fixed": fixed,
-            }),
+            json!({ "ints": ints, "strings": strings, "fixed": fixed }),
         )
     }
 
@@ -154,7 +179,6 @@ mod tests {
             time,
             Some(0),
             json!({
-                "gameloop": 0,
                 "victim": victim,
                 "killers": killers,
                 "killing_blow": killers.first(),
@@ -171,7 +195,7 @@ mod tests {
                 "camp_capture",
                 time,
                 Some(0),
-                json!({ "gameloop": 0, "team": 0, "camp_id": id, "camp_type": "Siege Camp" }),
+                json!({ "camp_id": id, "camp_type": "Siege Camp" }),
             )
         };
         let timeline = build(vec![
@@ -193,8 +217,6 @@ mod tests {
                 8.0,
                 Some(1),
                 json!({
-                    "gameloop": 0,
-                    "team": 1,
                     "unit_type": KEEP_UNIT,
                     "town_id": 3,
                     "lane": "top",
@@ -202,18 +224,8 @@ mod tests {
                     "killing_blow": null,
                 }),
             ),
-            row(
-                "team_level",
-                0.0,
-                Some(1),
-                json!({ "gameloop": 0, "team": 1, "level": 1 }),
-            ),
-            row(
-                "team_level",
-                60.0,
-                Some(1),
-                json!({ "gameloop": 0, "team": 1, "level": 2 }),
-            ),
+            row("team_level", 0.0, Some(1), json!({ "level": 1 })),
+            row("team_level", 60.0, Some(1), json!({ "level": 2 })),
             row("death", 9.0, Some(0), json!({ "victim": 1 })),
         ]);
 

@@ -25,6 +25,7 @@ hots-replay-parser = "0.2.0"
 sqlx = { version = "0.8", features = ["sqlite", "runtime-tokio", "chrono"] }
 chrono = { version = "0.4", features = ["serde"] }
 heck = "0.5"
+indexmap = { version = "2", features = ["serde"] }
 sha2 = "0.10"
 notify-debouncer-full = "0.7.0"
 tokio = { version = "1", features = ["sync"] }

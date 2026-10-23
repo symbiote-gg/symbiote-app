@@ -13,7 +13,7 @@ export type ProfileSummary = {
 };
 
 export type HeroStat = {
-    heroId: string;
+    heroId: number;
     name: string;
     portrait: string | null;
     games: number;

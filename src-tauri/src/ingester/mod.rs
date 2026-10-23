@@ -155,10 +155,10 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
 
         // Heroes are seeded before the ingester starts, so the lookup can't go stale.
         let heroes = Arc::new(SeededHeroes::new(
-            db::heroes::seeded_ids_by_name(&pool)
+            db::heroes::seeded_slugs_by_name(&pool)
                 .await
                 .unwrap_or_else(|e| {
-                    log::error!("failed to load the seeded hero ids: {e}");
+                    log::error!("failed to load the seeded hero slugs: {e}");
                     Default::default()
                 }),
         ));

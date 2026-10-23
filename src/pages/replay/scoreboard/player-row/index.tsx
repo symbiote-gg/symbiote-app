@@ -79,7 +79,7 @@ export function PlayerRow({
                             <GameIcon
                                 category="abilitytalents"
                                 icon={talent.icon}
-                                label={talent.name ?? talent.talentId}
+                                label={talent.name ?? talent.slug}
                                 className={styles.talent}
                             />
                         </TalentTooltip>

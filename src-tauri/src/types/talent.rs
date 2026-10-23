@@ -5,8 +5,10 @@ const BUNDLED_TALENTS_FACTS: &str = include_str!("../../data/talents.json");
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TalentFact {
-    pub id: String,
-    pub hero_id: String,
+    #[serde(rename = "id")]
+    pub slug: String,
+    #[serde(rename = "hero_id")]
+    pub hero_slug: String,
     pub tier: i64,
     pub name: String,
     pub description: Option<String>,
@@ -17,7 +19,7 @@ impl TalentFact {
     pub fn bundled() -> serde_json::Result<Vec<TalentFact>> {
         let mut facts: Vec<TalentFact> = serde_json::from_str(BUNDLED_TALENTS_FACTS)?;
         for fact in &mut facts {
-            fact.id = fact.id.to_snake_case();
+            fact.slug = fact.slug.to_snake_case();
         }
         Ok(facts)
     }

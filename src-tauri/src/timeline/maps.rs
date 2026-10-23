@@ -3,17 +3,29 @@
 
 use std::ptr;
 
-use hots_replay_parser::summary::MapEvent;
+use indexmap::IndexMap;
+use serde::Deserialize;
 
 use crate::types::timeline::{
     Altar, Death, Duel, Knight, Objective, Race, RaceKind, RaceUnit, RawData, Structure, Summon,
 };
 
+/// A map event's raw stat values, keyed as the parser emits them, in its order.
+#[derive(Debug, Deserialize)]
+pub(super) struct MapData {
+    #[serde(default)]
+    pub ints: IndexMap<String, i64>,
+    #[serde(default)]
+    pub strings: IndexMap<String, String>,
+    #[serde(default)]
+    pub fixed: IndexMap<String, f64>,
+}
+
 pub(super) struct MapRow {
     pub kind: String,
     pub time: f64,
     pub team: Option<u8>,
-    pub event: MapEvent,
+    pub event: MapData,
 }
 
 impl MapRow {

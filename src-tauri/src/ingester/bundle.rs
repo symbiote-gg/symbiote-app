@@ -5,6 +5,7 @@ use chrono::DateTime;
 use heck::ToSnakeCase;
 use hots_replay_parser::summary::{GameMode, ReplaySummary};
 use serde::Serialize;
+use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 use crate::error::{Error, Result};
@@ -29,24 +30,36 @@ const SCORE_KEYS: [&str; 10] = [
     "ExperienceContribution",
 ];
 
+/// Talent tiers in a game. The parser numbers picks in order, so any extra pick would
+/// fail the schema's tier check and is dropped instead.
+const TALENT_TIERS: usize = 7;
+
+/// Decimals kept on stored floats. The parser's fixed-point values carry ~12, far finer
+/// than anything shown, and JSONB spends a byte on each.
+const FLOAT_DECIMALS: i32 = 2;
+
 #[derive(Debug, Default)]
 pub(super) struct SeededHeroes {
-    ids_by_name: HashMap<String, String>,
-    ids: HashSet<String>,
+    slugs_by_name: HashMap<String, String>,
+    slugs: HashSet<String>,
 }
 
 impl SeededHeroes {
-    pub(super) fn new(ids_by_name: HashMap<String, String>) -> Self {
-        let ids = ids_by_name.values().cloned().collect();
-        Self { ids_by_name, ids }
+    pub(super) fn new(slugs_by_name: HashMap<String, String>) -> Self {
+        let slugs = slugs_by_name.values().cloned().collect();
+        Self {
+            slugs_by_name,
+            slugs,
+        }
     }
 
-    /// Resolves a player's hero id: the parser's when it's a seeded one, else the seeded
-    /// id matching the hero name, then the hero name itself when the hero isn't known.
+    /// Resolves a player's hero slug: the parser's id when it's a seeded slug, else the
+    /// seeded slug matching the hero name, then the hero name itself when the hero isn't
+    /// known.
     fn resolve(&self, parser_id: Option<&str>, name: &str) -> String {
         parser_id
-            .filter(|id| self.ids.contains(*id))
-            .or_else(|| self.ids_by_name.get(name).map(String::as_str))
+            .filter(|id| self.slugs.contains(*id))
+            .or_else(|| self.slugs_by_name.get(name).map(String::as_str))
             .unwrap_or(name)
             .to_owned()
     }
@@ -138,8 +151,8 @@ pub(super) fn build_bundle(
         timestamp,
         mode: summary.mode.into(),
         map: maps.resolve(&summary.map),
-        owner_hero_id: seeded.resolve(owner.hero_id.as_deref(), &owner.hero),
-        owner_player_id: player_id(owner),
+        owner_hero_slug: seeded.resolve(owner.hero_id.as_deref(), &owner.hero),
+        owner_toon: player_toon(owner),
         owner_win: owner.won,
         duration: summary.duration_secs().round() as i64,
         game_loops: summary.game_loops.into(),
@@ -152,32 +165,37 @@ pub(super) fn build_bundle(
     let mut players = Vec::new();
     let mut replay_players = Vec::new();
     for player in &summary.players {
-        let player_id = player_id(player);
-        let hero_id = seeded.resolve(player.hero_id.as_deref(), &player.hero);
+        let toon = player_toon(player);
+        let hero_slug = seeded.resolve(player.hero_id.as_deref(), &player.hero);
 
         heroes.push(Hero {
-            id: hero_id.clone(),
+            slug: hero_slug.clone(),
             name: player.hero.clone(),
         });
         players.push(Player {
-            id: player_id.clone(),
+            toon: toon.clone(),
             name: player.name.clone(),
         });
         replay_players.push(NewReplayPlayer {
-            player_id,
+            toon,
             slot: player.player_id.into(),
             team: player.team.into(),
-            hero_id,
+            hero_slug,
             time_dead_secs: player.time_dead_secs,
             upvotes: player.upvotes.into(),
-            xp: player.xp.map(serde_json::to_value).transpose()?,
+            xp: player
+                .xp
+                .map(serde_json::to_value)
+                .transpose()?
+                .map(round_floats),
             score: score(&player.score),
             talents: player
                 .talents
                 .iter()
+                .take(TALENT_TIERS)
                 .map(|talent| NewTalent {
                     tier: talent.tier.into(),
-                    talent_id: talent.name.to_snake_case(),
+                    slug: talent.name.to_snake_case(),
                     gameloop: talent.gameloop,
                 })
                 .collect(),
@@ -216,9 +234,9 @@ fn game_id<'a>(seed: Option<u32>, toons: impl IntoIterator<Item = &'a str>) -> R
     ))
 }
 
-/// Returns the id a player is stored under: the toon for humans, the slot for AIs.
-fn player_id(player: &hots_replay_parser::summary::Player) -> String {
-    // AIs all share the same toon, so they get one id per slot instead.
+/// Returns the toon a player is stored under: their own for humans, one per slot for AIs.
+fn player_toon(player: &hots_replay_parser::summary::Player) -> String {
+    // AIs all share the same toon, so they get one per slot instead.
     if player.is_ai {
         format!("ai-{}", player.player_id)
     } else {
@@ -236,10 +254,6 @@ fn owner_toon(path: &Path) -> Option<String> {
         .map(|name| name.to_string_lossy().into_owned())
 }
 
-/// Flattens the summary's timeline (deaths, levels, XP, camps, structures and map
-/// events) into event rows, keyed by kind and team.
-///
-/// Map events use their snake_cased name as kind.
 fn score<'a>(score: impl IntoIterator<Item = (&'a String, &'a i64)>) -> serde_json::Value {
     score
         .into_iter()
@@ -249,18 +263,61 @@ fn score<'a>(score: impl IntoIterator<Item = (&'a String, &'a i64)>) -> serde_js
         .into()
 }
 
+/// Rounds every float in `value` to [`FLOAT_DECIMALS`], turning the ones that come out
+/// whole into ints, e.g. `1760.0` into `1760`.
+fn round_floats(value: Value) -> Value {
+    match value {
+        Value::Number(number) if number.is_f64() => {
+            let scale = 10f64.powi(FLOAT_DECIMALS);
+            let rounded = (number.as_f64().unwrap_or_default() * scale).round() / scale;
+            if rounded.fract() == 0.0 {
+                (rounded as i64).into()
+            } else {
+                rounded.into()
+            }
+        }
+        Value::Array(items) => items.into_iter().map(round_floats).collect(),
+        Value::Object(fields) => Value::Object(
+            fields
+                .into_iter()
+                .map(|(key, value)| (key, round_floats(value)))
+                .collect(),
+        ),
+        other => other,
+    }
+}
+
+/// Removes the key at JSON `pointer` from `value`, if it's there.
+fn remove(value: &mut Value, pointer: &str) {
+    let (parent, key) = pointer.rsplit_once('/').unwrap_or(("", pointer));
+    if let Some(object) = value.pointer_mut(parent).and_then(Value::as_object_mut) {
+        object.remove(key);
+    }
+}
+
+/// Flattens the summary's timeline (deaths, levels, XP, camps, structures and map
+/// events) into event rows, keyed by kind and team.
+///
+/// Map events use their snake_cased name as kind.
 fn events(summary: &ReplaySummary) -> Result<Vec<NewEvent>> {
+    /// `strip` lists, as JSON pointers, the keys of `data` left out besides its
+    /// gameloop and team, which have their own columns.
     fn event(
         kind: &str,
         gameloop: i64,
         team: Option<u8>,
         data: &impl Serialize,
+        strip: &[&str],
     ) -> Result<NewEvent> {
+        let mut data = serde_json::to_value(data)?;
+        for pointer in ["/gameloop", "/team"].iter().chain(strip) {
+            remove(&mut data, pointer);
+        }
         Ok(NewEvent {
             kind: kind.to_owned(),
             gameloop,
             team: team.map(i64::from),
-            data: serde_json::to_value(data)?,
+            data: round_floats(data),
         })
     }
 
@@ -279,6 +336,7 @@ fn events(summary: &ReplaySummary) -> Result<Vec<NewEvent>> {
             death.gameloop,
             team_of(death.victim),
             death,
+            &[],
         )?);
     }
     for team_level in &summary.team_levels {
@@ -287,13 +345,20 @@ fn events(summary: &ReplaySummary) -> Result<Vec<NewEvent>> {
             team_level.gameloop,
             Some(team_level.team),
             team_level,
+            &[],
         )?);
     }
     for xp in &summary.xp {
-        events.push(event("xp", xp.gameloop, Some(xp.team), xp)?);
+        events.push(event(
+            "xp",
+            xp.gameloop,
+            Some(xp.team),
+            xp,
+            &["/game_time"],
+        )?);
     }
     for camp in &summary.camps {
-        events.push(event("camp_capture", camp.gameloop, camp.team, camp)?);
+        events.push(event("camp_capture", camp.gameloop, camp.team, camp, &[])?);
     }
     for structure in &summary.structures {
         events.push(event(
@@ -301,6 +366,7 @@ fn events(summary: &ReplaySummary) -> Result<Vec<NewEvent>> {
             structure.gameloop,
             structure.team,
             structure,
+            &[],
         )?);
     }
     for map_event in &summary.map_events {
@@ -309,6 +375,8 @@ fn events(summary: &ReplaySummary) -> Result<Vec<NewEvent>> {
             map_event.gameloop,
             map_event.team,
             map_event,
+            // Kept as the kind, and timed by the gameloop.
+            &["/name", "/fixed/GameTime"],
         )?);
     }
     Ok(events)
@@ -365,6 +433,40 @@ mod tests {
         let path = Path::new("Accounts/123/2-Hero-1-456/Replays/Multiplayer/game.StormReplay");
         assert_eq!(owner_toon(path).as_deref(), Some("2-Hero-1-456"));
         assert_eq!(owner_toon(Path::new("Downloads/game.StormReplay")), None);
+    }
+
+    #[test]
+    fn round_floats_rounds_nested_floats_and_keeps_ints() {
+        let raw = serde_json::json!({
+            "x": 118.27197265625,
+            "xp": { "minion": 1760.0, "hero": 913.4033203125 },
+            "killers": [6, 7],
+            "level": 3,
+        });
+        assert_eq!(
+            round_floats(raw),
+            serde_json::json!({
+                "x": 118.27,
+                "xp": { "minion": 1760, "hero": 913.4 },
+                "killers": [6, 7],
+                "level": 3,
+            })
+        );
+    }
+
+    #[test]
+    fn remove_takes_out_top_level_and_nested_keys() {
+        let mut value = serde_json::json!({
+            "name": "Immortal Defeated",
+            "fixed": { "GameTime": 328.125, "Immortal Power Percent": 25.6 },
+        });
+        remove(&mut value, "/name");
+        remove(&mut value, "/fixed/GameTime");
+        remove(&mut value, "/missing/key");
+        assert_eq!(
+            value,
+            serde_json::json!({ "fixed": { "Immortal Power Percent": 25.6 } })
+        );
     }
 
     #[test]

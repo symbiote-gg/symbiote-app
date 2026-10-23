@@ -21,11 +21,11 @@ export type HeroRole =
     | "ranged_assassin";
 
 export type ReplayPlayer = {
-    playerId: string;
+    playerId: number;
     name: string;
     slot: number;
     team: number;
-    heroId: string;
+    heroId: number;
     heroName: string;
     heroPortrait: string | null;
 };
@@ -38,8 +38,8 @@ export type Replay = {
     map: string;
     mapName: string;
     mapLoadingScreen: string | null;
-    ownerHeroId: string;
-    ownerPlayerId: string;
+    ownerHeroId: number;
+    ownerPlayerId: number;
     heroName: string;
     heroRole: HeroRole | null;
     heroPortrait: string | null;
@@ -71,7 +71,8 @@ export type ReplayIngested = {
 
 export type TalentPick = {
     tier: number;
-    talentId: string;
+    talentId: number;
+    slug: string;
     gameloop: number;
     name: string | null;
     description: string | null;

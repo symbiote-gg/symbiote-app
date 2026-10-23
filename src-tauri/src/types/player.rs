@@ -1,5 +1,5 @@
 #[derive(Debug)]
 pub struct Player {
-    pub id: String,
+    pub toon: String,
     pub name: String,
 }

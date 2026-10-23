@@ -18,7 +18,7 @@ pub struct ProfileSummary {
 #[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HeroStat {
-    pub hero_id: String,
+    pub hero_id: i64,
     pub name: String,
     pub portrait: Option<String>,
     pub games: i64,
