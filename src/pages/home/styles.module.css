@@ -1,9 +1,5 @@
 @reference "@/index.css";
 
-.error {
-    @apply text-loss;
-}
-
 .grid {
     @apply grid items-stretch gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,27rem)] lg:grid-rows-1;
 }

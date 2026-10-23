@@ -3,7 +3,8 @@ import { Fragment } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
-import { Card, Typography } from "@/ui";
+import { Kad } from "@/components";
+import { Card, TableHead, Typography } from "@/ui";
 import { PlayerRow } from "./player-row";
 import { STATS, type Stat } from "./stats";
 import { type Kills, TeamKills } from "./team-kills";
@@ -72,46 +73,32 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                     duration={duration}
                 />
                 <div className={styles.table}>
-                    <div
+                    <TableHead
                         className={classNames(
                             styles.teamGrid,
                             styles.headerRow,
                         )}
-                    >
-                        <Typography size="xs" variant="secondary" uppercase>
-                            {t("player")}
-                        </Typography>
-                        <Typography
-                            size="xs"
-                            variant="secondary"
-                            uppercase
-                            className={styles.talents}
-                        >
-                            {t("talents")}
-                        </Typography>
-                        <Typography
-                            size="xs"
-                            variant="secondary"
-                            uppercase
-                            className={styles.number}
-                        >
-                            {t("kda")}
-                        </Typography>
-                        {STATS.map(({ stat, label, wide }) => (
-                            <Typography
-                                key={stat}
-                                size="xs"
-                                variant="secondary"
-                                uppercase
-                                noWrap
-                                className={classNames(styles.number, {
+                        columns={[
+                            { key: "player", label: t("player") },
+                            {
+                                key: "talents",
+                                label: t("talents"),
+                                className: styles.talents,
+                            },
+                            {
+                                key: "kad",
+                                label: t("kad"),
+                                className: styles.number,
+                            },
+                            ...STATS.map(({ stat, label, wide }) => ({
+                                key: stat,
+                                label: t(label),
+                                className: classNames(styles.number, {
                                     [styles.wide]: wide,
-                                })}
-                            >
-                                {t(label)}
-                            </Typography>
-                        ))}
-                    </div>
+                                }),
+                            })),
+                        ]}
+                    />
                     {teams.map(({ ally, level, players }) => {
                         const kills = sum(players, (p) => p.kills);
                         const assists = sum(players, (p) => p.assists);
@@ -190,7 +177,11 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                         noWrap
                                         className={styles.number}
                                     >
-                                        {`${kills}/${assists}/${deaths}`}
+                                        <Kad
+                                            kills={kills}
+                                            assists={assists}
+                                            deaths={deaths}
+                                        />
                                     </Typography>
                                     {STATS.map(({ stat, wide }) => (
                                         <Typography

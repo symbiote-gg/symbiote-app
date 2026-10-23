@@ -11,7 +11,7 @@ import { useTranslations } from "use-intl";
 import type { ThirdPartyPackage } from "@/api/licenses";
 import { useThirdPartyLicenses } from "@/hooks/useThirdPartyLicenses";
 import { APP_LICENSE, APP_LICENSE_URL } from "@/legal";
-import { Typography, linkClassName } from "@/ui";
+import { TableHead, Typography, linkClassName } from "@/ui";
 import { ExternalLink } from "../external-link";
 import { PackageEntry } from "../package-entry";
 
@@ -84,11 +84,15 @@ export function Licenses() {
             </div>
             {data && (
                 <div className={styles.table}>
-                    <div className={styles.head}>
-                        <span>{t("columns.package")}</span>
-                        <span>{t("columns.version")}</span>
-                        <span>{t("columns.license")}</span>
-                    </div>
+                    <TableHead
+                        strip
+                        className={styles.head}
+                        columns={[
+                            { key: "package", label: t("columns.package") },
+                            { key: "version", label: t("columns.version") },
+                            { key: "license", label: t("columns.license") },
+                        ]}
+                    />
                     <div ref={list} className={styles.list}>
                         {visible.map((pkg) => (
                             <PackageEntry

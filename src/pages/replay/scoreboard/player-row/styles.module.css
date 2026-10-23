@@ -25,18 +25,6 @@
     @apply shrink-0;
 }
 
-.kda .kills {
-    @apply font-semibold text-fg;
-}
-
-.kda .deaths {
-    @apply text-loss;
-}
-
-.kda .deathless {
-    @apply text-win;
-}
-
 .statCell {
     @apply relative self-stretch;
 }

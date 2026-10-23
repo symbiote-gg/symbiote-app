@@ -1,5 +1,6 @@
 import classNames from "classnames";
-import { useState } from "react";
+
+import { useImageFallback } from "@/hooks/useImageFallback";
 
 import styles from "./styles.module.css";
 
@@ -18,9 +19,8 @@ export function HeroPortrait({
     highlight,
     className,
 }: HeroPortraitProps) {
-    const [failed, setFailed] = useState(false);
+    const [failed, onError] = useImageFallback();
 
-    const onError = () => setFailed(true);
     const classes = classNames(className, styles.root, styles[size], {
         [styles.highlight]: highlight,
     });

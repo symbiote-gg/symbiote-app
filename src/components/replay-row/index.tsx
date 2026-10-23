@@ -8,9 +8,10 @@ import { markSeenInPages, replayQuery, replaysQuery } from "@/api/queries";
 import { type Replay, markReplayAsSeen } from "@/api/replays";
 import { Tooltip, Typography } from "@/ui";
 import { formatDuration, usePlayedAt } from "@/utils/dates";
-import { AwardPill } from "../award-pill";
+import { AwardPills } from "../award-pill";
 import { HeroPortrait } from "../hero-portrait";
-import { ModeIcon } from "../mode-icon";
+import { Kad } from "../kad";
+import { ModeLabel } from "../mode-icon";
 import { ResultChip } from "../result-chip";
 import { Teams } from "./teams";
 
@@ -83,9 +84,7 @@ export const ReplayRow = memo(function ReplayRow({
                             </span>
                             <span className={styles.map}>{replay.mapName}</span>
                         </Typography>
-                        {replay.ownerAwards.map((award) => (
-                            <AwardPill key={award.type} award={award} />
-                        ))}
+                        <AwardPills awards={replay.ownerAwards} />
                         {replay.isNew && (
                             <span className={styles.badge}>
                                 {t("replayRow.new")}
@@ -100,37 +99,23 @@ export const ReplayRow = memo(function ReplayRow({
                     noWrap
                     className={classNames(columns.col, columns.mode)}
                 >
-                    <ModeIcon mode={replay.mode} className={styles.modeIcon} />
-                    {t(`modes.${replay.mode}`)}
+                    <ModeLabel
+                        mode={replay.mode}
+                        iconClassName={styles.modeIcon}
+                    />
                 </Typography>
                 <Typography
                     size="sm"
                     variant="secondary"
                     mono
                     noWrap
-                    className={classNames(columns.col, columns.kda, styles.kda)}
+                    className={classNames(columns.col, columns.kad)}
                 >
-                    {replay.ownerKills === null ? (
-                        "-"
-                    ) : (
-                        <>
-                            <span className={styles.kills}>
-                                {replay.ownerKills}
-                            </span>
-                            <span className={styles.slash}>/</span>
-                            {replay.ownerAssists ?? 0}
-                            <span className={styles.slash}>/</span>
-                            <span
-                                className={
-                                    replay.ownerDeaths
-                                        ? styles.deaths
-                                        : styles.deathless
-                                }
-                            >
-                                {replay.ownerDeaths ?? 0}
-                            </span>
-                        </>
-                    )}
+                    <Kad
+                        kills={replay.ownerKills}
+                        assists={replay.ownerAssists}
+                        deaths={replay.ownerDeaths}
+                    />
                 </Typography>
                 <Typography
                     size="sm"

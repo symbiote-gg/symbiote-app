@@ -13,28 +13,28 @@ export interface AwardPillProps {
 export function AwardPill({ award }: AwardPillProps) {
     const name = award.name ?? award.type;
 
-    if (!award.description) return <Pill award={award} />;
+    if (!award.description) return <Pill award={award} name={name} />;
 
     return (
-        <Tooltip
-            content={
-                <>
-                    <Typography size="xs" weight="semibold">
-                        {name}
-                    </Typography>
-                    <Typography size="xs" variant="secondary">
-                        {award.description}
-                    </Typography>
-                </>
-            }
-        >
-            <Pill award={award} />
+        <Tooltip content={name} description={award.description}>
+            <Pill award={award} name={name} />
         </Tooltip>
     );
 }
 
-function Pill({ award }: AwardPillProps) {
-    const name = award.name ?? award.type;
+export interface AwardPillsProps {
+    awards: Award[];
+}
+
+export function AwardPills({ awards }: AwardPillsProps) {
+    return awards.map((award) => <AwardPill key={award.type} award={award} />);
+}
+
+interface PillProps extends AwardPillProps {
+    name: string;
+}
+
+function Pill({ award, name }: PillProps) {
     return (
         <span
             className={classNames(styles.root, {

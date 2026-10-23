@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
-import { AwardPill, GameIcon, HeroPortrait } from "@/components";
+import { AwardPills, GameIcon, HeroPortrait, Kad } from "@/components";
 import { Tooltip, Typography } from "@/ui";
 import { STATS, type Stat } from "../stats";
 
@@ -49,9 +49,7 @@ export function PlayerRow({
                         <Typography weight="semibold" truncate>
                             {player.name}
                         </Typography>
-                        {player.awards.map((award) => (
-                            <AwardPill key={award.type} award={award} />
-                        ))}
+                        <AwardPills awards={player.awards} />
                     </span>
                     <Typography size="xs" variant="secondary" truncate>
                         {player.heroName}
@@ -72,18 +70,10 @@ export function PlayerRow({
                     return (
                         <Tooltip
                             key={tier}
-                            content={
-                                <>
-                                    <Typography size="xs" weight="semibold">
-                                        {name}
-                                    </Typography>
-                                    <Typography size="xs" variant="secondary">
-                                        {t("talentLevel", {
-                                            level: TIER_LEVELS[tier - 1],
-                                        })}
-                                    </Typography>
-                                </>
-                            }
+                            content={name}
+                            description={t("talentLevel", {
+                                level: TIER_LEVELS[tier - 1],
+                            })}
                         >
                             <GameIcon
                                 category="abilitytalents"
@@ -100,23 +90,13 @@ export function PlayerRow({
                 variant="secondary"
                 mono
                 noWrap
-                className={classNames(styles.number, styles.kda)}
+                className={styles.number}
             >
-                {player.kills === null ? (
-                    "-"
-                ) : (
-                    <>
-                        <span className={styles.kills}>{player.kills}</span>/
-                        {player.assists ?? 0}/
-                        <span
-                            className={
-                                player.deaths ? styles.deaths : styles.deathless
-                            }
-                        >
-                            {player.deaths ?? 0}
-                        </span>
-                    </>
-                )}
+                <Kad
+                    kills={player.kills}
+                    assists={player.assists}
+                    deaths={player.deaths}
+                />
             </Typography>
             {STATS.map(({ stat, wide, plain }) => {
                 const value = player[stat] ?? 0;

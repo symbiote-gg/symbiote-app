@@ -2,6 +2,7 @@ import { Page } from "@/components";
 import { useMostPlayedHeroes } from "@/hooks/useMostPlayedHeroes";
 import { useProfileSummary } from "@/hooks/useProfileSummary";
 import { useReplays } from "@/hooks/useReplays";
+import { ErrorMessage } from "@/ui";
 import { HeroesCard } from "./heroes-card";
 import { ProfileCard } from "./profile-card";
 import { RecentReplaysCard } from "./recent-replays-card";
@@ -19,7 +20,7 @@ export function Home() {
 
     return (
         <Page fill>
-            {error && <p className={styles.error}>{String(error)}</p>}
+            {error && <ErrorMessage error={error} />}
             {firstPage && profile.data && heroes.data && (
                 <div className={styles.grid}>
                     <RecentReplaysCard

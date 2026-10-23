@@ -1,19 +1,9 @@
 import { useTranslations } from "use-intl";
 
-import { Page } from "@/components";
-import { Card, CardHeader } from "@/ui";
+import { ComingSoon } from "@/components";
 
 export function Heroes() {
-    const t = useTranslations();
+    const t = useTranslations("nav");
 
-    return (
-        <Page>
-            <Card>
-                <CardHeader
-                    title={t("nav.heroes")}
-                    subtitle={t("comingSoon")}
-                />
-            </Card>
-        </Page>
-    );
+    return <ComingSoon title={t("heroes")} />;
 }

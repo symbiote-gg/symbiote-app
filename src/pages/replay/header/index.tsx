@@ -1,12 +1,13 @@
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import classNames from "classnames";
-import { ChevronLeft, Folder } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { Folder } from "lucide-react";
+import type { ReactNode } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
 import type { HeroRole, ReplayDetail, ReplayPlayerDetail } from "@/api/replays";
-import { HeroPortrait, ModeIcon } from "@/components";
-import { Button, ButtonLink, Typography } from "@/ui";
+import { BackToReplays, HeroPortrait, Kad, ModeLabel } from "@/components";
+import { useImageFallback } from "@/hooks/useImageFallback";
+import { Button, Typography } from "@/ui";
 import { formatDuration, usePlayedOn } from "@/utils/dates";
 import { milestones } from "./milestones";
 
@@ -38,9 +39,8 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
     const t = useTranslations();
     const format = useFormatter();
     const playedOn = usePlayedOn();
-    const [failed, setFailed] = useState(false);
+    const [failed, onError] = useImageFallback();
 
-    const onError = () => setFailed(true);
     const onReveal = () => revealItemInDir(replay.path);
 
     const result =
@@ -54,22 +54,12 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
               })
             : "-";
 
-    const sep = (text: string) => <span className={styles.sep}>{text}</span>;
-
     const kad = owner ? (
-        <>
-            {owner.kills ?? "-"}
-            {sep("/")}
-            {owner.assists ?? "-"}
-            {sep("/")}
-            <span
-                className={classNames(styles.deaths, {
-                    [styles.positive]: owner.deaths === 0,
-                })}
-            >
-                {owner.deaths ?? "-"}
-            </span>
-        </>
+        <Kad
+            kills={owner.kills}
+            assists={owner.assists}
+            deaths={owner.deaths}
+        />
     ) : (
         "-"
     );
@@ -101,7 +91,7 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
     const reached = milestones(replay.timeline);
 
     const stats: HeaderStat[] = [
-        { label: t("replay.kda"), value: kad },
+        { label: t("replay.kad"), value: kad },
         { label: t("replay.killParticipation"), value: killParticipation },
         {
             label: t("replay.heroDamage"),
@@ -129,16 +119,7 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
             <div className={styles.glow} />
             <div className={styles.content}>
                 <div className={styles.toolbar}>
-                    <ButtonLink
-                        href="/replays"
-                        variant="secondary"
-                        size="sm"
-                        arrow={false}
-                        className={styles.tool}
-                    >
-                        <ChevronLeft />
-                        {t("replay.replays")}
-                    </ButtonLink>
+                    <BackToReplays className={styles.tool} />
                     {replay.onDisk && (
                         <Button
                             variant="secondary"
@@ -170,8 +151,7 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                                     noWrap
                                     className={styles.tag}
                                 >
-                                    <ModeIcon mode={replay.mode} />
-                                    {t(`modes.${replay.mode}`)}
+                                    <ModeLabel mode={replay.mode} />
                                 </Typography>
 
                                 <Typography

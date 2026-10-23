@@ -10,6 +10,7 @@ import {
     CardHeader,
     EmptyState,
     Meter,
+    TableHead,
     Typography,
 } from "@/ui";
 
@@ -40,29 +41,23 @@ export function HeroesCard({ heroes }: HeroesCardProps) {
                 <EmptyState>{t("empty")}</EmptyState>
             ) : (
                 <>
-                    <div className={classNames(styles.row, styles.head)}>
-                        <Typography
-                            size="xs"
-                            variant="secondary"
-                            className={styles.heading}
-                        >
-                            {t("columns.hero")}
-                        </Typography>
-                        <Typography
-                            size="xs"
-                            variant="secondary"
-                            className={classNames(styles.heading, styles.rate)}
-                        >
-                            {t("columns.winRate")}
-                        </Typography>
-                        <Typography
-                            size="xs"
-                            variant="secondary"
-                            className={classNames(styles.heading, styles.games)}
-                        >
-                            {t("columns.games")}
-                        </Typography>
-                    </div>
+                    <TableHead
+                        strip
+                        className={classNames(styles.row, styles.head)}
+                        columns={[
+                            { key: "hero", label: t("columns.hero") },
+                            {
+                                key: "winRate",
+                                label: t("columns.winRate"),
+                                className: styles.rate,
+                            },
+                            {
+                                key: "games",
+                                label: t("columns.games"),
+                                className: styles.games,
+                            },
+                        ]}
+                    />
                     <CardBody>
                         <ul className={styles.list}>
                             {heroes.heroes.map((hero) => {

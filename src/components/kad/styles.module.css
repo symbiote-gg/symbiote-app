@@ -1,0 +1,17 @@
+@reference "@/index.css";
+
+.kills {
+    @apply font-semibold text-fg;
+}
+
+.slash {
+    @apply opacity-40;
+}
+
+.deaths {
+    @apply text-loss;
+}
+
+.deathless {
+    @apply text-win;
+}

@@ -28,7 +28,7 @@
     @apply min-w-14 @2xl:block;
 }
 
-.inner .kda {
+.inner .kad {
     @apply min-w-20 @4xl:block;
 }
 

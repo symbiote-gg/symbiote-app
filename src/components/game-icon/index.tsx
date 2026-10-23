@@ -1,5 +1,6 @@
 import classNames from "classnames";
-import { useState } from "react";
+
+import { useImageFallback } from "@/hooks/useImageFallback";
 
 import styles from "./styles.module.css";
 
@@ -13,9 +14,7 @@ export interface GameIconProps {
 }
 
 export function GameIcon({ category, icon, label, className }: GameIconProps) {
-    const [failed, setFailed] = useState(false);
-
-    const onError = () => setFailed(true);
+    const [failed, onError] = useImageFallback();
 
     if (!icon || failed) {
         return (

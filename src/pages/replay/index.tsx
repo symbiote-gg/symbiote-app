@@ -1,10 +1,8 @@
-import { ChevronLeft } from "lucide-react";
-import { useTranslations } from "use-intl";
 import { useParams } from "wouter";
 
-import { Page } from "@/components";
+import { BackToReplays, Page } from "@/components";
 import { useReplay } from "@/hooks/useReplay";
-import { ButtonLink } from "@/ui";
+import { ErrorMessage } from "@/ui";
 import { Header } from "./header";
 import { Scoreboard, ScoreboardTeam } from "./scoreboard";
 import { Timeline } from "./timeline";
@@ -13,7 +11,6 @@ import styles from "./styles.module.css";
 
 export function ReplayDetail() {
     const { replayId } = useParams<{ replayId: string }>();
-    const t = useTranslations();
     const { data: replay, error } = useReplay(Number(replayId));
 
     const owner = replay?.players.find(
@@ -50,16 +47,8 @@ export function ReplayDetail() {
             <div className={styles.main}>
                 {error && (
                     <>
-                        <ButtonLink
-                            href="/replays"
-                            variant="secondary"
-                            size="sm"
-                            arrow={false}
-                        >
-                            <ChevronLeft />
-                            {t("replay.replays")}
-                        </ButtonLink>
-                        <p className={styles.error}>{String(error)}</p>
+                        <BackToReplays />
+                        <ErrorMessage error={error} />
                     </>
                 )}
                 {replay && (

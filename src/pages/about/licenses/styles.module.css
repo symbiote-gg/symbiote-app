@@ -29,8 +29,7 @@
 }
 
 .head {
-    @apply grid shrink-0 grid-cols-[minmax(0,1fr)_10rem_14rem_1.5rem] gap-4 overflow-y-hidden border-y border-line bg-surface-2/40 px-8 py-2 text-xs font-semibold tracking-[0.15em] text-fg-muted uppercase;
-    scrollbar-gutter: stable;
+    @apply grid grid-cols-[minmax(0,1fr)_10rem_14rem_1.5rem] gap-4;
 }
 
 .list {

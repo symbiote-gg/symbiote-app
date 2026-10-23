@@ -13,12 +13,7 @@
 }
 
 .head {
-    @apply shrink-0 grid-cols-[minmax(0,1fr)_8.5rem_3rem] overflow-y-hidden border-y border-line bg-surface-2/40 px-8 py-2;
-    scrollbar-gutter: stable;
-}
-
-.head .heading {
-    @apply font-semibold tracking-[0.15em] uppercase;
+    @apply grid-cols-[minmax(0,1fr)_8.5rem_3rem];
 }
 
 .rate {

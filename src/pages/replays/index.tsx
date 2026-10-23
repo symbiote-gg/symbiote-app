@@ -10,7 +10,7 @@ import { useTranslations } from "use-intl";
 
 import { Page, ReplayListHeader, ReplayRow } from "@/components";
 import { useReplays } from "@/hooks/useReplays";
-import { Button, Card, CardBody, CardHeader } from "@/ui";
+import { Button, Card, CardBody, CardHeader, ErrorMessage } from "@/ui";
 
 import styles from "./styles.module.css";
 
@@ -89,7 +89,9 @@ export function Replays() {
                     }
                     divided
                 />
-                {error && <p className={styles.error}>{String(error)}</p>}
+                {error && (
+                    <ErrorMessage error={error} className={styles.error} />
+                )}
                 <ReplayListHeader wide />
                 <CardBody ref={scroller} onScroll={onScroll}>
                     <div

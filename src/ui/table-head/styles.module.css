@@ -1,0 +1,10 @@
+@reference "@/index.css";
+
+.root {
+    @apply shrink-0;
+}
+
+.strip {
+    @apply overflow-y-hidden border-y border-line bg-surface-2/40 px-8 py-2 tracking-[0.15em];
+    scrollbar-gutter: stable;
+}

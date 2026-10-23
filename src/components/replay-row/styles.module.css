@@ -36,22 +36,6 @@
     @apply ml-2 text-fg-muted;
 }
 
-.kda .kills {
-    @apply font-semibold text-fg;
-}
-
-.kda .slash {
-    @apply opacity-40;
-}
-
-.kda .deaths {
-    @apply text-loss/80;
-}
-
-.kda .deathless {
-    @apply text-win;
-}
-
 .topDamage {
     @apply underline decoration-primary decoration-2 underline-offset-4;
 }

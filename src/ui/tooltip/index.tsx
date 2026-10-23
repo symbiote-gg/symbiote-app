@@ -8,17 +8,39 @@ import styles from "./styles.module.css";
 
 export interface TooltipProps {
     content: ReactNode;
+    /** Shows `content` as a bold title above this. */
+    description?: ReactNode;
     children: ReactNode;
     className?: string;
 }
 
-export function Tooltip({ content, children, className }: TooltipProps) {
+export function Tooltip({
+    content,
+    description,
+    children,
+    className,
+}: TooltipProps) {
     const id = useId();
     const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
     const [open, setOpen] = useState(false);
 
     const onOpen = () => setOpen(true);
     const onClose = () => setOpen(false);
+
+    const body = description ? (
+        <>
+            <Typography size="xs" weight="semibold">
+                {content}
+            </Typography>
+            <Typography size="xs" variant="secondary">
+                {description}
+            </Typography>
+        </>
+    ) : typeof content === "string" ? (
+        <Typography size="xs">{content}</Typography>
+    ) : (
+        content
+    );
 
     return (
         <span
@@ -40,11 +62,7 @@ export function Tooltip({ content, children, className }: TooltipProps) {
                     compact
                     interactive={false}
                 >
-                    {typeof content === "string" ? (
-                        <Typography size="xs">{content}</Typography>
-                    ) : (
-                        content
-                    )}
+                    {body}
                 </Popover>
             )}
         </span>

@@ -154,15 +154,3 @@
 .stat .statValue {
     @apply text-xl leading-none;
 }
-
-.statValue .sep {
-    @apply text-fg-muted/60;
-}
-
-.statValue .deaths {
-    @apply text-loss;
-}
-
-.statValue .positive {
-    @apply text-win;
-}

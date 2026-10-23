@@ -3,7 +3,3 @@
 .main {
     @apply flex flex-col items-start gap-6;
 }
-
-.error {
-    @apply text-loss;
-}

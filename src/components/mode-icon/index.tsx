@@ -10,6 +10,7 @@ import {
     Trophy,
     Zap,
 } from "lucide-react";
+import { useTranslations } from "use-intl";
 
 import type { Mode } from "@/api/replays";
 
@@ -34,4 +35,20 @@ export function ModeIcon({ mode, className }: ModeIconProps) {
     const Icon = ICONS[mode] ?? CircleQuestionMark;
 
     return <Icon className={classNames(styles.root, className)} />;
+}
+
+export interface ModeLabelProps {
+    mode: Mode;
+    iconClassName?: string;
+}
+
+export function ModeLabel({ mode, iconClassName }: ModeLabelProps) {
+    const t = useTranslations("modes");
+
+    return (
+        <>
+            <ModeIcon mode={mode} className={iconClassName} />
+            {t(mode)}
+        </>
+    );
 }
