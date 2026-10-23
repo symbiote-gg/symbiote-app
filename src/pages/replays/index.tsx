@@ -1,5 +1,11 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { type UIEvent, useEffect, useLayoutEffect, useRef } from "react";
+import {
+    type UIEvent,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+} from "react";
 import { useTranslations } from "use-intl";
 
 import { Page, ReplayListHeader, ReplayRow } from "@/components";
@@ -27,16 +33,21 @@ export function Replays() {
         dataUpdatedAt,
     } = useReplays();
 
-    const replays = data?.pages.flatMap((page) => page.replays) ?? [];
+    const replays = useMemo(
+        () => data?.pages.flatMap((page) => page.replays) ?? [],
+        [data],
+    );
     const total = data?.pages[0]?.total ?? 0;
-    const now = new Date(dataUpdatedAt);
+    const now = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]);
 
     const virtualizer = useVirtualizer({
         count: total,
         getScrollElement: () => scroller.current,
         estimateSize: () => ROW_HEIGHT,
-        overscan: 8,
+        overscan: 4,
         initialOffset: () => savedOffset,
+        useFlushSync: false,
+        directDomUpdates: true,
     });
     const items = virtualizer.getVirtualItems();
     const lastIndex = items[items.length - 1]?.index ?? 0;
@@ -82,19 +93,18 @@ export function Replays() {
                 <ReplayListHeader wide />
                 <CardBody ref={scroller} onScroll={onScroll}>
                     <div
+                        ref={virtualizer.containerRef}
                         className={styles.track}
-                        style={{ height: virtualizer.getTotalSize() }}
                     >
                         {items.map((item) => {
                             const replay = replays[item.index];
                             return (
                                 <div
                                     key={item.key}
+                                    ref={virtualizer.measureElement}
+                                    data-index={item.index}
                                     className={styles.slot}
-                                    style={{
-                                        height: item.size,
-                                        transform: `translateY(${item.start}px)`,
-                                    }}
+                                    style={{ height: item.size }}
                                 >
                                     {replay ? (
                                         <ReplayRow

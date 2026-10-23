@@ -37,6 +37,7 @@ export function HeroPortrait({
         <img
             src={`/game/heroportraits/${portrait}`}
             alt={name}
+            decoding="async"
             className={classes}
             onError={onError}
         />

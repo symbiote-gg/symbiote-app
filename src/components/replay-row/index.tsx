@@ -1,5 +1,6 @@
 import { noop, useQueryClient } from "@tanstack/react-query";
 import classNames from "classnames";
+import { memo } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 import { Link } from "wouter";
 
@@ -23,7 +24,12 @@ export interface ReplayRowProps {
     className?: string;
 }
 
-export function ReplayRow({ replay, now, wide, className }: ReplayRowProps) {
+export const ReplayRow = memo(function ReplayRow({
+    replay,
+    now,
+    wide,
+    className,
+}: ReplayRowProps) {
     const t = useTranslations();
     const format = useFormatter();
     const playedAt = usePlayedAt();
@@ -169,4 +175,4 @@ export function ReplayRow({ replay, now, wide, className }: ReplayRowProps) {
             </span>
         </Link>
     );
-}
+});
