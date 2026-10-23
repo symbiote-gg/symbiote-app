@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- Add total team kills header to scoreboard.
 - Add upvotes to the players scoreboard.
 - Show team heroes in the replays wide list.
 - Add the Symbiote wordmark to the app shell and about page.

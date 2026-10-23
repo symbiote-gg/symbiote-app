@@ -1,5 +1,5 @@
 @reference "@/index.css";
 
 .trigger {
-    @apply inline-flex;
+    @apply inline-flex cursor-pointer;
 }

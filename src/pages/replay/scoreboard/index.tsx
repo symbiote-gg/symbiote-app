@@ -6,6 +6,7 @@ import type { ReplayPlayerDetail } from "@/api/replays";
 import { Card, Typography } from "@/ui";
 import { PlayerRow } from "./player-row";
 import { STATS, type Stat } from "./stats";
+import { type Kills, TeamKills } from "./team-kills";
 
 import styles from "./styles.module.css";
 
@@ -37,6 +38,17 @@ export function Scoreboard({ teams, ownerId }: ScoreboardProps) {
         ]),
     ) as Record<Stat, number>;
 
+    const killsOf = (ally: boolean): Kills => {
+        const own = teams.find((team) => team.ally === ally)?.players ?? [];
+        const other = teams.find((team) => team.ally !== ally)?.players ?? [];
+        const heroes = sum(own, (p) => p.kills);
+
+        return {
+            heroes,
+            ai: Math.max(0, sum(other, (p) => p.deaths) - heroes),
+        };
+    };
+
     const formatStat = (value: number | null) =>
         value
             ? format.number(value, {
@@ -48,6 +60,7 @@ export function Scoreboard({ teams, ownerId }: ScoreboardProps) {
     return (
         <div className={styles.root}>
             <Card className={styles.card}>
+                <TeamKills ally={killsOf(true)} enemy={killsOf(false)} />
                 <div className={styles.table}>
                     <div
                         className={classNames(

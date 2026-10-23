@@ -69,6 +69,10 @@
         "level": "Lv {level}",
         "team": "{side, select, ally {Your team} other {Enemy team}}",
         "kills": "{kills, plural, one {# kill} other {# kills}}",
+        "teamKills": {
+            "title": "Kills",
+            "breakdown": "{ai, plural, =0 {All by heroes} other {{heroes} by heroes, # by AI}}"
+        },
         "teamTotal": "Team total",
         "player": "Player",
         "kda": "K/A/D",

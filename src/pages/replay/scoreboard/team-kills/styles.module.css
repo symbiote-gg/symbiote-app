@@ -1,0 +1,35 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex items-center justify-center gap-8 border-b border-line px-6 py-5;
+}
+
+.label {
+    @apply flex flex-1 flex-col gap-0.5;
+}
+
+.label.ally {
+    @apply items-end text-right;
+}
+
+.ally .team {
+    @apply text-team-blue;
+}
+
+.enemy .team {
+    @apply text-team-red;
+}
+
+.count {
+    @apply text-5xl leading-none tabular-nums;
+    text-box: trim-both cap alphabetic;
+}
+
+.title {
+    @apply flex flex-col items-center gap-1 tracking-widest;
+}
+
+.title::after {
+    @apply h-0.5 w-4 rounded-full bg-fg-muted;
+    content: "";
+}
