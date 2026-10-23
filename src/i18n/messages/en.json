@@ -27,7 +27,7 @@
             "winRate": "Win rate",
             "mainRole": "Main role",
             "mvps": "MVPs",
-            "topDamage": "Top hero damage on ally team in <b>{pct}%</b> of games.",
+            "topDamage": "Top hero damage on your team in <b>{pct}%</b> of games.",
             "empty": "Your stats show up after your first game.",
             "cta": "View profile"
         },
@@ -66,7 +66,7 @@
     "replay": {
         "replays": "Replays",
         "showInFolder": "Show in folder",
-        "team": "{side, select, ally {Ally} other {Enemy}}",
+        "team": "{side, select, ally {Your team} other {Enemy team}}",
         "result": "{result, select, win {Victory} loss {Defeat} other {-}}",
         "teamKills": {
             "title": "Kills",
@@ -89,10 +89,10 @@
         "timeline": {
             "title": "Timeline",
             "side": {
-                "ally": "Ally",
-                "enemy": "Enemy"
+                "ally": "Your team",
+                "enemy": "Enemy team"
             },
-            "team": "{side, select, ally {Ally team} enemy {Enemy} other {-}}",
+            "team": "{side, select, ally {Your team} enemy {Enemy team} other {-}}",
             "filter": {
                 "label": "Show on timeline",
                 "fights": "Fights",
@@ -200,7 +200,7 @@
             "firstFort": "First fort",
             "firstTen": "First to 10"
         },
-        "milestoneSide": "{side, select, ally {Ally} other {Enemy}}"
+        "milestoneSide": "{side, select, ally {Your team} other {Enemy team}}"
     },
     "result": {
         "win": "Victory",
