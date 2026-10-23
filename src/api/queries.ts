@@ -6,7 +6,6 @@ import {
     queryOptions,
 } from "@tanstack/react-query";
 
-import { getThirdPartyLicenses } from "./licenses";
 import {
     PAGE_SIZE,
     type Replay,
@@ -16,7 +15,6 @@ import {
     getReplay,
     listReplays,
 } from "./replays";
-import { getMostPlayedHeroes, getProfileSummary } from "./stats";
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -154,23 +152,4 @@ export const replayQuery = (id: number) =>
                 );
             return replay;
         },
-    });
-
-export const profileSummaryQuery = (since: Date) =>
-    queryOptions({
-        queryKey: ["stats", "profile", since.getTime()],
-        gcTime: Infinity,
-        queryFn: () => getProfileSummary(since),
-    });
-
-export const thirdPartyLicensesQuery = queryOptions({
-    queryKey: ["licenses"],
-    queryFn: getThirdPartyLicenses,
-});
-
-export const mostPlayedHeroesQuery = (limit: number) =>
-    queryOptions({
-        queryKey: ["stats", "most-played-heroes", limit],
-        gcTime: Infinity,
-        queryFn: () => getMostPlayedHeroes(limit),
     });

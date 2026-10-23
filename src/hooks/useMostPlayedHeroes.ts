@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { mostPlayedHeroesQuery } from "@/api/queries";
+import { getMostPlayedHeroes } from "@/api/stats";
 
 export function useMostPlayedHeroes(limit: number) {
-    return useQuery(mostPlayedHeroesQuery(limit));
+    return useQuery({
+        queryKey: ["stats", "most-played-heroes", limit],
+        gcTime: Infinity,
+        queryFn: () => getMostPlayedHeroes(limit),
+    });
 }

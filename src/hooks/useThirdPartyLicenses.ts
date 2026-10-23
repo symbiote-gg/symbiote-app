@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { thirdPartyLicensesQuery } from "@/api/queries";
+import { getThirdPartyLicenses } from "@/api/licenses";
 
 export function useThirdPartyLicenses() {
-    return useQuery(thirdPartyLicensesQuery);
+    return useQuery({
+        queryKey: ["licenses"],
+        queryFn: getThirdPartyLicenses,
+    });
 }
