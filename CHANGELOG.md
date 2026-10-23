@@ -8,8 +8,23 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Add upvotes to the players scoreboard.
+- Show team heroes in the replays wide list.
+- Add the Symbiote wordmark to the app shell and about page.
+
+### Changed
+
 - Bump frontend dependencies.
-- Add upvotes to players scoreboard and adjust columns order.
+- Adjust the players scoreboard columns order.
+- Improve the replays list rendering performance.
+- Use a trophy icon for the Storm League mode.
+
+### Fixed
+
+- Optimize the replays list query.
+- Set the background color on the root layout.
 
 ## [0.2.0] - 2026-10-22
 

@@ -2,12 +2,12 @@ import classNames from "classnames";
 import {
     Bot,
     CircleQuestionMark,
-    CloudLightning,
     Dices,
     ListChecks,
     type LucideIcon,
     PartyPopper,
     SlidersHorizontal,
+    Trophy,
     Zap,
 } from "lucide-react";
 
@@ -20,7 +20,7 @@ const ICONS: Partial<Record<Mode, LucideIcon>> = {
     versus_ai: Bot,
     brawl: PartyPopper,
     unranked_draft: ListChecks,
-    storm_league: CloudLightning,
+    storm_league: Trophy,
     aram: Dices,
     custom: SlidersHorizontal,
 };
