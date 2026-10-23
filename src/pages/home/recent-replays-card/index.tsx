@@ -9,14 +9,12 @@ import styles from "./styles.module.css";
 export interface RecentReplaysCardProps {
     replays: Replay[];
     total: number;
-    newToday: number;
     loadedAt: Date;
 }
 
 export function RecentReplaysCard({
     replays,
     total,
-    newToday,
     loadedAt,
 }: RecentReplaysCardProps) {
     const t = useTranslations("home.replays");
@@ -25,10 +23,7 @@ export function RecentReplaysCard({
         <Card className={styles.root}>
             <CardHeader
                 title={t("title")}
-                subtitle={t("subtitle", {
-                    total,
-                    new: newToday,
-                })}
+                subtitle={t("subtitle", { total })}
                 action={<ButtonLink href="/replays">{t("all")}</ButtonLink>}
                 divided
             />

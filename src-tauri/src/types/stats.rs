@@ -13,7 +13,6 @@ pub struct ProfileSummary {
     pub top_damage_games: i64,
     pub main_role: Option<HeroRole>,
     pub recent: Vec<Option<bool>>,
-    pub new_since: i64,
 }
 
 #[derive(Debug, FromRow, Serialize)]

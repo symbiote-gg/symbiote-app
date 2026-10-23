@@ -10,7 +10,6 @@ export type ProfileSummary = {
     topDamageGames: number;
     mainRole: HeroRole | null;
     recent: (boolean | null)[];
-    newSince: number;
 };
 
 export type HeroStat = {

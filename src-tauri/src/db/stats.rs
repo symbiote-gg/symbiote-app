@@ -15,11 +15,10 @@ pub async fn profile_summary(
     since: DateTime<Utc>,
 ) -> sqlx::Result<ProfileSummary> {
     let mut tx = pool.begin().await?;
-    let (games, wins, losses, new_since): (i64, i64, i64, i64) = sqlx::query_as(
+    let (games, wins, losses): (i64, i64, i64) = sqlx::query_as(
         "SELECT COUNT(*),
              COALESCE(SUM(owner_win = 1), 0),
-             COALESCE(SUM(owner_win = 0), 0),
-             COALESCE(SUM(timestamp >= ?), 0)
+             COALESCE(SUM(owner_win = 0), 0)
          FROM replays",
     )
     .bind(since.timestamp())
@@ -79,7 +78,6 @@ pub async fn profile_summary(
         top_damage_games,
         main_role,
         recent,
-        new_since,
     })
 }
 

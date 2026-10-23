@@ -25,7 +25,6 @@ export function Home() {
                     <RecentReplaysCard
                         replays={firstPage.replays}
                         total={firstPage.total}
-                        newToday={profile.data.newSince}
                         loadedAt={new Date(replays.dataUpdatedAt)}
                     />
                     <div className={styles.side}>

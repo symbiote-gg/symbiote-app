@@ -16,7 +16,7 @@
     "home": {
         "replays": {
             "title": "Replays",
-            "subtitle": "{total, plural, one {# game} other {# games}}, {new} new today",
+            "subtitle": "{total, plural, one {# game} other {# games}}",
             "all": "All replays",
             "empty": "No replays yet. Play a game and it shows up here."
         },
