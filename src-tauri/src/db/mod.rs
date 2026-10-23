@@ -16,6 +16,7 @@ pub mod awards;
 pub mod event_kinds;
 pub mod heroes;
 pub mod maps;
+pub mod parties;
 pub mod players;
 pub mod replays;
 pub mod stats;

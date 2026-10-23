@@ -5,18 +5,26 @@ use sqlx::{QueryBuilder, Sqlite, SqliteConnection};
 use super::chunk_rows;
 use crate::types::player::Player;
 
-/// Inserts the players seen in a replay, updating their names, and returns their ids by
-/// toon.
+/// Inserts the players seen in a replay, updating their names and raising their account
+/// levels, and returns their ids by toon.
 pub async fn upsert_many(
     conn: &mut SqliteConnection,
     players: &[Player],
 ) -> sqlx::Result<HashMap<String, i64>> {
-    for chunk in players.chunks(chunk_rows(2)) {
-        QueryBuilder::<Sqlite>::new("INSERT INTO players (toon, name) ")
+    for chunk in players.chunks(chunk_rows(3)) {
+        QueryBuilder::<Sqlite>::new("INSERT INTO players (toon, name, account_level) ")
             .push_values(chunk, |mut row, player| {
-                row.push_bind(&player.toon).push_bind(&player.name);
+                row.push_bind(&player.toon)
+                    .push_bind(&player.name)
+                    .push_bind(player.account_level);
             })
-            .push(" ON CONFLICT (toon) DO UPDATE SET name = excluded.name")
+            // Levels only go up, so an older replay parsed later never lowers one. `MAX` is
+            // NULL when either side is, hence the fallbacks.
+            .push(
+                " ON CONFLICT (toon) DO UPDATE SET name = excluded.name,
+                     account_level = COALESCE(MAX(account_level, excluded.account_level),
+                         account_level, excluded.account_level)",
+            )
             .build()
             .persistent(false)
             .execute(&mut *conn)

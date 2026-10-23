@@ -144,6 +144,7 @@ pub struct ReplayPlayerDetail {
     pub xp: Option<i64>,
     pub time_dead: Option<f64>,
     pub upvotes: i64,
+    pub party: Option<i64>,
     #[sqlx(skip)]
     pub talents: Vec<TalentPick>,
     #[sqlx(skip)]
@@ -200,6 +201,7 @@ pub struct NewReplayPlayer {
     pub hero_slug: String,
     pub time_dead_secs: Option<f64>,
     pub upvotes: i64,
+    pub party: Option<i64>,
     pub xp: Option<serde_json::Value>,
     pub score: serde_json::Value,
     pub talents: Vec<NewTalent>,
@@ -237,6 +239,8 @@ pub struct NewReplayBundle {
     pub players: Vec<Player>,
     pub replay_players: Vec<NewReplayPlayer>,
     pub events: Vec<NewEvent>,
+    /// Toons of the premade party the owner queued with, owner included; empty when solo.
+    pub owner_party: Vec<String>,
     /// The stored replay this one re-parses, keeping its id, or `None` for a new one.
     pub refreshes: Option<i64>,
 }

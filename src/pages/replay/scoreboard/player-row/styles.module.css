@@ -13,8 +13,36 @@
     @apply flex min-w-0 items-center gap-3;
 }
 
+.portraitWrap {
+    @apply relative shrink-0;
+}
+
 .portrait {
     @apply ring-2;
+}
+
+.party {
+    @apply absolute -right-1 -bottom-1 flex size-5 items-center justify-center rounded-full bg-surface ring-2 ring-surface;
+}
+
+.party svg {
+    @apply size-4;
+}
+
+.party1 {
+    @apply text-party-1;
+}
+
+.party2 {
+    @apply text-party-2;
+}
+
+.party3 {
+    @apply text-party-3;
+}
+
+.party4 {
+    @apply text-party-4;
 }
 
 .ally {

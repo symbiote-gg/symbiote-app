@@ -175,6 +175,7 @@ pub(super) fn build_bundle(
         players.push(Player {
             toon: toon.clone(),
             name: player.name.clone(),
+            account_level: player.account_level.map(i64::from),
         });
         replay_players.push(NewReplayPlayer {
             toon,
@@ -183,6 +184,7 @@ pub(super) fn build_bundle(
             hero_slug,
             time_dead_secs: player.time_dead_secs,
             upvotes: player.upvotes.into(),
+            party: player.party.map(i64::from),
             xp: player
                 .xp
                 .map(serde_json::to_value)
@@ -213,8 +215,27 @@ pub(super) fn build_bundle(
         players,
         replay_players,
         events: events(&summary)?,
+        owner_party: party_toons(
+            owner.party,
+            summary.players.iter().map(|p| (p.party, player_toon(p))),
+        ),
         refreshes: None,
     })
+}
+
+/// Returns the toons of the players in premade `party`, or none for a solo player.
+fn party_toons(
+    party: Option<u8>,
+    players: impl IntoIterator<Item = (Option<u8>, String)>,
+) -> Vec<String> {
+    let Some(party) = party else {
+        return Vec::new();
+    };
+    players
+        .into_iter()
+        .filter(|(p, _)| *p == Some(party))
+        .map(|(_, toon)| toon)
+        .collect()
 }
 
 /// Fingerprints the game a replay was recorded in, from its random seed and its players.
@@ -426,6 +447,20 @@ mod tests {
     #[test]
     fn game_id_needs_a_seed() {
         assert!(game_id(None, ["2-Hero-1-1"]).is_err());
+    }
+
+    #[test]
+    fn party_toons_keeps_only_the_same_party() {
+        let players = || {
+            [
+                (Some(1), "a".to_owned()),
+                (Some(2), "b".to_owned()),
+                (None, "c".to_owned()),
+                (Some(1), "d".to_owned()),
+            ]
+        };
+        assert_eq!(party_toons(Some(1), players()), ["a", "d"]);
+        assert!(party_toons(None, players()).is_empty());
     }
 
     #[test]

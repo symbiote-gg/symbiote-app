@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { CircleChevronUp } from "lucide-react";
+import { CircleChevronUp, UserRoundGroup } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
@@ -17,6 +17,12 @@ import styles from "./styles.module.css";
 
 const TIERS = [1, 2, 3, 4, 5, 6, 7];
 const TIER_LEVELS = [1, 4, 7, 10, 13, 16, 20];
+const PARTY_COLORS = [
+    styles.party1,
+    styles.party2,
+    styles.party3,
+    styles.party4,
+];
 
 export interface PlayerRowProps {
     player: ReplayPlayerDetail;
@@ -44,15 +50,30 @@ export function PlayerRow({
             })}
         >
             <span className={styles.hero}>
-                <HeroPortrait
-                    name={player.heroName}
-                    portrait={player.heroPortrait}
-                    size="md"
-                    className={classNames(
-                        styles.portrait,
-                        ally ? styles.ally : styles.enemy,
+                <span className={styles.portraitWrap}>
+                    <HeroPortrait
+                        name={player.heroName}
+                        portrait={player.heroPortrait}
+                        size="md"
+                        className={classNames(
+                            styles.portrait,
+                            ally ? styles.ally : styles.enemy,
+                        )}
+                    />
+                    {player.party !== null && (
+                        <Tooltip
+                            content={t("party", { party: player.party })}
+                            className={classNames(
+                                styles.party,
+                                PARTY_COLORS[
+                                    (player.party - 1) % PARTY_COLORS.length
+                                ],
+                            )}
+                        >
+                            <UserRoundGroup />
+                        </Tooltip>
                     )}
-                />
+                </span>
                 <span className={styles.playerText}>
                     <span className={styles.playerName}>
                         <Typography weight="semibold" truncate>
@@ -74,7 +95,7 @@ export function PlayerRow({
                         )}
                         <AwardPills awards={player.awards} iconOnlyWhenNarrow />
                     </span>
-                    <Typography size="xs" variant="tertiary" truncate>
+                    <Typography size="sm" variant="tertiary" truncate>
                         {player.heroName}
                     </Typography>
                 </span>

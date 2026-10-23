@@ -19,6 +19,9 @@ and this project adheres to
   header.
 - Add kill participation and time dead to the replay detail header stats.
 - Show team levels and game duration in the scoreboard team kills header.
+- Add a talent popover with the seeded talent descriptions.
+- Show premade parties in the scoreboard with a badge on the hero portraits.
+- Store the players account level and the owner premade party.
 
 ### Changed
 
@@ -33,12 +36,22 @@ and this project adheres to
 - Add a small size to buttons and a shared link style.
 - Replace the MVP gold ring on hero portraits with a team color ring in the
   scoreboard, replays list and replay detail header.
+- Improve the talent popover for quest talents, showing each reward step.
+- Optimize the database storage, use strict table types and improve the queries
+  performance.
+- Make the scoreboard less noisy, moving upvotes next to the player name and
+  making the table scroll horizontally.
+- Hide secondary scoreboard columns and show award pills as icons only on
+  smaller screens.
+- Use "Your team" and "Enemy team" consistently for the team labels.
+- Bump `hots-replay-parser` to 0.3.0, replays are re-parsed automatically.
 
 ### Fixed
 
 - Optimize the replays list query.
 - Set the background color on the root layout.
 - Avoid a negative infinity team level when no XP samples are available.
+- Show zero stats as `0` instead of `-` in the scoreboard.
 
 ## [0.2.0] - 2026-10-22
 

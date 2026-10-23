@@ -140,6 +140,7 @@ export type ReplayPlayerDetail = ReplayPlayer & {
     xp: number | null;
     timeDead: number | null;
     upvotes: number;
+    party: number | null;
     talents: TalentPick[];
     awards: Award[];
 };

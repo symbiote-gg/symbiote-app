@@ -40,8 +40,27 @@ CREATE TABLE "players" (
 	"id" INTEGER NOT NULL,
 	"toon" TEXT NOT NULL UNIQUE CHECK (length("toon") BETWEEN 1 AND 32),
 	"name" TEXT NOT NULL CHECK (length("name") BETWEEN 1 AND 32),
+	"account_level" INTEGER CHECK ("account_level" > 0),
 	PRIMARY KEY("id")
 ) STRICT;
+
+CREATE TABLE "parties" (
+	"id" INTEGER NOT NULL,
+	"members" TEXT NOT NULL UNIQUE CHECK (length("members") BETWEEN 3 AND 128 AND "members" NOT GLOB '*[^0-9,]*'),
+	PRIMARY KEY("id")
+) STRICT;
+
+CREATE TABLE "parties_players" (
+	"party_id" INTEGER NOT NULL,
+	"player_id" INTEGER NOT NULL,
+	PRIMARY KEY("party_id", "player_id"),
+	FOREIGN KEY ("party_id") REFERENCES "parties"("id")
+	ON UPDATE NO ACTION ON DELETE CASCADE,
+	FOREIGN KEY ("player_id") REFERENCES "players"("id")
+	ON UPDATE NO ACTION ON DELETE NO ACTION
+) STRICT, WITHOUT ROWID;
+
+CREATE INDEX "parties_players_player_id_idx" ON "parties_players" ("player_id");
 
 CREATE TABLE "replays" (
 	"id" INTEGER NOT NULL,
@@ -56,6 +75,7 @@ CREATE TABLE "replays" (
 	"map" TEXT NOT NULL CHECK (length("map") BETWEEN 1 AND 64),
 	"owner_hero_id" INTEGER NOT NULL,
 	"owner_player_id" INTEGER NOT NULL,
+	"owner_party_id" INTEGER,
 	"owner_win" INTEGER CHECK ("owner_win" IN (0, 1)),
 	"duration" INTEGER NOT NULL CHECK ("duration" > 0),
 	"game_loops" INTEGER NOT NULL CHECK ("game_loops" > 0),
@@ -65,12 +85,16 @@ CREATE TABLE "replays" (
 	FOREIGN KEY ("owner_hero_id") REFERENCES "heroes"("id")
 	ON UPDATE NO ACTION ON DELETE NO ACTION,
 	FOREIGN KEY ("owner_player_id") REFERENCES "players"("id")
+	ON UPDATE NO ACTION ON DELETE NO ACTION,
+	FOREIGN KEY ("owner_party_id") REFERENCES "parties"("id")
 	ON UPDATE NO ACTION ON DELETE NO ACTION
 ) STRICT;
 
 CREATE INDEX "replays_timestamp_id_idx" ON "replays" ("timestamp" DESC, "id" DESC);
 
 CREATE INDEX "replays_owner_hero_id_idx" ON "replays" ("owner_hero_id");
+
+CREATE INDEX "replays_owner_party_id_idx" ON "replays" ("owner_party_id");
 
 CREATE UNIQUE INDEX "replays_game_id_owner_player_id_idx" ON "replays" ("game_id", "owner_player_id");
 
@@ -93,6 +117,7 @@ CREATE TABLE "replays_players" (
 	"hero_id" INTEGER NOT NULL,
 	"time_dead_secs" REAL CHECK ("time_dead_secs" >= 0),
 	"upvotes" INTEGER NOT NULL DEFAULT 0 CHECK ("upvotes" >= 0),
+	"party" INTEGER CHECK ("party" BETWEEN 1 AND 5),
 	"xp" BLOB CHECK ("xp" IS NULL OR json_valid("xp", 8)),
 	"score" BLOB NOT NULL CHECK (json_valid("score", 8)),
 	PRIMARY KEY("replay_id", "player_id"),

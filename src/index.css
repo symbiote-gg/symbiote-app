@@ -21,6 +21,11 @@
     --color-mvp: #ffd27a;
     --color-mythic: #5ee0f0;
 
+    --color-party-1: #ffe14d;
+    --color-party-2: #4ade80;
+    --color-party-3: #c084fc;
+    --color-party-4: #e8e6ef;
+
     --font-sans: "Inter Variable", Inter, system-ui, sans-serif;
     --font-display: "Saira Variable", "Inter Variable", system-ui, sans-serif;
     --font-mono:

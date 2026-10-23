@@ -85,6 +85,7 @@
         "xpContribution": "XP",
         "timeDead": "Time dead",
         "upvotes": "Upvotes",
+        "party": "Premade party {party}",
         "talents": "Talents",
         "timeline": {
             "title": "Timeline",
