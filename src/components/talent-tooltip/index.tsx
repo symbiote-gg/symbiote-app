@@ -2,12 +2,21 @@ import { type ReactNode, useMemo } from "react";
 
 import type { TalentPick } from "@/api/replays";
 import { Tooltip, Typography } from "@/ui";
-import { gameTextBlocks, parseGameText } from "@/utils/game-text";
+import {
+    type GameTextNode,
+    type GameTextStep,
+    gameTextBlocks,
+    parseGameText,
+} from "@/utils/game-text";
 import { GameText } from "../game-text";
 import { Header } from "./header";
-import { Step } from "./step";
+import { Steps } from "./steps";
 
 import styles from "./styles.module.css";
+
+type Group =
+    | { type: "paragraph"; nodes: GameTextNode[] }
+    | { type: "steps"; steps: GameTextStep[] };
 
 export interface TalentTooltipProps {
     talent: TalentPick;
@@ -16,33 +25,39 @@ export interface TalentTooltipProps {
 }
 
 export function TalentTooltip({ talent, level, children }: TalentTooltipProps) {
-    const blocks = useMemo(
-        () =>
-            talent.description
-                ? gameTextBlocks(parseGameText(talent.description))
-                : [],
-        [talent.description],
-    );
+    const groups = useMemo(() => {
+        if (!talent.description) return [];
+
+        const groups: Group[] = [];
+        for (const block of gameTextBlocks(parseGameText(talent.description))) {
+            const previous = groups[groups.length - 1];
+            if (block.type === "paragraph") groups.push(block);
+            else if (previous?.type === "steps") previous.steps.push(block);
+            else groups.push({ type: "steps", steps: [block] });
+        }
+
+        return groups;
+    }, [talent.description]);
 
     const card = (
         <>
             <Header
                 talent={talent}
                 level={level}
-                quest={blocks.some((block) => block.type === "step")}
+                quest={groups.some((group) => group.type === "steps")}
             />
-            {blocks.length > 0 && (
+            {groups.length > 0 && (
                 <div className={styles.body}>
-                    {blocks.map((block, index) =>
-                        block.type === "step" ? (
-                            <Step key={index} step={block} />
+                    {groups.map((group, index) =>
+                        group.type === "steps" ? (
+                            <Steps key={index} steps={group.steps} />
                         ) : (
                             <Typography
                                 key={index}
                                 size="sm"
                                 variant="secondary"
                             >
-                                <GameText nodes={block.nodes} />
+                                <GameText nodes={group.nodes} />
                             </Typography>
                         ),
                     )}

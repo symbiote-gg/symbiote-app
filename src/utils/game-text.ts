@@ -6,7 +6,7 @@ export type GameTextNode =
     | { type: "scaling"; percent: number }
     | { type: "span"; tone: GameTextTone; children: GameTextNode[] };
 
-export type GameTextStepKind = "quest" | "reward";
+export type GameTextStepKind = "quest" | "reward" | "mythic";
 
 export interface GameTextStep {
     type: "step";
@@ -141,7 +141,12 @@ export function gameTextBlocks(nodes: GameTextNode[]): GameTextBlock[] {
 
             blocks.push({
                 type: "step",
-                kind: /reward/i.test(label) ? "reward" : "quest",
+                // "Mythic Quest" is phrased as a quest but pays out like a reward.
+                kind: /mythic/i.test(label)
+                    ? "mythic"
+                    : /reward/i.test(label)
+                      ? "reward"
+                      : "quest",
                 label,
                 items: [trim(rest)],
                 notes: [],

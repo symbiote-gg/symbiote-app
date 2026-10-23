@@ -1,6 +1,6 @@
 import { Typography } from "@/ui";
 import type { GameTextNode } from "@/utils/game-text";
-import { GameText } from "../../../game-text";
+import { GameText } from "../../../../game-text";
 
 import styles from "./styles.module.css";
 

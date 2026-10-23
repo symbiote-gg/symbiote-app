@@ -1,0 +1,5 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex flex-col divide-y divide-warn/30 overflow-hidden rounded-lg border border-warn/30;
+}

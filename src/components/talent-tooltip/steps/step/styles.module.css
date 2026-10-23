@@ -1,15 +1,19 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex flex-col gap-1.5 rounded-lg border p-3;
+    @apply flex flex-col gap-1.5 p-3;
 }
 
 .quest {
-    @apply border-warn/30 bg-warn/8 text-warn;
+    @apply bg-warn/8 text-warn;
 }
 
 .reward {
-    @apply border-win/30 bg-win/8 text-win;
+    @apply bg-win/8 text-win;
+}
+
+.mythic {
+    @apply bg-mythic/8 text-mythic;
 }
 
 .label {

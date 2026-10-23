@@ -1,28 +1,28 @@
 import classNames from "classnames";
-import { CircleQuestionMark, Gift } from "lucide-react";
+import { CircleQuestionMark, Gem, Gift } from "lucide-react";
 
 import { Typography } from "@/ui";
 import type { GameTextStep } from "@/utils/game-text";
-import { GameText } from "../../game-text";
+import { GameText } from "../../../game-text";
 import { Tiers } from "./tiers";
 
 import styles from "./styles.module.css";
+
+const ICONS = {
+    quest: CircleQuestionMark,
+    reward: Gift,
+    mythic: Gem,
+};
 
 export interface StepProps {
     step: GameTextStep;
 }
 
 export function Step({ step }: StepProps) {
-    const reward = step.kind === "reward";
-    const Icon = reward ? Gift : CircleQuestionMark;
+    const Icon = ICONS[step.kind];
 
     return (
-        <section
-            className={classNames(
-                styles.root,
-                reward ? styles.reward : styles.quest,
-            )}
-        >
+        <section className={classNames(styles.root, styles[step.kind])}>
             <div className={styles.label}>
                 <Icon className={styles.icon} />
                 <Typography
@@ -35,7 +35,7 @@ export function Step({ step }: StepProps) {
                     {step.label}
                 </Typography>
             </div>
-            {reward && step.items.length > 1 ? (
+            {step.kind !== "quest" && step.items.length > 1 ? (
                 <Tiers items={step.items} />
             ) : (
                 step.items.map((item, index) => (
