@@ -183,7 +183,7 @@
             "summonHeroes": "Heroes",
             "summonImpact": "{impact, select, big {Big push} solid {Solid push} other {Low impact}}",
             "duelResult": "{side, select, ally {Won} other {Enemy won}}",
-            "duelRange": "{start}-{end} {length} fight",
+            "duelRange": "{start}-{end} fight, pushes at {end}",
             "altarResult": "{side, select, ally {Captured} other {Enemy captured}}",
             "altarTowns": "Towns",
             "altarCore": "Enemy core",
