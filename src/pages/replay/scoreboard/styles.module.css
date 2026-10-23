@@ -12,26 +12,16 @@
     @apply bg-surface-2 py-2.5 tracking-wider;
 }
 
-.table {
-    @apply grid grid-cols-[minmax(11rem,2fr)_max-content_repeat(2,minmax(4.5rem,1fr))] gap-x-4;
+.scroll {
+    @apply overflow-x-auto;
+}
 
-    @variant lg {
-        @apply grid-cols-[minmax(13rem,2fr)_max-content_minmax(4.5rem,1fr)_repeat(6,minmax(5.5rem,1fr))_max-content];
-    }
+.table {
+    @apply grid min-w-min grid-cols-[minmax(13rem,2fr)_max-content_max-content_repeat(6,minmax(4rem,1fr))] gap-x-4;
 }
 
 .teamGrid {
     @apply col-span-full grid grid-cols-subgrid items-center px-6;
-}
-
-.teamGrid .wide {
-    @apply hidden;
-}
-
-.teamGrid .wide {
-    @variant lg {
-        @apply block;
-    }
 }
 
 .number {
@@ -39,7 +29,7 @@
 }
 
 .talents {
-    @apply pl-4;
+    @apply pr-6;
 }
 
 .totalRow {

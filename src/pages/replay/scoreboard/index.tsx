@@ -55,12 +55,12 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
         teams.find((team) => team.ally === ally)?.level ?? null;
 
     const formatStat = (value: number | null) =>
-        value
-            ? format.number(value, {
+        value === null
+            ? "-"
+            : format.number(value, {
                   notation: "compact",
                   maximumFractionDigits: 1,
-              })
-            : "-";
+              });
 
     return (
         <div className={styles.root}>
@@ -72,101 +72,103 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                     enemyLevel={levelOf(false)}
                     duration={duration}
                 />
-                <div className={styles.table}>
-                    <TableHead
-                        className={classNames(
-                            styles.teamGrid,
-                            styles.headerRow,
-                        )}
-                        columns={[
-                            { key: "player", label: t("player") },
-                            {
-                                key: "talents",
-                                label: t("talents"),
-                                className: styles.talents,
-                            },
-                            {
-                                key: "kad",
-                                label: t("kad"),
-                                className: styles.number,
-                            },
-                            ...STATS.map(({ stat, label, wide }) => ({
-                                key: stat,
-                                label: t(label),
-                                className: classNames(styles.number, {
-                                    [styles.wide]: wide,
-                                }),
-                            })),
-                        ]}
-                    />
-                    {teams.map(({ ally, players }) => {
-                        const kills = sum(players, (p) => p.kills);
-                        const assists = sum(players, (p) => p.assists);
-                        const deaths = sum(players, (p) => p.deaths);
+                <div className={styles.scroll}>
+                    <div className={styles.table}>
+                        <TableHead
+                            className={classNames(
+                                styles.teamGrid,
+                                styles.headerRow,
+                            )}
+                            columns={[
+                                { key: "player", label: t("player") },
+                                {
+                                    key: "talents",
+                                    label: t("talents"),
+                                    className: styles.talents,
+                                },
+                                {
+                                    key: "kad",
+                                    label: t("kad"),
+                                    className: styles.number,
+                                },
+                                ...STATS.map(({ stat, label }) => ({
+                                    key: stat,
+                                    label: t(label),
+                                    className: styles.number,
+                                })),
+                            ]}
+                        />
+                        {teams.map(({ ally, players }) => {
+                            const kills = sum(players, (p) => p.kills);
+                            const assists = sum(players, (p) => p.assists);
+                            const deaths = sum(players, (p) => p.deaths);
 
-                        return (
-                            <Fragment key={ally ? "ally" : "enemy"}>
-                                {players.map((player) => (
-                                    <PlayerRow
-                                        key={player.playerId}
-                                        className={styles.teamGrid}
-                                        player={player}
-                                        ally={ally}
-                                        owner={player.playerId === ownerId}
-                                        maxByStat={maxByStat}
-                                        formatStat={formatStat}
-                                    />
-                                ))}
-                                <div
-                                    className={classNames(
-                                        styles.teamGrid,
-                                        styles.totalRow,
-                                    )}
-                                >
-                                    <Typography
-                                        size="xs"
-                                        weight="semibold"
-                                        variant="tertiary"
-                                        uppercase
-                                    >
-                                        {t("teamTotal")}
-                                    </Typography>
-                                    <span />
-                                    <Typography
-                                        size="xs"
-                                        variant="tertiary"
-                                        mono
-                                        noWrap
-                                        className={styles.number}
-                                    >
-                                        <Kad
-                                            kills={kills}
-                                            assists={assists}
-                                            deaths={deaths}
+                            return (
+                                <Fragment key={ally ? "ally" : "enemy"}>
+                                    {players.map((player) => (
+                                        <PlayerRow
+                                            key={player.playerId}
+                                            className={styles.teamGrid}
+                                            player={player}
+                                            ally={ally}
+                                            owner={player.playerId === ownerId}
+                                            maxByStat={maxByStat}
+                                            formatStat={formatStat}
                                         />
-                                    </Typography>
-                                    {STATS.map(({ stat, wide }) => (
+                                    ))}
+                                    <div
+                                        className={classNames(
+                                            styles.teamGrid,
+                                            styles.totalRow,
+                                        )}
+                                    >
                                         <Typography
-                                            key={stat}
+                                            size="xs"
+                                            weight="semibold"
+                                            variant="tertiary"
+                                            uppercase
+                                        >
+                                            {t("teamTotal")}
+                                        </Typography>
+                                        <span />
+                                        <Typography
                                             size="xs"
                                             variant="tertiary"
                                             mono
                                             noWrap
-                                            className={classNames(
-                                                styles.number,
-                                                styles.totalValue,
-                                                { [styles.wide]: wide },
-                                            )}
+                                            className={styles.number}
                                         >
-                                            {formatStat(
-                                                sum(players, (p) => p[stat]),
-                                            )}
+                                            <Kad
+                                                kills={kills}
+                                                assists={assists}
+                                                deaths={deaths}
+                                            />
                                         </Typography>
-                                    ))}
-                                </div>
-                            </Fragment>
-                        );
-                    })}
+                                        {STATS.map(({ stat }) => (
+                                            <Typography
+                                                key={stat}
+                                                size="xs"
+                                                variant="tertiary"
+                                                mono
+                                                noWrap
+                                                className={classNames(
+                                                    styles.number,
+                                                    styles.totalValue,
+                                                )}
+                                            >
+                                                {formatStat(
+                                                    sum(
+                                                        players,
+                                                        (p) => p[stat],
+                                                    ),
+                                                )}
+                                            </Typography>
+                                        ))}
+                                    </div>
+                                </Fragment>
+                            );
+                        })}
+                    </div>
                 </div>
             </Card>
         </div>

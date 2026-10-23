@@ -77,11 +77,11 @@
 }
 
 .text {
-    @apply flex min-w-0 flex-1 flex-col gap-2;
+    @apply @container flex min-w-0 flex-1 flex-col gap-2;
 }
 
 .text .title {
-    @apply text-4xl leading-none sm:text-5xl;
+    @apply text-4xl leading-[1.05] text-balance sm:text-5xl;
 }
 
 .facts {
@@ -109,11 +109,11 @@
 }
 
 .moments {
-    @apply mt-1 inline-flex flex-wrap divide-x divide-line self-start overflow-hidden rounded-md border border-line bg-bg/80;
+    @apply mt-1 grid grid-cols-[repeat(3,auto)] divide-y divide-line self-start overflow-hidden rounded-md border border-line bg-bg/80 @xl:flex @xl:divide-x @xl:divide-y-0;
 }
 
 .moment {
-    @apply flex items-center gap-2 px-3 py-1.5;
+    @apply col-span-full grid grid-cols-subgrid items-center gap-x-2 px-3 py-1.5 @xl:flex;
 }
 
 .moment.ally {

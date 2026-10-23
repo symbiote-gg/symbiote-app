@@ -1,4 +1,6 @@
 import classNames from "classnames";
+import { CircleChevronUp } from "lucide-react";
+import { useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
 import {
@@ -8,7 +10,7 @@ import {
     Kad,
     TalentTooltip,
 } from "@/components";
-import { Typography } from "@/ui";
+import { Tooltip, Typography } from "@/ui";
 import { STATS, type Stat } from "../stats";
 
 import styles from "./styles.module.css";
@@ -33,6 +35,8 @@ export function PlayerRow({
     formatStat,
     className,
 }: PlayerRowProps) {
+    const t = useTranslations("replay");
+
     return (
         <div
             className={classNames(className, styles.root, {
@@ -54,6 +58,20 @@ export function PlayerRow({
                         <Typography weight="semibold" truncate>
                             {player.name}
                         </Typography>
+                        {player.upvotes > 0 && (
+                            <Tooltip content={t("upvotes")}>
+                                <span className={styles.upvotes}>
+                                    <CircleChevronUp />
+                                    <Typography
+                                        size="sm"
+                                        variant="tertiary"
+                                        mono
+                                    >
+                                        {player.upvotes}
+                                    </Typography>
+                                </span>
+                            </Tooltip>
+                        )}
                         <AwardPills awards={player.awards} />
                     </span>
                     <Typography size="xs" variant="tertiary" truncate>
@@ -99,37 +117,37 @@ export function PlayerRow({
                     deaths={player.deaths}
                 />
             </Typography>
-            {STATS.map(({ stat, wide, plain }) => {
+            {STATS.map(({ stat }) => {
                 const value = player[stat] ?? 0;
                 const max = maxByStat[stat];
-                const top = !plain && max > 0 && value === max;
+                const top = max > 0 && value === max;
 
                 return (
                     <span
                         key={stat}
                         className={classNames(styles.statCell, {
-                            [styles.wide]: wide,
                             [styles.top]: top,
                             [styles.allyBar]: ally,
                             [styles.enemyBar]: !ally,
                         })}
                     >
-                        {!plain && value > 0 && (
-                            <span
-                                className={styles.bar}
-                                style={{ width: `${(value / max) * 100}%` }}
-                            />
-                        )}
                         <Typography
                             size="sm"
                             mono
                             noWrap
                             weight={top ? "semibold" : "regular"}
                             variant={top ? "primary" : "tertiary"}
-                            className={styles.statValue}
                         >
                             {formatStat(player[stat])}
                         </Typography>
+                        {value > 0 && (
+                            <span className={styles.track}>
+                                <span
+                                    className={styles.bar}
+                                    style={{ width: `${(value / max) * 100}%` }}
+                                />
+                            </span>
+                        )}
                     </span>
                 );
             })}

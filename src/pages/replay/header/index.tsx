@@ -167,7 +167,6 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                                 weight="semibold"
                                 display
                                 uppercase
-                                truncate
                                 className={styles.title}
                             >
                                 {replay.mapName}
