@@ -49,7 +49,6 @@ export type Replay = {
     ownerAssists: number | null;
     ownerTakedowns: number | null;
     ownerHeroDamage: number | null;
-    ownerMvp: boolean;
     ownerHeroDamageTop: boolean;
     ownerAwards: Award[];
     isNew: boolean;
@@ -268,7 +267,6 @@ export type ReplayDetail = Omit<
     | "ownerAssists"
     | "ownerTakedowns"
     | "ownerHeroDamage"
-    | "ownerMvp"
     | "ownerHeroDamageTop"
     | "ownerAwards"
 > & {

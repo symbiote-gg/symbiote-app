@@ -59,7 +59,7 @@ pub struct NewReplay {
     pub ingest_version: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplayPlayerInfo {
     pub player_id: String,
@@ -79,22 +79,25 @@ pub struct OwnerStats {
     pub owner_assists: Option<i64>,
     pub owner_takedowns: Option<i64>,
     pub owner_hero_damage: Option<i64>,
-    pub owner_mvp: bool,
     /// Whether the owner's hero damage is in the top 10% of their games on that hero.
     pub owner_hero_damage_top: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplayWithPlayers {
     #[serde(flatten)]
+    #[sqlx(flatten)]
     pub replay: Replay,
     #[serde(flatten)]
+    #[sqlx(flatten)]
     pub owner_stats: OwnerStats,
     pub hero_name: String,
     pub hero_role: Option<HeroRole>,
     pub hero_portrait: Option<String>,
+    #[sqlx(skip)]
     pub players: Vec<ReplayPlayerInfo>,
+    #[sqlx(skip)]
     pub owner_awards: Vec<AwardInfo>,
 }
 

@@ -5,46 +5,12 @@ use sqlx::{
 };
 
 use super::{chunk_rows, heroes, players};
-use crate::types::hero::HeroRole;
 use crate::types::replay::{
-    AwardInfo, NewEvent, NewReplay, NewReplayBundle, NewReplayPlayer, NewTalent, OwnerStats,
-    Replay, ReplayCursor, ReplayDetail, ReplayPage, ReplayPlayerDetail, ReplayPlayerInfo,
-    ReplayWithPlayers, TalentPick, XpSample,
+    AwardInfo, NewEvent, NewReplay, NewReplayBundle, NewReplayPlayer, NewTalent, ReplayCursor,
+    ReplayDetail, ReplayPage, ReplayPlayerDetail, ReplayPlayerInfo, ReplayWithPlayers, TalentPick,
+    XpSample,
 };
 use crate::types::timeline::RawEvent;
-
-#[derive(Debug, FromRow)]
-struct ReplayPlayerRow {
-    #[sqlx(flatten)]
-    replay: Replay,
-    #[sqlx(flatten)]
-    owner_stats: OwnerStats,
-    hero_name: String,
-    hero_role: Option<HeroRole>,
-    hero_portrait: Option<String>,
-    player_id: Option<String>,
-    player_name: Option<String>,
-    player_slot: Option<i64>,
-    player_team: Option<i64>,
-    player_hero_id: Option<String>,
-    player_hero_name: Option<String>,
-    player_hero_portrait: Option<String>,
-}
-
-impl ReplayPlayerRow {
-    /// Takes the joined player out of the row, or `None` if the replay had no players.
-    fn player(&mut self) -> Option<ReplayPlayerInfo> {
-        Some(ReplayPlayerInfo {
-            player_id: self.player_id.take()?,
-            name: self.player_name.take()?,
-            slot: self.player_slot.take()?,
-            team: self.player_team.take()?,
-            hero_id: self.player_hero_id.take()?,
-            hero_name: self.player_hero_name.take()?,
-            hero_portrait: self.player_hero_portrait.take(),
-        })
-    }
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InsertOutcome {
@@ -307,7 +273,7 @@ const TOP_DAMAGE_MIN_GAMES: i64 = 10;
 const TOP_DAMAGE_RANK: f64 = 0.9;
 
 /// Builds the query listing each replay picked by `source`, a subquery over `replays`,
-/// with its owner's hero, stats and players, newest first.
+/// with its owner's hero and stats, newest first.
 ///
 /// Hero damage is ranked against all of the owner's games on the same hero, not only
 /// the listed ones.
@@ -323,15 +289,8 @@ fn list_rows_sql(source: &str) -> String {
              json_extract(orp.score, '$.Assists') AS owner_assists,
              json_extract(orp.score, '$.Takedowns') AS owner_takedowns,
              json_extract(orp.score, '$.HeroDamage') AS owner_hero_damage,
-             EXISTS (SELECT 1 FROM replays_players_awards a
-                     WHERE a.replay_id = r.id AND a.player_id = r.owner_player_id
-                       AND a.award = 'mvp') AS owner_mvp,
              COALESCE(dr.hero_games >= {TOP_DAMAGE_MIN_GAMES}
-                 AND dr.damage_rank >= {TOP_DAMAGE_RANK}, 0) AS owner_hero_damage_top,
-             rp.player_id, p.name AS player_name, rp.slot AS player_slot,
-             rp.team AS player_team, rp.hero_id AS player_hero_id,
-             COALESCE(ph.name, rp.hero_id) AS player_hero_name,
-             ph.portrait AS player_hero_portrait
+                 AND dr.damage_rank >= {TOP_DAMAGE_RANK}, 0) AS owner_hero_damage_top
          FROM ({source}) r
          JOIN heroes h ON h.id = r.owner_hero_id
          LEFT JOIN maps m ON m.id = r.map
@@ -347,10 +306,7 @@ fn list_rows_sql(source: &str) -> String {
                  ON hrp.replay_id = hr.id AND hrp.player_id = hr.owner_player_id
              WHERE json_extract(hrp.score, '$.HeroDamage') IS NOT NULL
          ) dr ON dr.id = r.id
-         LEFT JOIN replays_players rp ON rp.replay_id = r.id
-         LEFT JOIN players p ON p.id = rp.player_id
-         LEFT JOIN heroes ph ON ph.id = rp.hero_id
-         ORDER BY r.timestamp DESC, r.id DESC, rp.slot"
+         ORDER BY r.timestamp DESC, r.id DESC"
     )
 }
 
@@ -363,13 +319,13 @@ async fn list_with_players(
     after: Option<ReplayCursor>,
     limit: i64,
 ) -> sqlx::Result<Vec<ReplayWithPlayers>> {
-    let rows = match after {
+    let mut replays = match after {
         Some(cursor) => {
             let sql = list_rows_sql(
                 "SELECT * FROM replays WHERE (timestamp, id) < (?, ?)
                  ORDER BY timestamp DESC, id DESC LIMIT ?",
             );
-            sqlx::query_as::<_, ReplayPlayerRow>(&sql)
+            sqlx::query_as::<_, ReplayWithPlayers>(&sql)
                 .bind(cursor.timestamp.timestamp())
                 .bind(cursor.id)
                 .bind(limit)
@@ -379,13 +335,13 @@ async fn list_with_players(
         None => {
             let sql =
                 list_rows_sql("SELECT * FROM replays ORDER BY timestamp DESC, id DESC LIMIT ?");
-            sqlx::query_as::<_, ReplayPlayerRow>(&sql)
+            sqlx::query_as::<_, ReplayWithPlayers>(&sql)
                 .bind(limit)
                 .fetch_all(&mut *conn)
                 .await?
         }
     };
-    let mut replays = group_rows(rows);
+    attach_players(conn, &mut replays).await?;
     attach_owner_awards(conn, &mut replays).await?;
     Ok(replays)
 }
@@ -394,13 +350,53 @@ async fn list_with_players(
 pub async fn get_list_row(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<ReplayWithPlayers>> {
     let sql = list_rows_sql("SELECT * FROM replays WHERE id = ?");
     let mut conn = pool.acquire().await?;
-    let rows = sqlx::query_as::<_, ReplayPlayerRow>(&sql)
+    let mut replays = sqlx::query_as::<_, ReplayWithPlayers>(&sql)
         .bind(id)
         .fetch_all(&mut *conn)
         .await?;
-    let mut replays = group_rows(rows);
+    attach_players(&mut conn, &mut replays).await?;
     attach_owner_awards(&mut conn, &mut replays).await?;
     Ok(replays.pop())
+}
+
+#[derive(FromRow)]
+struct ReplayPlayerInfoRow {
+    replay_id: i64,
+    #[sqlx(flatten)]
+    player: ReplayPlayerInfo,
+}
+
+/// Fills in each replay's players, by slot.
+async fn attach_players(
+    conn: &mut SqliteConnection,
+    replays: &mut [ReplayWithPlayers],
+) -> sqlx::Result<()> {
+    if replays.is_empty() {
+        return Ok(());
+    }
+    let mut query = QueryBuilder::<Sqlite>::new(
+        "SELECT rp.replay_id, rp.player_id, p.name, rp.slot, rp.team, rp.hero_id,
+             COALESCE(h.name, rp.hero_id) AS hero_name, h.portrait AS hero_portrait
+         FROM replays_players rp
+         JOIN players p ON p.id = rp.player_id
+         LEFT JOIN heroes h ON h.id = rp.hero_id
+         WHERE rp.replay_id IN (",
+    );
+    let mut ids = query.separated(", ");
+    for replay in replays.iter() {
+        ids.push_bind(replay.replay.id);
+    }
+    ids.push_unseparated(") ORDER BY rp.slot");
+    let rows = query
+        .build_query_as::<ReplayPlayerInfoRow>()
+        .fetch_all(&mut *conn)
+        .await?;
+    for row in rows {
+        if let Some(replay) = replays.iter_mut().find(|r| r.replay.id == row.replay_id) {
+            replay.players.push(row.player);
+        }
+    }
+    Ok(())
 }
 
 #[derive(FromRow)]
@@ -440,27 +436,6 @@ async fn attach_owner_awards(
         }
     }
     Ok(())
-}
-
-/// Folds the rows of each replay, one per joined player, into a single replay.
-fn group_rows(rows: Vec<ReplayPlayerRow>) -> Vec<ReplayWithPlayers> {
-    let mut replays: Vec<ReplayWithPlayers> = Vec::new();
-    for mut row in rows {
-        let player = row.player();
-        match replays.last_mut() {
-            Some(last) if last.replay.id == row.replay.id => last.players.extend(player),
-            _ => replays.push(ReplayWithPlayers {
-                replay: row.replay,
-                owner_stats: row.owner_stats,
-                hero_name: row.hero_name,
-                hero_role: row.hero_role,
-                hero_portrait: row.hero_portrait,
-                players: player.into_iter().collect(),
-                owner_awards: Vec::new(),
-            }),
-        }
-    }
-    replays
 }
 
 #[derive(FromRow)]

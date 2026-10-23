@@ -65,7 +65,9 @@ export function ReplayRow({ replay, now, wide, className }: ReplayRowProps) {
                         name={replay.heroName}
                         portrait={replay.heroPortrait}
                         size="md"
-                        highlight={replay.ownerMvp}
+                        highlight={replay.ownerAwards.some(
+                            (award) => award.type === "mvp",
+                        )}
                         className={styles.portrait}
                     />
                     <span className={styles.text}>
