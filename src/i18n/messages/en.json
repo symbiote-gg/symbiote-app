@@ -27,7 +27,7 @@
             "winRate": "Win rate",
             "mainRole": "Main role",
             "mvps": "MVPs",
-            "topDamage": "Top hero damage on your team in <b>{pct}%</b> of games.",
+            "topDamage": "Top hero damage on ally team in <b>{pct}%</b> of games.",
             "empty": "Your stats show up after your first game.",
             "cta": "View profile"
         },
@@ -68,7 +68,7 @@
         "showInFolder": "Show in folder",
         "result": "{result, select, win {Victory} loss {Defeat} other {-}}",
         "level": "Lv {level}",
-        "team": "{side, select, ally {Your team} other {Enemy team}}",
+        "team": "{side, select, ally {Ally team} other {Enemy team}}",
         "kills": "{kills, plural, one {# kill} other {# kills}}",
         "teamKills": {
             "title": "Kills",
@@ -92,10 +92,10 @@
         "timeline": {
             "title": "Timeline",
             "side": {
-                "ally": "Your team",
+                "ally": "Ally",
                 "enemy": "Enemy"
             },
-            "team": "{side, select, ally {Your team} enemy {Enemy} other {-}}",
+            "team": "{side, select, ally {Ally team} enemy {Enemy} other {-}}",
             "filter": {
                 "label": "Show on timeline",
                 "fights": "Fights",
