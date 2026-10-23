@@ -73,6 +73,10 @@
     @apply bg-team-red;
 }
 
+.secondary {
+    @apply @max-6xl:hidden;
+}
+
 .icons {
     @apply flex items-center gap-1.5 pr-6;
 }

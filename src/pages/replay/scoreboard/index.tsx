@@ -91,10 +91,12 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                     label: t("kad"),
                                     className: styles.number,
                                 },
-                                ...STATS.map(({ stat, label }) => ({
+                                ...STATS.map(({ stat, label, secondary }) => ({
                                     key: stat,
                                     label: t(label),
-                                    className: styles.number,
+                                    className: classNames(styles.number, {
+                                        [styles.secondary]: secondary,
+                                    }),
                                 })),
                             ]}
                         />
@@ -144,7 +146,7 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                                 deaths={deaths}
                                             />
                                         </Typography>
-                                        {STATS.map(({ stat }) => (
+                                        {STATS.map(({ stat, secondary }) => (
                                             <Typography
                                                 key={stat}
                                                 size="xs"
@@ -154,6 +156,10 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                                 className={classNames(
                                                     styles.number,
                                                     styles.totalValue,
+                                                    {
+                                                        [styles.secondary]:
+                                                            secondary,
+                                                    },
                                                 )}
                                             >
                                                 {formatStat(

@@ -72,7 +72,7 @@ export function PlayerRow({
                                 </span>
                             </Tooltip>
                         )}
-                        <AwardPills awards={player.awards} />
+                        <AwardPills awards={player.awards} iconOnlyWhenNarrow />
                     </span>
                     <Typography size="xs" variant="tertiary" truncate>
                         {player.heroName}
@@ -117,7 +117,7 @@ export function PlayerRow({
                     deaths={player.deaths}
                 />
             </Typography>
-            {STATS.map(({ stat }) => {
+            {STATS.map(({ stat, secondary }) => {
                 const value = player[stat] ?? 0;
                 const max = maxByStat[stat];
                 const top = max > 0 && value === max;
@@ -129,6 +129,7 @@ export function PlayerRow({
                             [styles.top]: top,
                             [styles.allyBar]: ally,
                             [styles.enemyBar]: !ally,
+                            [styles.secondary]: secondary,
                         })}
                     >
                         <Typography

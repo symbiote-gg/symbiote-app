@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex flex-col gap-3 self-stretch;
+    @apply @container flex flex-col gap-3 self-stretch;
 }
 
 .card {
@@ -17,7 +17,7 @@
 }
 
 .table {
-    @apply grid min-w-min grid-cols-[minmax(13rem,2fr)_max-content_max-content_repeat(6,minmax(4rem,1fr))] gap-x-4;
+    @apply grid min-w-min grid-cols-[minmax(13rem,2fr)_max-content_max-content_repeat(var(--stats),minmax(4rem,1fr))] gap-x-4 [--stats:5] @6xl:[--stats:6];
 }
 
 .teamGrid {
@@ -34,6 +34,10 @@
 
 .totalRow {
     @apply border-t border-line bg-surface-2/50 py-3 tracking-wider;
+}
+
+.secondary {
+    @apply @max-6xl:hidden;
 }
 
 .totalValue {

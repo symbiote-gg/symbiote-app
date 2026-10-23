@@ -15,3 +15,11 @@
 .root .icon {
     @apply size-6 rounded-full;
 }
+
+.iconOnlyWhenNarrow {
+    @apply @max-6xl:pr-0.5;
+}
+
+.iconOnlyWhenNarrow .label {
+    @apply @max-6xl:hidden;
+}
