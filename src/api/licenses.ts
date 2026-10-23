@@ -1,3 +1,5 @@
+import licensesUrl from "@/generated/licenses.json?url";
+
 export type ThirdPartyPackage = {
     name: string;
     version: string;
@@ -12,5 +14,5 @@ export type ThirdPartyLicenses = {
 };
 
 export async function getThirdPartyLicenses(): Promise<ThirdPartyLicenses> {
-    return (await import("@/generated/licenses.json")).default;
+    return (await fetch(licensesUrl)).json();
 }

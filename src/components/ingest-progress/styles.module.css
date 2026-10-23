@@ -22,7 +22,7 @@
 }
 
 .panel {
-    @apply flex max-h-none w-[26rem] max-w-[calc(100vw-16px)] flex-col gap-4 bg-surface p-5;
+    @apply flex max-h-none w-[26rem] max-w-[calc(100vw-16px)] flex-col gap-3 bg-surface;
 }
 
 .title {
