@@ -73,8 +73,7 @@
 }
 
 .portrait .portraitImage {
-    @apply ring-2;
-    --tw-ring-color: var(--tone);
+    @apply ring-2 ring-team-blue;
 }
 
 .text {

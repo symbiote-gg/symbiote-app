@@ -13,7 +13,7 @@
 }
 
 .root .portrait {
-    @apply size-9;
+    @apply size-9 ring-2 ring-team-blue;
 }
 
 .text {

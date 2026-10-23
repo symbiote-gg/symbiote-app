@@ -13,6 +13,18 @@
     @apply flex min-w-0 items-center gap-3;
 }
 
+.portrait {
+    @apply ring-2;
+}
+
+.ally {
+    @apply ring-team-blue;
+}
+
+.enemy {
+    @apply ring-team-red;
+}
+
 .playerText {
     @apply flex min-w-0 flex-col;
 }

@@ -72,9 +72,6 @@ export const ReplayRow = memo(function ReplayRow({
                         name={replay.heroName}
                         portrait={replay.heroPortrait}
                         size="md"
-                        highlight={replay.ownerAwards.some(
-                            (award) => award.type === "mvp",
-                        )}
                         className={styles.portrait}
                     />
                     <span className={styles.text}>

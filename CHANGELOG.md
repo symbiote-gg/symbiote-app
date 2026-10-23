@@ -31,6 +31,8 @@ and this project adheres to
 - Show the full played date in the replay detail header.
 - Use a button for the back to replays link.
 - Add a small size to buttons and a shared link style.
+- Replace the MVP gold ring on hero portraits with a team color ring in the
+  scoreboard, replays list and replay detail header.
 
 ### Fixed
 

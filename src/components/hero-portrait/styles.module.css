@@ -20,14 +20,6 @@
     @apply size-24 text-2xl;
 }
 
-.highlight {
-    @apply ring-2 ring-mvp;
-}
-
 .fallback {
     @apply inline-flex items-center justify-center bg-surface-2 font-semibold text-fg-muted uppercase;
-}
-
-.fallback.highlight {
-    @apply bg-mvp/10 text-mvp;
 }

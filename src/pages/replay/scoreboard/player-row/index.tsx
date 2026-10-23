@@ -29,7 +29,6 @@ export function PlayerRow({
     className,
 }: PlayerRowProps) {
     const t = useTranslations("replay");
-    const mvp = player.awards.some((a) => a.type === "mvp");
 
     return (
         <div
@@ -42,7 +41,10 @@ export function PlayerRow({
                     name={player.heroName}
                     portrait={player.heroPortrait}
                     size="md"
-                    highlight={mvp}
+                    className={classNames(
+                        styles.portrait,
+                        ally ? styles.ally : styles.enemy,
+                    )}
                 />
                 <span className={styles.playerText}>
                     <span className={styles.playerName}>

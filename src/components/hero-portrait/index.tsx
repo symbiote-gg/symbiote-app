@@ -8,7 +8,6 @@ export interface HeroPortraitProps {
     name: string;
     portrait: string | null;
     size?: "xs" | "sm" | "md" | "lg";
-    highlight?: boolean;
     className?: string;
 }
 
@@ -16,14 +15,11 @@ export function HeroPortrait({
     name,
     portrait,
     size = "sm",
-    highlight,
     className,
 }: HeroPortraitProps) {
     const [failed, onError] = useImageFallback();
 
-    const classes = classNames(className, styles.root, styles[size], {
-        [styles.highlight]: highlight,
-    });
+    const classes = classNames(className, styles.root, styles[size]);
 
     if (!portrait || failed) {
         return (
