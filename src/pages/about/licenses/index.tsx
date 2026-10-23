@@ -11,7 +11,7 @@ import { useTranslations } from "use-intl";
 import type { ThirdPartyPackage } from "@/api/licenses";
 import { useThirdPartyLicenses } from "@/hooks/useThirdPartyLicenses";
 import { APP_LICENSE, APP_LICENSE_URL } from "@/legal";
-import { Typography } from "@/ui";
+import { Typography, linkClassName } from "@/ui";
 import { ExternalLink } from "../external-link";
 import { PackageEntry } from "../package-entry";
 
@@ -119,7 +119,7 @@ export function Licenses() {
                             })}{" "}
                             <button
                                 type="button"
-                                className={styles.showAll}
+                                className={linkClassName}
                                 onClick={onShowAll}
                             >
                                 {t("showAll")}

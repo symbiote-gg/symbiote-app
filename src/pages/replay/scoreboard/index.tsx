@@ -19,6 +19,7 @@ export interface ScoreboardTeam {
 export interface ScoreboardProps {
     teams: ScoreboardTeam[];
     ownerId: string;
+    duration: number;
 }
 
 const sum = (
@@ -26,7 +27,7 @@ const sum = (
     pick: (p: ReplayPlayerDetail) => number | null,
 ) => players.reduce((total, p) => total + (pick(p) ?? 0), 0);
 
-export function Scoreboard({ teams, ownerId }: ScoreboardProps) {
+export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
     const t = useTranslations("replay");
     const format = useFormatter();
 
@@ -49,6 +50,9 @@ export function Scoreboard({ teams, ownerId }: ScoreboardProps) {
         };
     };
 
+    const levelOf = (ally: boolean) =>
+        teams.find((team) => team.ally === ally)?.level ?? null;
+
     const formatStat = (value: number | null) =>
         value
             ? format.number(value, {
@@ -60,7 +64,13 @@ export function Scoreboard({ teams, ownerId }: ScoreboardProps) {
     return (
         <div className={styles.root}>
             <Card className={styles.card}>
-                <TeamKills ally={killsOf(true)} enemy={killsOf(false)} />
+                <TeamKills
+                    ally={killsOf(true)}
+                    enemy={killsOf(false)}
+                    allyLevel={levelOf(true)}
+                    enemyLevel={levelOf(false)}
+                    duration={duration}
+                />
                 <div className={styles.table}>
                     <div
                         className={classNames(

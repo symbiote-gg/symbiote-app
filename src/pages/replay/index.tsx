@@ -1,9 +1,10 @@
+import { ChevronLeft } from "lucide-react";
 import { useTranslations } from "use-intl";
-import { Link, useParams } from "wouter";
+import { useParams } from "wouter";
 
 import { Page } from "@/components";
 import { useReplay } from "@/hooks/useReplay";
-import { Typography } from "@/ui";
+import { ButtonLink } from "@/ui";
 import { Header } from "./header";
 import { Scoreboard, ScoreboardTeam } from "./scoreboard";
 import { Timeline } from "./timeline";
@@ -27,7 +28,7 @@ export function ReplayDetail() {
             .filter((sample) => sample.team === team)
             .map((sample) => sample.level);
 
-        return Math.max(...levels);
+        return levels.length > 0 ? Math.max(...levels) : null;
     };
 
     const teams: ScoreboardTeam[] = [allyTeam, 1 - allyTeam].map((team) => ({
@@ -49,11 +50,15 @@ export function ReplayDetail() {
             <div className={styles.main}>
                 {error && (
                     <>
-                        <Link href="/replays">
-                            <Typography size="sm" variant="secondary">
-                                {t("replay.back")}
-                            </Typography>
-                        </Link>
+                        <ButtonLink
+                            href="/replays"
+                            variant="secondary"
+                            size="sm"
+                            arrow={false}
+                        >
+                            <ChevronLeft />
+                            {t("replay.replays")}
+                        </ButtonLink>
                         <p className={styles.error}>{String(error)}</p>
                     </>
                 )}
@@ -62,11 +67,12 @@ export function ReplayDetail() {
                         <Header
                             replay={replay}
                             owner={owner}
-                            level={teamLevel(allyTeam)}
+                            allyTeam={allyTeam}
                         />
                         <Scoreboard
                             ownerId={replay.ownerPlayerId}
                             teams={teams}
+                            duration={replay.duration}
                         />
                         <Timeline
                             timeline={replay.timeline}

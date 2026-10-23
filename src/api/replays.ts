@@ -32,6 +32,7 @@ export type ReplayPlayer = {
 
 export type Replay = {
     id: number;
+    path: string;
     timestamp: string;
     mode: Mode;
     map: string;
@@ -135,6 +136,7 @@ export type ReplayPlayerDetail = ReplayPlayer & {
     selfHealing: number | null;
     damageTaken: number | null;
     xp: number | null;
+    timeDead: number | null;
     upvotes: number;
     talents: TalentPick[];
     awards: Award[];
@@ -273,6 +275,7 @@ export type ReplayDetail = Omit<
     players: ReplayPlayerDetail[];
     timeline: Timeline;
     xp: XpSample[];
+    onDisk: boolean;
 };
 
 export const PAGE_SIZE = 50;

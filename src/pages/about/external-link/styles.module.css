@@ -1,9 +1,5 @@
 @reference "@/index.css";
 
-.link {
-    @apply text-primary-text underline-offset-2 hover:underline;
-}
-
 .chip {
     @apply inline-flex items-center gap-1 rounded-md border border-line bg-surface-2 px-2 py-1 text-xs font-semibold text-fg transition hover:border-fg-muted/40;
 }

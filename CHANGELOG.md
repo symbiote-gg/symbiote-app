@@ -14,6 +14,11 @@ and this project adheres to
 - Add upvotes to the players scoreboard.
 - Show team heroes in the replays wide list.
 - Add the Symbiote wordmark to the app shell and about page.
+- Add a show in folder button to the replay detail header.
+- Add first blood, first fort and first to 10 milestones to the replay detail
+  header.
+- Add kill participation and time dead to the replay detail header stats.
+- Show team levels and game duration in the scoreboard team kills header.
 
 ### Changed
 
@@ -21,11 +26,17 @@ and this project adheres to
 - Adjust the players scoreboard columns order.
 - Improve the replays list rendering performance.
 - Use a trophy icon for the Storm League mode.
+- Redesign the replay detail header, showing a role based stat in place of siege
+  damage.
+- Show the full played date in the replay detail header.
+- Use a button for the back to replays link.
+- Add a small size to buttons and a shared link style.
 
 ### Fixed
 
 - Optimize the replays list query.
 - Set the background color on the root layout.
+- Avoid a negative infinity team level when no XP samples are available.
 
 ## [0.2.0] - 2026-10-22
 

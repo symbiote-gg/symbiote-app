@@ -45,7 +45,3 @@
 .footer {
     @apply shrink-0 px-8 py-3;
 }
-
-.showAll {
-    @apply cursor-pointer text-primary-text underline-offset-2 hover:underline;
-}

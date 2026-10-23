@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use chrono::DateTime;
 use sqlx::SqlitePool;
 use tauri::ipc::Channel;
@@ -24,16 +26,19 @@ pub async fn list_replays(
     Ok(page)
 }
 
-/// Returns the full detail of the replay with the given `id`.
+/// Returns the full detail of the replay with the given `id`, flagging whether its
+/// file is still on disk.
 ///
 /// # Errors
 ///
 /// Fails if no replay has that id or the database query fails.
 #[tauri::command]
 pub async fn get_replay(pool: State<'_, SqlitePool>, id: i64) -> Result<ReplayDetail> {
-    crate::db::replays::get_detail(&pool, id)
+    let mut detail = crate::db::replays::get_detail(&pool, id)
         .await?
-        .ok_or(Error::ReplayNotFound(id))
+        .ok_or(Error::ReplayNotFound(id))?;
+    detail.on_disk = Path::new(&detail.replay.path).is_file();
+    Ok(detail)
 }
 
 #[tauri::command]

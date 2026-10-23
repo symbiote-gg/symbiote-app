@@ -64,24 +64,28 @@
         }
     },
     "replay": {
-        "back": "← Back to replays",
+        "replays": "Replays",
+        "showInFolder": "Show in folder",
         "result": "{result, select, win {Victory} loss {Defeat} other {-}}",
         "level": "Lv {level}",
         "team": "{side, select, ally {Your team} other {Enemy team}}",
         "kills": "{kills, plural, one {# kill} other {# kills}}",
         "teamKills": {
             "title": "Kills",
-            "breakdown": "{ai, plural, =0 {All by heroes} other {{heroes} by heroes, # by AI}}"
+            "breakdown": "{ai, plural, =0 {All by heroes} other {{heroes} by heroes, # by AI}}",
+            "level": "<label>LV</label> {level}"
         },
         "teamTotal": "Team total",
         "player": "Player",
         "kda": "K/A/D",
+        "killParticipation": "Kill part.",
         "heroDamage": "Hero dmg",
         "siegeDamage": "Siege dmg",
         "healing": "Healing",
         "selfHealing": "Self heal",
         "damageTaken": "Dmg taken",
         "xpContribution": "XP",
+        "timeDead": "Time dead",
         "upvotes": "Upvotes",
         "talents": "Talents",
         "talentLevel": "Level {level}",
@@ -193,7 +197,13 @@
             "duelDead": "dead",
             "duelPush": "{push, select, strong {Strong push} solid {Solid push} other {Weak push}}",
             "duelPower": "power {value}%"
-        }
+        },
+        "milestone": {
+            "firstBlood": "First blood",
+            "firstFort": "First fort",
+            "firstTen": "First to 10"
+        },
+        "milestoneSide": "{side, select, ally {Ally} other {Enemy}}"
     },
     "result": {
         "win": "Victory",
@@ -249,7 +259,8 @@
         }
     },
     "dates": {
-        "yesterday": "Yesterday"
+        "yesterday": "Yesterday",
+        "dateAtTime": "{date} at {time}"
     },
     "comingSoon": "Coming soon"
 }

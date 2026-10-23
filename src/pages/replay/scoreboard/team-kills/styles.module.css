@@ -12,6 +12,33 @@
     @apply items-end text-right;
 }
 
+.heading {
+    @apply flex items-center gap-2.5;
+}
+
+.ally .heading {
+    @apply flex-row-reverse;
+}
+
+.heading .level {
+    @apply rounded-md border px-1.5 py-0.5 font-bold;
+    background: color-mix(in srgb, var(--team) 55%, black);
+    border-color: var(--team);
+    color: color-mix(in srgb, var(--team) 8%, white);
+}
+
+.ally .level {
+    --team: var(--color-team-blue);
+}
+
+.enemy .level {
+    --team: var(--color-team-red);
+}
+
+.levelLabel {
+    @apply font-medium opacity-80;
+}
+
 .ally .team {
     @apply text-team-blue;
 }
@@ -23,6 +50,10 @@
 .count {
     @apply text-5xl leading-none tabular-nums;
     text-box: trim-both cap alphabetic;
+}
+
+.center {
+    @apply flex flex-col items-center gap-1.5;
 }
 
 .title {

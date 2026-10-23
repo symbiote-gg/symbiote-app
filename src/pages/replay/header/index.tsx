@@ -1,28 +1,47 @@
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import classNames from "classnames";
-import { Calendar, Clock } from "lucide-react";
-import { useState } from "react";
+import { ChevronLeft, Folder } from "lucide-react";
+import { type ReactNode, useState } from "react";
 import { useFormatter, useTranslations } from "use-intl";
-import { Link } from "wouter";
 
-import type { ReplayDetail, ReplayPlayerDetail } from "@/api/replays";
+import type { HeroRole, ReplayDetail, ReplayPlayerDetail } from "@/api/replays";
 import { HeroPortrait, ModeIcon } from "@/components";
-import { Typography } from "@/ui";
-import { formatDuration, playedFormat } from "@/utils/dates";
+import { Button, ButtonLink, Typography } from "@/ui";
+import { formatDuration, usePlayedOn } from "@/utils/dates";
+import { milestones } from "./milestones";
 
 import styles from "./styles.module.css";
+
+type RoleStat = "siegeDamage" | "healing" | "damageTaken";
+
+const ROLE_STAT: Record<HeroRole, RoleStat> = {
+    tank: "damageTaken",
+    bruiser: "damageTaken",
+    healer: "healing",
+    support: "healing",
+    melee_assassin: "siegeDamage",
+    ranged_assassin: "siegeDamage",
+};
 
 export interface HeaderProps {
     replay: ReplayDetail;
     owner: ReplayPlayerDetail | undefined;
-    level: number | null;
+    allyTeam: number;
 }
 
-export function Header({ replay, owner, level }: HeaderProps) {
+interface HeaderStat {
+    label: string;
+    value: ReactNode;
+}
+
+export function Header({ replay, owner, allyTeam }: HeaderProps) {
     const t = useTranslations();
     const format = useFormatter();
+    const playedOn = usePlayedOn();
     const [failed, setFailed] = useState(false);
 
     const onError = () => setFailed(true);
+    const onReveal = () => revealItemInDir(replay.path);
 
     const result =
         replay.ownerWin === null ? "unknown" : replay.ownerWin ? "win" : "loss";
@@ -35,38 +54,64 @@ export function Header({ replay, owner, level }: HeaderProps) {
               })
             : "-";
 
-    const kda = owner
-        ? [owner.kills, owner.assists, owner.deaths]
-              .map((value) => value ?? "-")
-              .join(" / ")
-        : "-";
+    const sep = (text: string) => <span className={styles.sep}>{text}</span>;
 
-    const meta = [
-        {
-            icon: <ModeIcon mode={replay.mode} />,
-            label: t(`modes.${replay.mode}`),
-        },
-        { icon: <Clock />, label: formatDuration(replay.duration) },
-        {
-            icon: <Calendar />,
-            label: format.dateTime(
-                new Date(replay.timestamp),
-                playedFormat(replay.timestamp),
-            ),
-        },
-    ];
+    const kad = owner ? (
+        <>
+            {owner.kills ?? "-"}
+            {sep("/")}
+            {owner.assists ?? "-"}
+            {sep("/")}
+            <span
+                className={classNames(styles.deaths, {
+                    [styles.positive]: owner.deaths === 0,
+                })}
+            >
+                {owner.deaths ?? "-"}
+            </span>
+        </>
+    ) : (
+        "-"
+    );
 
-    const stats = [
-        { label: t("replay.kda"), value: kda },
+    const enemyDeaths = replay.players
+        .filter((p) => p.team !== allyTeam)
+        .reduce((total, p) => total + (p.deaths ?? 0), 0);
+
+    const killParticipation =
+        owner && enemyDeaths > 0
+            ? format.number(
+                  Math.min(
+                      1,
+                      ((owner.kills ?? 0) + (owner.assists ?? 0)) / enemyDeaths,
+                  ),
+                  { style: "percent" },
+              )
+            : "-";
+
+    const timeDead =
+        owner?.timeDead != null
+            ? formatDuration(Math.round(owner.timeDead))
+            : "-";
+
+    const played = playedOn(replay.timestamp);
+
+    const roleStat = ROLE_STAT[replay.heroRole ?? "ranged_assassin"];
+
+    const reached = milestones(replay.timeline);
+
+    const stats: HeaderStat[] = [
+        { label: t("replay.kda"), value: kad },
+        { label: t("replay.killParticipation"), value: killParticipation },
         {
             label: t("replay.heroDamage"),
             value: formatStat(owner?.heroDamage),
         },
         {
-            label: t("replay.siegeDamage"),
-            value: formatStat(owner?.siegeDamage),
+            label: t(`replay.${roleStat}`),
+            value: formatStat(owner?.[roleStat]),
         },
-        { label: t("replay.xpContribution"), value: formatStat(owner?.xp) },
+        { label: t("replay.timeDead"), value: timeDead },
     ];
 
     return (
@@ -83,11 +128,29 @@ export function Header({ replay, owner, level }: HeaderProps) {
             <div className={styles.shade} />
             <div className={styles.glow} />
             <div className={styles.content}>
-                <Link href="/replays" className={styles.back}>
-                    <Typography size="sm" variant="secondary">
-                        {t("replay.back")}
-                    </Typography>
-                </Link>
+                <div className={styles.toolbar}>
+                    <ButtonLink
+                        href="/replays"
+                        variant="secondary"
+                        size="sm"
+                        arrow={false}
+                        className={styles.tool}
+                    >
+                        <ChevronLeft />
+                        {t("replay.replays")}
+                    </ButtonLink>
+                    {replay.onDisk && (
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={onReveal}
+                            className={styles.tool}
+                        >
+                            <Folder />
+                            {t("replay.showInFolder")}
+                        </Button>
+                    )}
+                </div>
                 <div className={styles.summary}>
                     <div className={styles.identity}>
                         <span className={styles.portrait}>
@@ -97,19 +160,28 @@ export function Header({ replay, owner, level }: HeaderProps) {
                                 size="lg"
                                 className={styles.portraitImage}
                             />
-                            {level !== null && (
+                        </span>
+                        <div className={styles.text}>
+                            <div className={styles.facts}>
                                 <Typography
                                     size="xs"
                                     weight="semibold"
-                                    mono
+                                    uppercase
                                     noWrap
-                                    className={styles.level}
+                                    className={styles.tag}
                                 >
-                                    {t("replay.level", { level })}
+                                    <ModeIcon mode={replay.mode} />
+                                    {t(`modes.${replay.mode}`)}
                                 </Typography>
-                            )}
-                        </span>
-                        <div className={styles.text}>
+
+                                <Typography
+                                    size="sm"
+                                    noWrap
+                                    className={styles.fact}
+                                >
+                                    {played}
+                                </Typography>
+                            </div>
                             <Typography
                                 size="xl2"
                                 weight="semibold"
@@ -120,19 +192,56 @@ export function Header({ replay, owner, level }: HeaderProps) {
                             >
                                 {replay.mapName}
                             </Typography>
-                            <div className={styles.meta}>
-                                {meta.map(({ icon, label }) => (
-                                    <Typography
-                                        key={label}
-                                        size="xs"
-                                        noWrap
-                                        className={styles.chip}
-                                    >
-                                        {icon}
-                                        {label}
-                                    </Typography>
-                                ))}
-                            </div>
+                            {reached.length > 0 && (
+                                <div className={styles.moments}>
+                                    {reached.map(({ kind, team, time }) => {
+                                        const side =
+                                            team === allyTeam
+                                                ? "ally"
+                                                : "enemy";
+
+                                        return (
+                                            <div
+                                                key={kind}
+                                                className={classNames(
+                                                    styles.moment,
+                                                    styles[side],
+                                                )}
+                                            >
+                                                <Typography
+                                                    size="xs"
+                                                    variant="secondary"
+                                                    noWrap
+                                                >
+                                                    {t(
+                                                        `replay.milestone.${kind}`,
+                                                    )}
+                                                </Typography>
+                                                <Typography
+                                                    size="xs"
+                                                    weight="semibold"
+                                                    mono
+                                                    noWrap
+                                                >
+                                                    {formatDuration(
+                                                        Math.round(time),
+                                                    )}
+                                                </Typography>
+                                                <Typography
+                                                    size="xs"
+                                                    weight="semibold"
+                                                    noWrap
+                                                    className={styles.side}
+                                                >
+                                                    {t("replay.milestoneSide", {
+                                                        side,
+                                                    })}
+                                                </Typography>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className={styles.outcome}>
@@ -146,7 +255,7 @@ export function Header({ replay, owner, level }: HeaderProps) {
                         >
                             {t("replay.result", { result })}
                         </Typography>
-                        <div className={styles.stats}>
+                        <div className={styles.panel}>
                             {stats.map(({ label, value }) => (
                                 <div key={label} className={styles.stat}>
                                     <Typography

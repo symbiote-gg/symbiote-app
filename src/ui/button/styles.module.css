@@ -1,7 +1,19 @@
 @reference "@/index.css";
 
 .root {
-    @apply inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-lg px-4.5 py-2.5 text-sm font-semibold whitespace-nowrap transition disabled:cursor-default disabled:opacity-50;
+    @apply inline-flex shrink-0 cursor-pointer items-center rounded-lg font-semibold whitespace-nowrap transition focus-visible:outline-3 focus-visible:outline-primary-text disabled:cursor-default disabled:opacity-50;
+}
+
+.md {
+    @apply gap-2 px-4.5 py-2.5 text-sm;
+}
+
+.sm {
+    @apply gap-1.5 px-3 py-1.5 text-xs;
+}
+
+.sm svg {
+    @apply size-4;
 }
 
 .primary {
@@ -10,4 +22,8 @@
 
 .secondary {
     @apply border border-line bg-surface-2 text-fg hover:border-fg-muted/40 disabled:hover:border-line;
+}
+
+.link {
+    @apply cursor-pointer text-primary-text underline-offset-2 hover:underline;
 }

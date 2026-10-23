@@ -488,7 +488,7 @@ pub async fn get_detail(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<Repla
              json_extract(rp.score, '$.SelfHealing') AS self_healing,
              json_extract(rp.score, '$.DamageTaken') AS damage_taken,
              json_extract(rp.score, '$.ExperienceContribution') AS xp,
-             rp.upvotes
+             rp.time_dead_secs AS time_dead, rp.upvotes
          FROM replays_players rp
          JOIN players p ON p.id = rp.player_id
          JOIN heroes h ON h.id = rp.hero_id

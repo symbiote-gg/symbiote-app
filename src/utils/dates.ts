@@ -1,21 +1,15 @@
-import { useFormatter, useTranslations } from "use-intl";
-
-const PLAYED_FORMAT = {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-} as const;
+import { useMemo } from "react";
+import {
+    useFormatter,
+    useLocale,
+    useTimeZone,
+    useTranslations,
+} from "use-intl";
 
 function withYear<T extends object>(options: T, date: Date, now: Date) {
     return date.getFullYear() === now.getFullYear()
         ? options
         : { ...options, year: "numeric" as const };
-}
-
-export function playedFormat(timestamp: string, now = new Date()) {
-    return withYear(PLAYED_FORMAT, new Date(timestamp), now);
 }
 
 export function formatDuration(secs: number) {
@@ -42,13 +36,46 @@ export function usePlayedAt() {
             return format.relativeTime(date, { now, style: "short" });
         }
 
-        const yesterday = startOfToday();
-        yesterday.setDate(yesterday.getDate() - 1);
+        const today = startOfToday();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
 
-        if (date >= startOfToday()) return format.dateTime(date, TIME_FORMAT);
+        if (date >= today) return format.dateTime(date, TIME_FORMAT);
         if (date >= yesterday) return t("yesterday");
 
         return format.dateTime(date, withYear(DATE_FORMAT, date, now));
+    };
+}
+
+export function usePlayedOn() {
+    const format = useFormatter();
+    const t = useTranslations("dates");
+    const locale = useLocale();
+    const timeZone = useTimeZone();
+    const dayFormat = useMemo(
+        () =>
+            new Intl.DateTimeFormat(locale, {
+                ...FULL_DATE_FORMAT,
+                timeZone,
+            }),
+        [locale, timeZone],
+    );
+
+    return (timestamp: string) => {
+        const date = new Date(timestamp);
+        const day = dayFormat
+            .formatToParts(date)
+            .map((part) =>
+                part.type === "literal"
+                    ? part.value.replace(/,/g, "")
+                    : part.value,
+            )
+            .join("");
+
+        return t("dateAtTime", {
+            date: day,
+            time: format.dateTime(date, TIME_FORMAT),
+        });
     };
 }
 
@@ -59,3 +86,5 @@ const TIME_FORMAT = {
 } as const;
 
 const DATE_FORMAT = { month: "short", day: "numeric" } as const;
+
+const FULL_DATE_FORMAT = { ...DATE_FORMAT, year: "numeric" } as const;

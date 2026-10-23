@@ -2,11 +2,17 @@ import classNames from "classnames";
 import type { ReactNode } from "react";
 import { Link } from "wouter";
 
-import { type ButtonVariant, buttonClassName } from "../button";
+import {
+    type ButtonSize,
+    type ButtonVariant,
+    buttonClassName,
+} from "../button";
 
 export interface ButtonLinkProps {
     href: string;
     variant?: ButtonVariant;
+    size?: ButtonSize;
+    arrow?: boolean;
     className?: string;
     children: ReactNode;
 }
@@ -14,16 +20,18 @@ export interface ButtonLinkProps {
 export function ButtonLink({
     href,
     variant = "primary",
+    size = "md",
+    arrow = true,
     className,
     children,
 }: ButtonLinkProps) {
     return (
         <Link
             href={href}
-            className={classNames(className, buttonClassName(variant))}
+            className={classNames(className, buttonClassName(variant, size))}
         >
             {children}
-            <span aria-hidden>→</span>
+            {arrow && <span aria-hidden>→</span>}
         </Link>
     );
 }

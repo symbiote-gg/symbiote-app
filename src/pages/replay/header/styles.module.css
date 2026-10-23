@@ -52,8 +52,12 @@
     @apply relative flex w-full flex-col justify-between gap-16 px-6 pt-5 pb-6;
 }
 
-.back {
-    @apply self-start;
+.toolbar {
+    @apply flex items-center justify-between gap-4;
+}
+
+.toolbar .tool {
+    @apply bg-bg/60;
 }
 
 .summary {
@@ -73,10 +77,6 @@
     --tw-ring-color: var(--tone);
 }
 
-.portrait .level {
-    @apply absolute -right-1 -bottom-1 rounded-full border border-line bg-bg px-1.5 py-0.5 text-[10px] leading-none;
-}
-
 .text {
     @apply flex min-w-0 flex-1 flex-col gap-2;
 }
@@ -85,20 +85,52 @@
     @apply text-4xl leading-none sm:text-5xl;
 }
 
-.meta {
-    @apply flex flex-wrap items-center gap-2;
+.facts {
+    @apply flex flex-wrap items-center gap-y-1;
 }
 
-.meta .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-bg/60 px-2.5 py-1 text-fg;
+.facts .tag {
+    @apply mr-3 inline-flex items-center gap-1.5 rounded border border-line bg-bg/60 px-2 py-0.5 tracking-[0.15em] text-fg;
 }
 
-.meta .chip svg {
-    @apply size-4 text-fg-muted;
+.facts .tag svg {
+    @apply size-3.5 text-fg-muted;
+}
+
+.facts .fact {
+    @apply px-3 text-fg/80;
+}
+
+.facts .fact:nth-child(2) {
+    @apply pl-0;
+}
+
+.facts .fact + .fact {
+    @apply border-l border-line;
+}
+
+.moments {
+    @apply mt-1 inline-flex flex-wrap divide-x divide-line self-start overflow-hidden rounded-md border border-line bg-bg/80;
+}
+
+.moment {
+    @apply flex items-center gap-2 px-3 py-1.5;
+}
+
+.moment.ally {
+    --team: var(--color-team-blue);
+}
+
+.moment.enemy {
+    --team: var(--color-team-red);
+}
+
+.moment .side {
+    color: var(--team);
 }
 
 .outcome {
-    @apply flex flex-col items-end gap-2 text-right;
+    @apply flex flex-col items-end gap-3 text-right;
 }
 
 .outcome .result {
@@ -107,12 +139,12 @@
     text-shadow: 0 0 24px color-mix(in oklab, var(--tone) 45%, transparent);
 }
 
-.stats {
-    @apply mt-1 flex flex-wrap justify-end gap-2;
+.panel {
+    @apply flex flex-wrap justify-end divide-x divide-line rounded-md border border-line bg-bg/80;
 }
 
 .stat {
-    @apply flex flex-col items-start gap-0.5 rounded-md border border-line bg-bg/70 px-3 py-1.5 text-left;
+    @apply flex flex-col items-start gap-1.5 px-4 py-2.5 text-left;
 }
 
 .stat .statLabel {
@@ -120,5 +152,17 @@
 }
 
 .stat .statValue {
-    @apply text-base leading-none;
+    @apply text-xl leading-none;
+}
+
+.statValue .sep {
+    @apply text-fg-muted/60;
+}
+
+.statValue .deaths {
+    @apply text-loss;
+}
+
+.statValue .positive {
+    @apply text-win;
 }

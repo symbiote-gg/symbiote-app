@@ -140,6 +140,7 @@ pub struct ReplayPlayerDetail {
     pub self_healing: Option<i64>,
     pub damage_taken: Option<i64>,
     pub xp: Option<i64>,
+    pub time_dead: Option<f64>,
     pub upvotes: i64,
     #[sqlx(skip)]
     pub talents: Vec<TalentPick>,
@@ -162,6 +163,8 @@ pub struct ReplayDetail {
     pub timeline: Timeline,
     #[sqlx(skip)]
     pub xp: Vec<XpSample>,
+    #[sqlx(skip)]
+    pub on_disk: bool,
 }
 
 #[derive(Debug, Serialize)]
