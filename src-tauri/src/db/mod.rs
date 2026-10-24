@@ -24,6 +24,8 @@ pub mod replays;
 pub mod settings;
 pub mod stats;
 pub mod talents;
+#[cfg(test)]
+mod test_utils;
 
 const DB_FILE: &str = "symbiote.db";
 
@@ -134,19 +136,8 @@ impl Seed {
 
 #[cfg(test)]
 mod tests {
-    use sqlx::sqlite::SqlitePoolOptions;
-
     use super::*;
-
-    async fn pool() -> SqlitePool {
-        let pool = SqlitePoolOptions::new()
-            .max_connections(1)
-            .connect("sqlite::memory:")
-            .await
-            .unwrap();
-        sqlx::migrate!("./migrations").run(&pool).await.unwrap();
-        pool
-    }
+    use crate::db::test_utils::pool;
 
     fn talent(name: &str) -> TalentFact {
         TalentFact {

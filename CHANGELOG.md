@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- Add filters to replays list.
 - Add replays folder card to `settings` page.
 - Add `settings` page with replays events retention configuration.
 - Add total team kills header to scoreboard.

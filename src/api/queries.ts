@@ -2,14 +2,17 @@ import {
     type InfiniteData,
     QueryClient,
     infiniteQueryOptions,
+    keepPreviousData,
     noop,
     queryOptions,
 } from "@tanstack/react-query";
 
 import {
+    NO_REPLAY_FILTERS,
     PAGE_SIZE,
     type Replay,
     type ReplayCursor,
+    type ReplayFilters,
     type ReplayIngested,
     type ReplayPage,
     getReplay,
@@ -34,19 +37,77 @@ export const queryClient = new QueryClient({
     },
 });
 
-export const replaysQuery = infiniteQueryOptions({
-    queryKey: ["replays", "list"],
-    // Kept while off screen, so coming back doesn't show an empty list while it refetches.
-    gcTime: Infinity,
-    queryFn: ({ pageParam }) => listReplays(pageParam, PAGE_SIZE),
-    initialPageParam: null as ReplayCursor | null,
-    getNextPageParam: (last, all): ReplayCursor | undefined => {
-        const replays = all.flatMap((page) => page.replays);
-        const tail = replays[replays.length - 1];
-        if (!tail || replays.length >= last.total) return undefined;
-        return { timestamp: tail.timestamp, id: tail.id };
-    },
-});
+/** Prefixes the key of every `replaysQuery`, whatever its filters. */
+export const REPLAY_LISTS_KEY = ["replays", "list"] as const;
+
+export type ReplayListData = InfiniteData<ReplayPage, ReplayCursor | null>;
+
+const isUnfiltered = (filters: ReplayFilters) =>
+    filters.modes.length === 0 &&
+    filters.heroes.length === 0 &&
+    filters.roles.length === 0 &&
+    filters.win === null &&
+    filters.from === null &&
+    filters.to === null;
+
+const preloadImage = (src: string) => {
+    const img = new Image();
+    img.src = src;
+    return img.decode().catch(noop);
+};
+
+const pagePortraits = (page: ReplayPage) =>
+    new Set(
+        page.replays.flatMap((replay) => [
+            replay.heroPortrait,
+            ...replay.players.map((player) => player.heroPortrait),
+        ]),
+    );
+
+export const replaysQuery = (filters = NO_REPLAY_FILTERS) =>
+    infiniteQueryOptions({
+        queryKey: [...REPLAY_LISTS_KEY, filters],
+        // The full list is kept while off screen, so coming back doesn't show an empty list
+        // while it refetches. Filtered ones expire, or every combination tried would stay
+        // cached and be patched on each ingest.
+        gcTime: isUnfiltered(filters) ? Infinity : undefined,
+        // Keeps the current list up while the one for new filters loads.
+        placeholderData: keepPreviousData,
+        // Resolve with the portraits decoded, so rows don't paint them blank as they swap in.
+        queryFn: async ({ pageParam }) => {
+            const page = await listReplays(filters, pageParam, PAGE_SIZE);
+            await Promise.all(
+                Array.from(pagePortraits(page), (portrait) =>
+                    portrait
+                        ? preloadImage(`/game/heroportraits/${portrait}`)
+                        : undefined,
+                ),
+            );
+            return page;
+        },
+        initialPageParam: null as ReplayCursor | null,
+        getNextPageParam: (last, all): ReplayCursor | undefined => {
+            const replays = all.flatMap((page) => page.replays);
+            const tail = replays[replays.length - 1];
+            if (!tail || replays.length >= last.total) return undefined;
+            return { timestamp: tail.timestamp, id: tail.id };
+        },
+    });
+
+export function matchesFilters(replay: Replay, filters: ReplayFilters) {
+    const time = Date.parse(replay.timestamp);
+    return (
+        (filters.modes.length === 0 || filters.modes.includes(replay.mode)) &&
+        (filters.heroes.length === 0 ||
+            filters.heroes.includes(replay.ownerHeroId)) &&
+        (filters.roles.length === 0 ||
+            (replay.heroRole !== null &&
+                filters.roles.includes(replay.heroRole))) &&
+        (filters.win === null || replay.ownerWin === filters.win) &&
+        (filters.from === null || time >= Date.parse(filters.from)) &&
+        (filters.to === null || time < Date.parse(filters.to))
+    );
+}
 
 const listsBefore = (a: Replay, b: Replay) => {
     const diff = Date.parse(a.timestamp) - Date.parse(b.timestamp);
@@ -54,16 +115,22 @@ const listsBefore = (a: Replay, b: Replay) => {
 };
 
 /**
- * Splices replays streamed by the ingester into the loaded pages of `replaysQuery`, in
- * list order, so they show up without refetching every page.
+ * Splices the replays streamed by the ingester that match `filters` into the loaded
+ * pages of `replaysQuery(filters)`, in list order, so they show up without refetching
+ * every page.
  *
  * A replay sorting after the last loaded one is left for pagination to fetch, unless
  * everything is loaded. Either way no more replays stay loaded than before, or than a
  * page: a bulk ingest would otherwise pile every replay into the cache.
+ *
+ * The ingester only counts all replays, so a filtered list counts the new ones it
+ * matches itself. A replacement keeps the count: it's the same game, so it matches if
+ * the replay it removes did.
  */
 export function applyIngested<TPageParam>(
     data: InfiniteData<ReplayPage, TPageParam>,
     batch: ReplayIngested[],
+    filters: ReplayFilters,
 ): InfiniteData<ReplayPage, TPageParam> {
     const pages = data.pages.map((page) => page.replays.slice());
     const last = pages[pages.length - 1];
@@ -74,9 +141,10 @@ export function applyIngested<TPageParam>(
         PAGE_SIZE,
     );
 
+    const unfiltered = isUnfiltered(filters);
     let total = data.pages[0].total;
-    for (const { replay, removed, total: ingestedTotal } of batch) {
-        total = Math.max(total, ingestedTotal);
+    for (const { replay, removed, refreshed, total: ingestedTotal } of batch) {
+        if (unfiltered) total = Math.max(total, ingestedTotal);
 
         if (removed !== null) {
             for (const page of pages) {
@@ -85,9 +153,12 @@ export function applyIngested<TPageParam>(
             }
         }
 
+        if (!matchesFilters(replay, filters)) continue;
+
         const current = pages.find((page) =>
             page.some((r) => r.id === replay.id),
         );
+        if (!unfiltered && !current && removed === null && !refreshed) total++;
         if (current) {
             current[current.findIndex((r) => r.id === replay.id)] = replay;
             continue;
@@ -139,12 +210,6 @@ export function markSeenInPages<TPageParam>(
         })),
     };
 }
-
-const preloadImage = (src: string) => {
-    const img = new Image();
-    img.src = src;
-    return img.decode().catch(noop);
-};
 
 export const replayQuery = (id: number) =>
     queryOptions({

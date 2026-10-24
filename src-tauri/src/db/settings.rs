@@ -18,19 +18,8 @@ pub async fn set_event_retention(pool: &SqlitePool, years: Option<u32>) -> sqlx:
 
 #[cfg(test)]
 mod tests {
-    use sqlx::sqlite::SqlitePoolOptions;
-
     use super::*;
-
-    async fn pool() -> SqlitePool {
-        let pool = SqlitePoolOptions::new()
-            .max_connections(1)
-            .connect("sqlite::memory:")
-            .await
-            .unwrap();
-        sqlx::migrate!("./migrations").run(&pool).await.unwrap();
-        pool
-    }
+    use crate::db::test_utils::pool;
 
     #[tokio::test]
     async fn keeps_events_five_years_until_changed() {

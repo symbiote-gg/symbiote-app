@@ -9,7 +9,16 @@
 }
 
 .track {
-    @apply relative;
+    @apply relative transition-opacity;
+}
+
+/* Delayed so a fast fetch swaps the rows without a dim flash. */
+.stale {
+    @apply opacity-50 delay-200;
+}
+
+.empty {
+    @apply flex flex-col items-center gap-3 py-10;
 }
 
 .slot {

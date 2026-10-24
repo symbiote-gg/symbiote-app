@@ -287,8 +287,33 @@ export const PAGE_SIZE = 50;
 
 export type ReplayCursor = Pick<Replay, "timestamp" | "id">;
 
-export const listReplays = (after: ReplayCursor | null, limit: number) =>
-    invoke<ReplayPage>("list_replays", { after, limit });
+/** Empty lists and nulls don't narrow the list by that field. */
+export type ReplayFilters = {
+    modes: Mode[];
+    /** The owner's hero. */
+    heroes: number[];
+    /** The owner's hero's role. */
+    roles: HeroRole[];
+    win: boolean | null;
+    from: string | null;
+    /** Exclusive. */
+    to: string | null;
+};
+
+export const NO_REPLAY_FILTERS: ReplayFilters = {
+    modes: [],
+    heroes: [],
+    roles: [],
+    win: null,
+    from: null,
+    to: null,
+};
+
+export const listReplays = (
+    filters: ReplayFilters,
+    after: ReplayCursor | null,
+    limit: number,
+) => invoke<ReplayPage>("list_replays", { filters, after, limit });
 
 export const getReplay = (id: number) =>
     invoke<ReplayDetail>("get_replay", { id });

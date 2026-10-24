@@ -4,6 +4,7 @@ import {
     hide,
     offset,
     shift,
+    size,
     useFloating,
 } from "@floating-ui/react-dom";
 import classNames from "classnames";
@@ -26,6 +27,7 @@ export interface PopoverProps {
     placement?: PopoverPlacement;
     align?: PopoverAlign;
     compact?: boolean;
+    bare?: boolean;
     interactive?: boolean;
     id?: string;
     role?: string;
@@ -41,6 +43,7 @@ export function Popover({
     placement = "side",
     align = "start",
     compact,
+    bare,
     interactive = true,
     id,
     role,
@@ -63,6 +66,19 @@ export function Popover({
             offset(GAP),
             flip({ padding: MARGIN }),
             shift({ padding: MARGIN }),
+            size({
+                padding: MARGIN,
+                apply: ({ availableHeight, rects, elements }) => {
+                    elements.floating.style.setProperty(
+                        "--popover-max-height",
+                        `${availableHeight}px`,
+                    );
+                    elements.floating.style.setProperty(
+                        "--popover-anchor-width",
+                        `${rects.reference.width}px`,
+                    );
+                },
+            }),
             hide(),
         ],
         whileElementsMounted: autoUpdate,
@@ -78,7 +94,7 @@ export function Popover({
             aria-label={ariaLabel}
             className={classNames(
                 styles.panel,
-                compact ? styles.compact : styles.regular,
+                bare ? styles.bare : compact ? styles.compact : styles.regular,
                 { [styles.passive]: !interactive },
                 className,
             )}

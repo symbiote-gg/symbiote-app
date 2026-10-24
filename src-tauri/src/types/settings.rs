@@ -1,10 +1,8 @@
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicU32, Ordering};
 
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use sqlx::FromRow;
-use tokio::sync::{Mutex, MutexGuard};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, FromRow)]
 #[serde(rename_all = "camelCase")]
@@ -47,39 +45,4 @@ pub struct ReplaysFolderStats {
     pub replays: i64,
     pub last_import: Option<DateTime<Utc>>,
     pub oldest_game: Option<DateTime<Utc>>,
-}
-
-/// The event retention in effect, shared by the ingester and the commands.
-#[derive(Debug)]
-pub struct EventRetention {
-    years: AtomicU32,
-    applying: Mutex<()>,
-}
-
-impl EventRetention {
-    pub fn new(years: Option<u32>) -> Self {
-        Self {
-            years: AtomicU32::new(years.unwrap_or(0)),
-            applying: Mutex::new(()),
-        }
-    }
-
-    pub fn years(&self) -> Option<u32> {
-        Some(self.years.load(Ordering::Relaxed)).filter(|&years| years > 0)
-    }
-
-    pub fn set(&self, years: Option<u32>) {
-        self.years.store(years.unwrap_or(0), Ordering::Relaxed);
-    }
-
-    /// Held while a retention is applied, so a purge or a restore never runs against a
-    /// cutoff that changed meanwhile. Reading the cutoff doesn't take it.
-    pub async fn lock(&self) -> MutexGuard<'_, ()> {
-        self.applying.lock().await
-    }
-
-    /// See [`events_cutoff`](crate::db::replays::events_cutoff).
-    pub fn cutoff(&self) -> i64 {
-        crate::db::replays::events_cutoff(self.years())
-    }
 }

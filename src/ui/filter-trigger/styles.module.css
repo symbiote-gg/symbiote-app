@@ -1,0 +1,79 @@
+@reference "@/index.css";
+
+.root {
+    @apply inline-flex h-9 shrink-0 items-stretch rounded-lg border border-line bg-bg text-sm whitespace-nowrap text-fg transition-colors;
+}
+
+.root:hover:not(.disabled) {
+    @apply border-fg-muted/40;
+}
+
+.disabled {
+    @apply opacity-50;
+}
+
+.active,
+.active:hover:not(.disabled) {
+    @apply border-primary/70 bg-primary/15;
+}
+
+.open,
+.open:hover:not(.disabled) {
+    @apply border-primary;
+}
+
+.trigger {
+    @apply inline-flex cursor-pointer items-center gap-2 rounded-md px-3;
+}
+
+.trigger:focus-visible {
+    @apply outline-3 outline-primary-text;
+}
+
+.trigger:disabled {
+    @apply cursor-default;
+}
+
+.icon {
+    @apply inline-flex text-fg-muted;
+}
+
+.icon svg {
+    @apply size-4;
+}
+
+.active .icon {
+    @apply text-primary-text;
+}
+
+.label {
+    @apply text-fg-muted;
+}
+
+.active .label {
+    @apply @max-5xl:sr-only;
+}
+
+.value {
+    @apply max-w-52 truncate font-semibold;
+}
+
+.chevron {
+    @apply size-4 text-fg-muted transition-transform;
+}
+
+.open .chevron {
+    @apply rotate-180;
+}
+
+.clear {
+    @apply inline-flex w-8 cursor-pointer items-center justify-center rounded-r-md border-l border-primary/70 text-primary-text transition-colors;
+}
+
+.clear:focus-visible {
+    @apply outline-3 outline-primary-text;
+}
+
+.clear svg {
+    @apply size-4;
+}

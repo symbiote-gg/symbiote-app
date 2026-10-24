@@ -1,0 +1,9 @@
+@reference "@/index.css";
+
+.list {
+    @apply flex min-h-0 flex-col overflow-y-auto p-1.5;
+}
+
+.name {
+    @apply flex-1 truncate;
+}

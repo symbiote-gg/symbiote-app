@@ -92,7 +92,9 @@ CREATE TABLE "replays" (
 
 CREATE INDEX "replays_timestamp_id_idx" ON "replays" ("timestamp" DESC, "id" DESC);
 
-CREATE INDEX "replays_owner_hero_id_idx" ON "replays" ("owner_hero_id");
+CREATE INDEX "replays_owner_hero_id_timestamp_idx" ON "replays" ("owner_hero_id", "timestamp" DESC, "id" DESC);
+
+CREATE INDEX "replays_mode_timestamp_idx" ON "replays" ("mode", "timestamp" DESC, "id" DESC);
 
 CREATE INDEX "replays_owner_party_id_idx" ON "replays" ("owner_party_id");
 

@@ -1,0 +1,61 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex flex-wrap gap-6;
+}
+
+.month {
+    @apply flex w-60 flex-col gap-2;
+}
+
+.header {
+    @apply flex items-center justify-between;
+}
+
+.title {
+    @apply text-sm font-semibold;
+}
+
+.nav {
+    @apply inline-flex size-7 cursor-pointer items-center justify-center rounded-md border border-line bg-surface-2 text-fg transition-colors hover:border-fg-muted/40 disabled:cursor-default disabled:opacity-40 disabled:hover:border-line;
+}
+
+.nav svg {
+    @apply size-4;
+}
+
+.navSpacer {
+    @apply size-7;
+}
+
+.grid {
+    @apply grid grid-cols-7 gap-y-1;
+}
+
+.weekday {
+    @apply pb-1 text-center text-[11px] font-semibold text-fg-muted uppercase;
+}
+
+.day {
+    @apply mx-auto inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-sm text-fg;
+}
+
+.day:hover:enabled:not(.edge) {
+    @apply bg-surface-2;
+}
+
+.day:disabled {
+    @apply cursor-default text-fg-muted/40;
+}
+
+.today {
+    @apply ring-1 ring-fg-muted/60 ring-inset;
+}
+
+.inside {
+    @apply w-full rounded-none bg-primary/15;
+}
+
+.edge {
+    @apply bg-primary font-semibold text-primary-ink;
+}

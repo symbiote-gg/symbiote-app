@@ -14,9 +14,9 @@ use tokio::sync::Semaphore;
 use crate::db;
 use crate::db::replays::{HashStatus, InsertOutcome};
 use crate::error::Result;
+use crate::retention::{restorable, EventRetention};
 use crate::types::map::MapFact;
 use crate::types::replay::{NewReplayBundle, ReplayIngested};
-use crate::types::settings::EventRetention;
 use bundle::{SeededHeroes, SeededMaps};
 pub use progress::{IngestProgress, Progress};
 
@@ -228,19 +228,6 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
             });
         }
     });
-}
-
-/// Lists the id and path of the replays played since `cutoff` whose events were purged
-/// and whose file is still on disk, i.e. the ones [`restore_events`] can restore.
-async fn restorable(pool: &SqlitePool, cutoff: i64) -> Result<Vec<(i64, String)>> {
-    let purged = db::replays::list_restorable(pool, cutoff).await?;
-    Ok(tauri::async_runtime::spawn_blocking(move || {
-        purged
-            .into_iter()
-            .filter(|(_, path)| Path::new(path).is_file())
-            .collect()
-    })
-    .await?)
 }
 
 /// Re-parses the replays played since `cutoff` whose events were purged and whose file

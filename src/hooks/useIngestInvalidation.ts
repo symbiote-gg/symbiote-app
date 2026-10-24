@@ -1,8 +1,17 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-import { applyIngested, replayQuery, replaysQuery } from "@/api/queries";
-import { type ReplayIngested, subscribeIngest } from "@/api/replays";
+import {
+    REPLAY_LISTS_KEY,
+    type ReplayListData,
+    applyIngested,
+    replayQuery,
+} from "@/api/queries";
+import {
+    type ReplayFilters,
+    type ReplayIngested,
+    subscribeIngest,
+} from "@/api/replays";
 
 const FLUSH_MS = 250;
 // Stats scan every stored replay, so refreshing them on each flush slows ingestion down.
@@ -30,7 +39,7 @@ export function useIngestInvalidation() {
 
         const flush = () => {
             // A page landing after the patch would overwrite it, so wait for it to settle.
-            if (queryClient.isFetching({ queryKey: replaysQuery.queryKey })) {
+            if (queryClient.isFetching({ queryKey: REPLAY_LISTS_KEY })) {
                 flushTimer = setTimeout(flush, FLUSH_MS);
                 return;
             }
@@ -38,10 +47,17 @@ export function useIngestInvalidation() {
             const ingested = batch;
             batch = [];
 
-            queryClient.setQueryData(
-                replaysQuery.queryKey,
-                (data) => data && applyIngested(data, ingested),
-            );
+            const lists = queryClient.getQueriesData<ReplayListData>({
+                queryKey: REPLAY_LISTS_KEY,
+            });
+            for (const [key, data] of lists) {
+                if (!data) continue;
+                const filters = key[REPLAY_LISTS_KEY.length] as ReplayFilters;
+                queryClient.setQueryData(
+                    key,
+                    applyIngested(data, ingested, filters),
+                );
+            }
             for (const { replay, removed, refreshed } of ingested) {
                 if (removed !== null) {
                     queryClient.removeQueries({

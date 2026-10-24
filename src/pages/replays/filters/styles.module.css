@@ -1,0 +1,13 @@
+@reference "@/index.css";
+
+.root {
+    @apply @container flex shrink-0 items-start gap-2 border-b border-line px-gutter py-3;
+}
+
+.filters {
+    @apply flex min-w-0 flex-1 flex-wrap items-center gap-2;
+}
+
+.reset {
+    @apply h-9;
+}

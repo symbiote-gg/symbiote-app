@@ -1,0 +1,30 @@
+@reference "@/index.css";
+
+.list {
+    @apply flex min-h-0 flex-col gap-0.5 overflow-y-auto p-1.5;
+}
+
+.option {
+    @apply flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm text-fg transition-colors;
+}
+
+.option:focus-visible {
+    @apply shadow-none outline-none;
+}
+
+.option:not(.selected):hover,
+.option:not(.selected):focus-visible {
+    @apply bg-surface-2;
+}
+
+.selected {
+    @apply bg-primary/15 font-semibold;
+}
+
+.selected:focus-visible {
+    @apply bg-primary/25;
+}
+
+.label {
+    @apply inline-flex flex-1 items-center gap-2;
+}

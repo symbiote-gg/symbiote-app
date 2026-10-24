@@ -1,19 +1,22 @@
 use std::path::PathBuf;
 
-use commands::{
-    count_replays, get_database_stats, get_ingest_progress, get_most_played_heroes,
-    get_profile_summary, get_replay, get_replays_folder, get_settings, list_replays,
-    mark_replay_as_seen, open_replays_folder, preview_event_retention, set_event_retention,
-    subscribe_ingest, unsubscribe_ingest,
+use commands::ingest::{get_ingest_progress, subscribe_ingest, unsubscribe_ingest};
+use commands::replays::{count_replays, get_replay, list_replays, mark_replay_as_seen};
+use commands::settings::{
+    get_database_stats, get_replays_folder, get_settings, open_replays_folder,
+    preview_event_retention, set_event_retention,
 };
+use commands::stats::{get_most_played_heroes, get_profile_summary};
+use retention::EventRetention;
 use tauri::webview::PageLoadEvent;
 use tauri::Manager;
-use types::settings::{EventRetention, ReplaysFolder};
+use types::settings::ReplaysFolder;
 
 mod commands;
 mod db;
 mod error;
 mod ingester;
+mod retention;
 mod timeline;
 mod types;
 
@@ -77,13 +80,7 @@ pub fn run() {
             let purge_app = app.handle().clone();
             let purge_pool = pool.clone();
             tauri::async_runtime::spawn(async move {
-                let retention = purge_app.state::<EventRetention>();
-                let _applying = retention.lock().await;
-                match db::replays::purge_expired_events(&purge_pool, retention.cutoff()).await {
-                    Ok(0) => {}
-                    Ok(purged) => log::info!("purged {purged} expired events"),
-                    Err(e) => log::error!("failed to purge the expired events: {e}"),
-                }
+                retention::purge_expired(&purge_app, &purge_pool).await;
             });
             app.manage(pool);
             app.manage(ingester::IngestSubscribers::default());

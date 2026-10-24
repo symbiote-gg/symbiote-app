@@ -47,7 +47,62 @@
     "replays": {
         "title": "Replays",
         "refresh": "Refresh",
-        "count": "{count, plural, one {# game} other {# games}}"
+        "count": "{count, plural, one {# game} other {# games}}",
+        "filters": {
+            "label": "Filters",
+            "clear": "Clear filters",
+            "reset": "Reset {count} filters",
+            "empty": "No replays match these filters."
+        }
+    },
+    "filters": {
+        "mode": {
+            "label": "Mode",
+            "all": "All",
+            "clear": "Clear mode filter",
+            "count": "{count} modes"
+        },
+        "role": {
+            "label": "Role",
+            "all": "All",
+            "clear": "Clear role filter",
+            "count": "{count} roles"
+        },
+        "result": {
+            "label": "Result",
+            "all": "All",
+            "wins": "Wins",
+            "defeats": "Defeats",
+            "clear": "Clear result filter"
+        },
+        "date": {
+            "label": "Date",
+            "presets": {
+                "any": "Any time",
+                "last7": "Last 7 days",
+                "last30": "Last 30 days",
+                "year": "This year"
+            },
+            "range": "{start} - {end}",
+            "pickEnd": "Pick an end date",
+            "previousMonth": "Previous month",
+            "nextMonth": "Next month",
+            "cancel": "Cancel",
+            "apply": "Apply",
+            "clear": "Clear date filter"
+        },
+        "hero": {
+            "label": "Hero",
+            "any": "Any",
+            "clear": "Clear hero filter",
+            "count": "{count, plural, one {# hero} other {# heroes}}",
+            "search": "Search heroes",
+            "mostPlayed": "Most played",
+            "clearSearch": "Clear search",
+            "remove": "Remove {hero}",
+            "noResults": "No hero you've played matches \"{query}\".\nHeroes you haven't played aren't listed.",
+            "results": "{count, plural, one {# result} other {# results}}, picks stay selected while you search"
+        }
     },
     "replayRow": {
         "new": "New",

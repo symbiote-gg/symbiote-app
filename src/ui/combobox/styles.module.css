@@ -1,0 +1,65 @@
+@reference "@/index.css";
+
+.panel {
+    @apply w-64;
+}
+
+.head {
+    @apply flex shrink-0 flex-col gap-2 border-b border-line p-2.5;
+}
+
+.search {
+    @apply flex items-center gap-2 rounded-md border border-line bg-bg px-2.5 py-2 transition-colors focus-within:border-primary;
+}
+
+.searchIcon {
+    @apply size-4 shrink-0 text-fg-muted;
+}
+
+.input {
+    @apply min-w-0 flex-1 bg-transparent text-sm text-fg outline-none placeholder:text-fg-muted;
+}
+
+.input:focus-visible {
+    @apply shadow-none outline-none;
+}
+
+.chips {
+    @apply flex flex-wrap gap-1.5;
+}
+
+.chip {
+    @apply inline-flex items-center gap-1 rounded-md border border-fg/15 bg-fg/8 py-0.5 pr-0.5 pl-2 text-xs font-semibold text-fg;
+}
+
+.remove {
+    @apply inline-flex cursor-pointer rounded p-0.5 text-fg-muted transition-colors hover:bg-fg/10 hover:text-fg;
+}
+
+.remove svg {
+    @apply size-3;
+}
+
+.list {
+    @apply flex min-h-0 flex-col overflow-y-auto p-1.5;
+}
+
+.section {
+    @apply px-2 pt-1.5 pb-1;
+}
+
+.option {
+    @apply flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-surface-2;
+}
+
+.mark {
+    @apply bg-transparent font-semibold text-primary-text;
+}
+
+.empty {
+    @apply px-4 py-6 text-center whitespace-pre-line;
+}
+
+.footer {
+    @apply shrink-0 border-t border-line px-3.5 py-2.5 text-xs text-fg-muted;
+}

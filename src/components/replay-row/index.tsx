@@ -4,7 +4,12 @@ import { memo } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 import { Link } from "wouter";
 
-import { markSeenInPages, replayQuery, replaysQuery } from "@/api/queries";
+import {
+    REPLAY_LISTS_KEY,
+    type ReplayListData,
+    markSeenInPages,
+    replayQuery,
+} from "@/api/queries";
 import { type Replay, markReplayAsSeen } from "@/api/replays";
 import { Tooltip, Typography } from "@/ui";
 import { formatDuration, usePlayedAt } from "@/utils/dates";
@@ -41,8 +46,8 @@ export const ReplayRow = memo(function ReplayRow({
 
     const onClick = () => {
         if (!replay.isNew) return;
-        queryClient.setQueryData(
-            replaysQuery.queryKey,
+        queryClient.setQueriesData<ReplayListData>(
+            { queryKey: REPLAY_LISTS_KEY },
             (data) => data && markSeenInPages(data, replay.id),
         );
         markReplayAsSeen(replay.id).catch(noop);

@@ -1,16 +1,32 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
+import classNames from "classnames";
 import {
     type UIEvent,
     useEffect,
     useLayoutEffect,
     useMemo,
     useRef,
+    useState,
 } from "react";
 import { useTranslations } from "use-intl";
 
 import { Page, ReplayListHeader, ReplayRow } from "@/components";
 import { useReplays } from "@/hooks/useReplays";
-import { Button, Card, CardBody, CardHeader, ErrorMessage } from "@/ui";
+import {
+    Button,
+    Card,
+    CardBody,
+    CardHeader,
+    EmptyState,
+    ErrorMessage,
+} from "@/ui";
+import { Filters } from "./filters";
+import {
+    type FilterState,
+    NO_FILTERS,
+    isFiltered,
+    toReplayFilters,
+} from "./filters/state";
 
 import styles from "./styles.module.css";
 
@@ -18,10 +34,13 @@ const ROW_HEIGHT = 64;
 const LOAD_AHEAD = 15;
 
 let savedOffset = 0;
+let savedFilters = NO_FILTERS;
 
 export function Replays() {
     const t = useTranslations("replays");
     const scroller = useRef<HTMLDivElement>(null);
+    const [filters, setFilters] = useState(savedFilters);
+    const query = useMemo(() => toReplayFilters(filters), [filters]);
     const {
         data,
         error,
@@ -31,7 +50,8 @@ export function Replays() {
         fetchNextPage,
         refetch,
         dataUpdatedAt,
-    } = useReplays();
+        isPlaceholderData,
+    } = useReplays(query);
 
     const replays = useMemo(
         () => data?.pages.flatMap((page) => page.replays) ?? [],
@@ -72,6 +92,18 @@ export function Replays() {
         savedOffset = e.currentTarget.scrollTop;
     };
 
+    const onFiltersChange = (next: FilterState) => {
+        savedFilters = next;
+        savedOffset = 0;
+        if (scroller.current) scroller.current.scrollTop = 0;
+        setFilters(next);
+    };
+
+    const onClearFilters = () => onFiltersChange(NO_FILTERS);
+
+    const noMatches =
+        !!data && !isPlaceholderData && total === 0 && isFiltered(filters);
+
     return (
         <Page fill>
             <Card className={styles.card}>
@@ -89,14 +121,29 @@ export function Replays() {
                     }
                     divided
                 />
+                <Filters value={filters} onChange={onFiltersChange} />
                 {error && (
                     <ErrorMessage error={error} className={styles.error} />
                 )}
                 <ReplayListHeader wide />
                 <CardBody ref={scroller} onScroll={onScroll}>
+                    {noMatches && (
+                        <div className={styles.empty}>
+                            <EmptyState>{t("filters.empty")}</EmptyState>
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={onClearFilters}
+                            >
+                                {t("filters.clear")}
+                            </Button>
+                        </div>
+                    )}
                     <div
                         ref={virtualizer.containerRef}
-                        className={styles.track}
+                        className={classNames(styles.track, {
+                            [styles.stale]: isPlaceholderData,
+                        })}
                     >
                         {items.map((item) => {
                             const replay = replays[item.index];

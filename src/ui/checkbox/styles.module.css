@@ -1,0 +1,39 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-fg transition-colors;
+}
+
+.root:hover:not(.disabled),
+.root:has(.input:focus-visible) {
+    @apply bg-surface-2;
+}
+
+.disabled {
+    @apply cursor-default text-fg-muted/50;
+}
+
+.input {
+    @apply sr-only;
+}
+
+.box {
+    @apply inline-flex size-4 shrink-0 items-center justify-center rounded border border-fg-muted/50 bg-bg text-primary-ink transition-colors;
+}
+
+.box svg {
+    @apply size-3;
+    stroke-width: 3;
+}
+
+.on {
+    @apply border-primary bg-primary;
+}
+
+.boxDisabled {
+    @apply border-line;
+}
+
+.input:focus-visible + .box {
+    @apply outline-2 outline-offset-2 outline-primary-text;
+}

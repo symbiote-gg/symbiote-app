@@ -20,6 +20,7 @@ pub struct ProfileSummary {
 pub struct HeroStat {
     pub hero_id: i64,
     pub name: String,
+    pub role: Option<HeroRole>,
     pub portrait: Option<String>,
     pub games: i64,
     pub wins: i64,

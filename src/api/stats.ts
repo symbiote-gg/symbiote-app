@@ -15,6 +15,7 @@ export type ProfileSummary = {
 export type HeroStat = {
     heroId: number;
     name: string;
+    role: HeroRole | null;
     portrait: string | null;
     games: number;
     wins: number;
