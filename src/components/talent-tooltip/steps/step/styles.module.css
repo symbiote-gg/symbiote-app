@@ -5,7 +5,7 @@
 }
 
 .quest {
-    @apply bg-warn/8 text-warn;
+    @apply bg-quest/8 text-quest;
 }
 
 .reward {

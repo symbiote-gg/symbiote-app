@@ -13,5 +13,5 @@
 }
 
 .quest {
-    @apply font-semibold text-warn;
+    @apply font-semibold text-quest;
 }
