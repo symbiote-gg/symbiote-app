@@ -41,11 +41,7 @@
 }
 
 .kept {
-    background: linear-gradient(
-        to right,
-        var(--color-primary),
-        var(--color-primary-text)
-    );
+    @apply bg-primary;
 }
 
 .freed {

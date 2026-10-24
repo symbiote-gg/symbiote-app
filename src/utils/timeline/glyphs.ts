@@ -26,7 +26,6 @@ export const fightGlyph = (deaths: DeathEntry[]): Glyph => {
     return fightKind(deaths) === "gank" ? "ghost" : "skull";
 };
 
-/** One glyph for a tick: the entries' shared glyph, else a stack. */
 export const tickGlyph = (entries: Entry[]): Glyph => {
     const glyphs = new Set(entries.map(entryGlyph));
     return glyphs.size === 1 ? [...glyphs][0] : "layers";

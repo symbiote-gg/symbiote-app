@@ -4,7 +4,6 @@ const TALENT_TIERS = [4, 7, 10, 13, 16, 20];
 
 export type LevelCurve = [number, number][];
 
-/** Both teams' level curves, ally first. */
 export const levelCurves = (
     levels: Timeline["levels"],
     allyTeam: number,

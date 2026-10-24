@@ -15,7 +15,6 @@ export const LONG_GAME = 35 * 60;
 const TEAM_FIGHT_DEATHS = 3;
 const GANK_KILLERS = 3;
 
-/** Gank when a lone hero dies to several killers, else pick; more deaths go by count. */
 export function fightKind(deaths: DeathEntry[]) {
     if (deaths.length >= TEAM_FIGHT_DEATHS) return "teamFight";
     if (deaths.length === 2) return "skirmish";

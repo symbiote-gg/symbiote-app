@@ -106,6 +106,5 @@ export function axisTimes(duration: number) {
     return ticks;
 }
 
-/** CSS `left` for a time, clamped to the track. */
 export const position = (time: number, duration: number) =>
     `${Math.min(Math.max(time / duration, 0), 1) * 100}%`;

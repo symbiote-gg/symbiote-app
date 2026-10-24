@@ -14,7 +14,6 @@ interface LifeBarProps {
     end: string;
 }
 
-/** A summon's or a hold's length against {@link FULL_BAR_SECONDS}. */
 export function LifeBar({ seconds, start, end }: LifeBarProps) {
     const t = useTranslations("replay.timeline");
 
