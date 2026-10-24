@@ -29,11 +29,7 @@
 }
 
 .metaRow {
-    @apply flex items-center justify-between gap-4 border-b border-line/60 px-4 py-3 last:border-b-0;
-}
-
-.label {
-    @apply text-xs font-semibold tracking-[0.2em] text-fg-muted uppercase;
+    @apply flex items-center justify-between gap-4 border-b border-line/50 px-4 py-3 last:border-b-0;
 }
 
 .metaValue {

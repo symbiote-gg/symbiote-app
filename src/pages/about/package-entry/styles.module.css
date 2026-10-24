@@ -1,11 +1,11 @@
 @reference "@/index.css";
 
 .root {
-    @apply border-b border-line;
+    @apply border-b border-line/50;
 }
 
 .summary {
-    @apply grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_10rem_14rem_1.5rem] items-center gap-4 px-8 py-2.5 hover:bg-surface-2/40;
+    @apply grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_10rem_14rem_1.5rem] items-center gap-4 px-gutter py-2.5 hover:bg-surface-2/50;
 }
 
 .summary::-webkit-details-marker {
@@ -21,7 +21,7 @@
 }
 
 .body {
-    @apply flex flex-col items-start gap-3 px-8 pb-4;
+    @apply flex flex-col items-start gap-3 px-gutter pb-4;
 }
 
 .text {

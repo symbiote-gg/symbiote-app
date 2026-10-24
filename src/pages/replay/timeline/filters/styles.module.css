@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .filters {
-    @apply ml-auto flex flex-wrap gap-1 rounded-lg border border-line bg-bg p-1;
+    @apply flex flex-wrap gap-1 rounded-lg border border-line bg-bg p-1;
 }
 
 .chip {
@@ -29,7 +29,7 @@
 }
 
 .chip:disabled {
-    @apply cursor-not-allowed border-dashed border-line opacity-50;
+    @apply cursor-default border-dashed border-line opacity-50;
 }
 
 .chip:focus-visible {

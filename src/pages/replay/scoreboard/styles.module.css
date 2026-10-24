@@ -9,7 +9,7 @@
 }
 
 .headerRow {
-    @apply bg-surface-2 py-2.5 tracking-wider;
+    @apply bg-surface-2/40 py-2;
 }
 
 .scroll {
@@ -21,7 +21,7 @@
 }
 
 .teamGrid {
-    @apply col-span-full grid grid-cols-subgrid items-center px-6;
+    @apply col-span-full grid grid-cols-subgrid items-center px-gutter;
 }
 
 .number {
@@ -33,7 +33,7 @@
 }
 
 .totalRow {
-    @apply border-t border-line bg-surface-2/50 py-3 tracking-wider;
+    @apply border-t border-line bg-surface-2/50 py-3;
 }
 
 .secondary {

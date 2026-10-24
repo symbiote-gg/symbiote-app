@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex items-center justify-center gap-8 border-b border-line px-6 py-5;
+    @apply flex items-center justify-center gap-8 border-b border-line px-gutter py-5;
 }
 
 .label {
@@ -65,7 +65,7 @@
 }
 
 .title {
-    @apply flex flex-col items-center gap-1 tracking-widest;
+    @apply flex flex-col items-center gap-1;
 }
 
 .title::after {

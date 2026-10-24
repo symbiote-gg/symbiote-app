@@ -5,7 +5,7 @@
 }
 
 .inner {
-    @apply flex h-full items-center gap-4 px-8;
+    @apply flex h-full items-center gap-4 px-gutter;
 }
 
 .game {

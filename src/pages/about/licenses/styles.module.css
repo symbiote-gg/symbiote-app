@@ -1,19 +1,15 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line bg-surface;
+    @apply flex-1;
 }
 
 .intro {
-    @apply flex shrink-0 flex-col gap-3 px-8 pt-7 pb-5;
-}
-
-.root .title {
-    @apply text-2xl leading-tight;
+    @apply flex shrink-0 flex-col gap-3 px-gutter pb-5;
 }
 
 .search {
-    @apply mt-2 flex w-full max-w-md items-center gap-2 rounded-lg border border-line bg-bg px-3;
+    @apply flex w-full max-w-md items-center gap-2 rounded-lg border border-line bg-bg px-3;
 }
 
 .searchIcon {
@@ -38,9 +34,9 @@
 }
 
 .empty {
-    @apply px-8 py-6 text-center;
+    @apply px-gutter py-6 text-center;
 }
 
 .footer {
-    @apply shrink-0 px-8 py-3;
+    @apply shrink-0 px-gutter py-3;
 }

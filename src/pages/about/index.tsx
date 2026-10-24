@@ -14,7 +14,7 @@ import {
     ISSUES_URL,
     REPO_URL,
 } from "@/legal";
-import { Typography } from "@/ui";
+import { Eyebrow, Typography } from "@/ui";
 import { ExternalLink } from "./external-link";
 import { Licenses } from "./licenses";
 
@@ -52,13 +52,17 @@ export function About() {
                 </header>
                 <dl className={styles.meta}>
                     <div className={styles.metaRow}>
-                        <dt className={styles.label}>{t("meta.version")}</dt>
+                        <dt>
+                            <Eyebrow>{t("meta.version")}</Eyebrow>
+                        </dt>
                         <dd className={styles.version}>
                             {version && t("meta.versionValue", { version })}
                         </dd>
                     </div>
                     <div className={styles.metaRow}>
-                        <dt className={styles.label}>{t("meta.license")}</dt>
+                        <dt>
+                            <Eyebrow>{t("meta.license")}</Eyebrow>
+                        </dt>
                         <dd className={styles.metaValue}>
                             <ExternalLink href={APP_LICENSE_URL}>
                                 {APP_LICENSE}
@@ -69,7 +73,7 @@ export function About() {
             </div>
             <Licenses />
             <footer className={styles.footer}>
-                <p className={styles.label}>{t("footer")}</p>
+                <Eyebrow>{t("footer")}</Eyebrow>
                 <div className={styles.notices}>
                     <Typography size="sm" variant="tertiary">
                         {DISCLAIMER}

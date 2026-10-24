@@ -22,19 +22,11 @@
 }
 
 .panel {
-    @apply flex max-h-none w-[26rem] max-w-[calc(100vw-16px)] flex-col gap-3 bg-surface;
-}
-
-.title {
-    @apply text-base font-semibold text-fg;
-}
-
-.description {
-    @apply text-sm leading-relaxed text-fg-muted;
+    @apply flex max-h-none w-[26rem] max-w-[calc(100vw-16px)] flex-col gap-3;
 }
 
 .track {
-    @apply block h-1.5 overflow-hidden rounded-full bg-surface-2;
+    @apply block h-1.5 overflow-hidden rounded-full bg-fg/6;
 }
 
 .fill {
@@ -42,7 +34,7 @@
 }
 
 .count {
-    @apply -mt-1 font-mono text-sm text-fg-muted tabular-nums;
+    @apply -mt-1 tabular-nums;
 }
 
 .done {

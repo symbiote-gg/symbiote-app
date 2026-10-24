@@ -1,0 +1,5 @@
+@reference "@/index.css";
+
+.root {
+    @apply tracking-[0.15em];
+}

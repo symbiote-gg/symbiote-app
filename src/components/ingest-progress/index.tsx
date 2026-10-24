@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { useIngestProgress } from "@/hooks/useIngestProgress";
-import { Popover } from "@/ui";
+import { Popover, Typography } from "@/ui";
 
 import styles from "./styles.module.css";
 
@@ -90,10 +90,10 @@ export function IngestProgress() {
                     onPointerEnter={onEnter}
                     onPointerLeave={onLeave}
                 >
-                    <span className={styles.title}>{label}</span>
-                    <p className={styles.description}>
+                    <Typography weight="semibold">{label}</Typography>
+                    <Typography size="sm" variant="secondary">
                         {t(`${kind}Description`)}
-                    </p>
+                    </Typography>
                     <span
                         role="progressbar"
                         aria-label={label}
@@ -107,9 +107,14 @@ export function IngestProgress() {
                             style={{ width: `${ratio * 100}%` }}
                         />
                     </span>
-                    <span className={styles.count}>
+                    <Typography
+                        size="sm"
+                        variant="tertiary"
+                        mono
+                        className={styles.count}
+                    >
                         {t.rich("count", { done, total, b: strong })}
-                    </span>
+                    </Typography>
                 </Popover>
             )}
         </>

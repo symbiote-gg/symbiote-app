@@ -9,7 +9,7 @@
 }
 
 .tooltip {
-    @apply absolute top-1 ml-2 flex flex-col gap-0.5 rounded-md border border-line bg-surface-2 px-2 py-1 shadow-lg;
+    @apply absolute top-1 ml-2 flex flex-col gap-0.5 rounded-md border border-line bg-surface-2 px-2.5 py-1.5 shadow-lg;
 }
 
 .tooltipLeft {

@@ -8,7 +8,7 @@ import type {
 import { useHiddenFilters } from "@/hooks/useHiddenFilters";
 import { useMeFilter } from "@/hooks/useMeFilter";
 import { useTimelineText } from "@/hooks/useTimelineText";
-import { Card, Typography } from "@/ui";
+import { Card, CardHeader } from "@/ui";
 import { FILTERS, type Filter } from "@/utils/timeline/filters";
 import { levelCurves } from "@/utils/timeline/levels";
 import { buildMarkers, involves } from "@/utils/timeline/markers";
@@ -91,36 +91,41 @@ export function Timeline({
 
     return (
         <Card className={styles.timeline}>
-            <header className={styles.header}>
-                <Typography size="xl2" weight="semibold" display>
-                    {t("title")}
-                </Typography>
-                <Filters
-                    hidden={hidden}
-                    disabled={disabled}
-                    counts={counts}
-                    me={me}
-                    meDisabled={ownerSlot === null}
-                    meCount={meCount}
-                    onToggle={onToggle}
-                    onToggleMe={toggleMe}
-                />
-            </header>
-            <Track
-                markers={visible}
-                curves={curves}
-                duration={duration}
-                players={players}
-                allyTeam={allyTeam}
-                highlightSlot={me ? ownerSlot : null}
-                winner={ownerWin === null ? null : ownerWin ? "ally" : "enemy"}
-                text={text}
-                hoverTime={hoverTime}
-                selectedId={selected?.id ?? null}
-                empty={FILTERS.every((filter) => !shown(filter))}
-                onHover={setHoverTime}
-                onSelect={setSelected}
+            <CardHeader
+                size="sm"
+                title={t("title")}
+                action={
+                    <Filters
+                        hidden={hidden}
+                        disabled={disabled}
+                        counts={counts}
+                        me={me}
+                        meDisabled={ownerSlot === null}
+                        meCount={meCount}
+                        onToggle={onToggle}
+                        onToggleMe={toggleMe}
+                    />
+                }
             />
+            <div className={styles.body}>
+                <Track
+                    markers={visible}
+                    curves={curves}
+                    duration={duration}
+                    players={players}
+                    allyTeam={allyTeam}
+                    highlightSlot={me ? ownerSlot : null}
+                    winner={
+                        ownerWin === null ? null : ownerWin ? "ally" : "enemy"
+                    }
+                    text={text}
+                    hoverTime={hoverTime}
+                    selectedId={selected?.id ?? null}
+                    empty={FILTERS.every((filter) => !shown(filter))}
+                    onHover={setHoverTime}
+                    onSelect={setSelected}
+                />
+            </div>
         </Card>
     );
 }

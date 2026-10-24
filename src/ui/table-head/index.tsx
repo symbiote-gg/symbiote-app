@@ -1,6 +1,6 @@
 import classNames from "classnames";
 
-import { Typography } from "../typography";
+import { Eyebrow } from "../eyebrow";
 
 import styles from "./styles.module.css";
 
@@ -24,17 +24,9 @@ export function TableHead({ columns, strip, className }: TableHeadProps) {
             })}
         >
             {columns.map(({ key, label, className }) => (
-                <Typography
-                    key={key}
-                    size="xs"
-                    weight="semibold"
-                    variant="tertiary"
-                    uppercase
-                    noWrap
-                    className={className}
-                >
+                <Eyebrow key={key} noWrap className={className}>
                     {label}
-                </Typography>
+                </Eyebrow>
             ))}
         </div>
     );

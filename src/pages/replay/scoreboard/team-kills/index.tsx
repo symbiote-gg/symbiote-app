@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
-import { Typography } from "@/ui";
+import { Eyebrow, Typography } from "@/ui";
 import { formatDuration } from "@/utils/dates";
 
 import styles from "./styles.module.css";
@@ -87,16 +87,9 @@ export function TeamKills({
                 {ally.heroes + ally.ai}
             </Typography>
             <div className={styles.center}>
-                <Typography
-                    size="xs"
-                    weight="semibold"
-                    variant="tertiary"
-                    uppercase
-                    noWrap
-                    className={styles.title}
-                >
+                <Eyebrow noWrap className={styles.title}>
                     {t("teamKills.title")}
-                </Typography>
+                </Eyebrow>
                 <Typography size="xs" variant="tertiary" mono noWrap>
                     {formatDuration(duration)}
                 </Typography>

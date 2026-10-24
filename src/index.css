@@ -27,6 +27,8 @@
     --color-party-3: #c084fc;
     --color-party-4: #e8e6ef;
 
+    --spacing-gutter: 1.5rem;
+
     --font-sans: "Inter Variable", Inter, system-ui, sans-serif;
     --font-display: "Saira Variable", "Inter Variable", system-ui, sans-serif;
     --font-mono:

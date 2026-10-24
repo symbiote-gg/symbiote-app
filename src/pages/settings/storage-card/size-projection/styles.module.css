@@ -16,10 +16,6 @@
     @apply size-3.5 shrink-0 text-fg-muted;
 }
 
-.label {
-    @apply tracking-[0.15em];
-}
-
 .sizes {
     @apply flex items-baseline gap-2 text-xl leading-none;
 }

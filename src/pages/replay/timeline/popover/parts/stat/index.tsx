@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { useFormatter } from "use-intl";
 
-import { Typography } from "@/ui";
+import { Eyebrow, Typography } from "@/ui";
 
 import styles from "./styles.module.css";
 
@@ -16,7 +16,7 @@ export function Stat({ label, value, muted = false }: StatProps) {
 
     return (
         <div className={styles.stat}>
-            <span className={styles.label}>{label}</span>
+            <Eyebrow>{label}</Eyebrow>
             <Typography
                 size="sm"
                 weight="semibold"

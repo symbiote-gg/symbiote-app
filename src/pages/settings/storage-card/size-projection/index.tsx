@@ -3,7 +3,7 @@ import { ArrowRight, Database } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import { useFormatSize } from "@/hooks/useFormatSize";
-import { Typography } from "@/ui";
+import { Eyebrow, Typography } from "@/ui";
 
 import styles from "./styles.module.css";
 
@@ -44,15 +44,7 @@ export function SizeProjection({
             <div className={styles.header}>
                 <div className={styles.title}>
                     <Database className={styles.icon} />
-                    <Typography
-                        size="xs"
-                        weight="semibold"
-                        variant="tertiary"
-                        uppercase
-                        className={styles.label}
-                    >
-                        {t("size")}
-                    </Typography>
+                    <Eyebrow>{t("size")}</Eyebrow>
                 </div>
                 <Typography
                     mono

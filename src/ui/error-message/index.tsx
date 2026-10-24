@@ -1,5 +1,7 @@
 import classNames from "classnames";
 
+import { Typography } from "../typography";
+
 import styles from "./styles.module.css";
 
 export interface ErrorMessageProps {
@@ -9,6 +11,8 @@ export interface ErrorMessageProps {
 
 export function ErrorMessage({ error, className }: ErrorMessageProps) {
     return (
-        <p className={classNames(className, styles.root)}>{String(error)}</p>
+        <Typography size="sm" className={classNames(className, styles.root)}>
+            {String(error)}
+        </Typography>
     );
 }

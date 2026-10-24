@@ -11,7 +11,7 @@ import { useTranslations } from "use-intl";
 import type { ThirdPartyPackage } from "@/api/licenses";
 import { useThirdPartyLicenses } from "@/hooks/useThirdPartyLicenses";
 import { APP_LICENSE, APP_LICENSE_URL } from "@/legal";
-import { TableHead, Typography, linkClassName } from "@/ui";
+import { Card, CardHeader, TableHead, Typography, linkClassName } from "@/ui";
 import { ExternalLink } from "../external-link";
 import { PackageEntry } from "../package-entry";
 
@@ -48,40 +48,41 @@ export function Licenses() {
     };
 
     return (
-        <section className={styles.root}>
-            <div className={styles.intro}>
-                <Typography display weight="semibold" className={styles.title}>
-                    {t("title")}
-                </Typography>
-                <Typography size="sm" variant="tertiary">
-                    {t.rich("app", {
-                        license: APP_LICENSE,
-                        count: data?.packages.length ?? 0,
-                        link: (chunks) => (
-                            <ExternalLink href={APP_LICENSE_URL}>
-                                {chunks}
-                            </ExternalLink>
-                        ),
-                    })}
-                </Typography>
-                {error && (
-                    <Typography size="sm" variant="tertiary">
-                        {t("unavailable")}
-                    </Typography>
-                )}
-                {data && (
-                    <label className={styles.search}>
-                        <Search size={16} className={styles.searchIcon} />
-                        <input
-                            type="search"
-                            value={query}
-                            placeholder={t("search")}
-                            className={styles.input}
-                            onChange={onQueryChange}
-                        />
-                    </label>
-                )}
-            </div>
+        <Card className={styles.root}>
+            <CardHeader
+                size="sm"
+                title={t("title")}
+                subtitle={t.rich("app", {
+                    license: APP_LICENSE,
+                    count: data?.packages.length ?? 0,
+                    link: (chunks) => (
+                        <ExternalLink href={APP_LICENSE_URL}>
+                            {chunks}
+                        </ExternalLink>
+                    ),
+                })}
+            />
+            {(error || data) && (
+                <div className={styles.intro}>
+                    {error && (
+                        <Typography size="sm" variant="tertiary">
+                            {t("unavailable")}
+                        </Typography>
+                    )}
+                    {data && (
+                        <label className={styles.search}>
+                            <Search size={16} className={styles.searchIcon} />
+                            <input
+                                type="search"
+                                value={query}
+                                placeholder={t("search")}
+                                className={styles.input}
+                                onChange={onQueryChange}
+                            />
+                        </label>
+                    )}
+                </div>
+            )}
             {data && (
                 <div className={styles.table}>
                     <TableHead
@@ -132,6 +133,6 @@ export function Licenses() {
                     )}
                 </div>
             )}
-        </section>
+        </Card>
     );
 }

@@ -4,10 +4,6 @@
     @apply flex flex-col gap-0.5 rounded-md bg-surface px-2.5 py-1.5;
 }
 
-.label {
-    @apply text-[10px] font-semibold uppercase tracking-widest text-fg-muted;
-}
-
 .muted {
     @apply text-fg-muted;
 }

@@ -7,7 +7,7 @@ import { useFormatter, useTranslations } from "use-intl";
 import type { HeroRole, ReplayDetail, ReplayPlayerDetail } from "@/api/replays";
 import { BackToReplays, HeroPortrait, Kad, ModeLabel } from "@/components";
 import { useImageFallback } from "@/hooks/useImageFallback";
-import { Button, Typography } from "@/ui";
+import { Button, Eyebrow, Typography } from "@/ui";
 import { formatDuration, usePlayedOn } from "@/utils/dates";
 import { milestones } from "./milestones";
 
@@ -245,15 +245,7 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                         <div className={styles.panel}>
                             {stats.map(({ label, value }) => (
                                 <div key={label} className={styles.stat}>
-                                    <Typography
-                                        size="xs"
-                                        variant="tertiary"
-                                        uppercase
-                                        noWrap
-                                        className={styles.statLabel}
-                                    >
-                                        {label}
-                                    </Typography>
+                                    <Eyebrow noWrap>{label}</Eyebrow>
                                     <Typography
                                         weight="semibold"
                                         mono

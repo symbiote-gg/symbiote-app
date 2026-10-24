@@ -49,7 +49,7 @@
 }
 
 .content {
-    @apply relative flex w-full flex-col justify-between gap-16 px-6 pt-5 pb-6;
+    @apply relative flex w-full flex-col justify-between gap-16 px-gutter pt-5 pb-6;
 }
 
 .toolbar {
@@ -156,10 +156,6 @@
 
 .stat {
     @apply flex flex-col items-start gap-1.5 px-4 py-2.5 text-left;
-}
-
-.stat .statLabel {
-    @apply text-[10px] tracking-[0.15em];
 }
 
 .stat .statValue {

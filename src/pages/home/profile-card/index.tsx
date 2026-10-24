@@ -7,6 +7,7 @@ import {
     Card,
     CardHeader,
     EmptyState,
+    Eyebrow,
     StatTile,
     Typography,
     richStrong,
@@ -45,13 +46,9 @@ export function ProfileCard({ profile }: ProfileCardProps) {
                 <div className={styles.body}>
                     <div className={styles.recent}>
                         <div className={styles.recentLabels}>
-                            <Typography
-                                size="xs"
-                                variant="tertiary"
-                                className={styles.eyebrow}
-                            >
+                            <Eyebrow>
                                 {t("last", { count: recent.length })}
-                            </Typography>
+                            </Eyebrow>
                             <Typography size="xs" variant="tertiary" mono>
                                 {recentWins}-{recentLosses}
                             </Typography>

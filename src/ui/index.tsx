@@ -3,6 +3,7 @@ export * from "./button-link";
 export * from "./card";
 export * from "./empty-state";
 export * from "./error-message";
+export * from "./eyebrow";
 export * from "./meter";
 export * from "./popover";
 export * from "./rich-text";

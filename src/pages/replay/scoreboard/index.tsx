@@ -4,7 +4,7 @@ import { useFormatter, useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
 import { Kad } from "@/components";
-import { Card, TableHead, Typography } from "@/ui";
+import { Card, Eyebrow, TableHead, Typography } from "@/ui";
 import { PlayerRow } from "./player-row";
 import { STATS, type Stat } from "./stats";
 import { type Kills, TeamKills } from "./team-kills";
@@ -124,14 +124,7 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                             styles.totalRow,
                                         )}
                                     >
-                                        <Typography
-                                            size="xs"
-                                            weight="semibold"
-                                            variant="tertiary"
-                                            uppercase
-                                        >
-                                            {t("teamTotal")}
-                                        </Typography>
+                                        <Eyebrow>{t("teamTotal")}</Eyebrow>
                                         <span />
                                         <Typography
                                             size="xs"

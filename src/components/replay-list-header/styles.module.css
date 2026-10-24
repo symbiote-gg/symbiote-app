@@ -1,6 +1,6 @@
 @reference "@/index.css";
 
 .root {
-    @apply h-9 shrink-0 overflow-y-hidden bg-surface-2 tracking-wider;
+    @apply h-9 shrink-0 overflow-y-hidden border-line bg-surface-2/40;
     scrollbar-gutter: stable;
 }

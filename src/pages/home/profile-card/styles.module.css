@@ -5,7 +5,7 @@
 }
 
 .body {
-    @apply flex flex-col gap-8 px-8 pt-2 pb-7;
+    @apply flex flex-col gap-8 px-gutter pt-2 pb-6;
 }
 
 .recent {
@@ -14,10 +14,6 @@
 
 .recentLabels {
     @apply flex items-baseline justify-between;
-}
-
-.recentLabels .eyebrow {
-    @apply font-semibold tracking-[0.2em] uppercase;
 }
 
 .stats {

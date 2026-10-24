@@ -15,6 +15,7 @@ export function Badge({ variant, children }: BadgeProps) {
         <Typography
             size="xs"
             weight="semibold"
+            uppercase
             noWrap
             className={classNames(styles.root, styles[variant])}
         >

@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import type { ReactNode } from "react";
 
+import { Eyebrow } from "../eyebrow";
 import { Typography } from "../typography";
 
 import styles from "./styles.module.css";
@@ -14,9 +15,7 @@ export interface StatTileProps {
 export function StatTile({ label, value, accent }: StatTileProps) {
     return (
         <div className={styles.root}>
-            <Typography size="xs" variant="tertiary" className={styles.label}>
-                {label}
-            </Typography>
+            <Eyebrow className={styles.label}>{label}</Eyebrow>
             <Typography
                 display
                 truncate
