@@ -1,5 +1,6 @@
 use std::collections::{BTreeSet, HashMap};
 
+use chrono::{DateTime, Utc};
 use hots_replay_parser::summary::LOOPS_PER_SECOND;
 use sqlx::types::Json;
 use sqlx::{
@@ -356,6 +357,16 @@ pub async fn mark_seen(pool: &SqlitePool, id: i64) -> sqlx::Result<()> {
 
 pub async fn count(executor: impl SqliteExecutor<'_>) -> sqlx::Result<i64> {
     sqlx::query_scalar("SELECT COUNT(*) FROM replays")
+        .fetch_one(executor)
+        .await
+}
+
+/// Returns how many replays are stored, when the latest was ingested and when the
+/// oldest was played.
+pub async fn import_summary(
+    executor: impl SqliteExecutor<'_>,
+) -> sqlx::Result<(i64, Option<DateTime<Utc>>, Option<DateTime<Utc>>)> {
+    sqlx::query_as("SELECT COUNT(*), MAX(ingest_date), MIN(timestamp) FROM replays")
         .fetch_one(executor)
         .await
 }
@@ -954,7 +965,6 @@ async fn insert_superseded(
 
 #[cfg(test)]
 mod tests {
-    use chrono::DateTime;
     use sha2::{Digest, Sha256};
     use sqlx::sqlite::SqlitePoolOptions;
 
@@ -1213,6 +1223,19 @@ mod tests {
         game.replay.game_id = hex(game_id);
         game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
         insert_bundle(pool, game).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn summarizes_the_imported_replays() {
+        let pool = pool().await;
+        assert_eq!(import_summary(&pool).await.unwrap(), (0, None, None));
+
+        insert_game(&pool, "new", 200).await;
+        insert_game(&pool, "old", 100).await;
+        let (replays, last_import, oldest_game) = import_summary(&pool).await.unwrap();
+        assert_eq!(replays, 2);
+        assert!(last_import.is_some());
+        assert_eq!(oldest_game, DateTime::from_timestamp(100, 0));
     }
 
     fn cursor(replay: &ReplayWithPlayers) -> ReplayCursor {

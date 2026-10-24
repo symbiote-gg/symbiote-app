@@ -4,11 +4,14 @@ use chrono::DateTime;
 use sqlx::SqlitePool;
 use tauri::ipc::Channel;
 use tauri::{AppHandle, State};
+use tauri_plugin_opener::OpenerExt;
 
 use crate::error::{Error, Result};
 use crate::ingester::{IngestProgress, IngestSubscribers, Progress};
 use crate::types::replay::{ReplayCursor, ReplayDetail, ReplayPage};
-use crate::types::settings::{DatabaseStats, EventRetention, RetentionPreview, Settings};
+use crate::types::settings::{
+    DatabaseStats, EventRetention, ReplaysFolder, ReplaysFolderStats, RetentionPreview, Settings,
+};
 use crate::types::stats::{MostPlayedHeroes, ProfileSummary};
 
 const MAX_PAGE_SIZE: i64 = 100;
@@ -172,4 +175,29 @@ pub async fn get_database_stats(
         games_with_events: crate::db::replays::count_with_events(&*pool).await?,
         games_last_year: crate::db::replays::count_since(&*pool, last_year).await?,
     })
+}
+
+/// Returns the folder watched for replays, with how many replays were imported, when the
+/// latest was and when the oldest game was played.
+#[tauri::command]
+pub async fn get_replays_folder(
+    pool: State<'_, SqlitePool>,
+    folder: State<'_, ReplaysFolder>,
+) -> Result<ReplaysFolderStats> {
+    let (replays, last_import, oldest_game) = crate::db::replays::import_summary(&*pool).await?;
+    Ok(ReplaysFolderStats {
+        path: folder.0.as_ref().map(|dir| dir.display().to_string()),
+        replays,
+        last_import,
+        oldest_game,
+    })
+}
+
+/// Opens the folder watched for replays in the file manager.
+#[tauri::command]
+pub fn open_replays_folder(app: AppHandle, folder: State<'_, ReplaysFolder>) -> Result<()> {
+    let dir = folder.0.as_ref().ok_or(Error::ReplaysFolderNotFound)?;
+    app.opener()
+        .open_path(dir.display().to_string(), None::<&str>)?;
+    Ok(())
 }

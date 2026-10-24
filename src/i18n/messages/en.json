@@ -260,6 +260,15 @@
         }
     },
     "settings": {
+        "replaysFolder": {
+            "title": "Replays folder",
+            "subtitle": "SymbioteGG watches this folder and imports new games as soon as the match ends.",
+            "open": "Open",
+            "notFound": "Couldn't find the Heroes of the Storm replays folder.",
+            "replays": "Replays found",
+            "lastImport": "Last import",
+            "oldestGame": "Oldest game"
+        },
         "storage": {
             "title": "Keep match events for",
             "subtitle": "Older games lose their timeline but keep their result, scoreboard and stats. Choosing a longer time later reads the events back from your <code>.StormReplay</code> files.",

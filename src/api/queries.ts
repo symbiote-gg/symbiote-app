@@ -17,6 +17,7 @@ import {
 } from "./replays";
 import {
     getDatabaseStats,
+    getReplaysFolder,
     getSettings,
     previewEventRetention,
 } from "./settings";
@@ -168,6 +169,11 @@ export const databaseStatsQuery = queryOptions({
     queryKey: ["stats", "database"],
     staleTime: 0,
     queryFn: getDatabaseStats,
+});
+
+export const replaysFolderQuery = queryOptions({
+    queryKey: ["stats", "replaysFolder"],
+    queryFn: getReplaysFolder,
 });
 
 export const retentionPreviewQuery = (years: number | null) =>

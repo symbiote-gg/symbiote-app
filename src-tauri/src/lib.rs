@@ -2,12 +2,13 @@ use std::path::PathBuf;
 
 use commands::{
     count_replays, get_database_stats, get_ingest_progress, get_most_played_heroes,
-    get_profile_summary, get_replay, get_settings, list_replays, mark_replay_as_seen,
-    preview_event_retention, set_event_retention, subscribe_ingest, unsubscribe_ingest,
+    get_profile_summary, get_replay, get_replays_folder, get_settings, list_replays,
+    mark_replay_as_seen, open_replays_folder, preview_event_retention, set_event_retention,
+    subscribe_ingest, unsubscribe_ingest,
 };
 use tauri::webview::PageLoadEvent;
 use tauri::Manager;
-use types::settings::EventRetention;
+use types::settings::{EventRetention, ReplaysFolder};
 
 mod commands;
 mod db;
@@ -87,10 +88,12 @@ pub fn run() {
             app.manage(pool);
             app.manage(ingester::IngestSubscribers::default());
             app.manage(ingester::Progress::default());
-            match accounts_dir(app.handle()) {
-                Some(dir) => ingester::start(app.handle().clone(), dir),
+            let dir = accounts_dir(app.handle());
+            match &dir {
+                Some(dir) => ingester::start(app.handle().clone(), dir.clone()),
                 None => log::warn!("couldn't find the replays folder, set {ACCOUNTS_DIR_ENV}"),
             }
+            app.manage(ReplaysFolder(dir));
             Ok(())
         })
         .on_page_load(|webview, payload| {
@@ -112,7 +115,9 @@ pub fn run() {
             get_settings,
             preview_event_retention,
             set_event_retention,
-            get_database_stats
+            get_database_stats,
+            get_replays_folder,
+            open_replays_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,0 +1,29 @@
+@reference "@/index.css";
+
+.root {
+    @apply lg:w-1/2;
+}
+
+.body {
+    @apply flex flex-col gap-6 px-gutter pb-6;
+}
+
+.path {
+    @apply flex min-w-0 items-center gap-3 rounded-lg border border-line bg-bg py-3 pr-3 pl-4;
+}
+
+.icon {
+    @apply size-5 shrink-0 text-primary-text;
+}
+
+.pathText {
+    @apply min-w-0 flex-1;
+}
+
+.stats {
+    @apply flex flex-wrap gap-x-10 gap-y-4;
+}
+
+.stat {
+    @apply flex flex-col gap-1.5;
+}

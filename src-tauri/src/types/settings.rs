@@ -1,5 +1,7 @@
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicU32, Ordering};
 
+use chrono::{DateTime, Utc};
 use serde::Serialize;
 use sqlx::FromRow;
 use tokio::sync::{Mutex, MutexGuard};
@@ -32,6 +34,19 @@ pub struct DatabaseStats {
     pub bytes: u64,
     pub games_with_events: i64,
     pub games_last_year: i64,
+}
+
+/// The folder the ingester watches for replays, if one was found.
+#[derive(Debug)]
+pub struct ReplaysFolder(pub Option<PathBuf>);
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReplaysFolderStats {
+    pub path: Option<String>,
+    pub replays: i64,
+    pub last_import: Option<DateTime<Utc>>,
+    pub oldest_game: Option<DateTime<Utc>>,
 }
 
 /// The event retention in effect, shared by the ingester and the commands.

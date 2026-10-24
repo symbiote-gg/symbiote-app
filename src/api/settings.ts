@@ -20,6 +20,13 @@ export type DatabaseStats = {
     gamesLastYear: number;
 };
 
+export type ReplaysFolderStats = {
+    path: string | null;
+    replays: number;
+    lastImport: string | null;
+    oldestGame: string | null;
+};
+
 export const getSettings = () => invoke<Settings>("get_settings");
 
 export const previewEventRetention = (years: number | null) =>
@@ -30,3 +37,8 @@ export const setEventRetention = (years: number | null) =>
 
 export const getDatabaseStats = () =>
     invoke<DatabaseStats>("get_database_stats");
+
+export const getReplaysFolder = () =>
+    invoke<ReplaysFolderStats>("get_replays_folder");
+
+export const openReplaysFolder = () => invoke<void>("open_replays_folder");

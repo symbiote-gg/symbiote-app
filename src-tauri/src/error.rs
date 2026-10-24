@@ -20,6 +20,10 @@ pub enum Error {
     InvalidArgument(String),
     #[error("replay {0} not found")]
     ReplayNotFound(i64),
+    #[error("replays folder not found")]
+    ReplaysFolderNotFound,
+    #[error(transparent)]
+    Opener(#[from] tauri_plugin_opener::Error),
 }
 
 /// Commands send errors to the frontend as their message.
