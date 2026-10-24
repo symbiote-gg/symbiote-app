@@ -47,6 +47,14 @@
     @apply text-team-red;
 }
 
+.count.ally {
+    @apply text-team-blue;
+}
+
+.count.enemy {
+    @apply text-team-red;
+}
+
 .count {
     @apply text-5xl leading-none tabular-nums;
     text-box: trim-both cap alphabetic;

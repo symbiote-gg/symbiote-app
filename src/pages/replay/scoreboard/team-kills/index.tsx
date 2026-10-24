@@ -79,7 +79,11 @@ export function TeamKills({
     return (
         <div className={styles.root}>
             <TeamLabel side="ally" kills={ally} level={allyLevel} />
-            <Typography weight="semibold" display className={styles.count}>
+            <Typography
+                weight="semibold"
+                display
+                className={classNames(styles.count, styles.ally)}
+            >
                 {ally.heroes + ally.ai}
             </Typography>
             <div className={styles.center}>
@@ -97,7 +101,11 @@ export function TeamKills({
                     {formatDuration(duration)}
                 </Typography>
             </div>
-            <Typography weight="semibold" display className={styles.count}>
+            <Typography
+                weight="semibold"
+                display
+                className={classNames(styles.count, styles.enemy)}
+            >
                 {enemy.heroes + enemy.ai}
             </Typography>
             <TeamLabel side="enemy" kills={enemy} level={enemyLevel} />
