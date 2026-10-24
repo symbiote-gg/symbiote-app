@@ -81,7 +81,12 @@ export function PlayerRow({
                         </Typography>
                         {player.upvotes > 0 && (
                             <Tooltip content={t("upvotes")}>
-                                <span className={styles.upvotes}>
+                                <span
+                                    className={classNames(styles.upvotes, {
+                                        [styles.gold]: player.upvotes > 6,
+                                        [styles.mythic]: player.upvotes > 3,
+                                    })}
+                                >
                                     <CircleChevronUp />
                                     <Typography
                                         size="sm"

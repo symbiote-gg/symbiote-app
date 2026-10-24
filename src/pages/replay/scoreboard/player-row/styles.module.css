@@ -73,6 +73,14 @@
     @apply size-4;
 }
 
+.upvotes.mythic > * {
+    @apply text-mythic;
+}
+
+.upvotes.gold > * {
+    @apply text-mvp;
+}
+
 .statCell {
     @apply flex flex-col items-end justify-center gap-1.5 self-stretch px-2;
 }
