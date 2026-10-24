@@ -138,10 +138,13 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                                 variant="secondary"
                                 size="sm"
                                 onClick={onReveal}
+                                aria-label={t("replay.showInFolder")}
                                 className={styles.tool}
                             >
                                 <Folder />
-                                {t("replay.showInFolder")}
+                                <span className={styles.toolLabel}>
+                                    {t("replay.showInFolder")}
+                                </span>
                             </Button>
                         )}
                     </div>
@@ -158,6 +161,20 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                         </span>
                         <div className={styles.text}>
                             <div className={styles.facts}>
+                                {result !== "unknown" && (
+                                    <Typography
+                                        size="xs"
+                                        weight="semibold"
+                                        uppercase
+                                        noWrap
+                                        className={classNames(
+                                            styles.tag,
+                                            styles.resultTag,
+                                        )}
+                                    >
+                                        {t("replay.result", { result })}
+                                    </Typography>
+                                )}
                                 <Typography
                                     size="xs"
                                     weight="semibold"
@@ -185,57 +202,53 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                             >
                                 {replay.mapName}
                             </Typography>
-                            {reached.length > 0 && (
-                                <div className={styles.moments}>
-                                    {reached.map(({ kind, team, time }) => {
-                                        const side =
-                                            team === allyTeam
-                                                ? "ally"
-                                                : "enemy";
-
-                                        return (
-                                            <div
-                                                key={kind}
-                                                className={classNames(
-                                                    styles.moment,
-                                                    styles[side],
-                                                )}
-                                            >
-                                                <Typography
-                                                    size="xs"
-                                                    variant="tertiary"
-                                                    noWrap
-                                                >
-                                                    {t(
-                                                        `replay.milestone.${kind}`,
-                                                    )}
-                                                </Typography>
-                                                <Typography
-                                                    size="xs"
-                                                    weight="semibold"
-                                                    mono
-                                                    noWrap
-                                                >
-                                                    {formatDuration(
-                                                        Math.round(time),
-                                                    )}
-                                                </Typography>
-                                                <Typography
-                                                    size="xs"
-                                                    weight="semibold"
-                                                    noWrap
-                                                    className={styles.side}
-                                                >
-                                                    {t("replay.milestoneSide", {
-                                                        side,
-                                                    })}
-                                                </Typography>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
                         </div>
+                        {reached.length > 0 && (
+                            <div className={styles.moments}>
+                                {reached.map(({ kind, team, time }) => {
+                                    const side =
+                                        team === allyTeam ? "ally" : "enemy";
+
+                                    return (
+                                        <div
+                                            key={kind}
+                                            className={classNames(
+                                                styles.moment,
+                                                styles[side],
+                                            )}
+                                        >
+                                            <Typography
+                                                size="xs"
+                                                variant="tertiary"
+                                                noWrap
+                                            >
+                                                {t(`replay.milestone.${kind}`)}
+                                            </Typography>
+                                            <Typography
+                                                size="xs"
+                                                weight="semibold"
+                                                mono
+                                                noWrap
+                                            >
+                                                {formatDuration(
+                                                    Math.round(time),
+                                                )}
+                                            </Typography>
+                                            <Typography
+                                                size="xs"
+                                                weight="semibold"
+                                                noWrap
+                                                className={styles.side}
+                                            >
+                                                {t("replay.milestoneSide", {
+                                                    side,
+                                                })}
+                                            </Typography>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                     <div className={styles.outcome}>
                         <Typography

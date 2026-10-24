@@ -94,9 +94,11 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                 ...STATS.map(({ stat, label, secondary }) => ({
                                     key: stat,
                                     label: t(label),
-                                    className: classNames(styles.number, {
-                                        [styles.secondary]: secondary,
-                                    }),
+                                    className: classNames(
+                                        styles.number,
+                                        styles.statHead,
+                                        { [styles.secondary]: secondary },
+                                    ),
                                 })),
                             ]}
                         />
