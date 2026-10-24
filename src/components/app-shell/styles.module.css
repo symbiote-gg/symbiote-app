@@ -25,7 +25,7 @@
 }
 
 .link {
-    @apply rounded-lg px-3.5 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:text-fg;
+    @apply flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:text-fg;
 }
 
 .iconLink {
@@ -33,7 +33,7 @@
 }
 
 .icon {
-    @apply size-5;
+    @apply size-4.5;
 }
 
 .active {
@@ -41,7 +41,7 @@
 }
 
 .end {
-    @apply ml-auto flex items-center gap-3;
+    @apply ml-auto flex items-center gap-1;
 }
 
 .content {

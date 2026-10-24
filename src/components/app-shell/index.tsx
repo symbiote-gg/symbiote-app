@@ -1,19 +1,32 @@
 import classNames from "classnames";
-import { Settings } from "lucide-react";
+import {
+    Clapperboard,
+    Crown,
+    House,
+    Info,
+    Settings,
+    UserRound,
+} from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
 import { useTranslations } from "use-intl";
 import { Link, useLocation } from "wouter";
 
 import { SymbioteLogo, SymbioteWordmark } from "@/assets";
+import { Tooltip } from "@/ui";
 import { IngestProgress } from "../ingest-progress";
 
 import styles from "./styles.module.css";
 
 const NAV = [
-    { key: "home", href: "/" },
-    { key: "replays", href: "/replays" },
-    { key: "profile", href: "/profile" },
-    { key: "heroes", href: "/heroes" },
+    { key: "home", href: "/", Icon: House },
+    { key: "replays", href: "/replays", Icon: Clapperboard },
+    { key: "profile", href: "/profile", Icon: UserRound },
+    { key: "heroes", href: "/heroes", Icon: Crown },
+] as const;
+
+const UTILITY = [
+    { key: "about", href: "/about", Icon: Info },
+    { key: "settings", href: "/settings", Icon: Settings },
 ] as const;
 
 const isActive = (location: string, href: string) =>
@@ -38,7 +51,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <SymbioteWordmark className={styles.wordmark} />
                 </Link>
                 <nav className={styles.nav}>
-                    {NAV.map(({ key, href }) => (
+                    {NAV.map(({ key, href, Icon }) => (
                         <Link
                             key={key}
                             href={href}
@@ -46,30 +59,30 @@ export function AppShell({ children }: { children: ReactNode }) {
                                 [styles.active]: isActive(location, href),
                             })}
                         >
+                            <Icon className={styles.icon} />
                             {t(key)}
                         </Link>
                     ))}
                 </nav>
                 <div className={styles.end}>
                     <IngestProgress />
-                    <Link
-                        href="/about"
-                        className={classNames(styles.link, {
-                            [styles.active]: location === "/about",
-                        })}
-                    >
-                        {t("about")}
-                    </Link>
-                    <Link
-                        href="/settings"
-                        aria-label={t("settings")}
-                        title={t("settings")}
-                        className={classNames(styles.link, styles.iconLink, {
-                            [styles.active]: location === "/settings",
-                        })}
-                    >
-                        <Settings className={styles.icon} />
-                    </Link>
+                    {UTILITY.map(({ key, href, Icon }) => (
+                        <Tooltip key={key} content={t(key)} placement="bottom">
+                            <Link
+                                href={href}
+                                aria-label={t(key)}
+                                className={classNames(
+                                    styles.link,
+                                    styles.iconLink,
+                                    {
+                                        [styles.active]: location === href,
+                                    },
+                                )}
+                            >
+                                <Icon className={styles.icon} />
+                            </Link>
+                        </Tooltip>
+                    ))}
                 </div>
             </header>
             <main ref={main} className={styles.content}>

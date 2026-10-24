@@ -1,16 +1,16 @@
 import classNames from "classnames";
 import { type ReactNode, useId, useState } from "react";
 
-import { Popover } from "../popover";
+import { Popover, type PopoverPlacement } from "../popover";
 import { Typography } from "../typography";
 
 import styles from "./styles.module.css";
 
 export interface TooltipProps {
     content: ReactNode;
-    /** Shows `content` as a bold title above this. */
     description?: ReactNode;
     compact?: boolean;
+    placement?: PopoverPlacement;
     children: ReactNode;
     className?: string;
     panelClassName?: string;
@@ -20,6 +20,7 @@ export function Tooltip({
     content,
     description,
     compact = true,
+    placement = "top",
     children,
     className,
     panelClassName,
@@ -62,7 +63,7 @@ export function Tooltip({
                     id={id}
                     role="tooltip"
                     anchor={anchor}
-                    placement="top"
+                    placement={placement}
                     compact={compact}
                     interactive={false}
                     className={panelClassName}
