@@ -116,6 +116,7 @@ CREATE TABLE "replays_players" (
 	"team" INTEGER NOT NULL CHECK ("team" IN (0, 1)),
 	"hero_id" INTEGER NOT NULL,
 	"time_dead_secs" REAL CHECK ("time_dead_secs" >= 0),
+	"time_on_fire_secs" REAL CHECK ("time_on_fire_secs" >= 0),
 	"upvotes" INTEGER NOT NULL DEFAULT 0 CHECK ("upvotes" >= 0),
 	"party" INTEGER CHECK ("party" BETWEEN 1 AND 5),
 	"xp" BLOB CHECK ("xp" IS NULL OR json_valid("xp", 8)),

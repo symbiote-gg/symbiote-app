@@ -84,6 +84,11 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
             ? formatDuration(Math.round(owner.timeDead))
             : "-";
 
+    const timeOnFire =
+        owner?.timeOnFire != null
+            ? formatDuration(Math.round(owner.timeOnFire))
+            : "-";
+
     const played = playedOn(replay.timestamp);
 
     const roleStat = ROLE_STAT[replay.heroRole ?? "ranged_assassin"];
@@ -102,6 +107,7 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
             value: formatStat(owner?.[roleStat]),
         },
         { label: t("replay.timeDead"), value: timeDead },
+        { label: t("replay.timeOnFire"), value: timeOnFire },
     ];
 
     return (

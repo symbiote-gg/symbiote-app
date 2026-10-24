@@ -618,7 +618,8 @@ pub async fn get_detail(
              json_extract(rp.score, '$.SelfHealing') AS self_healing,
              json_extract(rp.score, '$.DamageTaken') AS damage_taken,
              json_extract(rp.score, '$.ExperienceContribution') AS xp,
-             rp.time_dead_secs AS time_dead, rp.upvotes, rp.party
+             rp.time_dead_secs AS time_dead,
+             rp.time_on_fire_secs AS time_on_fire, rp.upvotes, rp.party
          FROM replays_players rp
          JOIN players p ON p.id = rp.player_id
          JOIN heroes h ON h.id = rp.hero_id
@@ -787,7 +788,7 @@ async fn insert_players(
     for chunk in rows.chunks(chunk_rows(10)) {
         QueryBuilder::<Sqlite>::new(
             "INSERT INTO replays_players (replay_id, player_id, slot, team, hero_id,
-                 time_dead_secs, upvotes, party, xp, score) ",
+                 time_dead_secs, time_on_fire_secs, upvotes, party, xp, score) ",
         )
         .push_values(chunk, |mut row, (player, player_id, hero_id)| {
             row.push_bind(replay_id)
@@ -796,6 +797,7 @@ async fn insert_players(
                 .push_bind(player.team)
                 .push_bind(*hero_id)
                 .push_bind(player.time_dead_secs)
+                .push_bind(player.time_on_fire_secs)
                 .push_bind(player.upvotes)
                 .push_bind(player.party)
                 .push("jsonb(")
@@ -1020,6 +1022,7 @@ mod tests {
                 team: 0,
                 hero_slug: "Wizard".to_owned(),
                 time_dead_secs: None,
+                time_on_fire_secs: None,
                 upvotes: 0,
                 party: None,
                 xp: None,

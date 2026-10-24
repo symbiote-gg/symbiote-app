@@ -139,6 +139,7 @@ export type ReplayPlayerDetail = ReplayPlayer & {
     damageTaken: number | null;
     xp: number | null;
     timeDead: number | null;
+    timeOnFire: number | null;
     upvotes: number;
     party: number | null;
     talents: TalentPick[];

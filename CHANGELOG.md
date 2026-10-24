@@ -27,6 +27,7 @@ and this project adheres to
   tooltips.
 - Purge the timeline events of replays older than the retention period, showing
   a notice in the replay detail.
+- Add time on fire to the replay detail header stats.
 
 ### Changed
 

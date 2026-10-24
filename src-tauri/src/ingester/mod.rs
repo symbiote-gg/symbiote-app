@@ -33,7 +33,7 @@ const REPLAY_EXTENSION: &str = "StormReplay";
 /// change in [`bundle::build_bundle`], so the replays stored before are re-parsed in place.
 /// A parser upgrade that stores nothing new needs no bump, and schema-only changes go in
 /// a migration instead.
-pub const INGEST_VERSION: i64 = 2;
+pub const INGEST_VERSION: i64 = 0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Source {

@@ -86,6 +86,7 @@
         "damageTaken": "Dmg taken",
         "xpContribution": "XP",
         "timeDead": "Time dead",
+        "timeOnFire": "Time on fire",
         "upvotes": "Upvotes",
         "party": "Premade party {party}",
         "talents": "Talents",

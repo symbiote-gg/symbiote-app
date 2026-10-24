@@ -183,6 +183,7 @@ pub(super) fn build_bundle(
             team: player.team.into(),
             hero_slug,
             time_dead_secs: player.time_dead_secs,
+            time_on_fire_secs: player.time_on_fire_secs,
             upvotes: player.upvotes.into(),
             party: player.party.map(i64::from),
             xp: player

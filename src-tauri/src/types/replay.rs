@@ -143,6 +143,7 @@ pub struct ReplayPlayerDetail {
     pub damage_taken: Option<i64>,
     pub xp: Option<i64>,
     pub time_dead: Option<f64>,
+    pub time_on_fire: Option<f64>,
     pub upvotes: i64,
     pub party: Option<i64>,
     #[sqlx(skip)]
@@ -203,6 +204,7 @@ pub struct NewReplayPlayer {
     pub team: i64,
     pub hero_slug: String,
     pub time_dead_secs: Option<f64>,
+    pub time_on_fire_secs: Option<f64>,
     pub upvotes: i64,
     pub party: Option<i64>,
     pub xp: Option<serde_json::Value>,
