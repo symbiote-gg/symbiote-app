@@ -69,6 +69,15 @@ pub fn run() {
             let started = std::time::Instant::now();
             let pool = tauri::async_runtime::block_on(db::init(app.handle()))?;
             log::info!("database ready in {:?}", started.elapsed());
+            let purge_pool = pool.clone();
+            tauri::async_runtime::spawn(async move {
+                let cutoff = db::replays::events_cutoff();
+                match db::replays::purge_expired_events(&purge_pool, cutoff).await {
+                    Ok(0) => {}
+                    Ok(purged) => log::info!("purged {purged} expired events"),
+                    Err(e) => log::error!("failed to purge the expired events: {e}"),
+                }
+            });
             app.manage(pool);
             app.manage(ingester::IngestSubscribers::default());
             app.manage(ingester::Progress::default());

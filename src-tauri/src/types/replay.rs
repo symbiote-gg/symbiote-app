@@ -168,6 +168,9 @@ pub struct ReplayDetail {
     pub xp: Vec<XpSample>,
     #[sqlx(skip)]
     pub on_disk: bool,
+    /// Whether it was played too long ago to keep its events, so it has no timeline or XP.
+    #[sqlx(skip)]
+    pub events_expired: bool,
 }
 
 #[derive(Debug, Serialize)]

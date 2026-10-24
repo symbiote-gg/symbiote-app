@@ -43,6 +43,9 @@ pub enum HashStatus {
 /// A bundle that [`refreshes`](NewReplayBundle::refreshes) a stored replay overwrites
 /// it in place instead.
 ///
+/// A replay played before `events_cutoff` is stored without its events, see
+/// [`events_cutoff`].
+///
 /// Heroes, players and the owner's party are upserted first, since the replay rows
 /// reference them.
 ///
@@ -51,6 +54,7 @@ pub enum HashStatus {
 pub async fn insert_bundles(
     pool: &SqlitePool,
     bundles: Vec<NewReplayBundle>,
+    events_cutoff: i64,
 ) -> sqlx::Result<Vec<sqlx::Result<InsertOutcome>>> {
     let mut tx = pool.begin().await?;
     let mut outcomes = Vec::with_capacity(bundles.len());
@@ -58,8 +62,8 @@ pub async fn insert_bundles(
     for bundle in bundles {
         let mut savepoint = tx.begin().await?;
         let outcome = match bundle.refreshes {
-            Some(id) => refresh_bundle_in(&mut savepoint, id, bundle).await,
-            None => insert_bundle_in(&mut savepoint, bundle).await,
+            Some(id) => refresh_bundle_in(&mut savepoint, id, bundle, events_cutoff).await,
+            None => insert_bundle_in(&mut savepoint, bundle, events_cutoff).await,
         };
         match outcome {
             Ok(_) => savepoint.commit().await?,
@@ -75,6 +79,7 @@ pub async fn insert_bundles(
 async fn insert_bundle_in(
     tx: &mut SqliteConnection,
     bundle: NewReplayBundle,
+    events_cutoff: i64,
 ) -> sqlx::Result<InsertOutcome> {
     let existing: Option<(i64, i64)> = sqlx::query_as(
         "SELECT id, game_loops FROM replays
@@ -128,7 +133,9 @@ async fn insert_bundle_in(
     insert_players(tx, replay_id, players, &hero_ids, &player_ids).await?;
     insert_talents(tx, replay_id, players, &hero_ids, &player_ids).await?;
     insert_awards(tx, replay_id, players, &player_ids).await?;
-    insert_events(tx, replay_id, &bundle.events).await?;
+    if bundle.replay.timestamp.timestamp() >= events_cutoff {
+        insert_events(tx, replay_id, &bundle.events).await?;
+    }
     insert_superseded(tx, replay_id, &superseded).await?;
 
     Ok(match existing {
@@ -146,6 +153,7 @@ async fn refresh_bundle_in(
     tx: &mut SqliteConnection,
     id: i64,
     bundle: NewReplayBundle,
+    events_cutoff: i64,
 ) -> sqlx::Result<InsertOutcome> {
     let hero_ids = heroes::upsert_many(tx, &bundle.heroes).await?;
     let player_ids = players::upsert_many(tx, &bundle.players).await?;
@@ -193,7 +201,9 @@ async fn refresh_bundle_in(
     insert_players(tx, id, players, &hero_ids, &player_ids).await?;
     insert_talents(tx, id, players, &hero_ids, &player_ids).await?;
     insert_awards(tx, id, players, &player_ids).await?;
-    insert_events(tx, id, &bundle.events).await?;
+    if replay.timestamp.timestamp() >= events_cutoff {
+        insert_events(tx, id, &bundle.events).await?;
+    }
 
     Ok(InsertOutcome::Refreshed(id))
 }
@@ -255,6 +265,44 @@ pub async fn prune_superseded(pool: &SqlitePool, existing_paths: &[String]) -> s
     .execute(pool)
     .await
     .map(|res| res.rows_affected())
+}
+
+/// How long a replay's events are kept after it was played. They make up most of the
+/// database, and only feed the timeline of the replay detail.
+const EVENTS_RETENTION_SECS: i64 = 5 * 365 * 24 * 60 * 60;
+
+/// Most replays whose events are deleted per statement, so a first purge of a large
+/// database doesn't hold the write lock against the ingester for long.
+const PURGE_CHUNK: i64 = 100;
+
+/// Returns the unix time before which a replay was played too long ago to keep its
+/// events.
+pub fn events_cutoff() -> i64 {
+    chrono::Utc::now().timestamp() - EVENTS_RETENTION_SECS
+}
+
+/// Deletes the events of the replays played before `cutoff`, keeping the replays
+/// themselves. Returns how many events were deleted.
+pub async fn purge_expired_events(pool: &SqlitePool, cutoff: i64) -> sqlx::Result<u64> {
+    let mut purged = 0;
+    loop {
+        let deleted = sqlx::query(
+            "DELETE FROM events WHERE replay_id IN (
+                 SELECT r.id FROM replays r
+                 WHERE r.timestamp < ?
+                     AND EXISTS (SELECT 1 FROM events e WHERE e.replay_id = r.id)
+                 LIMIT ?)",
+        )
+        .bind(cutoff)
+        .bind(PURGE_CHUNK)
+        .execute(pool)
+        .await?
+        .rows_affected();
+        if deleted == 0 {
+            return Ok(purged);
+        }
+        purged += deleted;
+    }
 }
 
 pub async fn mark_seen(pool: &SqlitePool, id: i64) -> sqlx::Result<()> {
@@ -474,7 +522,14 @@ struct PlayerAwardRow {
 ///
 /// Event and XP times are in seconds relative to the gates opening. Everything is read
 /// from the same snapshot, so a replay replaced meanwhile can't come back half-read.
-pub async fn get_detail(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<ReplayDetail>> {
+///
+/// A replay played before `events_cutoff` comes back flagged as expired, without its
+/// timeline and XP, even if the purge hasn't deleted its events yet.
+pub async fn get_detail(
+    pool: &SqlitePool,
+    id: i64,
+    events_cutoff: i64,
+) -> sqlx::Result<Option<ReplayDetail>> {
     let mut tx = pool.begin().await?;
     let Some(mut detail) = sqlx::query_as::<_, ReplayDetail>(
         "SELECT r.id, r.hash, r.path, r.ingest_date, r.timestamp, r.mode, r.map, r.owner_hero_id,
@@ -540,40 +595,43 @@ pub async fn get_detail(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<Repla
     .fetch_all(&mut *tx)
     .await?;
 
-    let events = sqlx::query_as::<_, RawEvent>(
-        "SELECT k.name AS kind, CAST(e.gameloop - r.gates_open_loop AS REAL) / ? AS time,
-             e.team, json(e.data) AS data
-         FROM events e
-         JOIN replays r ON r.id = e.replay_id
-         JOIN event_kinds k ON k.id = e.kind_id
-         WHERE e.replay_id = ? AND k.name != 'xp'
-         ORDER BY e.gameloop, e.id",
-    )
-    .bind(LOOPS_PER_SECOND)
-    .bind(id)
-    .fetch_all(&mut *tx)
-    .await?;
+    detail.events_expired = detail.replay.timestamp.timestamp() < events_cutoff;
+    if !detail.events_expired {
+        let events = sqlx::query_as::<_, RawEvent>(
+            "SELECT k.name AS kind, CAST(e.gameloop - r.gates_open_loop AS REAL) / ? AS time,
+                 e.team, json(e.data) AS data
+             FROM events e
+             JOIN replays r ON r.id = e.replay_id
+             JOIN event_kinds k ON k.id = e.kind_id
+             WHERE e.replay_id = ? AND k.name != 'xp'
+             ORDER BY e.gameloop, e.id",
+        )
+        .bind(LOOPS_PER_SECOND)
+        .bind(id)
+        .fetch_all(&mut *tx)
+        .await?;
 
-    detail.xp = sqlx::query_as::<_, XpSample>(
-        "SELECT CAST(e.gameloop - r.gates_open_loop AS REAL) / ? AS time,
-             CAST(e.team AS INTEGER) AS team,
-             CAST(json_extract(e.data, '$.team_level') AS INTEGER) AS level,
-             CAST(json_extract(e.data, '$.xp.minion') + json_extract(e.data, '$.xp.creep')
-                 + json_extract(e.data, '$.xp.structure') + json_extract(e.data, '$.xp.hero')
-                 + json_extract(e.data, '$.xp.trickle') AS REAL) AS total
-         FROM events e
-         JOIN replays r ON r.id = e.replay_id
-         JOIN event_kinds k ON k.id = e.kind_id
-         WHERE e.replay_id = ? AND k.name = 'xp'
-         ORDER BY e.gameloop, e.team",
-    )
-    .bind(LOOPS_PER_SECOND)
-    .bind(id)
-    .fetch_all(&mut *tx)
-    .await?;
+        detail.xp = sqlx::query_as::<_, XpSample>(
+            "SELECT CAST(e.gameloop - r.gates_open_loop AS REAL) / ? AS time,
+                 CAST(e.team AS INTEGER) AS team,
+                 CAST(json_extract(e.data, '$.team_level') AS INTEGER) AS level,
+                 CAST(json_extract(e.data, '$.xp.minion') + json_extract(e.data, '$.xp.creep')
+                     + json_extract(e.data, '$.xp.structure') + json_extract(e.data, '$.xp.hero')
+                     + json_extract(e.data, '$.xp.trickle') AS REAL) AS total
+             FROM events e
+             JOIN replays r ON r.id = e.replay_id
+             JOIN event_kinds k ON k.id = e.kind_id
+             WHERE e.replay_id = ? AND k.name = 'xp'
+             ORDER BY e.gameloop, e.team",
+        )
+        .bind(LOOPS_PER_SECOND)
+        .bind(id)
+        .fetch_all(&mut *tx)
+        .await?;
+        detail.timeline = crate::timeline::build(events);
+    }
     tx.commit().await?;
 
-    detail.timeline = crate::timeline::build(events);
     for row in talents {
         if let Some(player) = detail
             .players
@@ -851,7 +909,7 @@ mod tests {
         pool: &SqlitePool,
         bundle: NewReplayBundle,
     ) -> sqlx::Result<InsertOutcome> {
-        insert_bundles(pool, vec![bundle]).await?.remove(0)
+        insert_bundles(pool, vec![bundle], 0).await?.remove(0)
     }
 
     fn hex(name: &str) -> String {
@@ -1007,7 +1065,7 @@ mod tests {
             );
         }
 
-        let detail = get_detail(&pool, id).await.unwrap().unwrap();
+        let detail = get_detail(&pool, id, 0).await.unwrap().unwrap();
         assert_eq!(detail.replay.hash, hex("c"));
         assert_eq!(detail.players.len(), 1);
         assert_eq!(detail.players[0].awards.len(), 1);
@@ -1055,7 +1113,7 @@ mod tests {
         assert_eq!(status(&pool, "b").await, HashStatus::Current);
         assert!(owner_party_id(&pool, "a").await.is_some());
 
-        let detail = get_detail(&pool, id).await.unwrap().unwrap();
+        let detail = get_detail(&pool, id, 0).await.unwrap().unwrap();
         assert_eq!(detail.replay.path, "moved/a.StormReplay");
         assert!(detail.replay.is_new);
         assert!(detail.players[0].awards.is_empty());
@@ -1152,7 +1210,7 @@ mod tests {
             panic!("the replay should be inserted");
         };
 
-        let detail = get_detail(&pool, known).await.unwrap().unwrap();
+        let detail = get_detail(&pool, known, 0).await.unwrap().unwrap();
         assert_eq!(detail.replay.map_name, "Cursed Hollow");
         assert_eq!(detail.replay.map_loading_screen.as_deref(), Some("ch.webp"));
         assert_eq!(detail.players[0].kills, Some(7));
@@ -1204,8 +1262,8 @@ mod tests {
             ids.push(id);
         }
 
-        let first = get_detail(&pool, ids[0]).await.unwrap().unwrap();
-        let second = get_detail(&pool, ids[1]).await.unwrap().unwrap();
+        let first = get_detail(&pool, ids[0], 0).await.unwrap().unwrap();
+        let second = get_detail(&pool, ids[1], 0).await.unwrap().unwrap();
         let talents = &first.players[0].talents;
         assert_eq!(talents[0].slug, "seeded");
         assert_eq!(talents[0].name.as_deref(), Some("Seeded"));
@@ -1255,5 +1313,104 @@ mod tests {
         insert_damage_game(&pool, "best", 100_000).await;
         let page = list_page(&pool, None, 50).await.unwrap();
         assert_eq!(top_damage_hashes(&page), [hex("best")]);
+    }
+
+    fn death() -> NewEvent {
+        NewEvent {
+            kind: "death".to_owned(),
+            gameloop: 100,
+            team: Some(0),
+            data: serde_json::json!({
+                "victim": 1,
+                "killers": [],
+                "x": 0.0,
+                "y": 0.0,
+                "alone": true,
+            }),
+        }
+    }
+
+    fn game_with_events(game_id: &str, timestamp: i64) -> NewReplayBundle {
+        let mut game = bundle(game_id, 1000);
+        game.replay.game_id = hex(game_id);
+        game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
+        game.events = vec![death()];
+        game
+    }
+
+    async fn event_count(pool: &SqlitePool, id: i64) -> i64 {
+        sqlx::query_scalar("SELECT COUNT(*) FROM events WHERE replay_id = ?")
+            .bind(id)
+            .fetch_one(pool)
+            .await
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn purges_events_of_expired_replays_only() {
+        let pool = pool().await;
+        let InsertOutcome::Inserted(old) = insert_bundle(&pool, game_with_events("old", 100))
+            .await
+            .unwrap()
+        else {
+            panic!("the replay should be inserted");
+        };
+        let InsertOutcome::Inserted(new) = insert_bundle(&pool, game_with_events("new", 300))
+            .await
+            .unwrap()
+        else {
+            panic!("the replay should be inserted");
+        };
+
+        assert_eq!(purge_expired_events(&pool, 200).await.unwrap(), 1);
+        assert_eq!(event_count(&pool, old).await, 0);
+        assert_eq!(event_count(&pool, new).await, 1);
+        assert_eq!(count(&pool).await.unwrap(), 2);
+        assert_eq!(purge_expired_events(&pool, 200).await.unwrap(), 0);
+    }
+
+    #[tokio::test]
+    async fn skips_events_of_expired_replays_on_ingest() {
+        let pool = pool().await;
+        let mut outcomes = insert_bundles(&pool, vec![game_with_events("old", 100)], 200)
+            .await
+            .unwrap();
+        let Ok(InsertOutcome::Inserted(old)) = outcomes.remove(0) else {
+            panic!("the replay should be inserted");
+        };
+        assert_eq!(event_count(&pool, old).await, 0);
+
+        let mut stale = game_with_events("stale", 100);
+        stale.replay.ingest_version = INGEST_VERSION - 1;
+        let InsertOutcome::Inserted(id) = insert_bundle(&pool, stale).await.unwrap() else {
+            panic!("the replay should be inserted");
+        };
+        assert_eq!(event_count(&pool, id).await, 1);
+
+        let mut fresh = game_with_events("stale", 100);
+        fresh.refreshes = Some(id);
+        let mut outcomes = insert_bundles(&pool, vec![fresh], 200).await.unwrap();
+        assert_eq!(outcomes.remove(0).unwrap(), InsertOutcome::Refreshed(id));
+        assert_eq!(event_count(&pool, id).await, 0);
+    }
+
+    #[tokio::test]
+    async fn detail_flags_expired_replays() {
+        let pool = pool().await;
+        let InsertOutcome::Inserted(id) = insert_bundle(&pool, game_with_events("old", 100))
+            .await
+            .unwrap()
+        else {
+            panic!("the replay should be inserted");
+        };
+
+        let kept = get_detail(&pool, id, 0).await.unwrap().unwrap();
+        assert!(!kept.events_expired);
+        assert_eq!(kept.timeline.deaths.len(), 1);
+
+        let expired = get_detail(&pool, id, 200).await.unwrap().unwrap();
+        assert!(expired.events_expired);
+        assert!(expired.timeline.deaths.is_empty());
+        assert!(expired.xp.is_empty());
     }
 }

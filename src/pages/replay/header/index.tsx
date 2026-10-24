@@ -1,6 +1,6 @@
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import classNames from "classnames";
-import { Folder } from "lucide-react";
+import { Folder, History } from "lucide-react";
 import type { ReactNode } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
@@ -120,17 +120,25 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
             <div className={styles.content}>
                 <div className={styles.toolbar}>
                     <BackToReplays className={styles.tool} />
-                    {replay.onDisk && (
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={onReveal}
-                            className={styles.tool}
-                        >
-                            <Folder />
-                            {t("replay.showInFolder")}
-                        </Button>
-                    )}
+                    <div className={styles.actions}>
+                        {replay.eventsExpired && (
+                            <Typography size="sm" className={styles.notice}>
+                                <History />
+                                {t("replay.eventsExpired")}
+                            </Typography>
+                        )}
+                        {replay.onDisk && (
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={onReveal}
+                                className={styles.tool}
+                            >
+                                <Folder />
+                                {t("replay.showInFolder")}
+                            </Button>
+                        )}
+                    </div>
                 </div>
                 <div className={styles.summary}>
                     <div className={styles.identity}>

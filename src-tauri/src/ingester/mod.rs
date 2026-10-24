@@ -167,10 +167,9 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
             Default::default()
         })));
 
-        let workers = parse_workers();
-        let permits = Arc::new(Semaphore::new(workers));
+        let permits = Arc::new(Semaphore::new(PARSE_WORKERS));
         let in_flight = Arc::new(Mutex::new(HashSet::new()));
-        let (bundle_tx, bundle_rx) = tokio::sync::mpsc::channel(workers * 2);
+        let (bundle_tx, bundle_rx) = tokio::sync::mpsc::channel(PARSE_WORKERS * 2);
 
         tauri::async_runtime::spawn(store(
             app.clone(),
@@ -216,6 +215,10 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
 /// Most replays stored in one transaction.
 const MAX_BATCH: usize = 32;
 
+/// How many replays are parsed at once. Few, so a bulk ingest runs in the background
+/// without pegging the CPU and spinning up the fans.
+const PARSE_WORKERS: usize = 2;
+
 /// Stores the bundles from `bundles` in batches, streaming each replay stored to the
 /// [`IngestSubscribers`].
 async fn store(
@@ -242,7 +245,8 @@ async fn store(
         let paths: Vec<String> = stored.iter().map(|b| b.replay.path.clone()).collect();
         let size = stored.len();
 
-        let outcomes = db::replays::insert_bundles(&pool, stored).await;
+        let outcomes =
+            db::replays::insert_bundles(&pool, stored, db::replays::events_cutoff()).await;
         // Stored or not, the hashes are settled: a known one is caught by `hash_status`.
         {
             let mut in_flight = lock(&in_flight);
@@ -348,12 +352,6 @@ async fn parse_unknown(
     .await??;
     bundle.refreshes = refreshes;
     Ok(Some(bundle))
-}
-
-/// How many replays are parsed at once. Half the cores, so a bulk ingest leaves room for
-/// the webview and the writer instead of making the UI lag.
-fn parse_workers() -> usize {
-    std::thread::available_parallelism().map_or(1, |n| (n.get() / 2).max(1))
 }
 
 fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {

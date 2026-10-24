@@ -279,6 +279,7 @@ export type ReplayDetail = Omit<
     timeline: Timeline;
     xp: XpSample[];
     onDisk: boolean;
+    eventsExpired: boolean;
 };
 
 export const PAGE_SIZE = 50;

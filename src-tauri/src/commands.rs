@@ -34,7 +34,8 @@ pub async fn list_replays(
 /// Fails if no replay has that id or the database query fails.
 #[tauri::command]
 pub async fn get_replay(pool: State<'_, SqlitePool>, id: i64) -> Result<ReplayDetail> {
-    let mut detail = crate::db::replays::get_detail(&pool, id)
+    let cutoff = crate::db::replays::events_cutoff();
+    let mut detail = crate::db::replays::get_detail(&pool, id, cutoff)
         .await?
         .ok_or(Error::ReplayNotFound(id))?;
     detail.on_disk = Path::new(&detail.replay.path).is_file();

@@ -66,6 +66,7 @@
     "replay": {
         "replays": "Replays",
         "showInFolder": "Show in folder",
+        "eventsExpired": "Played over five years ago - the timeline and team levels are no longer kept",
         "team": "{side, select, ally {Your team} other {Enemy team}}",
         "result": "{result, select, win {Victory} loss {Defeat} other {-}}",
         "teamKills": {

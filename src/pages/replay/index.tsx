@@ -63,14 +63,16 @@ export function ReplayDetail() {
                             teams={teams}
                             duration={replay.duration}
                         />
-                        <Timeline
-                            timeline={replay.timeline}
-                            duration={replay.duration}
-                            players={replay.players}
-                            allyTeam={allyTeam}
-                            ownerSlot={owner?.slot ?? null}
-                            ownerWin={replay.ownerWin}
-                        />
+                        {!replay.eventsExpired && (
+                            <Timeline
+                                timeline={replay.timeline}
+                                duration={replay.duration}
+                                players={replay.players}
+                                allyTeam={allyTeam}
+                                ownerSlot={owner?.slot ?? null}
+                                ownerWin={replay.ownerWin}
+                            />
+                        )}
                     </>
                 )}
             </div>
