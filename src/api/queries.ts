@@ -15,6 +15,11 @@ import {
     getReplay,
     listReplays,
 } from "./replays";
+import {
+    getDatabaseStats,
+    getSettings,
+    previewEventRetention,
+} from "./settings";
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -152,4 +157,22 @@ export const replayQuery = (id: number) =>
                 );
             return replay;
         },
+    });
+
+export const settingsQuery = queryOptions({
+    queryKey: ["settings"],
+    queryFn: getSettings,
+});
+
+export const databaseStatsQuery = queryOptions({
+    queryKey: ["stats", "database"],
+    staleTime: 0,
+    queryFn: getDatabaseStats,
+});
+
+export const retentionPreviewQuery = (years: number | null) =>
+    queryOptions({
+        queryKey: ["retentionPreview", years],
+        staleTime: 0,
+        queryFn: () => previewEventRetention(years),
     });

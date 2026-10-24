@@ -1,11 +1,13 @@
 use std::path::PathBuf;
 
 use commands::{
-    count_replays, get_ingest_progress, get_most_played_heroes, get_profile_summary, get_replay,
-    list_replays, mark_replay_as_seen, subscribe_ingest, unsubscribe_ingest,
+    count_replays, get_database_stats, get_ingest_progress, get_most_played_heroes,
+    get_profile_summary, get_replay, get_settings, list_replays, mark_replay_as_seen,
+    preview_event_retention, set_event_retention, subscribe_ingest, unsubscribe_ingest,
 };
 use tauri::webview::PageLoadEvent;
 use tauri::Manager;
+use types::settings::EventRetention;
 
 mod commands;
 mod db;
@@ -69,10 +71,14 @@ pub fn run() {
             let started = std::time::Instant::now();
             let pool = tauri::async_runtime::block_on(db::init(app.handle()))?;
             log::info!("database ready in {:?}", started.elapsed());
+            let settings = tauri::async_runtime::block_on(db::settings::get(&pool))?;
+            app.manage(EventRetention::new(settings.event_retention_years));
+            let purge_app = app.handle().clone();
             let purge_pool = pool.clone();
             tauri::async_runtime::spawn(async move {
-                let cutoff = db::replays::events_cutoff();
-                match db::replays::purge_expired_events(&purge_pool, cutoff).await {
+                let retention = purge_app.state::<EventRetention>();
+                let _applying = retention.lock().await;
+                match db::replays::purge_expired_events(&purge_pool, retention.cutoff()).await {
                     Ok(0) => {}
                     Ok(purged) => log::info!("purged {purged} expired events"),
                     Err(e) => log::error!("failed to purge the expired events: {e}"),
@@ -102,7 +108,11 @@ pub fn run() {
             get_most_played_heroes,
             subscribe_ingest,
             unsubscribe_ingest,
-            get_ingest_progress
+            get_ingest_progress,
+            get_settings,
+            preview_event_retention,
+            set_event_retention,
+            get_database_stats
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

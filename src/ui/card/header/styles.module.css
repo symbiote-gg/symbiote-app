@@ -13,6 +13,14 @@
 }
 
 .titles .title {
-    @apply text-5xl leading-none font-extrabold uppercase;
+    @apply leading-none font-extrabold uppercase;
     font-stretch: 75%;
+}
+
+.sm .title {
+    @apply text-3xl;
+}
+
+.md .title {
+    @apply text-5xl;
 }

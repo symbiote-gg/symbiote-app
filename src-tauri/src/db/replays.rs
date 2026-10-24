@@ -267,18 +267,59 @@ pub async fn prune_superseded(pool: &SqlitePool, existing_paths: &[String]) -> s
     .map(|res| res.rows_affected())
 }
 
-/// How long a replay's events are kept after it was played. They make up most of the
-/// database, and only feed the timeline of the replay detail.
-const EVENTS_RETENTION_SECS: i64 = 5 * 365 * 24 * 60 * 60;
+const SECS_PER_YEAR: i64 = 365 * 24 * 60 * 60;
 
 /// Most replays whose events are deleted per statement, so a first purge of a large
 /// database doesn't hold the write lock against the ingester for long.
 const PURGE_CHUNK: i64 = 100;
 
 /// Returns the unix time before which a replay was played too long ago to keep its
-/// events.
-pub fn events_cutoff() -> i64 {
-    chrono::Utc::now().timestamp() - EVENTS_RETENTION_SECS
+/// events, if they're kept for `years`, or `i64::MIN` if they're kept forever.
+///
+/// Events make up most of the database, and only feed the timeline of the replay detail.
+pub fn events_cutoff(years: Option<u32>) -> i64 {
+    match years {
+        Some(years) => chrono::Utc::now().timestamp() - i64::from(years) * SECS_PER_YEAR,
+        None => i64::MIN,
+    }
+}
+
+/// Lists the path of the replays played before `cutoff` whose events aren't purged yet.
+pub async fn list_expiring(pool: &SqlitePool, cutoff: i64) -> sqlx::Result<Vec<String>> {
+    sqlx::query_scalar(
+        "SELECT r.path FROM replays r
+         WHERE r.timestamp < ? AND EXISTS (SELECT 1 FROM events e WHERE e.replay_id = r.id)",
+    )
+    .bind(cutoff)
+    .fetch_all(pool)
+    .await
+}
+
+/// Lists the id and path of the replays played since `cutoff` whose events were purged,
+/// newest first.
+pub async fn list_restorable(pool: &SqlitePool, cutoff: i64) -> sqlx::Result<Vec<(i64, String)>> {
+    sqlx::query_as(
+        "SELECT r.id, r.path FROM replays r
+         WHERE r.timestamp >= ?
+             AND NOT EXISTS (SELECT 1 FROM events e WHERE e.replay_id = r.id)
+         ORDER BY r.timestamp DESC, r.id DESC",
+    )
+    .bind(cutoff)
+    .fetch_all(pool)
+    .await
+}
+
+/// Marks the replays `ids` as stored at an outdated ingest version, so they're re-parsed.
+pub async fn mark_stale(pool: &SqlitePool, ids: &[i64]) -> sqlx::Result<()> {
+    let ids = serde_json::to_string(ids).map_err(|e| sqlx::Error::Encode(Box::new(e)))?;
+    sqlx::query(
+        "UPDATE replays SET ingest_version = 0
+         WHERE id IN (SELECT value FROM json_each(?))",
+    )
+    .bind(ids)
+    .execute(pool)
+    .await?;
+    Ok(())
 }
 
 /// Deletes the events of the replays played before `cutoff`, keeping the replays
@@ -317,6 +358,22 @@ pub async fn count(executor: impl SqliteExecutor<'_>) -> sqlx::Result<i64> {
     sqlx::query_scalar("SELECT COUNT(*) FROM replays")
         .fetch_one(executor)
         .await
+}
+
+pub async fn count_since(executor: impl SqliteExecutor<'_>, since: i64) -> sqlx::Result<i64> {
+    sqlx::query_scalar("SELECT COUNT(*) FROM replays WHERE timestamp >= ?")
+        .bind(since)
+        .fetch_one(executor)
+        .await
+}
+
+pub async fn count_with_events(executor: impl SqliteExecutor<'_>) -> sqlx::Result<i64> {
+    sqlx::query_scalar(
+        "SELECT COUNT(*) FROM replays r
+         WHERE EXISTS (SELECT 1 FROM events e WHERE e.replay_id = r.id)",
+    )
+    .fetch_one(executor)
+    .await
 }
 
 /// Returns a page of replays, newest first, with the total count, both read from the
@@ -1412,5 +1469,40 @@ mod tests {
         assert!(expired.events_expired);
         assert!(expired.timeline.deaths.is_empty());
         assert!(expired.xp.is_empty());
+    }
+
+    #[test]
+    fn keeps_events_forever_without_retention() {
+        assert_eq!(events_cutoff(None), i64::MIN);
+        assert!(events_cutoff(Some(1)) > events_cutoff(Some(5)));
+    }
+
+    #[tokio::test]
+    async fn lists_purged_replays_inside_the_cutoff_to_restore() {
+        let pool = pool().await;
+        for (game, timestamp) in [("old", 100), ("purged", 300), ("kept", 400)] {
+            insert_bundle(&pool, game_with_events(game, timestamp))
+                .await
+                .unwrap();
+        }
+        purge_expired_events(&pool, 350).await.unwrap();
+        assert!(list_expiring(&pool, 350).await.unwrap().is_empty());
+        assert_eq!(
+            list_expiring(&pool, 500).await.unwrap(),
+            ["kept.StormReplay"]
+        );
+        assert_eq!(count_since(&pool, 200).await.unwrap(), 2);
+        assert_eq!(count_with_events(&pool).await.unwrap(), 1);
+
+        let restorable = list_restorable(&pool, 200).await.unwrap();
+        let paths: Vec<&str> = restorable.iter().map(|(_, path)| path.as_str()).collect();
+        assert_eq!(paths, ["purged.StormReplay"]);
+
+        mark_stale(&pool, &[restorable[0].0]).await.unwrap();
+        assert_eq!(
+            status(&pool, "purged").await,
+            HashStatus::Stale(restorable[0].0)
+        );
+        assert_eq!(status(&pool, "kept").await, HashStatus::Current);
     }
 }

@@ -5,6 +5,8 @@ export * from "./empty-state";
 export * from "./error-message";
 export * from "./meter";
 export * from "./popover";
+export * from "./rich-text";
+export * from "./segmented";
 export * from "./stat-tile";
 export * from "./table-head";
 export * from "./tooltip";

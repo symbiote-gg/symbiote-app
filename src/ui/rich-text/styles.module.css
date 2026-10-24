@@ -1,0 +1,9 @@
+@reference "@/index.css";
+
+.code {
+    @apply font-mono text-fg/80;
+}
+
+.mono {
+    @apply font-mono;
+}

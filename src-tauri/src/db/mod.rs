@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use sqlx::sqlite::{
@@ -19,6 +21,7 @@ pub mod maps;
 pub mod parties;
 pub mod players;
 pub mod replays;
+pub mod settings;
 pub mod stats;
 pub mod talents;
 
@@ -34,14 +37,21 @@ const fn chunk_rows(columns: usize) -> usize {
     MAX_BIND_PARAMS / columns
 }
 
+/// Returns the path of the database file, in the app data folder.
+pub fn path(app: &tauri::AppHandle) -> Result<PathBuf> {
+    Ok(app.path().app_data_dir()?.join(DB_FILE))
+}
+
 /// Opens the database in the app data folder, creating it if needed, then runs the
 /// migrations and seeds the bundled hero, talent, award and map facts that changed.
 pub async fn init(app: &tauri::AppHandle) -> Result<SqlitePool> {
-    let dir = app.path().app_data_dir()?;
-    std::fs::create_dir_all(&dir)?;
+    let path = path(app)?;
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir)?;
+    }
 
     let opts = SqliteConnectOptions::new()
-        .filename(dir.join(DB_FILE))
+        .filename(path)
         .create_if_missing(true)
         .foreign_keys(true)
         .auto_vacuum(SqliteAutoVacuum::Full)
@@ -73,6 +83,15 @@ pub async fn init(app: &tauri::AppHandle) -> Result<SqlitePool> {
         seed.done(&pool).await?;
     }
     Ok(pool)
+}
+
+/// Copies the write-ahead log into the database file and empties it, so the space a purge
+/// frees shows on disk right away instead of at the next automatic checkpoint.
+pub async fn checkpoint(pool: &SqlitePool) -> sqlx::Result<()> {
+    sqlx::query("PRAGMA wal_checkpoint(TRUNCATE)")
+        .execute(pool)
+        .await?;
+    Ok(())
 }
 
 /// A table's bundled facts that differ from the ones it was last seeded with.

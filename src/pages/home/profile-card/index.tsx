@@ -9,6 +9,7 @@ import {
     EmptyState,
     StatTile,
     Typography,
+    richStrong,
 } from "@/ui";
 
 import styles from "./styles.module.css";
@@ -83,7 +84,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
                             pct: Math.round(
                                 (profile.topDamageGames / profile.games) * 100,
                             ),
-                            b: (chunks) => <strong>{chunks}</strong>,
+                            b: richStrong,
                         })}
                     </Typography>
                 </div>

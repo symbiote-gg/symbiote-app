@@ -16,6 +16,7 @@ use crate::db::replays::{HashStatus, InsertOutcome};
 use crate::error::Result;
 use crate::types::map::MapFact;
 use crate::types::replay::{NewReplayBundle, ReplayIngested};
+use crate::types::settings::EventRetention;
 use bundle::{SeededHeroes, SeededMaps};
 pub use progress::{IngestProgress, Progress};
 
@@ -47,6 +48,9 @@ struct FoundReplay {
     path: PathBuf,
     source: Source,
 }
+
+/// The queue of replays to ingest, managed once the ingester is watching for replays.
+pub struct Queue(tokio::sync::mpsc::UnboundedSender<FoundReplay>);
 
 /// The channels that each replay stored by the ingester is streamed to.
 #[derive(Default)]
@@ -96,8 +100,8 @@ impl IngestSubscribers {
 /// Starts ingesting the replays under `dir` in the background, and returns immediately.
 ///
 /// Streams each replay stored to the [`IngestSubscribers`], and the scan and re-parse
-/// backlogs to [`Progress`]. They and the [`SqlitePool`] must already be registered as
-/// managed state.
+/// backlogs to [`Progress`]. They, the [`SqlitePool`] and the [`EventRetention`] must
+/// already be registered as managed state.
 pub fn start(app: tauri::AppHandle, dir: PathBuf) {
     let pool = app.state::<SqlitePool>().inner().clone();
     let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<FoundReplay>();
@@ -105,6 +109,7 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
     let Some(debouncer) = watcher::watch(&dir, tx.clone()) else {
         return;
     };
+    app.manage(Queue(tx.clone()));
 
     // Scan only once the watch is up, so a replay saved meanwhile is caught by one or the other.
     // Both feed the same queue, so a file found twice is skipped by hash instead of racing.
@@ -132,6 +137,19 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
                 });
             }
             Err(e) => log::error!("failed to scan for existing replays: {e}"),
+        }
+
+        // A restore that failed or ran without the ingester left these purged, so they
+        // join the stale ones below.
+        let cutoff = scan_app.state::<EventRetention>().cutoff();
+        match restorable(&scan_pool, cutoff).await {
+            Ok(restorable) => {
+                let ids: Vec<i64> = restorable.iter().map(|(id, _)| *id).collect();
+                if let Err(e) = db::replays::mark_stale(&scan_pool, &ids).await {
+                    log::error!("failed to mark the restorable replays as stale: {e}");
+                }
+            }
+            Err(e) => log::error!("failed to list the restorable replays: {e}"),
         }
 
         // Queued after the new replays, which matter more. A stale replay whose file is
@@ -212,6 +230,43 @@ pub fn start(app: tauri::AppHandle, dir: PathBuf) {
     });
 }
 
+/// Lists the id and path of the replays played since `cutoff` whose events were purged
+/// and whose file is still on disk, i.e. the ones [`restore_events`] can restore.
+async fn restorable(pool: &SqlitePool, cutoff: i64) -> Result<Vec<(i64, String)>> {
+    let purged = db::replays::list_restorable(pool, cutoff).await?;
+    Ok(tauri::async_runtime::spawn_blocking(move || {
+        purged
+            .into_iter()
+            .filter(|(_, path)| Path::new(path).is_file())
+            .collect()
+    })
+    .await?)
+}
+
+/// Re-parses the replays played since `cutoff` whose events were purged and whose file
+/// is still on disk, so they get their events back. Returns how many were queued.
+///
+/// They're marked stale first, so without a running ingester the next start re-parses
+/// them instead.
+pub async fn restore_events(app: &tauri::AppHandle, cutoff: i64) -> Result<usize> {
+    let pool = app.state::<SqlitePool>();
+    let restorable = restorable(&pool, cutoff).await?;
+    let ids: Vec<i64> = restorable.iter().map(|(id, _)| *id).collect();
+    db::replays::mark_stale(&pool, &ids).await?;
+
+    if let Some(queue) = app.try_state::<Queue>() {
+        app.state::<Progress>()
+            .queue(app, Source::Reparse, restorable.len());
+        for (_, path) in &restorable {
+            let _ = queue.0.send(FoundReplay {
+                path: path.into(),
+                source: Source::Reparse,
+            });
+        }
+    }
+    Ok(restorable.len())
+}
+
 /// Most replays stored in one transaction.
 const MAX_BATCH: usize = 32;
 
@@ -245,8 +300,8 @@ async fn store(
         let paths: Vec<String> = stored.iter().map(|b| b.replay.path.clone()).collect();
         let size = stored.len();
 
-        let outcomes =
-            db::replays::insert_bundles(&pool, stored, db::replays::events_cutoff()).await;
+        let cutoff = app.state::<EventRetention>().cutoff();
+        let outcomes = db::replays::insert_bundles(&pool, stored, cutoff).await;
         // Stored or not, the hashes are settled: a known one is caught by `hash_status`.
         {
             let mut in_flight = lock(&in_flight);

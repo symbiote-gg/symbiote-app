@@ -3,11 +3,12 @@ use std::path::Path;
 use chrono::DateTime;
 use sqlx::SqlitePool;
 use tauri::ipc::Channel;
-use tauri::State;
+use tauri::{AppHandle, State};
 
 use crate::error::{Error, Result};
 use crate::ingester::{IngestProgress, IngestSubscribers, Progress};
 use crate::types::replay::{ReplayCursor, ReplayDetail, ReplayPage};
+use crate::types::settings::{DatabaseStats, EventRetention, RetentionPreview, Settings};
 use crate::types::stats::{MostPlayedHeroes, ProfileSummary};
 
 const MAX_PAGE_SIZE: i64 = 100;
@@ -33,9 +34,12 @@ pub async fn list_replays(
 ///
 /// Fails if no replay has that id or the database query fails.
 #[tauri::command]
-pub async fn get_replay(pool: State<'_, SqlitePool>, id: i64) -> Result<ReplayDetail> {
-    let cutoff = crate::db::replays::events_cutoff();
-    let mut detail = crate::db::replays::get_detail(&pool, id, cutoff)
+pub async fn get_replay(
+    pool: State<'_, SqlitePool>,
+    retention: State<'_, EventRetention>,
+    id: i64,
+) -> Result<ReplayDetail> {
+    let mut detail = crate::db::replays::get_detail(&pool, id, retention.cutoff())
         .await?
         .ok_or(Error::ReplayNotFound(id))?;
     detail.on_disk = Path::new(&detail.replay.path).is_file();
@@ -92,4 +96,80 @@ pub fn unsubscribe_ingest(subscribers: State<'_, IngestSubscribers>, id: u32) {
 #[tauri::command]
 pub fn get_ingest_progress(progress: State<'_, Progress>) -> IngestProgress {
     progress.snapshot()
+}
+
+#[tauri::command]
+pub async fn get_settings(pool: State<'_, SqlitePool>) -> Result<Settings> {
+    Ok(crate::db::settings::get(&pool).await?)
+}
+
+/// Counts the replays whose events a retention of `years`, or forever if `None`, would
+/// purge or restore.
+#[tauri::command]
+pub async fn preview_event_retention(
+    pool: State<'_, SqlitePool>,
+    years: Option<u32>,
+) -> Result<RetentionPreview> {
+    let cutoff = crate::db::replays::events_cutoff(years);
+    let expiring = crate::db::replays::list_expiring(&pool, cutoff).await?;
+    let purged = crate::db::replays::list_restorable(&pool, cutoff).await?;
+    Ok(tauri::async_runtime::spawn_blocking(move || {
+        let on_disk = |path: &str| Path::new(path).is_file();
+        let restorable = purged.iter().filter(|(_, path)| on_disk(path)).count();
+        RetentionPreview {
+            expiring: expiring.len(),
+            lost: expiring.iter().filter(|path| !on_disk(path)).count(),
+            restorable,
+            unrestorable: purged.len() - restorable,
+        }
+    })
+    .await?)
+}
+
+/// Keeps replays' events for `years`, or forever if `None`, applying it right away: a
+/// shorter retention purges the expired events, a longer one re-parses the replays
+/// whose events it brings back.
+#[tauri::command]
+pub async fn set_event_retention(
+    app: AppHandle,
+    pool: State<'_, SqlitePool>,
+    retention: State<'_, EventRetention>,
+    years: Option<u32>,
+) -> Result<()> {
+    if !matches!(years, None | Some(1 | 2 | 5)) {
+        return Err(Error::InvalidArgument(format!("{years:?} years")));
+    }
+    let _applying = retention.lock().await;
+    crate::db::settings::set_event_retention(&pool, years).await?;
+
+    let longer = years.unwrap_or(u32::MAX) > retention.years().unwrap_or(u32::MAX);
+    retention.set(years);
+    if longer {
+        crate::ingester::restore_events(&app, retention.cutoff()).await?;
+    } else {
+        crate::db::replays::purge_expired_events(&pool, retention.cutoff()).await?;
+        crate::db::checkpoint(&pool).await?;
+    }
+    Ok(())
+}
+
+/// Returns how many bytes the database takes on disk, and how many games it holds with
+/// their events and from the last year.
+#[tauri::command]
+pub async fn get_database_stats(
+    app: AppHandle,
+    pool: State<'_, SqlitePool>,
+) -> Result<DatabaseStats> {
+    let path = crate::db::path(&app)?;
+    let wal = path.with_extension("db-wal");
+    let last_year = crate::db::replays::events_cutoff(Some(1));
+    Ok(DatabaseStats {
+        bytes: [path, wal]
+            .iter()
+            .filter_map(|file| file.metadata().ok())
+            .map(|meta| meta.len())
+            .sum(),
+        games_with_events: crate::db::replays::count_with_events(&*pool).await?,
+        games_last_year: crate::db::replays::count_since(&*pool, last_year).await?,
+    })
 }

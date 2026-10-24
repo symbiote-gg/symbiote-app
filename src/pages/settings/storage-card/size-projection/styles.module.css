@@ -1,0 +1,78 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex flex-col gap-3;
+}
+
+.header {
+    @apply flex items-baseline justify-between gap-6;
+}
+
+.title {
+    @apply flex items-center gap-2;
+}
+
+.icon {
+    @apply size-3.5 shrink-0 text-fg-muted;
+}
+
+.label {
+    @apply tracking-[0.15em];
+}
+
+.sizes {
+    @apply flex items-baseline gap-2 text-xl leading-none;
+}
+
+.from {
+    @apply text-fg-muted;
+}
+
+.arrow {
+    @apply size-4 shrink-0 self-center text-fg-muted;
+}
+
+.track {
+    @apply flex h-3 overflow-hidden rounded-full border border-line bg-bg;
+}
+
+.segment {
+    @apply h-full shrink-0 transition-[width] duration-300;
+}
+
+.kept {
+    background: linear-gradient(
+        to right,
+        var(--color-primary),
+        var(--color-primary-text)
+    );
+}
+
+.freed {
+    background: repeating-linear-gradient(
+        -45deg,
+        color-mix(in oklab, var(--color-fg-muted) 35%, var(--color-bg)) 0 4px,
+        color-mix(in oklab, var(--color-fg-muted) 15%, var(--color-bg)) 4px 8px
+    );
+}
+
+.restored,
+.growth {
+    background: repeating-linear-gradient(
+        -45deg,
+        color-mix(in oklab, var(--color-primary) 60%, var(--color-bg)) 0 4px,
+        color-mix(in oklab, var(--color-primary) 25%, var(--color-bg)) 4px 8px
+    );
+}
+
+.legend {
+    @apply flex flex-wrap gap-x-6 gap-y-1;
+}
+
+.legendItem {
+    @apply flex items-center gap-2;
+}
+
+.swatch {
+    @apply h-2.5 w-4 rounded-sm;
+}

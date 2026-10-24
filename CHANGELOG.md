@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- Add `settings` page with replays events retention configuration.
 - Add total team kills header to scoreboard.
 - Add upvotes to the players scoreboard.
 - Show team heroes in the replays wide list.

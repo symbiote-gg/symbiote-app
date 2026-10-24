@@ -4,13 +4,14 @@
         "replays": "Replays",
         "profile": "Profile",
         "heroes": "Heroes",
-        "about": "About"
+        "about": "About",
+        "settings": "Settings"
     },
     "ingest": {
         "importing": "Importing replays",
         "updating": "Updating replays",
         "importingDescription": "Importing new replays from your replays folder. You can keep using the app.",
-        "updatingDescription": "SymbioteGG now reads more from each game. Reimporting your replays to add the new stats. You can keep using the app.",
+        "updatingDescription": "Reimporting your replays to add the new stats. You can keep using the app.",
         "count": "<b>{done, number}</b> of {total, number}"
     },
     "home": {
@@ -66,7 +67,7 @@
     "replay": {
         "replays": "Replays",
         "showInFolder": "Show in folder",
-        "eventsExpired": "Played over five years ago - the timeline and team levels are no longer kept",
+        "eventsExpired": "Older than your timeline retention - the timeline and team levels are no longer kept",
         "team": "{side, select, ally {Your team} other {Enemy team}}",
         "result": "{result, select, win {Victory} loss {Defeat} other {-}}",
         "teamKills": {
@@ -255,6 +256,32 @@
             "source": "Source",
             "noText": "This package doesn't ship its license text. See its source for the full terms.",
             "unavailable": "The license list couldn't be loaded."
+        }
+    },
+    "settings": {
+        "storage": {
+            "title": "Keep match events for",
+            "subtitle": "Older games lose their timeline but keep their result, scoreboard and stats. Choosing a longer time later reads the events back from your <code>.StormReplay</code> files.",
+            "years": "{count, plural, one {# year} other {# years}}",
+            "forever": "Forever",
+            "since": "since {date}",
+            "allGames": "all games",
+            "size": "Database size",
+            "legend": {
+                "kept": "Kept",
+                "freed": "Freed",
+                "restored": "Read back from replay files",
+                "growth": "Next 12 months at your pace"
+            },
+            "confirm": "Removes the match events of <b>{count, plural, one {# game} other {# games}}</b> played before {date}, freeing about <mono>{size}</mono>{lost, plural, =0 {.} one {, but <b># of them</b> can't be restored later because its replay file is gone.} other {, but <b># of them</b> can't be restored later because their replay files are no longer on disk.}}",
+            "confirmNone": "No games are older than {years, plural, one {# year} other {# years}} yet, so nothing is removed now. Games lose their events once they pass that age.",
+            "confirmRestore": "Reads the match events of <b>{count, plural, one {# game} other {# games}}</b> back from their replay files, adding about <mono>{size}</mono>{lost, plural, =0 {.} one {, while <b># game</b> stays without events because its replay file is gone.} other {, while <b># games</b> stay without events because their replay files are no longer on disk.}}",
+            "confirmNoRestore": "No games in this range can get their events back, so nothing changes now.",
+            "cancel": "Cancel",
+            "apply": "Apply",
+            "remove": "Remove events",
+            "restore": "Restore events",
+            "busy": "Available once your replays finish importing."
         }
     },
     "dates": {

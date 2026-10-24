@@ -1,0 +1,52 @@
+@reference "@/index.css";
+
+.root {
+    @apply lg:w-1/2;
+}
+
+.body {
+    @apply flex flex-col gap-7 px-8 pb-7;
+}
+
+.confirm {
+    @apply flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-line px-8 py-5;
+    background: color-mix(in oklab, var(--color-fg-muted) 4%, var(--color-bg));
+}
+
+.delete {
+    border-color: color-mix(in oklab, var(--color-warn) 25%, var(--color-line));
+    background: color-mix(in oklab, var(--color-warn) 6%, var(--color-bg));
+}
+
+.restore {
+    border-color: color-mix(
+        in oklab,
+        var(--color-primary) 30%,
+        var(--color-line)
+    );
+    background: color-mix(in oklab, var(--color-primary) 8%, var(--color-bg));
+}
+
+.confirmIcon {
+    @apply size-5 shrink-0 text-fg-muted;
+}
+
+.warn {
+    @apply text-warn;
+}
+
+.restoreIcon {
+    @apply text-primary-text;
+}
+
+.confirmText {
+    @apply min-w-0 flex-1 basis-64;
+}
+
+.confirmText strong {
+    @apply font-semibold text-fg;
+}
+
+.confirmActions {
+    @apply ml-auto flex gap-2;
+}

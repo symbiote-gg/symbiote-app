@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { Settings } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
 import { useTranslations } from "use-intl";
 import { Link, useLocation } from "wouter";
@@ -58,6 +59,16 @@ export function AppShell({ children }: { children: ReactNode }) {
                         })}
                     >
                         {t("about")}
+                    </Link>
+                    <Link
+                        href="/settings"
+                        aria-label={t("settings")}
+                        title={t("settings")}
+                        className={classNames(styles.link, styles.iconLink, {
+                            [styles.active]: location === "/settings",
+                        })}
+                    >
+                        <Settings className={styles.icon} />
                     </Link>
                 </div>
             </header>

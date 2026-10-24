@@ -1,0 +1,41 @@
+@reference "@/index.css";
+
+.root {
+    @apply inline-flex flex-wrap gap-1 rounded-lg border border-line bg-bg p-1;
+}
+
+.fill {
+    @apply grid w-full auto-cols-fr grid-flow-col rounded-xl p-1.5;
+}
+
+.option {
+    @apply inline-flex cursor-pointer flex-col items-center gap-0.5 rounded-md border border-transparent px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-fg-muted transition-colors;
+}
+
+.fill .option {
+    @apply rounded-lg py-3 text-base text-fg/85;
+}
+
+.option:not(.selected):hover:enabled {
+    @apply bg-surface-2/50 text-fg;
+}
+
+.option:focus-visible {
+    @apply outline-3 outline-primary-text;
+}
+
+.option:disabled {
+    @apply cursor-default opacity-50;
+}
+
+.selected {
+    @apply border-primary/70 bg-primary/15 text-fg;
+}
+
+.hint {
+    @apply text-xs font-normal text-fg-muted;
+}
+
+.selected .hint {
+    @apply text-primary-text;
+}

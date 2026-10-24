@@ -5,11 +5,14 @@ import { Typography } from "../../typography";
 
 import styles from "./styles.module.css";
 
+export type CardHeaderSize = "sm" | "md";
+
 export interface CardHeaderProps {
     title: string;
     subtitle?: ReactNode;
     action?: ReactNode;
     divided?: boolean;
+    size?: CardHeaderSize;
 }
 
 export function CardHeader({
@@ -17,10 +20,11 @@ export function CardHeader({
     subtitle,
     action,
     divided,
+    size = "md",
 }: CardHeaderProps) {
     return (
         <header
-            className={classNames(styles.root, {
+            className={classNames(styles.root, styles[size], {
                 [styles.divided]: divided,
             })}
         >

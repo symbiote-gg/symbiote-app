@@ -9,6 +9,7 @@ import { Home } from "./pages/home";
 import { Profile } from "./pages/profile";
 import { ReplayDetail } from "./pages/replay";
 import { Replays } from "./pages/replays";
+import { Settings } from "./pages/settings";
 
 function App() {
     useIngestInvalidation();
@@ -23,6 +24,7 @@ function App() {
                     <Route path="/profile" component={Profile} />
                     <Route path="/heroes" component={Heroes} />
                     <Route path="/about" component={About} />
+                    <Route path="/settings" component={Settings} />
                     <Route>
                         <Redirect to="/" />
                     </Route>

@@ -187,3 +187,11 @@ CREATE TABLE "seeds" (
 	"hash" TEXT NOT NULL CHECK (length("hash") = 64 AND "hash" NOT GLOB '*[^0-9a-f]*'),
 	PRIMARY KEY("source")
 ) STRICT, WITHOUT ROWID;
+
+CREATE TABLE "settings" (
+	"id" INTEGER NOT NULL CHECK ("id" = 1),
+	"event_retention_years" INTEGER CHECK ("event_retention_years" IN (1, 2, 5)),
+	PRIMARY KEY("id")
+) STRICT;
+
+INSERT INTO "settings" ("id", "event_retention_years") VALUES (1, 5);

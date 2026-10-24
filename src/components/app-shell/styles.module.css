@@ -28,6 +28,14 @@
     @apply rounded-lg px-3.5 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:text-fg;
 }
 
+.iconLink {
+    @apply px-2.5;
+}
+
+.icon {
+    @apply size-5;
+}
+
 .active {
     @apply bg-primary/25 text-primary-text hover:text-primary-text;
 }
