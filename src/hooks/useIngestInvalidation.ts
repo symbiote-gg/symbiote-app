@@ -18,6 +18,9 @@ const FLUSH_MS = 250;
 // Stats scan every stored replay, so refreshing them on each flush slows ingestion down.
 const STATS_MS = 5000;
 const STATS_KEY = ["stats"];
+// Refetching a filtered list reloads every page it has loaded, so a bulk ingest
+// refetches it at most this often, the first batch right away.
+const FILTERED_MS = 5000;
 
 export function useIngestInvalidation() {
     const queryClient = useQueryClient();
@@ -26,6 +29,8 @@ export function useIngestInvalidation() {
         let batch: ReplayIngested[] = [];
         let flushTimer: ReturnType<typeof setTimeout> | undefined;
         let statsTimer: ReturnType<typeof setTimeout> | undefined;
+        let filteredTimer: ReturnType<typeof setTimeout> | undefined;
+        let filteredAt = 0;
 
         // Invalidating mid-fetch would either restart it, starving slow queries while
         // replays stream in, or join it and miss the replays stored since it started.
@@ -36,6 +41,24 @@ export function useIngestInvalidation() {
             }
             statsTimer = undefined;
             queryClient.invalidateQueries({ queryKey: STATS_KEY });
+        };
+
+        const refreshFiltered = () => {
+            if (queryClient.isFetching({ queryKey: REPLAY_LISTS_KEY })) {
+                filteredTimer = setTimeout(refreshFiltered, FLUSH_MS);
+                return;
+            }
+
+            filteredTimer = undefined;
+            filteredAt = Date.now();
+
+            queryClient.invalidateQueries({
+                queryKey: REPLAY_LISTS_KEY,
+                predicate: ({ queryKey }) =>
+                    !isUnfiltered(
+                        queryKey[REPLAY_LISTS_KEY.length] as ReplayFilters,
+                    ),
+            });
         };
 
         const flush = () => {
@@ -52,20 +75,14 @@ export function useIngestInvalidation() {
                 queryKey: REPLAY_LISTS_KEY,
             });
             for (const [key, data] of lists) {
-                if (!data) continue;
                 const filters = key[REPLAY_LISTS_KEY.length] as ReplayFilters;
-                if (isUnfiltered(filters)) {
-                    queryClient.setQueryData(
-                        key,
-                        applyIngested(data, ingested),
-                    );
-                } else {
-                    queryClient.invalidateQueries({
-                        queryKey: key,
-                        exact: true,
-                    });
-                }
+                if (!data || !isUnfiltered(filters)) continue;
+                queryClient.setQueryData(key, applyIngested(data, ingested));
             }
+            filteredTimer ??= setTimeout(
+                refreshFiltered,
+                Math.max(0, filteredAt + FILTERED_MS - Date.now()),
+            );
             for (const { replay, removed, refreshed } of ingested) {
                 if (removed !== null) {
                     queryClient.removeQueries({
@@ -91,6 +108,7 @@ export function useIngestInvalidation() {
         return () => {
             clearTimeout(flushTimer);
             clearTimeout(statsTimer);
+            clearTimeout(filteredTimer);
             unsubscribe.then((fn) => fn());
         };
     }, [queryClient]);
