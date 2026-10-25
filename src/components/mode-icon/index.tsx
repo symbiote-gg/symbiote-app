@@ -31,8 +31,12 @@ export interface ModeIconProps {
     className?: string;
 }
 
+export function modeIcon(mode: Mode): LucideIcon {
+    return ICONS[mode] ?? CircleQuestionMark;
+}
+
 export function ModeIcon({ mode, className }: ModeIconProps) {
-    const Icon = ICONS[mode] ?? CircleQuestionMark;
+    const Icon = modeIcon(mode);
 
     return <Icon className={classNames(styles.root, className)} />;
 }

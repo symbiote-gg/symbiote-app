@@ -118,18 +118,11 @@
 }
 
 .facts .tag {
-    @apply mr-3 inline-flex items-center gap-1.5 rounded border border-line bg-bg/60 px-2 py-0.5 tracking-[0.15em] text-fg;
-}
-
-.facts .tag svg {
-    @apply size-3.5 text-fg-muted;
+    @apply mr-3;
 }
 
 .facts .resultTag {
     @apply @6xl/header:hidden;
-    color: var(--tone);
-    border-color: color-mix(in oklab, var(--tone) 50%, transparent);
-    background-color: color-mix(in oklab, var(--tone) 15%, var(--color-bg));
 }
 
 .facts .fact {
@@ -172,7 +165,6 @@
 .outcome .result {
     @apply hidden text-4xl leading-none font-bold tracking-wider @6xl/header:block;
     color: var(--tone);
-    text-shadow: 0 0 24px color-mix(in oklab, var(--tone) 45%, transparent);
 }
 
 .panel {

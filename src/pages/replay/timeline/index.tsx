@@ -1,3 +1,4 @@
+import { Clock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -92,6 +93,7 @@ export function Timeline({
     return (
         <Card className={styles.timeline}>
             <CardHeader
+                icon={Clock}
                 size="sm"
                 title={t("title")}
                 action={

@@ -1,9 +1,8 @@
 import { useTranslations } from "use-intl";
 
 import type { TalentPick } from "@/api/replays";
-import { Typography } from "@/ui";
+import { Chip, Typography } from "@/ui";
 import { GameIcon } from "../../game-icon";
-import { Badge } from "./badge";
 
 import styles from "./styles.module.css";
 
@@ -38,11 +37,19 @@ export function Header({ talent, level, quest }: HeaderProps) {
                     {name}
                 </Typography>
                 <div className={styles.badges}>
-                    <Badge variant="level">{t("level", { level })}</Badge>
+                    <Chip size="sm" uppercase>
+                        {t("level", { level })}
+                    </Chip>
                     {level === STORM_LEVEL ? (
-                        <Badge variant="storm">{t("storm")}</Badge>
+                        <Chip size="sm" tone="primary" uppercase>
+                            {t("storm")}
+                        </Chip>
                     ) : (
-                        quest && <Badge variant="quest">{t("quest")}</Badge>
+                        quest && (
+                            <Chip size="sm" tone="quest" uppercase>
+                                {t("quest")}
+                            </Chip>
+                        )
                     )}
                 </div>
             </div>

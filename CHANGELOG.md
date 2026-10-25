@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- Add owner kills and deaths card to replay page.
 - Add icons to cards headers.
 - Add filters to replays list.
 - Add replays folder card to `settings` page.

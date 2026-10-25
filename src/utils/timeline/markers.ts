@@ -50,11 +50,7 @@ export function buildMarkers(
     const markers: Marker[] = [];
     const objectives: ObjectiveMarker[] = [];
 
-    const deaths = timeline.deaths.map((death): DeathEntry => ({
-        ...death,
-        type: "death",
-        side: sideOf(other(death.team), allyTeam),
-    }));
+    const deaths = deathEntries(timeline, allyTeam);
 
     timeline.camps.forEach((camp, index) => {
         const entry: CampEntry = {
@@ -131,7 +127,7 @@ export function buildMarkers(
     ].sort((a, b) => a.time - b.time);
 }
 
-function groupFights(deaths: DeathEntry[], duration: number): Marker[] {
+export function fightGroups(deaths: DeathEntry[], duration: number) {
     const window = duration > LONG_GAME ? 15 : 12;
     const groups: DeathEntry[][] = [];
 
@@ -144,7 +140,11 @@ function groupFights(deaths: DeathEntry[], duration: number): Marker[] {
         }
     }
 
-    return groups.map((group): Marker => {
+    return groups;
+}
+
+function groupFights(deaths: DeathEntry[], duration: number): Marker[] {
+    return fightGroups(deaths, duration).map((group): Marker => {
         const [first] = group;
         const base = {
             id: `death-${first.time}`,
@@ -196,6 +196,13 @@ function mergeObjectives(objectives: ObjectiveMarker[]) {
 
     return merged;
 }
+
+export const deathEntries = (timeline: Timeline, allyTeam: number) =>
+    timeline.deaths.map((death): DeathEntry => ({
+        ...death,
+        type: "death",
+        side: sideOf(death.team === null ? null : 1 - death.team, allyTeam),
+    }));
 
 export function sideOf(team: number | null, allyTeam: number): Side {
     return team === null ? null : team === allyTeam ? "ally" : "enemy";

@@ -9,8 +9,9 @@ import styles from "./styles.module.css";
 export type CardHeaderSize = "sm" | "md";
 
 export interface CardHeaderProps {
-    title: string;
+    title: ReactNode;
     icon?: LucideIcon;
+    addon?: ReactNode;
     subtitle?: ReactNode;
     action?: ReactNode;
     divided?: boolean;
@@ -20,6 +21,7 @@ export interface CardHeaderProps {
 export function CardHeader({
     title,
     icon: Icon,
+    addon,
     subtitle,
     action,
     divided,
@@ -37,6 +39,7 @@ export function CardHeader({
                     <Typography size="xl2" display className={styles.title}>
                         {title}
                     </Typography>
+                    {addon}
                 </div>
                 {subtitle && (
                     <Typography variant="tertiary">{subtitle}</Typography>

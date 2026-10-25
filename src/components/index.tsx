@@ -1,4 +1,5 @@
 export * from "./app-shell";
+export * from "./assist-portraits";
 export * from "./award-pill";
 export * from "./back-to-replays";
 export * from "./coming-soon";
@@ -18,4 +19,5 @@ export * from "./result-chip";
 export * from "./result-filter";
 export * from "./role-filter";
 export * from "./talent-tooltip";
+export * from "./team-portrait";
 export * from "./win-strip";

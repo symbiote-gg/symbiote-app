@@ -1,9 +1,8 @@
 import { CpuAi, Sword } from "lucide-react";
-import { useTranslations } from "use-intl";
 
+import { AssistPortraits, TeamPortrait } from "@/components";
 import { Tooltip } from "@/ui";
-import { Roster, heroName } from "@/utils/timeline/roster";
-import { TeamPortrait } from "../../parts/team-portrait";
+import { Roster } from "@/utils/timeline/roster";
 
 import styles from "./styles.module.css";
 
@@ -20,8 +19,6 @@ export function KillCells({
     noKiller,
     roster,
 }: KillCellsProps) {
-    const t = useTranslations("replay.timeline");
-
     const assists = credited.filter((slot) => slot !== killingBlow);
 
     return (
@@ -41,25 +38,7 @@ export function KillCells({
                     </Tooltip>
                 )}
                 {assists.length > 0 && (
-                    <Tooltip
-                        content={t("assists", {
-                            heroes: assists
-                                .map((slot) => heroName(roster, slot))
-                                .join(", "),
-                        })}
-                    >
-                        <span className={styles.assists}>
-                            {assists.map((slot) => (
-                                <TeamPortrait
-                                    key={slot}
-                                    slot={slot}
-                                    size="xs"
-                                    roster={roster}
-                                    thin
-                                />
-                            ))}
-                        </span>
-                    </Tooltip>
+                    <AssistPortraits slots={assists} roster={roster} />
                 )}
             </span>
             <Sword className={styles.sword} aria-hidden />

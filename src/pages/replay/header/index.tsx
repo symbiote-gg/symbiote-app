@@ -5,9 +5,9 @@ import type { ReactNode } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
 import type { HeroRole, ReplayDetail, ReplayPlayerDetail } from "@/api/replays";
-import { BackToReplays, HeroPortrait, Kad, ModeLabel } from "@/components";
+import { BackToReplays, HeroPortrait, Kad, modeIcon } from "@/components";
 import { useImageFallback } from "@/hooks/useImageFallback";
-import { Button, Eyebrow, Typography } from "@/ui";
+import { Button, Chip, Eyebrow, Typography } from "@/ui";
 import { formatDuration, usePlayedOn } from "@/utils/dates";
 import { milestones } from "./milestones";
 
@@ -162,28 +162,26 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                         <div className={styles.text}>
                             <div className={styles.facts}>
                                 {result !== "unknown" && (
-                                    <Typography
-                                        size="xs"
-                                        weight="semibold"
+                                    <Chip
+                                        size="sm"
+                                        tone={result}
                                         uppercase
-                                        noWrap
                                         className={classNames(
                                             styles.tag,
                                             styles.resultTag,
                                         )}
                                     >
                                         {t("replay.result", { result })}
-                                    </Typography>
+                                    </Chip>
                                 )}
-                                <Typography
-                                    size="xs"
-                                    weight="semibold"
+                                <Chip
+                                    size="sm"
+                                    icon={modeIcon(replay.mode)}
                                     uppercase
-                                    noWrap
                                     className={styles.tag}
                                 >
-                                    <ModeLabel mode={replay.mode} />
-                                </Typography>
+                                    {t(`modes.${replay.mode}`)}
+                                </Chip>
 
                                 <Typography
                                     size="sm"

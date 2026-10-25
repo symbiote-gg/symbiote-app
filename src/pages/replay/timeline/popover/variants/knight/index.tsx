@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
 import type { Knight as KnightData } from "@/api/replays";
+import { TeamPortrait } from "@/components";
 import type { TimelineText } from "@/hooks/useTimelineText";
 import { Typography } from "@/ui";
 import { type Roster, heroName } from "@/utils/timeline/roster";
@@ -10,7 +11,6 @@ import { sideClasses } from "../../../side";
 import { Footer } from "../../parts/footer";
 import { LifeBar } from "../../parts/life-bar";
 import { Stat } from "../../parts/stat";
-import { TeamPortrait } from "../../parts/team-portrait";
 
 import styles from "./styles.module.css";
 

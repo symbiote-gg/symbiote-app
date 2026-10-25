@@ -1,0 +1,85 @@
+@reference "@/index.css";
+
+.root {
+    @apply @container self-stretch;
+}
+
+.halves {
+    @apply grid min-h-0 @5xl:grid-cols-2;
+}
+
+.half {
+    @apply flex min-w-0 flex-col;
+}
+
+.half + .half {
+    @apply border-t border-line @5xl:border-t-0 @5xl:border-l;
+}
+
+.number.win {
+    @apply text-win;
+}
+
+.number.loss {
+    @apply text-loss;
+}
+
+.number.muted {
+    @apply text-fg-muted;
+}
+
+.empty {
+    @apply flex flex-1 flex-col items-center justify-center gap-2 px-gutter py-12 text-center;
+}
+
+.emptyIcon {
+    @apply mb-2 flex size-16 items-center justify-center rounded-full ring-1;
+}
+
+.emptyIcon.muted {
+    @apply bg-surface-2 text-fg-muted ring-line;
+}
+
+.emptyIcon.win {
+    @apply bg-win/15 text-win ring-win/30;
+}
+
+.emptyIconGlyph {
+    @apply size-7;
+}
+
+.columns {
+    @apply grid grid-cols-[4rem_minmax(0,1fr)_7.5rem_8rem] items-center gap-x-4;
+}
+
+.body {
+    @apply max-h-[26rem];
+}
+
+.row {
+    @apply min-h-16 border-b border-line/60 px-gutter py-2.5;
+}
+
+.row:last-child {
+    @apply border-b-0;
+}
+
+.hero {
+    @apply flex min-w-0 items-center gap-3;
+}
+
+.victim {
+    @apply flex shrink-0 rounded-full ring-2 ring-team-red;
+}
+
+.ai {
+    @apply flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-fg-muted ring-2 ring-fg-muted/60;
+}
+
+.aiIcon {
+    @apply size-4;
+}
+
+.kind {
+    @apply justify-self-start;
+}

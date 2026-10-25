@@ -1,7 +1,7 @@
 import classNames from "classnames";
 
-import { HeroPortrait } from "@/components";
 import { type Roster, playerOf } from "@/utils/timeline/roster";
+import { HeroPortrait } from "../hero-portrait";
 
 import styles from "./styles.module.css";
 

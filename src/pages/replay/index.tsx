@@ -4,6 +4,7 @@ import { BackToReplays, Page } from "@/components";
 import { useReplay } from "@/hooks/useReplay";
 import { ErrorMessage } from "@/ui";
 import { Header } from "./header";
+import { KillLog } from "./kill-log";
 import { Scoreboard, ScoreboardTeam } from "./scoreboard";
 import { Timeline } from "./timeline";
 
@@ -64,14 +65,25 @@ export function ReplayDetail() {
                             duration={replay.duration}
                         />
                         {!replay.eventsExpired && (
-                            <Timeline
-                                timeline={replay.timeline}
-                                duration={replay.duration}
-                                players={replay.players}
-                                allyTeam={allyTeam}
-                                ownerSlot={owner?.slot ?? null}
-                                ownerWin={replay.ownerWin}
-                            />
+                            <>
+                                <Timeline
+                                    timeline={replay.timeline}
+                                    duration={replay.duration}
+                                    players={replay.players}
+                                    allyTeam={allyTeam}
+                                    ownerSlot={owner?.slot ?? null}
+                                    ownerWin={replay.ownerWin}
+                                />
+                                {owner && (
+                                    <KillLog
+                                        timeline={replay.timeline}
+                                        duration={replay.duration}
+                                        players={replay.players}
+                                        allyTeam={allyTeam}
+                                        owner={owner}
+                                    />
+                                )}
+                            </>
                         )}
                     </>
                 )}

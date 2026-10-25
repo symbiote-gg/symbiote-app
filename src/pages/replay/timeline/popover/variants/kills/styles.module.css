@@ -44,10 +44,6 @@
     @apply flex items-center gap-2.5;
 }
 
-.assists {
-    @apply flex cursor-default -space-x-1.5;
-}
-
 .sword {
     @apply size-4 justify-self-center text-fg-muted;
 }

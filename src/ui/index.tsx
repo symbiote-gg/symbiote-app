@@ -2,6 +2,7 @@ export * from "./button";
 export * from "./button-link";
 export * from "./card";
 export * from "./checkbox";
+export * from "./chip";
 export * from "./combobox";
 export * from "./dropdown";
 export * from "./empty-state";

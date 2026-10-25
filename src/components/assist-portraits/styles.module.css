@@ -1,0 +1,5 @@
+@reference "@/index.css";
+
+.stack {
+    @apply flex -space-x-1.5;
+}

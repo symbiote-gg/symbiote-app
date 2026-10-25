@@ -1,38 +1,27 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
-import { Typography } from "@/ui";
+import { Chip } from "@/ui";
 
 import styles from "./styles.module.css";
 
 export interface ResultChipProps {
     win: boolean | null;
-    size?: "sm" | "lg";
     className?: string;
 }
 
-export function ResultChip({ win, size = "sm", className }: ResultChipProps) {
+export function ResultChip({ win, className }: ResultChipProps) {
     const t = useTranslations("result");
     const result = win === null ? "unknown" : win ? "win" : "loss";
 
     return (
-        <span
-            className={classNames(
-                className,
-                styles.root,
-                styles[size],
-                styles[result],
-            )}
+        <Chip
+            size="sm"
+            tone={result === "unknown" ? "neutral" : result}
+            uppercase
+            className={classNames(className, styles.root)}
         >
-            <Typography
-                size={size === "lg" ? "xl2" : "xs"}
-                weight="semibold"
-                display={size === "lg"}
-                uppercase
-                className={styles.label}
-            >
-                {t(result)}
-            </Typography>
-        </span>
+            {t(result)}
+        </Chip>
     );
 }

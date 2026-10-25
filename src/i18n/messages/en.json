@@ -140,7 +140,7 @@
         "timeDead": "Time dead",
         "timeOnFire": "Time on fire",
         "upvotes": "Upvotes",
-        "party": "Premade party {party}",
+        "party": "Party {party}",
         "talents": "Talents",
         "timeline": {
             "title": "Timeline",
@@ -250,6 +250,21 @@
             "duelDead": "dead",
             "duelPush": "{push, select, strong {Strong push} solid {Solid push} other {Weak push}}",
             "duelPower": "power {value}%"
+        },
+        "killLog": {
+            "title": "{count, plural, one {You killed <n>#</n> hero} other {You killed <n>#</n> heroes}}",
+            "deathsTitle": "{count, plural, one {You died <n>#</n> time} other {You died <n>#</n> times}}",
+            "time": "Time",
+            "victim": "Victim",
+            "killedBy": "Killed by",
+            "with": "With",
+            "helpedBy": "Helped by",
+            "type": "Type",
+            "kind": "{kind, select, solo {Solo} pick {Pick} gank {Gank} skirmish {Skirmish} teamFight {Team fight} ai {AI} other {Fight}}",
+            "noKills": "No kills",
+            "noKillsHint": "You didn't land a killing blow this game.",
+            "deathless": "Deathless",
+            "deathlessHint": "You didn't die once in {duration}."
         },
         "milestone": {
             "firstBlood": "First blood",
