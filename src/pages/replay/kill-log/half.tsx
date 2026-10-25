@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
@@ -44,10 +45,10 @@ export function Half({
             ) : entries.length === 0 ? (
                 <CardBody className={styles.body}>{footer}</CardBody>
             ) : (
-                <>
+                <CardBody className={styles.body}>
                     <TableHead
                         strip
-                        className={styles.columns}
+                        className={classNames(styles.columns, styles.head)}
                         columns={[
                             { key: "time", label: t("time") },
                             { key: "hero", label: heroLabel },
@@ -55,19 +56,17 @@ export function Half({
                             { key: "fight", label: t("fight") },
                         ]}
                     />
-                    <CardBody className={styles.body}>
-                        <ul>
-                            {entries.map((entry) => (
-                                <Row
-                                    key={`${entry.death.time}-${entry.death.victim}`}
-                                    entry={entry}
-                                    roster={roster}
-                                />
-                            ))}
-                        </ul>
-                        {footer}
-                    </CardBody>
-                </>
+                    <ul>
+                        {entries.map((entry) => (
+                            <Row
+                                key={`${entry.death.time}-${entry.death.victim}`}
+                                entry={entry}
+                                roster={roster}
+                            />
+                        ))}
+                    </ul>
+                    {footer}
+                </CardBody>
             )}
         </div>
     );
