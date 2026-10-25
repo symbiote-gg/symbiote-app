@@ -29,7 +29,7 @@
 }
 
 .chip:disabled {
-    @apply cursor-default border-dashed border-line opacity-50;
+    @apply cursor-not-allowed border-dashed border-line opacity-50;
 }
 
 .chip:focus-visible {

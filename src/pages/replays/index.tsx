@@ -12,6 +12,7 @@ import {
 import { useTranslations } from "use-intl";
 
 import { Page, ReplayListHeader, ReplayRow } from "@/components";
+import { useIngestProgress } from "@/hooks/useIngestProgress";
 import { useReplays } from "@/hooks/useReplays";
 import {
     Button,
@@ -53,6 +54,7 @@ export function Replays() {
         dataUpdatedAt,
         isPlaceholderData,
     } = useReplays(query);
+    const importing = useIngestProgress() !== null;
 
     const replays = useMemo(
         () => data?.pages.flatMap((page) => page.replays) ?? [],
@@ -116,7 +118,9 @@ export function Replays() {
                         <Button
                             variant="secondary"
                             onClick={onRefresh}
-                            disabled={isFetching && !isFetchingNextPage}
+                            disabled={
+                                importing || (isFetching && !isFetchingNextPage)
+                            }
                         >
                             {t("refresh")}
                         </Button>

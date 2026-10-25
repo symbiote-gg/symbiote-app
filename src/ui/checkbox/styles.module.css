@@ -10,7 +10,7 @@
 }
 
 .disabled {
-    @apply cursor-default text-fg-muted/50;
+    @apply cursor-not-allowed text-fg-muted/50;
 }
 
 .input {
