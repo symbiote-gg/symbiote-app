@@ -32,8 +32,6 @@ export function Row({ entry: { death, kind, role }, roster }: RowProps) {
             </Typography>
             <div className={styles.hero}>
                 {role !== "death" ? (
-                    // The ring sits on a wrapper: on the filtered element
-                    // itself, WebKit clips the ring's box-shadow.
                     <span className={styles.victim}>
                         <HeroPortrait
                             size="sm"
@@ -48,11 +46,18 @@ export function Row({ entry: { death, kind, role }, roster }: RowProps) {
                 ) : (
                     <TeamPortrait slot={hero} size="sm" roster={roster} />
                 )}
-                <Typography weight="semibold" truncate>
-                    {hero === null
-                        ? t("timeline.aiCredit")
-                        : heroName(roster, hero)}
-                </Typography>
+                <span className={styles.heroText}>
+                    <Typography weight="semibold" truncate>
+                        {hero === null
+                            ? t("timeline.aiCredit")
+                            : heroName(roster, hero)}
+                    </Typography>
+                    {hero !== null && (
+                        <Typography size="sm" variant="tertiary" truncate>
+                            {playerOf(roster, hero)?.name}
+                        </Typography>
+                    )}
+                </span>
             </div>
             {others.length > 0 ? (
                 <AssistPortraits slots={others} roster={roster} />

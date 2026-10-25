@@ -114,6 +114,10 @@ ul + .unplaced {
     @apply flex min-w-0 items-center gap-3;
 }
 
+.heroText {
+    @apply flex min-w-0 flex-col;
+}
+
 .victim {
     @apply flex shrink-0 rounded-full ring-2 ring-team-red;
 }

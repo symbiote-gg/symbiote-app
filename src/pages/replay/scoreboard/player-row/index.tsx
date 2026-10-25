@@ -81,7 +81,7 @@ export function PlayerRow({
                 <span className={styles.playerText}>
                     <span className={styles.playerName}>
                         <Typography weight="semibold" truncate>
-                            {player.name}
+                            {player.heroName}
                         </Typography>
                         {player.upvotes > 0 && (
                             <Tooltip content={t("upvotes")}>
@@ -105,7 +105,7 @@ export function PlayerRow({
                         <AwardPills awards={player.awards} iconOnlyWhenNarrow />
                     </span>
                     <Typography size="sm" variant="tertiary" truncate>
-                        {player.heroName}
+                        {player.name}
                     </Typography>
                 </span>
             </span>
