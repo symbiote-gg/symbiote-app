@@ -5,8 +5,8 @@ import { useTranslations } from "use-intl";
 import { AssistPortraits, HeroPortrait, TeamPortrait } from "@/components";
 import { Typography } from "@/ui";
 import { formatDuration } from "@/utils/dates";
-import { type OwnerDeath, killerOf } from "@/utils/timeline/kill-log";
 import { type Roster, heroName, playerOf } from "@/utils/timeline/roster";
+import { type OwnerDeath, killerOf } from "./kill-log";
 import { KindChip } from "./kind-chip";
 
 import styles from "./styles.module.css";

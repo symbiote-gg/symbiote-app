@@ -1,6 +1,6 @@
 @reference "@/index.css";
 
 .root {
-    @apply min-h-0 flex-1 overflow-y-auto overscroll-contain;
+    @apply min-h-0 flex-1 overflow-y-auto;
     scrollbar-gutter: stable;
 }

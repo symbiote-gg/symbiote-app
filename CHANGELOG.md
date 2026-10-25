@@ -11,6 +11,8 @@ and this project adheres to
 ### Added
 
 - Add owner kills and deaths card to replay page.
+- Show kills with no killing blow on record (e.g. on Leoric) in the kill log,
+  and count them even when they can't be told apart from tower kills.
 - Add icons to cards headers.
 - Add filters to replays list.
 - Add replays folder card to `settings` page.

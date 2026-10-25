@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { ShieldCheck, Swords, Tombstone } from "lucide-react";
+import { HeartPulse, Swords, Tombstone } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { useTranslations } from "use-intl";
 
@@ -9,10 +9,18 @@ import type {
 } from "@/api/replays";
 import { Card } from "@/ui";
 import { formatDuration } from "@/utils/dates";
-import { ownerDeaths } from "@/utils/timeline/kill-log";
 import type { Roster } from "@/utils/timeline/roster";
 import { Empty } from "./empty";
 import { Half, type Tone } from "./half";
+import {
+    killerOf,
+    mostFrequent,
+    ownerDeaths,
+    placeCertainKills,
+    unplacedKills,
+} from "./kill-log";
+import { Top } from "./top";
+import { Unplaced } from "./unplaced";
 
 import styles from "./styles.module.css";
 
@@ -35,14 +43,31 @@ export function KillLog({
 
     const roster: Roster = { players, allyTeam, highlightSlot: owner.slot };
 
-    const entries = useMemo(
-        () => ownerDeaths(timeline, duration, allyTeam, owner.slot),
-        [timeline, duration, allyTeam, owner.slot],
+    const { entries, unplaced } = useMemo(
+        () =>
+            placeCertainKills(
+                ownerDeaths(timeline, duration, allyTeam, owner.slot),
+                unplacedKills(timeline.deaths, players, owner.slot),
+            ),
+        [timeline, duration, allyTeam, players, owner.slot],
     );
     const kills = entries.filter((entry) => entry.role === "kill");
     const deaths = entries.filter((entry) => entry.role === "death");
+    // with the kills no death places, the scoreboard's count
+    const killCount = kills.length + (unplaced?.count ?? 0);
 
-    const killsTone: Tone = kills.length > 0 ? "win" : "muted";
+    // only when they're all on one hero
+    const unplacedVictims =
+        unplaced?.victims.length === 1
+            ? Array<number>(unplaced.count).fill(unplaced.victims[0])
+            : [];
+    const mostKilled = mostFrequent([
+        ...kills.map((entry) => entry.death.victim),
+        ...unplacedVictims,
+    ]);
+    const mostBy = mostFrequent(deaths.map((entry) => killerOf(entry.death)));
+
+    const killsTone: Tone = killCount > 0 ? "win" : "muted";
     const deathsTone: Tone = deaths.length > 0 ? "loss" : "win";
 
     const toned = (tone: Tone) => (chunks: ReactNode) => (
@@ -56,10 +81,18 @@ export function KillLog({
             <div className={styles.halves}>
                 <Half
                     title={t.rich("title", {
-                        count: kills.length,
+                        count: killCount,
                         n: toned(killsTone),
                     })}
                     icon={Swords}
+                    top={
+                        <Top
+                            label={t("mostKilled")}
+                            tone="win"
+                            top={mostKilled}
+                            roster={roster}
+                        />
+                    }
                     heroLabel={t("victim")}
                     withLabel={t("with")}
                     empty={
@@ -72,6 +105,11 @@ export function KillLog({
                     }
                     entries={kills}
                     roster={roster}
+                    footer={
+                        unplaced && (
+                            <Unplaced unplaced={unplaced} roster={roster} />
+                        )
+                    }
                 />
                 <Half
                     title={t.rich("deathsTitle", {
@@ -79,11 +117,19 @@ export function KillLog({
                         n: toned(deathsTone),
                     })}
                     icon={Tombstone}
+                    top={
+                        <Top
+                            label={t("mostBy")}
+                            tone="loss"
+                            top={mostBy}
+                            roster={roster}
+                        />
+                    }
                     heroLabel={t("killedBy")}
                     withLabel={t("helpedBy")}
                     empty={
                         <Empty
-                            icon={ShieldCheck}
+                            icon={HeartPulse}
                             tone="win"
                             title={t("deathless")}
                             description={t("deathlessHint", {

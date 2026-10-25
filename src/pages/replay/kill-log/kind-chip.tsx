@@ -9,7 +9,7 @@ import {
 import { useTranslations } from "use-intl";
 
 import { Chip } from "@/ui";
-import type { DeathKind } from "@/utils/timeline/kill-log";
+import type { DeathKind } from "./kill-log";
 
 import styles from "./styles.module.css";
 

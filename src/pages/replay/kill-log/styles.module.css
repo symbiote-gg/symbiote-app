@@ -16,6 +16,14 @@
     @apply border-t border-line @5xl:border-t-0 @5xl:border-l;
 }
 
+.top {
+    @apply flex min-w-0 items-baseline gap-2 self-center;
+}
+
+.topCount {
+    @apply shrink-0 self-center;
+}
+
 .number.win {
     @apply text-win;
 }
@@ -62,6 +70,30 @@
 
 .row:last-child {
     @apply border-b-0;
+}
+
+.unplaced {
+    @apply flex items-center gap-4 px-gutter py-3;
+}
+
+ul + .unplaced {
+    @apply border-t border-line/60;
+}
+
+.victims {
+    @apply flex shrink-0 -space-x-2;
+}
+
+.unplacedText {
+    @apply flex min-w-0 flex-col gap-0.5;
+}
+
+.unplacedHint {
+    @apply flex items-center gap-1.5;
+}
+
+.unplacedInfo {
+    @apply size-3.5 shrink-0 text-fg-muted;
 }
 
 .hero {

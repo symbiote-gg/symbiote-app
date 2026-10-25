@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
 import { CardBody, CardHeader, TableHead } from "@/ui";
-import type { OwnerDeath } from "@/utils/timeline/kill-log";
 import type { Roster } from "@/utils/timeline/roster";
+import type { OwnerDeath } from "./kill-log";
 import { Row } from "./row";
 
 import styles from "./styles.module.css";
@@ -14,29 +14,35 @@ export type Tone = "win" | "loss" | "muted";
 interface HalfProps {
     title: ReactNode;
     icon: LucideIcon;
+    top: ReactNode;
     heroLabel: string;
     withLabel: string;
     empty: ReactNode;
     entries: OwnerDeath[];
     roster: Roster;
+    footer?: ReactNode;
 }
 
 export function Half({
     title,
     icon,
+    top,
     heroLabel,
     withLabel,
     empty,
     entries,
     roster,
+    footer,
 }: HalfProps) {
     const t = useTranslations("replay.killLog");
 
     return (
         <div className={styles.half}>
-            <CardHeader size="sm" icon={icon} title={title} />
-            {entries.length === 0 ? (
+            <CardHeader size="sm" icon={icon} title={title} action={top} />
+            {entries.length === 0 && !footer ? (
                 empty
+            ) : entries.length === 0 ? (
+                <CardBody className={styles.body}>{footer}</CardBody>
             ) : (
                 <>
                     <TableHead
@@ -46,7 +52,7 @@ export function Half({
                             { key: "time", label: t("time") },
                             { key: "hero", label: heroLabel },
                             { key: "with", label: withLabel },
-                            { key: "type", label: t("type") },
+                            { key: "fight", label: t("fight") },
                         ]}
                     />
                     <CardBody className={styles.body}>
@@ -59,6 +65,7 @@ export function Half({
                                 />
                             ))}
                         </ul>
+                        {footer}
                     </CardBody>
                 </>
             )}
