@@ -21,7 +21,6 @@ export function useDismiss(
         };
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.key !== "Escape") return;
-            e.stopPropagation();
             close.current();
             anchor?.focus();
         };

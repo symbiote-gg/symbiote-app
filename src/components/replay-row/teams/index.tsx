@@ -33,6 +33,7 @@ export function Teams({ replay, className }: TeamsProps) {
                 size="xs"
                 name={player.heroName}
                 portrait={player.heroPortrait}
+                decoding="sync"
                 className={classNames(
                     styles.portrait,
                     player.team === allyTeam ? styles.ally : styles.enemy,

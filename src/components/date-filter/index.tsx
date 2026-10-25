@@ -1,9 +1,10 @@
 import classNames from "classnames";
 import dayjs, { type Dayjs } from "dayjs";
 import { CalendarDays } from "lucide-react";
-import { type MouseEvent, useEffect, useId, useRef, useState } from "react";
+import { type MouseEvent, useId, useRef, useState } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
+import { useFocusOnOpen } from "@/hooks/useFocusOnOpen";
 import { Button, Dropdown, FilterTrigger, RangeCalendar } from "@/ui";
 import {
     ANY_TIME,
@@ -54,18 +55,13 @@ export function DateFilter({ value, onChange }: DateFilterProps) {
 
     const today = dayjs();
 
-    // The panel stays hidden until it's positioned, and hidden buttons can't take focus.
-    useEffect(() => {
-        if (!open) return;
-        const frame = requestAnimationFrame(() =>
-            (
-                presets.current?.querySelector<HTMLButtonElement>(
-                    "[aria-pressed=true]",
-                ) ?? presets.current?.querySelector("button")
-            )?.focus(),
-        );
-        return () => cancelAnimationFrame(frame);
-    }, [open]);
+    useFocusOnOpen(
+        open,
+        () =>
+            presets.current?.querySelector<HTMLButtonElement>(
+                "[aria-pressed=true]",
+            ) ?? presets.current?.querySelector("button"),
+    );
 
     const formatDay = (day: Dayjs, withYear: boolean) =>
         format.dateTime(day.toDate(), withYear ? FULL : SHORT);

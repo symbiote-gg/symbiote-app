@@ -1,6 +1,13 @@
 import classNames from "classnames";
-import { type MouseEvent, type ReactNode, useId, useState } from "react";
+import {
+    type MouseEvent,
+    type ReactNode,
+    useId,
+    useRef,
+    useState,
+} from "react";
 
+import { useFocusOnOpen } from "@/hooks/useFocusOnOpen";
 import { Dropdown } from "../dropdown";
 import { FilterTrigger } from "../filter-trigger";
 
@@ -37,6 +44,15 @@ export function Select<T extends string>({
     const id = useId();
     const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
     const [open, setOpen] = useState(false);
+    const list = useRef<HTMLDivElement>(null);
+
+    useFocusOnOpen(
+        open,
+        () =>
+            list.current?.querySelector<HTMLButtonElement>(
+                "[aria-pressed=true]",
+            ) ?? list.current?.querySelector("button"),
+    );
 
     const selected = options.find((option) => option.value === value);
 
@@ -71,7 +87,7 @@ export function Select<T extends string>({
                 aria-label={label}
                 onClose={onClose}
             >
-                <div className={styles.list}>
+                <div ref={list} className={styles.list}>
                     {options.map((option) => (
                         <button
                             key={option.value}

@@ -1,5 +1,12 @@
-import { type ChangeEvent, type ReactNode, useId, useState } from "react";
+import {
+    type ChangeEvent,
+    type ReactNode,
+    useId,
+    useRef,
+    useState,
+} from "react";
 
+import { useFocusOnOpen } from "@/hooks/useFocusOnOpen";
 import { Checkbox } from "../checkbox";
 import { Dropdown } from "../dropdown";
 import { FilterTrigger } from "../filter-trigger";
@@ -37,6 +44,15 @@ export function MultiSelect<T extends string>({
     const id = useId();
     const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
     const [open, setOpen] = useState(false);
+    const list = useRef<HTMLDivElement>(null);
+
+    useFocusOnOpen(
+        open,
+        () =>
+            list.current?.querySelector<HTMLInputElement>(
+                "input:checked:not(:disabled)",
+            ) ?? list.current?.querySelector("input:not(:disabled)"),
+    );
 
     const onToggleOpen = () => setOpen(!open);
     const onClose = () => setOpen(false);
@@ -76,7 +92,7 @@ export function MultiSelect<T extends string>({
                 aria-label={label}
                 onClose={onClose}
             >
-                <div className={styles.list}>
+                <div ref={list} className={styles.list}>
                     {options.map((option) => (
                         <Checkbox
                             key={option.value}

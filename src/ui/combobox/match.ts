@@ -1,17 +1,23 @@
 const fold = (char: string) =>
-    char
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "")
-        .toLowerCase()
-        .charAt(0) || char;
+    Array.from(
+        char
+            .normalize("NFD")
+            .replace(/\p{Diacritic}/gu, "")
+            .toLowerCase(),
+    )[0] ?? char;
 
+/** Returns where `query` matches in `label`, in code points. */
 export function findMatch(
     label: string,
     query: string,
 ): [number, number] | null {
-    const needle = Array.from(query.trim()).map(fold).join("");
-    if (!needle) return [0, 0];
+    const foldedQuery = Array.from(query.trim()).map(fold).join("");
+    if (!foldedQuery) return [0, 0];
 
-    const index = Array.from(label).map(fold).join("").indexOf(needle);
-    return index === -1 ? null : [index, index + Array.from(needle).length];
+    const foldedLabel = Array.from(label).map(fold).join("");
+    const index = foldedLabel.indexOf(foldedQuery);
+    if (index === -1) return null;
+
+    const start = Array.from(foldedLabel.slice(0, index)).length;
+    return [start, start + Array.from(foldedQuery).length];
 }

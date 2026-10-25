@@ -1,14 +1,17 @@
+import classNames from "classnames";
 import { Search, X } from "lucide-react";
 import {
     type ChangeEvent,
+    type KeyboardEvent,
     type MouseEvent,
+    type PointerEvent,
     type ReactNode,
-    useEffect,
     useId,
     useRef,
     useState,
 } from "react";
 
+import { useFocusOnOpen } from "@/hooks/useFocusOnOpen";
 import { linkClassName } from "../button";
 import { CheckboxBox } from "../checkbox";
 import { Dropdown } from "../dropdown";
@@ -91,6 +94,7 @@ export function Combobox<
     const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
+    const [activeIndex, setActiveIndex] = useState(0);
     const input = useRef<HTMLInputElement>(null);
 
     const results = options.flatMap((option) => {
@@ -101,12 +105,10 @@ export function Combobox<
         const option = options.find((option) => option.value === picked);
         return option ? [option] : [];
     });
+    const active = Math.min(activeIndex, results.length - 1);
+    const optionId = (index: number) => `${id}-option-${index}`;
 
-    useEffect(() => {
-        if (!open) return;
-        const frame = requestAnimationFrame(() => input.current?.focus());
-        return () => cancelAnimationFrame(frame);
-    }, [open]);
+    useFocusOnOpen(open, () => input.current);
 
     const toggle = (picked: T) =>
         onChange(
@@ -118,11 +120,35 @@ export function Combobox<
     const onToggleOpen = () => {
         setOpen(!open);
         setQuery("");
+        setActiveIndex(0);
     };
     const onClose = () => setOpen(false);
 
-    const onQueryChange = (e: ChangeEvent<HTMLInputElement>) =>
+    const onQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
         setQuery(e.currentTarget.value);
+        setActiveIndex(0);
+    };
+
+    const moveTo = (index: number) => {
+        setActiveIndex(index);
+        document
+            .getElementById(optionId(index))
+            ?.scrollIntoView({ block: "nearest" });
+    };
+
+    const onInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+        if (results.length === 0) return;
+        if (e.key === "ArrowDown") {
+            moveTo((active + 1) % results.length);
+        } else if (e.key === "ArrowUp") {
+            moveTo((active - 1 + results.length) % results.length);
+        } else if (e.key === "Enter") {
+            toggle(results[active].option.value);
+        } else {
+            return;
+        }
+        e.preventDefault();
+    };
 
     const onClearSearch = () => {
         setQuery("");
@@ -135,6 +161,9 @@ export function Combobox<
         toggle(results[Number(e.currentTarget.dataset.index)].option.value);
         input.current?.focus();
     };
+
+    const onOptionEnter = (e: PointerEvent<HTMLDivElement>) =>
+        setActiveIndex(Number(e.currentTarget.dataset.index));
 
     const onRemove = (e: MouseEvent<HTMLButtonElement>) => {
         const removed = picked[Number(e.currentTarget.dataset.index)];
@@ -175,12 +204,16 @@ export function Combobox<
                             aria-expanded
                             aria-controls={`${id}-listbox`}
                             aria-autocomplete="list"
+                            aria-activedescendant={
+                                active >= 0 ? optionId(active) : undefined
+                            }
                             placeholder={placeholder}
                             value={query}
                             autoComplete="off"
                             spellCheck={false}
                             className={styles.input}
                             onChange={onQueryChange}
+                            onKeyDown={onInputKeyDown}
                         />
                     </label>
                     {picked.length > 0 && (
@@ -222,11 +255,15 @@ export function Combobox<
                         return (
                             <div
                                 key={option.value}
+                                id={optionId(index)}
                                 role="option"
                                 aria-selected={selected}
                                 data-index={index}
-                                className={styles.option}
+                                className={classNames(styles.option, {
+                                    [styles.active]: index === active,
+                                })}
                                 onClick={onOptionClick}
+                                onPointerEnter={onOptionEnter}
                             >
                                 <CheckboxBox checked={selected} />
                                 {renderOption(

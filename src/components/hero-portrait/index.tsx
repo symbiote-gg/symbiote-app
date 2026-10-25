@@ -9,6 +9,7 @@ export interface HeroPortraitProps {
     portrait: string | null;
     size?: "xs" | "sm" | "md" | "lg";
     className?: string;
+    decoding?: "sync" | "async";
 }
 
 export function HeroPortrait({
@@ -16,6 +17,7 @@ export function HeroPortrait({
     portrait,
     size = "sm",
     className,
+    decoding = "async",
 }: HeroPortraitProps) {
     const [failed, onError] = useImageFallback();
 
@@ -33,7 +35,7 @@ export function HeroPortrait({
         <img
             src={`/game/heroportraits/${portrait}`}
             alt={name}
-            decoding="sync"
+            decoding={decoding}
             className={classes}
             onError={onError}
         />

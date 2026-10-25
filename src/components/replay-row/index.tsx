@@ -77,6 +77,7 @@ export const ReplayRow = memo(function ReplayRow({
                         name={replay.heroName}
                         portrait={replay.heroPortrait}
                         size="md"
+                        decoding="sync"
                         className={styles.portrait}
                     />
                     <span className={styles.text}>
