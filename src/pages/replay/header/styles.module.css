@@ -118,7 +118,11 @@
 }
 
 .facts .tag {
-    @apply mr-3;
+    @apply relative isolate mr-3;
+}
+
+.facts .tag::before {
+    @apply absolute inset-0 -z-10 rounded-md bg-bg/80 content-[''];
 }
 
 .facts .resultTag,
