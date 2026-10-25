@@ -32,6 +32,10 @@
     @apply border-quest/40 bg-quest/15 text-quest;
 }
 
+.warn {
+    @apply border-warn/40 bg-warn/15 text-warn;
+}
+
 .uppercase {
     @apply tracking-wider;
 }

@@ -24,6 +24,9 @@ pub struct Timeline {
     pub camps: Vec<Camp>,
     /// Each team's level-ups as `(time, level)`, starting at level 1 at 0.
     pub levels: [Vec<(f64, u32)>; 2],
+    /// Each team's total XP so far as `(time, xp)`, sampled every minute.
+    #[serde(skip)]
+    pub xp: [Vec<(f64, f64)>; 2],
     pub objectives: Vec<Objective>,
     /// The deaths grouped into fights, in time order.
     pub fights: Vec<Fight>,

@@ -9,6 +9,7 @@ import { BackToReplays, HeroPortrait, Kad, modeIcon } from "@/components";
 import { useImageFallback } from "@/hooks/useImageFallback";
 import { Button, Chip, Eyebrow, Typography } from "@/ui";
 import { formatDuration, usePlayedOn } from "@/utils/dates";
+import { FlowChip } from "./flow-chip";
 
 import styles from "./styles.module.css";
 
@@ -173,7 +174,16 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                                 >
                                     {t(`modes.${replay.mode}`)}
                                 </Chip>
-
+                                {replay.flow && replay.ownerWin !== null && (
+                                    <FlowChip
+                                        flow={replay.flow}
+                                        ownerWin={replay.ownerWin}
+                                        className={classNames(
+                                            styles.tag,
+                                            styles.flowTag,
+                                        )}
+                                    />
+                                )}
                                 <Typography
                                     size="sm"
                                     noWrap
@@ -240,16 +250,25 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                         )}
                     </div>
                     <div className={styles.outcome}>
-                        <Typography
-                            size="lg"
-                            weight="semibold"
-                            display
-                            uppercase
-                            noWrap
-                            className={styles.result}
-                        >
-                            {t("replay.result", { result })}
-                        </Typography>
+                        <div className={styles.verdict}>
+                            <Typography
+                                size="lg"
+                                weight="semibold"
+                                display
+                                uppercase
+                                noWrap
+                                className={styles.result}
+                            >
+                                {t("replay.result", { result })}
+                            </Typography>
+                            {replay.flow && replay.ownerWin !== null && (
+                                <FlowChip
+                                    flow={replay.flow}
+                                    ownerWin={replay.ownerWin}
+                                    size="md"
+                                />
+                            )}
+                        </div>
                         <div className={styles.panel}>
                             {stats.map(({ label, value }) => (
                                 <div key={label} className={styles.stat}>

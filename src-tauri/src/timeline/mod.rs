@@ -5,6 +5,7 @@
 //! which take only the fields the timeline shows.
 
 mod fights;
+pub mod flow;
 pub mod kill_log;
 mod maps;
 mod milestones;
@@ -31,6 +32,20 @@ struct DeathData {
 #[derive(Deserialize)]
 struct LevelData {
     level: u32,
+}
+
+#[derive(Deserialize)]
+struct XpData {
+    xp: XpBreakdown,
+}
+
+#[derive(Deserialize)]
+struct XpBreakdown {
+    minion: f64,
+    creep: f64,
+    structure: f64,
+    hero: f64,
+    trickle: f64,
 }
 
 #[derive(Deserialize)]
@@ -66,9 +81,8 @@ pub fn build(rows: Vec<RawEvent>, duration: f64) -> Timeline {
         let team = team.and_then(|team| u8::try_from(team).ok());
 
         match kind.as_str() {
-            "xp" => {}
             // Map events keep theirs: their maps look across all of a kind's events.
-            "death" | "team_level" | "camp_capture" | "structure_death" if time < 0.0 => {}
+            "death" | "team_level" | "xp" | "camp_capture" | "structure_death" if time < 0.0 => {}
             "death" => {
                 let Some(death) = parse::<DeathData>(&kind, data.0) else {
                     continue;
@@ -93,6 +107,15 @@ pub fn build(rows: Vec<RawEvent>, duration: f64) -> Timeline {
                     {
                         curve.push((time, level.level));
                     }
+                }
+            }
+            "xp" => {
+                let Some(XpData { xp }) = parse::<XpData>(&kind, data.0) else {
+                    continue;
+                };
+                if let Some(curve) = team.and_then(|team| timeline.xp.get_mut(usize::from(team))) {
+                    let total = xp.minion + xp.creep + xp.structure + xp.hero + xp.trickle;
+                    curve.push((time, total));
                 }
             }
             "camp_capture" => {
@@ -218,6 +241,23 @@ mod tests {
         ]);
         let nths: Vec<_> = timeline.camps.iter().map(|camp| camp.nth).collect();
         assert_eq!(nths, [1, 1, 2]);
+    }
+
+    #[test]
+    fn reads_xp_totals() {
+        let xp = |time, team| {
+            row(
+                "xp",
+                time,
+                Some(team),
+                json!({
+                    "xp": { "minion": 100.0, "creep": 20.0, "structure": 3.0, "hero": 0.5, "trickle": 4.0 },
+                    "team_level": 2,
+                }),
+            )
+        };
+        let timeline = build(vec![xp(-1.0, 0), xp(60.0, 0), xp(60.0, 1)]);
+        assert_eq!(timeline.xp, [vec![(60.0, 127.5)], vec![(60.0, 127.5)]]);
     }
 
     #[test]

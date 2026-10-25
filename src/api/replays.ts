@@ -279,6 +279,9 @@ export type Timeline = {
     milestones: Milestone[];
 };
 
+/** How a game went for its winner. */
+export type GameFlow = "stomp" | "comeback" | "close" | "controlled";
+
 export type DeathKind = FightKind | "solo" | "ai";
 export type DeathRole = "kill" | "assist" | "death";
 
@@ -330,6 +333,7 @@ export type ReplayDetail = Omit<
     killLog: KillLog;
     teams: [TeamSummary, TeamSummary];
     ownerKillParticipation: number | null;
+    flow: GameFlow | null;
     onDisk: boolean;
     eventsExpired: boolean;
 };

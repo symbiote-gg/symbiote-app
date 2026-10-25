@@ -121,7 +121,8 @@
     @apply mr-3;
 }
 
-.facts .resultTag {
+.facts .resultTag,
+.facts .flowTag {
     @apply @6xl/header:hidden;
 }
 
@@ -162,8 +163,12 @@
     @apply flex flex-col items-stretch gap-3 text-left @6xl/header:items-end @6xl/header:text-right;
 }
 
+.verdict {
+    @apply hidden flex-col items-end gap-3 @6xl/header:flex;
+}
+
 .outcome .result {
-    @apply hidden text-4xl leading-none font-bold tracking-wider @6xl/header:block;
+    @apply text-4xl leading-none font-bold tracking-wider;
     color: var(--tone);
 }
 

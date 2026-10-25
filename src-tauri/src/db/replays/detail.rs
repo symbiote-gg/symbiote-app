@@ -106,7 +106,7 @@ pub async fn get_detail(
              FROM events e
              JOIN replays r ON r.id = e.replay_id
              JOIN event_kinds k ON k.id = e.kind_id
-             WHERE e.replay_id = ? AND k.name != 'xp'
+             WHERE e.replay_id = ?
              ORDER BY e.gameloop, e.id",
         )
         .bind(LOOPS_PER_SECOND)
@@ -115,6 +115,9 @@ pub async fn get_detail(
         .await?;
 
         detail.timeline = crate::timeline::build(events, detail.replay.duration as f64);
+        detail.flow = winner(&detail).and_then(|winner| {
+            crate::timeline::flow::read(&detail.timeline, winner, detail.replay.duration as f64)
+        });
     }
     tx.commit().await?;
 
@@ -169,6 +172,16 @@ fn team_summaries(players: &[ReplayPlayerDetail], timeline: &Timeline) -> [TeamS
                 .and_then(|curve| curve.last())
                 .map(|&(_, level)| level),
         }
+    })
+}
+
+fn winner(detail: &ReplayDetail) -> Option<u8> {
+    let owner_team = u8::try_from(detail.replay.owner_team).ok()?;
+    let owner_win = detail.replay.owner_win?;
+    Some(if owner_win {
+        owner_team
+    } else {
+        1 - owner_team
     })
 }
 

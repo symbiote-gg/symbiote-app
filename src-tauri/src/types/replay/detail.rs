@@ -66,10 +66,26 @@ pub struct ReplayDetail {
     #[sqlx(skip)]
     pub owner_kill_participation: Option<f64>,
     #[sqlx(skip)]
+    pub flow: Option<GameFlow>,
+    #[sqlx(skip)]
     pub on_disk: bool,
     /// Whether it was played too long ago to keep its events, so it has no timeline or levels.
     #[sqlx(skip)]
     pub events_expired: bool,
+}
+
+/// How a game went for its winner.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum GameFlow {
+    /// Never behind, with a wide margin or forts taken fast.
+    Stomp,
+    /// Clearly behind on XP for long or down forts, then won.
+    Comeback,
+    /// Even XP, kills and forts.
+    Close,
+    /// Ahead for most of the game, never clearly behind.
+    Controlled,
 }
 
 #[derive(Debug, Default, Serialize)]

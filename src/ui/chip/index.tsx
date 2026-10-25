@@ -8,7 +8,8 @@ import styles from "./styles.module.css";
 
 export type ChipSize = "sm" | "md";
 
-export type ChipTone = "neutral" | "primary" | "win" | "loss" | "quest";
+export type ChipTone =
+    "neutral" | "primary" | "win" | "loss" | "quest" | "warn";
 
 export interface ChipProps {
     icon?: LucideIcon;

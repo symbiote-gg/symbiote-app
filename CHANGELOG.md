@@ -10,6 +10,8 @@ and this project adheres to
 
 ### Added
 
+- Add game flow to replay header, telling what kind of game the player
+  experienced.
 - Add owner kills and deaths card to replay page.
 - Show kills with no killing blow on record (e.g. on Leoric) in the kill log,
   and count them even when they can't be told apart from tower kills.
