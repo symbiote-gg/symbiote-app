@@ -14,12 +14,6 @@ export const RETENTION_YEARS = RETENTIONS.map(toYears);
 
 export const keptFor = (years: number | null) => years ?? Infinity;
 
-export function retentionCutoff(years: number | null) {
-    const cutoff = new Date();
-    cutoff.setFullYear(cutoff.getFullYear() - (years ?? 0));
-    return cutoff;
-}
-
 export const bytesPerGame = (stats: DatabaseStats | undefined) =>
     stats && stats.gamesWithEvents > 0
         ? stats.bytes / stats.gamesWithEvents
@@ -31,7 +25,6 @@ export type RetentionChange = {
     preview: RetentionPreview;
     freed: number;
     restored: number;
-    cutoff: Date;
 };
 
 export function buildRetentionChange(
@@ -55,6 +48,5 @@ export function buildRetentionChange(
         preview,
         freed: preview.expiring * perGame,
         restored: preview.restorable * perGame,
-        cutoff: retentionCutoff(years),
     };
 }

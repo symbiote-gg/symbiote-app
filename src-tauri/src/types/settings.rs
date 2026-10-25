@@ -23,6 +23,8 @@ pub struct RetentionPreview {
     pub restorable: usize,
     /// Purged replays in range whose file is gone, so their events stay purged.
     pub unrestorable: usize,
+    /// Replays played before it lose their events, `None` if they're kept forever.
+    pub cutoff: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Serialize)]

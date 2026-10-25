@@ -9,7 +9,6 @@ import { BackToReplays, HeroPortrait, Kad, modeIcon } from "@/components";
 import { useImageFallback } from "@/hooks/useImageFallback";
 import { Button, Chip, Eyebrow, Typography } from "@/ui";
 import { formatDuration, usePlayedOn } from "@/utils/dates";
-import { milestones } from "./milestones";
 
 import styles from "./styles.module.css";
 
@@ -64,20 +63,12 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
         "-"
     );
 
-    const enemyDeaths = replay.players
-        .filter((p) => p.team !== allyTeam)
-        .reduce((total, p) => total + (p.deaths ?? 0), 0);
-
     const killParticipation =
-        owner && enemyDeaths > 0
-            ? format.number(
-                  Math.min(
-                      1,
-                      ((owner.kills ?? 0) + (owner.assists ?? 0)) / enemyDeaths,
-                  ),
-                  { style: "percent" },
-              )
-            : "-";
+        replay.ownerKillParticipation === null
+            ? "-"
+            : format.number(replay.ownerKillParticipation, {
+                  style: "percent",
+              });
 
     const timeDead =
         owner?.timeDead != null
@@ -93,7 +84,7 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
 
     const roleStat = ROLE_STAT[replay.heroRole ?? "ranged_assassin"];
 
-    const reached = milestones(replay.timeline);
+    const reached = replay.timeline.milestones;
 
     const stats: HeaderStat[] = [
         { label: t("replay.kad"), value: kad },

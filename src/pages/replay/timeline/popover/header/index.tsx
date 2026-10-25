@@ -9,7 +9,7 @@ import {
     tickGlyph,
 } from "@/utils/timeline/glyphs";
 import { type Glyph, specLabel } from "@/utils/timeline/map-events";
-import { type MarkerView, fightKind } from "@/utils/timeline/markers";
+import type { MarkerView } from "@/utils/timeline/markers";
 import type { Marker } from "@/utils/timeline/types";
 import { GlyphIcon } from "../../glyphs";
 import { sideClasses } from "../../side";
@@ -18,8 +18,8 @@ import { HeaderText } from "./header-text";
 import styles from "./styles.module.css";
 
 function headerGlyph(marker: Marker, view: MarkerView): Glyph | null {
-    const { kills, deaths, structure, camp, group, map } = view;
-    if (kills) return fightGlyph(deaths);
+    const { fight, structure, camp, group, map } = view;
+    if (fight) return fightGlyph(fight);
     if (structure) return structure.keep ? "keep" : "castle";
     if (camp) {
         return marker.shape === "boss" ? "crown" : campGlyph(camp.campType);
@@ -38,7 +38,7 @@ interface HeaderProps {
 function Title({ marker, view, text }: HeaderProps) {
     const t = useTranslations("replay.timeline");
 
-    const { deaths, score, end, structure, camp, map, race } = view;
+    const { fight, score, end, structure, camp, map, race } = view;
     const { held, summon, duel, altar, knight } = view;
     const timeRange =
         end > marker.time
@@ -49,12 +49,12 @@ function Title({ marker, view, text }: HeaderProps) {
               })
             : text.at(marker.time);
 
-    if (view.kills) {
+    if (fight) {
         const winner =
             score[0] > score[1] ? "ally" : score[0] < score[1] ? "enemy" : null;
         return (
             <HeaderText
-                title={t("fightKind", { kind: fightKind(deaths) })}
+                title={t("fightKind", { kind: fight })}
                 tag={t("fightResult", {
                     result: winner ?? "none",
                     ally: score[0],

@@ -40,6 +40,8 @@ pub struct Replay {
     pub map_loading_screen: Option<String>,
     pub owner_hero_id: i64,
     pub owner_player_id: i64,
+    pub owner_slot: i64,
+    pub owner_team: i64,
     pub owner_win: Option<bool>,
     pub duration: i64,
     pub is_new: bool,

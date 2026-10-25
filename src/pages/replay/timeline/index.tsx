@@ -24,7 +24,7 @@ interface TimelineProps {
     duration: number;
     players: ReplayPlayerDetail[];
     allyTeam: number;
-    ownerSlot: number | null;
+    ownerSlot: number;
     ownerWin: boolean | null;
 }
 
@@ -44,8 +44,8 @@ export function Timeline({
     const [selected, setSelected] = useState<Marker | null>(null);
 
     const markers = useMemo(
-        () => buildMarkers(timeline, duration, allyTeam),
-        [timeline, duration, allyTeam],
+        () => buildMarkers(timeline, allyTeam),
+        [timeline, allyTeam],
     );
     const curves = useMemo(
         () => levelCurves(timeline.levels, allyTeam),
@@ -71,10 +71,9 @@ export function Timeline({
     const shown = (filter: Filter) =>
         !hidden.has(filter) && !disabled.has(filter);
     const visible = markers.filter((marker) => shown(marker.filter));
-    const meCount =
-        ownerSlot === null
-            ? 0
-            : markers.filter((marker) => involves(marker, ownerSlot)).length;
+    const meCount = markers.filter((marker) =>
+        involves(marker, ownerSlot),
+    ).length;
 
     useEffect(() => {
         if (!selected) return;
@@ -102,7 +101,6 @@ export function Timeline({
                         disabled={disabled}
                         counts={counts}
                         me={me}
-                        meDisabled={ownerSlot === null}
                         meCount={meCount}
                         onToggle={onToggle}
                         onToggleMe={toggleMe}

@@ -5,6 +5,7 @@ import {
     REPLAY_LISTS_KEY,
     type ReplayListData,
     applyIngested,
+    isUnfiltered,
     replayQuery,
 } from "@/api/queries";
 import {
@@ -53,10 +54,17 @@ export function useIngestInvalidation() {
             for (const [key, data] of lists) {
                 if (!data) continue;
                 const filters = key[REPLAY_LISTS_KEY.length] as ReplayFilters;
-                queryClient.setQueryData(
-                    key,
-                    applyIngested(data, ingested, filters),
-                );
+                if (isUnfiltered(filters)) {
+                    queryClient.setQueryData(
+                        key,
+                        applyIngested(data, ingested),
+                    );
+                } else {
+                    queryClient.invalidateQueries({
+                        queryKey: key,
+                        exact: true,
+                    });
+                }
             }
             for (const { replay, removed, refreshed } of ingested) {
                 if (removed !== null) {

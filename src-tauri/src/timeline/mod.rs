@@ -4,7 +4,10 @@
 //! (gameloop, team, a map event's name). They're read back into the slim structs here,
 //! which take only the fields the timeline shows.
 
+mod fights;
+pub mod kill_log;
 mod maps;
+mod milestones;
 
 use std::collections::HashMap;
 
@@ -44,7 +47,8 @@ struct StructureData {
     killing_blow: Option<u8>,
 }
 
-pub fn build(rows: Vec<RawEvent>) -> Timeline {
+/// Builds the timeline of a game lasting `duration` seconds from its event rows.
+pub fn build(rows: Vec<RawEvent>, duration: f64) -> Timeline {
     let mut timeline = Timeline {
         levels: [vec![(0.0, 1)], vec![(0.0, 1)]],
         ..Timeline::default()
@@ -132,6 +136,8 @@ pub fn build(rows: Vec<RawEvent>) -> Timeline {
     }
 
     timeline.objectives = maps::objectives(&map_rows, &timeline.deaths, &timeline.structures);
+    timeline.fights = fights::group(&timeline.deaths, duration);
+    timeline.milestones = milestones::reached(&timeline);
     timeline
 }
 
@@ -147,6 +153,12 @@ mod tests {
     use serde_json::json;
 
     use super::*;
+    use crate::types::timeline::MilestoneKind;
+
+    /// Builds a 10 minute game's timeline.
+    pub(super) fn build(rows: Vec<RawEvent>) -> Timeline {
+        super::build(rows, 600.0)
+    }
 
     fn row(kind: &str, time: f64, team: Option<i64>, data: serde_json::Value) -> RawEvent {
         RawEvent {
@@ -235,5 +247,40 @@ mod tests {
         assert!(timeline.structures[0].keep);
         assert_eq!(timeline.levels[0], [(0.0, 1)]);
         assert_eq!(timeline.levels[1], [(0.0, 1), (60.0, 2)]);
+    }
+
+    #[test]
+    fn reads_milestones() {
+        let fort = |time, team, unit| {
+            row(
+                "structure_death",
+                time,
+                Some(team),
+                json!({ "unit_type": unit, "lane": null, "killers": [], "killing_blow": null }),
+            )
+        };
+        let level =
+            |time, team, level| row("team_level", time, Some(team), json!({ "level": level }));
+        let timeline = build(vec![
+            death(30.0, 1, &[6]),
+            fort(200.0, 1, KEEP_UNIT),
+            fort(300.0, 0, "TownTownHallL2"),
+            level(400.0, 1, 10),
+            level(410.0, 0, 10),
+        ]);
+
+        let reached: Vec<_> = timeline
+            .milestones
+            .iter()
+            .map(|m| (m.kind, m.team, m.time))
+            .collect();
+        assert_eq!(
+            reached,
+            [
+                (MilestoneKind::Blood, 1, 30.0),
+                (MilestoneKind::Fort, 1, 300.0),
+                (MilestoneKind::Ten, 1, 400.0),
+            ]
+        );
     }
 }

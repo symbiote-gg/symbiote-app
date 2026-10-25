@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { useTranslations } from "use-intl";
 
+import type { DeathKind } from "@/api/replays";
 import { Chip } from "@/ui";
-import type { DeathKind } from "./kill-log";
 
 import styles from "./styles.module.css";
 

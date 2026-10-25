@@ -3,7 +3,7 @@ use sqlx::FromRow;
 
 use super::{AwardInfo, Replay};
 use crate::types::hero::HeroRole;
-use crate::types::timeline::Timeline;
+use crate::types::timeline::{KillLog, Timeline};
 
 #[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -60,19 +60,24 @@ pub struct ReplayDetail {
     #[sqlx(skip)]
     pub timeline: Timeline,
     #[sqlx(skip)]
-    pub xp: Vec<XpSample>,
+    pub kill_log: KillLog,
+    #[sqlx(skip)]
+    pub teams: [TeamSummary; 2],
+    #[sqlx(skip)]
+    pub owner_kill_participation: Option<f64>,
     #[sqlx(skip)]
     pub on_disk: bool,
-    /// Whether it was played too long ago to keep its events, so it has no timeline or XP.
+    /// Whether it was played too long ago to keep its events, so it has no timeline or levels.
     #[sqlx(skip)]
     pub events_expired: bool,
 }
 
-#[derive(Debug, FromRow, Serialize)]
+#[derive(Debug, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct XpSample {
-    pub time: f64,
-    pub team: i64,
-    pub level: i64,
-    pub total: f64,
+pub struct TeamSummary {
+    pub kills: i64,
+    pub assists: i64,
+    pub deaths: i64,
+    pub ai_kills: i64,
+    pub level: Option<u32>,
 }

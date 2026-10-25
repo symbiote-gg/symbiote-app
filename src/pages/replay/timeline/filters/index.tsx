@@ -13,7 +13,6 @@ interface FiltersProps {
     disabled: Set<Filter>;
     counts: Record<Filter, number>;
     me: boolean;
-    meDisabled: boolean;
     meCount: number;
     onToggle: (filter: Filter) => void;
     onToggleMe: () => void;
@@ -24,7 +23,6 @@ export function Filters({
     disabled,
     counts,
     me,
-    meDisabled,
     meCount,
     onToggle,
     onToggleMe,
@@ -34,25 +32,20 @@ export function Filters({
     const onClick = (e: MouseEvent<HTMLButtonElement>) =>
         onToggle(e.currentTarget.value as Filter);
 
-    const meOn = !meDisabled && me;
-
     return (
         <div role="group" aria-label={t("label")} className={styles.filters}>
             <button
                 type="button"
-                aria-pressed={meOn}
-                disabled={meDisabled}
+                aria-pressed={me}
                 className={classNames(styles.chip, styles.chipMe, {
-                    [styles.chipOn]: meOn,
-                    [styles.chipOff]: !meDisabled && !meOn,
+                    [styles.chipOn]: me,
+                    [styles.chipOff]: !me,
                 })}
                 onClick={onToggleMe}
             >
                 <UserRound className={styles.chipIcon} aria-hidden />
                 {t("me")}
-                {!meDisabled && (
-                    <span className={styles.chipCount}>{meCount}</span>
-                )}
+                <span className={styles.chipCount}>{meCount}</span>
             </button>
             <span className={styles.filterDivider} aria-hidden />
             {FILTERS.map((filter) => {

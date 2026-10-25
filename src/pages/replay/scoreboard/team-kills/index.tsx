@@ -1,31 +1,24 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
+import type { TeamSummary } from "@/api/replays";
 import { Eyebrow, Typography } from "@/ui";
 import { formatDuration } from "@/utils/dates";
 
 import styles from "./styles.module.css";
 
-export interface Kills {
-    heroes: number;
-    ai: number;
-}
-
 interface TeamKillsProps {
-    ally: Kills;
-    enemy: Kills;
-    allyLevel: number | null;
-    enemyLevel: number | null;
+    ally: TeamSummary;
+    enemy: TeamSummary;
     duration: number;
 }
 
 interface TeamLabelProps {
     side: "ally" | "enemy";
-    kills: Kills;
-    level: number | null;
+    summary: TeamSummary;
 }
 
-function TeamLabel({ side, kills, level }: TeamLabelProps) {
+function TeamLabel({ side, summary }: TeamLabelProps) {
     const t = useTranslations("replay");
 
     return (
@@ -41,7 +34,7 @@ function TeamLabel({ side, kills, level }: TeamLabelProps) {
                 >
                     {t("team", { side })}
                 </Typography>
-                {level !== null && (
+                {summary.level !== null && (
                     <Typography
                         size="xs"
                         weight="semibold"
@@ -50,7 +43,7 @@ function TeamLabel({ side, kills, level }: TeamLabelProps) {
                         className={styles.level}
                     >
                         {t.rich("teamKills.level", {
-                            level,
+                            level: summary.level,
                             label: (chunks) => (
                                 <span className={styles.levelLabel}>
                                     {chunks}
@@ -61,30 +54,27 @@ function TeamLabel({ side, kills, level }: TeamLabelProps) {
                 )}
             </div>
             <Typography size="xs" variant="tertiary" noWrap>
-                {t("teamKills.breakdown", { ...kills })}
+                {t("teamKills.breakdown", {
+                    heroes: summary.kills,
+                    ai: summary.aiKills,
+                })}
             </Typography>
         </div>
     );
 }
 
-export function TeamKills({
-    ally,
-    enemy,
-    allyLevel,
-    enemyLevel,
-    duration,
-}: TeamKillsProps) {
+export function TeamKills({ ally, enemy, duration }: TeamKillsProps) {
     const t = useTranslations("replay");
 
     return (
         <div className={styles.root}>
-            <TeamLabel side="ally" kills={ally} level={allyLevel} />
+            <TeamLabel side="ally" summary={ally} />
             <Typography
                 weight="semibold"
                 display
                 className={classNames(styles.count, styles.ally)}
             >
-                {ally.heroes + ally.ai}
+                {ally.kills + ally.aiKills}
             </Typography>
             <div className={styles.center}>
                 <Eyebrow noWrap className={styles.title}>
@@ -99,9 +89,9 @@ export function TeamKills({
                 display
                 className={classNames(styles.count, styles.enemy)}
             >
-                {enemy.heroes + enemy.ai}
+                {enemy.kills + enemy.aiKills}
             </Typography>
-            <TeamLabel side="enemy" kills={enemy} level={enemyLevel} />
+            <TeamLabel side="enemy" summary={enemy} />
         </div>
     );
 }

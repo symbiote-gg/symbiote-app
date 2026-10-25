@@ -1,4 +1,4 @@
-import type { Timeline } from "@/api/replays";
+import type { Timeline, TimelineFight } from "@/api/replays";
 import { BAND_Y } from "./constants";
 import { MAP_EVENTS, specGlyph, specLabel } from "./map-events";
 import type {
@@ -12,17 +12,6 @@ import type {
 } from "./types";
 
 export const LONG_GAME = 35 * 60;
-const TEAM_FIGHT_DEATHS = 3;
-const GANK_KILLERS = 3;
-
-export function fightKind(deaths: DeathEntry[]) {
-    if (deaths.length >= TEAM_FIGHT_DEATHS) return "teamFight";
-    if (deaths.length === 2) return "skirmish";
-    const [death] = deaths;
-    return death.alone === true && death.killers.length >= GANK_KILLERS
-        ? "gank"
-        : "pick";
-}
 
 const OBJECTIVE_MERGE = 15;
 
@@ -40,11 +29,7 @@ export const involves = (marker: Marker, slot: number) =>
               (entry.killingBlow === slot || entry.killers.includes(slot)),
     );
 
-export function buildMarkers(
-    timeline: Timeline,
-    duration: number,
-    allyTeam: number,
-): Marker[] {
+export function buildMarkers(timeline: Timeline, allyTeam: number): Marker[] {
     const other = (team: number | null) => (team === null ? null : 1 - team);
 
     const markers: Marker[] = [];
@@ -122,34 +107,20 @@ export function buildMarkers(
 
     return [
         ...markers,
-        ...groupFights(deaths, duration),
+        ...fightMarkers(timeline.fights, deaths),
         ...mergeObjectives(objectives),
     ].sort((a, b) => a.time - b.time);
 }
 
-export function fightGroups(deaths: DeathEntry[], duration: number) {
-    const window = duration > LONG_GAME ? 15 : 12;
-    const groups: DeathEntry[][] = [];
-
-    for (const death of deaths) {
-        const last = groups[groups.length - 1];
-        if (last && death.time - last[last.length - 1].time <= window) {
-            last.push(death);
-        } else {
-            groups.push([death]);
-        }
-    }
-
-    return groups;
-}
-
-function groupFights(deaths: DeathEntry[], duration: number): Marker[] {
-    return fightGroups(deaths, duration).map((group): Marker => {
+function fightMarkers(fights: TimelineFight[], deaths: DeathEntry[]) {
+    return fights.map((fight): Marker => {
+        const group = fight.deaths.map((index) => deaths[index]);
         const [first] = group;
         const base = {
             id: `death-${first.time}`,
             time: first.time,
             filter: "fights" as const,
+            kind: fight.kind,
             entries: group,
         };
 
@@ -165,7 +136,7 @@ function groupFights(deaths: DeathEntry[], duration: number): Marker[] {
             id: `fight-${first.time}`,
             shape: "fight",
             side: ally === enemy ? null : ally > enemy ? "ally" : "enemy",
-            end: group[group.length - 1].time,
+            end: fight.end,
             score: [ally, enemy],
             participants: new Set(
                 group.flatMap((d) => [d.victim, ...d.killers]),
@@ -212,7 +183,11 @@ export function markerView(marker: Marker) {
     const deaths = marker.entries.filter(
         (entry): entry is DeathEntry => entry.type === "death",
     );
-    const kills = deaths.length > 0 && deaths.length === marker.entries.length;
+    const fight =
+        marker.shape === "kill" || marker.shape === "fight"
+            ? marker.kind
+            : null;
+    const kills = fight !== null;
     const structure =
         marker.entries.length === 1 && marker.entries[0].type === "structure"
             ? marker.entries[0]
@@ -245,6 +220,7 @@ export function markerView(marker: Marker) {
 
     return {
         deaths,
+        fight,
         kills,
         structure,
         camp,

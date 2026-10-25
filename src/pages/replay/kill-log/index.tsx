@@ -4,6 +4,7 @@ import { type ReactNode, useMemo } from "react";
 import { useTranslations } from "use-intl";
 
 import type {
+    KillLog as KillLogData,
     ReplayPlayerDetail,
     Timeline as TimelineData,
 } from "@/api/replays";
@@ -12,13 +13,7 @@ import { formatDuration } from "@/utils/dates";
 import type { Roster } from "@/utils/timeline/roster";
 import { Empty } from "./empty";
 import { Half, type Tone } from "./half";
-import {
-    killerOf,
-    mostFrequent,
-    ownerDeaths,
-    placeCertainKills,
-    unplacedKills,
-} from "./kill-log";
+import { killerOf, mostFrequent, ownerDeaths } from "./kill-log";
 import { Top } from "./top";
 import { Unplaced } from "./unplaced";
 
@@ -26,6 +21,7 @@ import styles from "./styles.module.css";
 
 interface KillLogProps {
     timeline: TimelineData;
+    killLog: KillLogData;
     duration: number;
     players: ReplayPlayerDetail[];
     allyTeam: number;
@@ -34,6 +30,7 @@ interface KillLogProps {
 
 export function KillLog({
     timeline,
+    killLog,
     duration,
     players,
     allyTeam,
@@ -43,14 +40,11 @@ export function KillLog({
 
     const roster: Roster = { players, allyTeam, highlightSlot: owner.slot };
 
-    const { entries, unplaced } = useMemo(
-        () =>
-            placeCertainKills(
-                ownerDeaths(timeline, duration, allyTeam, owner.slot),
-                unplacedKills(timeline.deaths, players, owner.slot),
-            ),
-        [timeline, duration, allyTeam, players, owner.slot],
+    const entries = useMemo(
+        () => ownerDeaths(timeline, killLog, allyTeam),
+        [timeline, killLog, allyTeam],
     );
+    const { unplaced } = killLog;
     const kills = entries.filter((entry) => entry.role === "kill");
     const deaths = entries.filter((entry) => entry.role === "death");
     // with the kills no death places, the scoreboard's count

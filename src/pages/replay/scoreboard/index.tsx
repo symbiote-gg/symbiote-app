@@ -2,23 +2,24 @@ import classNames from "classnames";
 import { Fragment } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
-import type { ReplayPlayerDetail } from "@/api/replays";
+import type { ReplayPlayerDetail, TeamSummary } from "@/api/replays";
 import { Kad } from "@/components";
 import { Card, Eyebrow, TableHead, Typography } from "@/ui";
 import { PlayerRow } from "./player-row";
 import { STATS, type Stat } from "./stats";
-import { type Kills, TeamKills } from "./team-kills";
+import { TeamKills } from "./team-kills";
 
 import styles from "./styles.module.css";
 
 export interface ScoreboardTeam {
     ally: boolean;
-    level: number | null;
+    summary: TeamSummary;
     players: ReplayPlayerDetail[];
 }
 
 export interface ScoreboardProps {
-    teams: ScoreboardTeam[];
+    /** Ally first. */
+    teams: [ScoreboardTeam, ScoreboardTeam];
     ownerId: number;
     duration: number;
 }
@@ -40,20 +41,6 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
         ]),
     ) as Record<Stat, number>;
 
-    const killsOf = (ally: boolean): Kills => {
-        const own = teams.find((team) => team.ally === ally)?.players ?? [];
-        const other = teams.find((team) => team.ally !== ally)?.players ?? [];
-        const heroes = sum(own, (p) => p.kills);
-
-        return {
-            heroes,
-            ai: Math.max(0, sum(other, (p) => p.deaths) - heroes),
-        };
-    };
-
-    const levelOf = (ally: boolean) =>
-        teams.find((team) => team.ally === ally)?.level ?? null;
-
     const formatStat = (value: number | null) =>
         value === null
             ? "-"
@@ -66,10 +53,8 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
         <div className={styles.root}>
             <Card className={styles.card}>
                 <TeamKills
-                    ally={killsOf(true)}
-                    enemy={killsOf(false)}
-                    allyLevel={levelOf(true)}
-                    enemyLevel={levelOf(false)}
+                    ally={teams[0].summary}
+                    enemy={teams[1].summary}
                     duration={duration}
                 />
                 <div className={styles.scroll}>
@@ -102,73 +87,64 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                 })),
                             ]}
                         />
-                        {teams.map(({ ally, players }) => {
-                            const kills = sum(players, (p) => p.kills);
-                            const assists = sum(players, (p) => p.assists);
-                            const deaths = sum(players, (p) => p.deaths);
-
-                            return (
-                                <Fragment key={ally ? "ally" : "enemy"}>
-                                    {players.map((player) => (
-                                        <PlayerRow
-                                            key={player.playerId}
-                                            className={styles.teamGrid}
-                                            player={player}
-                                            ally={ally}
-                                            owner={player.playerId === ownerId}
-                                            maxByStat={maxByStat}
-                                            formatStat={formatStat}
-                                        />
-                                    ))}
-                                    <div
-                                        className={classNames(
-                                            styles.teamGrid,
-                                            styles.totalRow,
-                                        )}
+                        {teams.map(({ ally, summary, players }) => (
+                            <Fragment key={ally ? "ally" : "enemy"}>
+                                {players.map((player) => (
+                                    <PlayerRow
+                                        key={player.playerId}
+                                        className={styles.teamGrid}
+                                        player={player}
+                                        ally={ally}
+                                        owner={player.playerId === ownerId}
+                                        maxByStat={maxByStat}
+                                        formatStat={formatStat}
+                                    />
+                                ))}
+                                <div
+                                    className={classNames(
+                                        styles.teamGrid,
+                                        styles.totalRow,
+                                    )}
+                                >
+                                    <Eyebrow>{t("teamTotal")}</Eyebrow>
+                                    <span />
+                                    <Typography
+                                        size="xs"
+                                        variant="tertiary"
+                                        mono
+                                        noWrap
+                                        className={styles.number}
                                     >
-                                        <Eyebrow>{t("teamTotal")}</Eyebrow>
-                                        <span />
+                                        <Kad
+                                            kills={summary.kills}
+                                            assists={summary.assists}
+                                            deaths={summary.deaths}
+                                        />
+                                    </Typography>
+                                    {STATS.map(({ stat, secondary }) => (
                                         <Typography
+                                            key={stat}
                                             size="xs"
                                             variant="tertiary"
                                             mono
                                             noWrap
-                                            className={styles.number}
+                                            className={classNames(
+                                                styles.number,
+                                                styles.totalValue,
+                                                {
+                                                    [styles.secondary]:
+                                                        secondary,
+                                                },
+                                            )}
                                         >
-                                            <Kad
-                                                kills={kills}
-                                                assists={assists}
-                                                deaths={deaths}
-                                            />
+                                            {formatStat(
+                                                sum(players, (p) => p[stat]),
+                                            )}
                                         </Typography>
-                                        {STATS.map(({ stat, secondary }) => (
-                                            <Typography
-                                                key={stat}
-                                                size="xs"
-                                                variant="tertiary"
-                                                mono
-                                                noWrap
-                                                className={classNames(
-                                                    styles.number,
-                                                    styles.totalValue,
-                                                    {
-                                                        [styles.secondary]:
-                                                            secondary,
-                                                    },
-                                                )}
-                                            >
-                                                {formatStat(
-                                                    sum(
-                                                        players,
-                                                        (p) => p[stat],
-                                                    ),
-                                                )}
-                                            </Typography>
-                                        ))}
-                                    </div>
-                                </Fragment>
-                            );
-                        })}
+                                    ))}
+                                </div>
+                            </Fragment>
+                        ))}
                     </div>
                 </div>
             </Card>

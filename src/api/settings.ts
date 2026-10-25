@@ -12,6 +12,8 @@ export type RetentionPreview = {
     restorable: number;
     /** Purged games in range whose replay file is gone, so their timeline stays purged. */
     unrestorable: number;
+    /** Games played before it lose their timeline, `null` if kept forever. */
+    cutoff: string | null;
 };
 
 export type DatabaseStats = {

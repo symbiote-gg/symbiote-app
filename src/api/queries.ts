@@ -42,7 +42,7 @@ export const REPLAY_LISTS_KEY = ["replays", "list"] as const;
 
 export type ReplayListData = InfiniteData<ReplayPage, ReplayCursor | null>;
 
-const isUnfiltered = (filters: ReplayFilters) =>
+export const isUnfiltered = (filters: ReplayFilters) =>
     filters.modes.length === 0 &&
     filters.heroes.length === 0 &&
     filters.roles.length === 0 &&
@@ -99,43 +99,23 @@ export const replaysQuery = (filters = NO_REPLAY_FILTERS) =>
         },
     });
 
-export function matchesFilters(replay: Replay, filters: ReplayFilters) {
-    const time = Date.parse(replay.timestamp);
-    return (
-        (filters.modes.length === 0 || filters.modes.includes(replay.mode)) &&
-        (filters.heroes.length === 0 ||
-            filters.heroes.includes(replay.ownerHeroId)) &&
-        (filters.roles.length === 0 ||
-            (replay.heroRole !== null &&
-                filters.roles.includes(replay.heroRole))) &&
-        (filters.win === null || replay.ownerWin === filters.win) &&
-        (filters.from === null || time >= Date.parse(filters.from)) &&
-        (filters.to === null || time < Date.parse(filters.to))
-    );
-}
-
 const listsBefore = (a: Replay, b: Replay) => {
     const diff = Date.parse(a.timestamp) - Date.parse(b.timestamp);
     return diff === 0 ? a.id > b.id : diff > 0;
 };
 
 /**
- * Splices the replays streamed by the ingester that match `filters` into the loaded
- * pages of `replaysQuery(filters)`, in list order, so they show up without refetching
- * every page.
+ * Splices the replays streamed by the ingester into the loaded pages of the unfiltered
+ * `replaysQuery`, in list order, so they show up without refetching every page.
+ * Filtered lists refetch instead, so only the backend decides what matches a filter.
  *
  * A replay sorting after the last loaded one is left for pagination to fetch, unless
  * everything is loaded. Either way no more replays stay loaded than before, or than a
  * page: a bulk ingest would otherwise pile every replay into the cache.
- *
- * The ingester only counts all replays, so a filtered list counts the new ones it
- * matches itself. A replacement keeps the count: it's the same game, so it matches if
- * the replay it removes did.
  */
 export function applyIngested<TPageParam>(
     data: InfiniteData<ReplayPage, TPageParam>,
     batch: ReplayIngested[],
-    filters: ReplayFilters,
 ): InfiniteData<ReplayPage, TPageParam> {
     const pages = data.pages.map((page) => page.replays.slice());
     const last = pages[pages.length - 1];
@@ -146,10 +126,9 @@ export function applyIngested<TPageParam>(
         PAGE_SIZE,
     );
 
-    const unfiltered = isUnfiltered(filters);
     let total = data.pages[0].total;
-    for (const { replay, removed, refreshed, total: ingestedTotal } of batch) {
-        if (unfiltered) total = Math.max(total, ingestedTotal);
+    for (const { replay, removed, total: ingestedTotal } of batch) {
+        total = Math.max(total, ingestedTotal);
 
         if (removed !== null) {
             for (const page of pages) {
@@ -158,12 +137,9 @@ export function applyIngested<TPageParam>(
             }
         }
 
-        if (!matchesFilters(replay, filters)) continue;
-
         const current = pages.find((page) =>
             page.some((r) => r.id === replay.id),
         );
-        if (!unfiltered && !current && removed === null && !refreshed) total++;
         if (current) {
             current[current.findIndex((r) => r.id === replay.id)] = replay;
             continue;

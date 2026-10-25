@@ -316,8 +316,7 @@ fn knight(row: &MapRow, deaths: &[Death], structures: &[Structure]) -> Option<Kn
 mod tests {
     use serde_json::json;
 
-    use super::super::build;
-    use super::super::tests::{death, map_row};
+    use super::super::tests::{build, death, map_row};
 
     #[test]
     fn keeps_a_teams_first_temple_capture_per_activation() {

@@ -273,7 +273,7 @@
             "unplacedWhy": "Why aren't these kills listed?",
             "unplacedWhyHint": "The replay doesn't record who landed the killing blow when {hero} died. The scoreboard counts {count} of your {total} takedowns on {hero} as kills, but not which ones.",
             "unplacedMany": "{count, plural, one {+# kill not on record} other {+# kills not on record}}",
-            "unplacedManyHint": "{total, plural, one {Couldn't credit it, one takedown on {hero}} other {Couldn't credit them, among # takedowns on {hero}}}",
+            "unplacedManyHint": "{total, plural, one {Couldn't credit it, one takedown on {hero}} other {Couldn't credit {count, plural, one {it} other {them}}, among # takedowns on {hero}}}",
             "unplacedManyWhyHint": "The replay doesn't record every killing blow: some deaths have none, and when a tower or minion lands one the scoreboard still credits it to a hero. The scoreboard counts {count} of your {total} takedowns on {hero} as kills, but not which ones, so they can't be told apart."
         },
         "milestone": {

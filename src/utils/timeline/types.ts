@@ -1,4 +1,5 @@
 import type {
+    FightKind,
     Objective,
     TimelineCamp,
     TimelineDeath,
@@ -40,11 +41,12 @@ export type TickMarker = MarkerBase & {
 export type SpawnMarker = MarkerBase & { shape: "spawn"; glyph: Glyph };
 export type FightMarker = MarkerBase & {
     shape: "fight";
+    kind: FightKind;
     end: number;
     score: [number, number];
     participants: number;
 };
-export type KillMarker = MarkerBase & { shape: "kill" };
+export type KillMarker = MarkerBase & { shape: "kill"; kind: FightKind };
 export type StructureMarker = MarkerBase & { shape: "boss" | "fort" | "keep" };
 export type ObjectiveMarker = MarkerBase & {
     shape: "objective";

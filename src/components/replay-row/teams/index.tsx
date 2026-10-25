@@ -15,9 +15,7 @@ export interface TeamsProps {
 
 export function Teams({ replay, className }: TeamsProps) {
     const t = useTranslations("replayRow");
-    const allyTeam = replay.players.find(
-        (player) => player.playerId === replay.ownerPlayerId,
-    )?.team;
+    const allyTeam = replay.ownerTeam;
     const allies = replay.players.filter((player) => player.team === allyTeam);
     const enemies = replay.players.filter((player) => player.team !== allyTeam);
 

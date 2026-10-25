@@ -25,6 +25,107 @@ pub struct Timeline {
     /// Each team's level-ups as `(time, level)`, starting at level 1 at 0.
     pub levels: [Vec<(f64, u32)>; 2],
     pub objectives: Vec<Objective>,
+    /// The deaths grouped into fights, in time order.
+    pub fights: Vec<Fight>,
+    pub milestones: Vec<Milestone>,
+}
+
+/// Deaths close enough in time to be one fight.
+#[derive(Debug, Serialize)]
+pub struct Fight {
+    pub start: f64,
+    pub end: f64,
+    /// Indices into the timeline's deaths.
+    pub deaths: Vec<usize>,
+    pub kind: FightKind,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum FightKind {
+    TeamFight,
+    Skirmish,
+    /// A lone hero taken down by several.
+    Gank,
+    Pick,
+}
+
+/// The deaths a player took part in, and the kills the deaths can't place.
+#[derive(Debug, Default, Serialize)]
+pub struct KillLog {
+    pub entries: Vec<KillLogEntry>,
+    pub unplaced: Option<UnplacedKills>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct KillLogEntry {
+    /// Index into the timeline's deaths.
+    pub death: usize,
+    pub kind: DeathKind,
+    pub role: DeathRole,
+}
+
+/// A death's fight kind, or `Solo` for a lone kill by one hero, `Ai` when no hero
+/// took part.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum DeathKind {
+    TeamFight,
+    Skirmish,
+    Gank,
+    Pick,
+    Solo,
+    Ai,
+}
+
+impl From<FightKind> for DeathKind {
+    fn from(kind: FightKind) -> Self {
+        match kind {
+            FightKind::TeamFight => Self::TeamFight,
+            FightKind::Skirmish => Self::Skirmish,
+            FightKind::Gank => Self::Gank,
+            FightKind::Pick => Self::Pick,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum DeathRole {
+    Kill,
+    Assist,
+    Death,
+}
+
+/// Scoreboard kills no death places, e.g. on Leoric, whose deaths record no killing
+/// blow, or landed by a structure yet credited to a hero.
+#[derive(Debug, PartialEq, Serialize)]
+pub struct UnplacedKills {
+    /// The heroes they can be on.
+    pub victims: Vec<u8>,
+    pub count: i64,
+    /// Indices into the timeline's deaths: the takedowns with no killing blow on
+    /// record that credit the player.
+    pub deaths: Vec<usize>,
+}
+
+/// The first team to reach a point of the game.
+#[derive(Debug, Serialize)]
+pub struct Milestone {
+    pub kind: MilestoneKind,
+    pub team: u8,
+    pub time: f64,
+}
+
+/// Which first it is: the first kill, non-keep structure or team to reach level 10.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub enum MilestoneKind {
+    #[serde(rename = "firstBlood")]
+    Blood,
+    #[serde(rename = "firstFort")]
+    Fort,
+    #[serde(rename = "firstTen")]
+    Ten,
 }
 
 #[derive(Debug, Serialize)]

@@ -87,7 +87,7 @@ fn list_rows_query<'args>(
     let mut query = QueryBuilder::new(format!(
         "SELECT r.id, r.hash, r.path, r.ingest_date, r.timestamp, r.mode, r.map, r.owner_hero_id,
              COALESCE(m.name, r.map) AS map_name, m.loading_screen AS map_loading_screen,
-             r.owner_player_id, r.owner_win,
+             r.owner_player_id, orp.slot AS owner_slot, orp.team AS owner_team, r.owner_win,
              r.duration, r.is_new, h.name AS hero_name, h.role AS hero_role,
              h.portrait AS hero_portrait,
              json_extract(orp.score, '$.SoloKill') AS owner_kills,
@@ -104,7 +104,7 @@ fn list_rows_query<'args>(
         ") r
          JOIN heroes h ON h.id = r.owner_hero_id
          LEFT JOIN maps m ON m.id = r.map
-         LEFT JOIN replays_players orp
+         JOIN replays_players orp
              ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
          LEFT JOIN (
              SELECT hr.id,

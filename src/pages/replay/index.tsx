@@ -1,5 +1,6 @@
 import { useParams } from "wouter";
 
+import type { ReplayDetail as ReplayDetailData } from "@/api/replays";
 import { BackToReplays, Page } from "@/components";
 import { useReplay } from "@/hooks/useReplay";
 import { ErrorMessage } from "@/ui";
@@ -10,38 +11,27 @@ import { Timeline } from "./timeline";
 
 import styles from "./styles.module.css";
 
+const scoreboardTeam = (
+    replay: ReplayDetailData,
+    team: number,
+): ScoreboardTeam => ({
+    ally: team === replay.ownerTeam,
+    summary: replay.teams[team],
+    players: replay.players
+        .filter((p) => p.team === team)
+        .sort(
+            (a, b) =>
+                Number(b.slot === replay.ownerSlot) -
+                Number(a.slot === replay.ownerSlot),
+        ),
+});
+
 export function ReplayDetail() {
     const { replayId } = useParams<{ replayId: string }>();
     const { data: replay, error } = useReplay(Number(replayId));
 
-    const owner = replay?.players.find(
-        (p) => p.playerId === replay.ownerPlayerId,
-    );
-    const allyTeam = owner?.team ?? 0;
-
-    const teamLevel = (team: number) => {
-        if (!replay) return null;
-
-        const levels = replay.xp
-            .filter((sample) => sample.team === team)
-            .map((sample) => sample.level);
-
-        return levels.length > 0 ? Math.max(...levels) : null;
-    };
-
-    const teams: ScoreboardTeam[] = [allyTeam, 1 - allyTeam].map((team) => ({
-        ally: team === allyTeam,
-        level: teamLevel(team),
-        players: replay
-            ? replay.players
-                  .filter((p) => p.team === team)
-                  .sort(
-                      (a, b) =>
-                          Number(b.playerId === replay.ownerPlayerId) -
-                          Number(a.playerId === replay.ownerPlayerId),
-                  )
-            : [],
-    }));
+    const owner = replay?.players.find((p) => p.slot === replay.ownerSlot);
+    const allyTeam = replay?.ownerTeam ?? 0;
 
     return (
         <Page>
@@ -61,7 +51,10 @@ export function ReplayDetail() {
                         />
                         <Scoreboard
                             ownerId={replay.ownerPlayerId}
-                            teams={teams}
+                            teams={[
+                                scoreboardTeam(replay, allyTeam),
+                                scoreboardTeam(replay, 1 - allyTeam),
+                            ]}
                             duration={replay.duration}
                         />
                         {!replay.eventsExpired && (
@@ -71,12 +64,13 @@ export function ReplayDetail() {
                                     duration={replay.duration}
                                     players={replay.players}
                                     allyTeam={allyTeam}
-                                    ownerSlot={owner?.slot ?? null}
+                                    ownerSlot={replay.ownerSlot}
                                     ownerWin={replay.ownerWin}
                                 />
                                 {owner && (
                                     <KillLog
                                         timeline={replay.timeline}
+                                        killLog={replay.killLog}
                                         duration={replay.duration}
                                         players={replay.players}
                                         allyTeam={allyTeam}

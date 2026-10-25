@@ -5,7 +5,7 @@ import type { TimelineText } from "@/hooks/useTimelineText";
 import { fightGlyph, tickGlyph } from "@/utils/timeline/glyphs";
 import { fightSize, position } from "@/utils/timeline/layout";
 import { isBandMarker } from "@/utils/timeline/markers";
-import type { DeathEntry, Marker } from "@/utils/timeline/types";
+import type { Marker } from "@/utils/timeline/types";
 import { GlyphIcon } from "../../../glyphs";
 import { sideClass } from "../../../side";
 
@@ -22,7 +22,7 @@ function MarkContent({ marker, longGame, text }: MarkContentProps) {
         case "kill":
             return (
                 <GlyphIcon
-                    glyph={fightGlyph(marker.entries as DeathEntry[])}
+                    glyph={fightGlyph(marker.kind)}
                     className={styles.glyph}
                 />
             );

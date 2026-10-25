@@ -7,6 +7,7 @@
 use std::path::Path;
 use std::sync::atomic::{AtomicU32, Ordering};
 
+use chrono::DateTime;
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Manager};
 use tokio::sync::{Mutex, MutexGuard};
@@ -78,6 +79,7 @@ pub async fn preview(pool: &SqlitePool, years: Option<u32>) -> Result<RetentionP
             lost: expiring.iter().filter(|path| !on_disk(path)).count(),
             restorable,
             unrestorable: purged.len() - restorable,
+            cutoff: years.and_then(|_| DateTime::from_timestamp(cutoff, 0)),
         }
     })
     .await?)

@@ -1,6 +1,6 @@
+import type { FightKind } from "@/api/replays";
 import { type Glyph, specGlyph } from "./map-events";
-import { fightKind } from "./markers";
-import type { DeathEntry, Entry } from "./types";
+import type { Entry } from "./types";
 
 /** Blackheart's Bay doubloon camps feed the objective, unlike mercenary camps. */
 export const campGlyph = (campType: string | null): Glyph =>
@@ -21,10 +21,8 @@ export const entryGlyph = (entry: Entry): Glyph => {
     }
 };
 
-export const fightGlyph = (deaths: DeathEntry[]): Glyph => {
-    if (deaths.length > 1) return "swords";
-    return fightKind(deaths) === "gank" ? "ghost" : "skull";
-};
+export const fightGlyph = (kind: FightKind): Glyph =>
+    kind === "gank" ? "ghost" : kind === "pick" ? "skull" : "swords";
 
 export const tickGlyph = (entries: Entry[]): Glyph => {
     const glyphs = new Set(entries.map(entryGlyph));

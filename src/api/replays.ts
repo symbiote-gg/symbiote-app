@@ -40,6 +40,8 @@ export type Replay = {
     mapLoadingScreen: string | null;
     ownerHeroId: number;
     ownerPlayerId: number;
+    ownerSlot: number;
+    ownerTeam: number;
     heroName: string;
     heroRole: HeroRole | null;
     heroPortrait: string | null;
@@ -247,6 +249,24 @@ export type Objective = {
     } | null;
 };
 
+export type FightKind = "teamFight" | "skirmish" | "gank" | "pick";
+
+/** Deaths close enough in time to be one fight. */
+export type TimelineFight = {
+    start: number;
+    end: number;
+    /** Indices into the timeline's deaths. */
+    deaths: number[];
+    kind: FightKind;
+};
+
+/** The first team to reach a point of the game. */
+export type Milestone = {
+    kind: "firstBlood" | "firstFort" | "firstTen";
+    team: number;
+    time: number;
+};
+
 /** What happened over a game, from the gates opening. */
 export type Timeline = {
     deaths: TimelineDeath[];
@@ -255,14 +275,43 @@ export type Timeline = {
     /** Each team's level-ups as `[time, level]`, from level 1 at 0. */
     levels: [[number, number][], [number, number][]];
     objectives: Objective[];
+    fights: TimelineFight[];
+    milestones: Milestone[];
 };
 
-/** A team's cumulative XP at one periodic sample, timed like the timeline. */
-export type XpSample = {
-    time: number;
-    team: number;
-    level: number;
-    total: number;
+export type DeathKind = FightKind | "solo" | "ai";
+export type DeathRole = "kill" | "assist" | "death";
+
+export type KillLogEntry = {
+    /** Index into the timeline's deaths. */
+    death: number;
+    kind: DeathKind;
+    role: DeathRole;
+};
+
+/**
+ * Scoreboard kills no death places, e.g. on Leoric, whose deaths record no killing
+ * blow, or landed by a structure yet credited to a hero.
+ */
+export type UnplacedKills = {
+    /** The heroes they can be on. */
+    victims: number[];
+    count: number;
+    /** Takedowns with no killing blow on record that credit the owner. */
+    deaths: number[];
+};
+
+export type KillLog = {
+    entries: KillLogEntry[];
+    unplaced: UnplacedKills | null;
+};
+
+export type TeamSummary = {
+    kills: number;
+    assists: number;
+    deaths: number;
+    aiKills: number;
+    level: number | null;
 };
 
 export type ReplayDetail = Omit<
@@ -278,7 +327,9 @@ export type ReplayDetail = Omit<
 > & {
     players: ReplayPlayerDetail[];
     timeline: Timeline;
-    xp: XpSample[];
+    killLog: KillLog;
+    teams: [TeamSummary, TeamSummary];
+    ownerKillParticipation: number | null;
     onDisk: boolean;
     eventsExpired: boolean;
 };

@@ -28,7 +28,6 @@ import {
     type RetentionChange,
     buildRetentionChange,
     bytesPerGame,
-    retentionCutoff,
     toRetention,
     toYears,
 } from "@/utils/retention";
@@ -69,21 +68,26 @@ export function StorageCard({ years }: StorageCardProps) {
     const saving = retention.isPending ? retention.variables : undefined;
     const shown = pending ?? toRetention(saving === undefined ? years : saving);
 
-    const formatMonth = (date: Date) =>
-        format.dateTime(date, { month: "short", year: "numeric" });
+    const formatMonth = (date: string | null) =>
+        date === null
+            ? ""
+            : format.dateTime(new Date(date), {
+                  month: "short",
+                  year: "numeric",
+              });
 
-    const options = RETENTIONS.map((value) => ({
+    const sinceHint = (index: number) => {
+        const cutoff = previews[index].data?.cutoff;
+        return cutoff ? t("since", { date: formatMonth(cutoff) }) : undefined;
+    };
+
+    const options = RETENTIONS.map((value, index) => ({
         value,
         label:
             value === "forever"
                 ? t("forever")
                 : t("years", { count: Number(value) }),
-        hint:
-            value === "forever"
-                ? t("allGames")
-                : t("since", {
-                      date: formatMonth(retentionCutoff(toYears(value))),
-                  }),
+        hint: value === "forever" ? t("allGames") : sinceHint(index),
     }));
 
     const onChange = (value: Retention) => {
@@ -106,7 +110,7 @@ export function StorageCard({ years }: StorageCardProps) {
             case "delete":
                 return t.rich("confirm", {
                     count: change.preview.expiring,
-                    date: formatMonth(change.cutoff),
+                    date: formatMonth(change.preview.cutoff),
                     size: formatSize(change.freed),
                     lost: change.preview.lost,
                     b: richStrong,

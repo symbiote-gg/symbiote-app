@@ -1,10 +1,10 @@
 import { Info } from "lucide-react";
 import { useFormatter, useTranslations } from "use-intl";
 
+import type { UnplacedKills } from "@/api/replays";
 import { HeroPortrait } from "@/components";
 import { Tooltip, Typography } from "@/ui";
 import { type Roster, playerOf } from "@/utils/timeline/roster";
-import type { UnplacedKills } from "./kill-log";
 
 import styles from "./styles.module.css";
 
@@ -14,7 +14,7 @@ interface UnplacedProps {
 }
 
 export function Unplaced({
-    unplaced: { victims, count, times },
+    unplaced: { victims, count, deaths },
     roster,
 }: UnplacedProps) {
     const t = useTranslations("replay.killLog");
@@ -22,7 +22,7 @@ export function Unplaced({
 
     const players = victims.map((slot) => playerOf(roster, slot));
     const names = players.map((player) => player?.heroName ?? "?");
-    const hero = format.list(names, { type: "conjunction" });
+    const hero = format.list(names, { type: "disjunction" });
     // with several victims, which ones the kills are on is unknown
     const many = victims.length > 1;
 
@@ -49,16 +49,17 @@ export function Unplaced({
                     <Typography size="sm" variant="tertiary">
                         {many
                             ? t("unplacedManyHint", {
-                                  total: times.length,
+                                  count,
+                                  total: deaths.length,
                                   hero,
                               })
-                            : t("unplacedHint", { total: times.length })}
+                            : t("unplacedHint", { total: deaths.length })}
                     </Typography>
                     <Tooltip
                         content={t("unplacedWhy")}
                         description={t(
                             many ? "unplacedManyWhyHint" : "unplacedWhyHint",
-                            { count, total: times.length, hero },
+                            { count, total: deaths.length, hero },
                         )}
                     >
                         <Info
