@@ -64,7 +64,7 @@ export function Replays() {
     const now = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]);
 
     const virtualizer = useVirtualizer({
-        count: total,
+        count: hasNextPage ? total : replays.length,
         getScrollElement: () => scroller.current,
         estimateSize: () => ROW_HEIGHT,
         overscan: 4,

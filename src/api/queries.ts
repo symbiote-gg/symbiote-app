@@ -94,7 +94,15 @@ export const replaysQuery = (filters = NO_REPLAY_FILTERS) =>
         getNextPageParam: (last, all): ReplayCursor | undefined => {
             const replays = all.flatMap((page) => page.replays);
             const tail = replays[replays.length - 1];
-            if (!tail || replays.length >= last.total) return undefined;
+            // A fetched page coming back empty means nothing lists after the tail, even
+            // if `total` says otherwise.
+            if (
+                !tail ||
+                last.replays.length === 0 ||
+                replays.length >= last.total
+            ) {
+                return undefined;
+            }
             return { timestamp: tail.timestamp, id: tail.id };
         },
     });

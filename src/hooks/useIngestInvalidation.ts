@@ -105,6 +105,14 @@ export function useIngestInvalidation() {
 
         const unsubscribe = subscribeIngest(onIngested);
 
+        // The ingester starts before the frontend subscribes, so a list or stats fetched
+        // meanwhile can miss replays that were never streamed to patch them in.
+        const onSubscribed = () => {
+            queryClient.invalidateQueries({ queryKey: REPLAY_LISTS_KEY });
+            queryClient.invalidateQueries({ queryKey: STATS_KEY });
+        };
+        unsubscribe.then(onSubscribed);
+
         return () => {
             clearTimeout(flushTimer);
             clearTimeout(statsTimer);
