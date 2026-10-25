@@ -1,3 +1,4 @@
+import { Clapperboard } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { Replay } from "@/api/replays";
@@ -22,6 +23,8 @@ export function RecentReplaysCard({
     return (
         <Card className={styles.root}>
             <CardHeader
+                icon={Clapperboard}
+                size="sm"
                 title={t("title")}
                 subtitle={t("subtitle", { total })}
                 action={<ButtonLink href="/replays">{t("all")}</ButtonLink>}

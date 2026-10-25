@@ -1,3 +1,4 @@
+import { UserRound } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { ProfileSummary } from "@/api/stats";
@@ -32,6 +33,8 @@ export function ProfileCard({ profile }: ProfileCardProps) {
     return (
         <Card className={styles.root}>
             <CardHeader
+                icon={UserRound}
+                size="sm"
                 title={t("title")}
                 subtitle={t("subtitle")}
                 action={

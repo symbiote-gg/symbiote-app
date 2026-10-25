@@ -12,6 +12,10 @@
     @apply flex min-w-0 flex-col gap-1;
 }
 
+.titles .titleWrapper {
+    @apply flex items-center gap-2;
+}
+
 .titles .title {
     @apply leading-none font-extrabold uppercase;
     font-stretch: 75%;
@@ -23,4 +27,12 @@
 
 .md .title {
     @apply text-5xl;
+}
+
+.sm .icon {
+    @apply size-6.5;
+}
+
+.md .icon {
+    @apply size-10;
 }

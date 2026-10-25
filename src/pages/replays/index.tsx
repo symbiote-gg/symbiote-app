@@ -1,5 +1,6 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import classNames from "classnames";
+import { Clapperboard } from "lucide-react";
 import {
     type UIEvent,
     useEffect,
@@ -108,6 +109,7 @@ export function Replays() {
         <Page fill>
             <Card className={styles.card}>
                 <CardHeader
+                    icon={Clapperboard}
                     title={t("title")}
                     subtitle={t("count", { count: total })}
                     action={

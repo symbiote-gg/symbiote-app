@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Typography } from "../../typography";
@@ -9,6 +10,7 @@ export type CardHeaderSize = "sm" | "md";
 
 export interface CardHeaderProps {
     title: string;
+    icon?: LucideIcon;
     subtitle?: ReactNode;
     action?: ReactNode;
     divided?: boolean;
@@ -17,6 +19,7 @@ export interface CardHeaderProps {
 
 export function CardHeader({
     title,
+    icon: Icon,
     subtitle,
     action,
     divided,
@@ -29,9 +32,12 @@ export function CardHeader({
             })}
         >
             <div className={styles.titles}>
-                <Typography size="xl2" display className={styles.title}>
-                    {title}
-                </Typography>
+                <div className={styles.titleWrapper}>
+                    {Icon && <Icon className={styles.icon} />}
+                    <Typography size="xl2" display className={styles.title}>
+                        {title}
+                    </Typography>
+                </div>
                 {subtitle && (
                     <Typography variant="tertiary">{subtitle}</Typography>
                 )}

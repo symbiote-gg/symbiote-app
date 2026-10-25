@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { Crown } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { MostPlayedHeroes } from "@/api/stats";
@@ -26,6 +27,8 @@ export function HeroesCard({ heroes }: HeroesCardProps) {
     return (
         <Card className={styles.root}>
             <CardHeader
+                icon={Crown}
+                size="sm"
                 title={t("title")}
                 subtitle={t("played", {
                     played: heroes.played,

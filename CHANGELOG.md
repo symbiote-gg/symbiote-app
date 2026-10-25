@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- Add icons to cards headers.
 - Add filters to replays list.
 - Add replays folder card to `settings` page.
 - Add `settings` page with replays events retention configuration.
