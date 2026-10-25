@@ -26,6 +26,7 @@ const PARTY_COLORS = [
 
 export interface PlayerRowProps {
     player: ReplayPlayerDetail;
+    partyMembers: string[];
     ally: boolean;
     owner: boolean;
     maxByStat: Record<Stat, number>;
@@ -40,6 +41,7 @@ export function PlayerRow({
     maxByStat,
     formatStat,
     className,
+    partyMembers,
 }: PlayerRowProps) {
     const t = useTranslations("replay");
 
@@ -62,7 +64,9 @@ export function PlayerRow({
                     />
                     {player.party !== null && (
                         <Tooltip
-                            content={t("party", { party: player.party })}
+                            content={t("party", {
+                                members: partyMembers.join(", "),
+                            })}
                             className={classNames(
                                 styles.party,
                                 PARTY_COLORS[

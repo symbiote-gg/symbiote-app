@@ -89,17 +89,29 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                         />
                         {teams.map(({ ally, summary, players }) => (
                             <Fragment key={ally ? "ally" : "enemy"}>
-                                {players.map((player) => (
-                                    <PlayerRow
-                                        key={player.playerId}
-                                        className={styles.teamGrid}
-                                        player={player}
-                                        ally={ally}
-                                        owner={player.playerId === ownerId}
-                                        maxByStat={maxByStat}
-                                        formatStat={formatStat}
-                                    />
-                                ))}
+                                {players.map((player) => {
+                                    const partyMembers = players
+                                        .filter(
+                                            ({ party, playerId }) =>
+                                                party !== null &&
+                                                playerId !== player.playerId &&
+                                                party === player.party,
+                                        )
+                                        .map((p) => p.name);
+
+                                    return (
+                                        <PlayerRow
+                                            key={player.playerId}
+                                            className={styles.teamGrid}
+                                            player={player}
+                                            partyMembers={partyMembers}
+                                            ally={ally}
+                                            owner={player.playerId === ownerId}
+                                            maxByStat={maxByStat}
+                                            formatStat={formatStat}
+                                        />
+                                    );
+                                })}
                                 <div
                                     className={classNames(
                                         styles.teamGrid,
