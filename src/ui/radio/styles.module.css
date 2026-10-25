@@ -1,0 +1,14 @@
+@reference "@/index.css";
+
+.dot {
+    @apply inline-flex size-4 shrink-0 items-center justify-center rounded-full border border-fg-muted/50 bg-bg transition-colors;
+}
+
+.on {
+    @apply border-primary;
+}
+
+.on::after {
+    @apply size-2 rounded-full bg-primary;
+    content: "";
+}

@@ -1,5 +1,5 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex max-h-[min(32rem,var(--popover-max-height,calc(100vh-6rem)))] min-w-(--popover-anchor-width) flex-col;
+    @apply flex max-h-[min(32rem,var(--popover-max-height,calc(100vh-6rem)))] min-w-[min(15rem,var(--popover-anchor-width))] flex-col;
 }

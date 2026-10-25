@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+import { Gamepad2 } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { Mode } from "@/api/replays";
@@ -34,7 +34,7 @@ export function ModeFilter({ value, onChange }: ModeFilterProps) {
 
     return (
         <MultiSelect
-            icon={<Zap />}
+            icon={<Gamepad2 />}
             label={t("mode.label")}
             valueLabel={valueLabel}
             clearLabel={t("mode.clear")}

@@ -1,5 +1,4 @@
-import { UserRound } from "lucide-react";
-import type { ReactNode } from "react";
+import { Crown } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { HeroRole } from "@/api/replays";
@@ -24,7 +23,6 @@ export interface HeroFilterProps {
 
 export function HeroFilter({ value, roles, onChange }: HeroFilterProps) {
     const t = useTranslations("filters.hero");
-    const roleNames = useTranslations("roles");
     const { data } = useMostPlayedHeroes(ALL_HEROES);
 
     const options: HeroOption[] = (data?.heroes ?? [])
@@ -43,36 +41,27 @@ export function HeroFilter({ value, roles, onChange }: HeroFilterProps) {
               : t("count", { count: value.length });
 
     const removeLabel = (hero: string) => t("remove", { hero });
-    const noResults = (query: string) => t("noResults", { query });
-    const footer = (results: number) => t("results", { count: results });
+    const noResults = () => t("noResults");
 
-    const renderOption = ({ hero }: HeroOption, label: ReactNode) => (
+    const renderOption = ({ hero }: HeroOption) => (
         <>
             <HeroPortrait name={hero.name} portrait={hero.portrait} size="xs" />
-            <span className={styles.names}>
-                <span className={styles.name}>{label}</span>
-                {hero.role && (
-                    <span className={styles.role}>{roleNames(hero.role)}</span>
-                )}
-            </span>
+            <span className={styles.name}>{hero.name}</span>
         </>
     );
 
     return (
         <Combobox
-            icon={<UserRound />}
+            icon={<Crown />}
             label={t("label")}
             valueLabel={valueLabel}
             clearLabel={t("clear")}
             placeholder={t("search")}
-            sectionLabel={t("mostPlayed")}
-            clearSearchLabel={t("clearSearch")}
             options={options}
             value={value}
             renderOption={renderOption}
             removeLabel={removeLabel}
             noResults={noResults}
-            footer={footer}
             onChange={onChange}
         />
     );

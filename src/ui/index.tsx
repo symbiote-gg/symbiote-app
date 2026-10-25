@@ -11,6 +11,7 @@ export * from "./filter-trigger";
 export * from "./meter";
 export * from "./multi-select";
 export * from "./popover";
+export * from "./radio";
 export * from "./range-calendar";
 export * from "./rich-text";
 export * from "./segmented";

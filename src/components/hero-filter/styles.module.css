@@ -1,13 +1,5 @@
 @reference "@/index.css";
 
-.names {
-    @apply flex min-w-0 flex-1 flex-col leading-tight;
-}
-
 .name {
     @apply truncate text-fg;
-}
-
-.role {
-    @apply truncate text-xs text-fg-muted;
 }

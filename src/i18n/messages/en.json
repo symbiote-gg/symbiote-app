@@ -97,11 +97,8 @@
             "clear": "Clear hero filter",
             "count": "{count, plural, one {# hero} other {# heroes}}",
             "search": "Search heroes",
-            "mostPlayed": "Most played",
-            "clearSearch": "Clear search",
             "remove": "Remove {hero}",
-            "noResults": "No hero you've played matches \"{query}\".\nHeroes you haven't played aren't listed.",
-            "results": "{count, plural, one {# result} other {# results}}, picks stay selected while you search"
+            "noResults": "Heroes you haven't played aren't listed."
         }
     },
     "replayRow": {

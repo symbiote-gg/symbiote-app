@@ -56,14 +56,6 @@
     @apply bg-surface-2;
 }
 
-.mark {
-    @apply bg-transparent font-semibold text-primary-text;
-}
-
 .empty {
     @apply px-4 py-6 text-center whitespace-pre-line;
-}
-
-.footer {
-    @apply shrink-0 border-t border-line px-3.5 py-2.5 text-xs text-fg-muted;
 }

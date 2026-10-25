@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import {
     type MouseEvent,
     type ReactNode,
@@ -10,6 +9,7 @@ import {
 import { useFocusOnOpen } from "@/hooks/useFocusOnOpen";
 import { Dropdown } from "../dropdown";
 import { FilterTrigger } from "../filter-trigger";
+import { RadioDot } from "../radio";
 
 import styles from "./styles.module.css";
 
@@ -94,11 +94,10 @@ export function Select<T extends string>({
                             type="button"
                             value={option.value}
                             aria-pressed={option.value === value}
-                            className={classNames(styles.option, {
-                                [styles.selected]: option.value === value,
-                            })}
+                            className={styles.option}
                             onClick={onPick}
                         >
+                            <RadioDot checked={option.value === value} />
                             <span className={styles.label}>
                                 {option.label}
                                 {option.adornment}

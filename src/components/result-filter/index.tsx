@@ -1,10 +1,7 @@
-import classNames from "classnames";
 import { Trophy } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import { Select } from "@/ui";
-
-import styles from "./styles.module.css";
 
 type Result = "wins" | "defeats";
 
@@ -27,12 +24,6 @@ export function ResultFilter({ value, onChange }: ResultFilterProps) {
     const options = (["wins", "defeats"] as const).map((result) => ({
         value: result,
         label: t(result),
-        adornment: (
-            <span
-                className={classNames(styles.dot, styles[result])}
-                aria-hidden
-            />
-        ),
     }));
 
     return (

@@ -25,8 +25,6 @@ type Draft = {
 
 type Preset = Exclude<DatePreset, "any" | "custom">;
 
-// "Any time" is the filter's cleared state, reached through the trigger's ×, and a
-// custom range comes from picking days on the calendar.
 const PRESETS = DATE_PRESETS.filter(
     (preset): preset is Preset => preset !== "any" && preset !== "custom",
 );

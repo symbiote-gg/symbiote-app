@@ -2,7 +2,6 @@ import classNames from "classnames";
 import { Search, X } from "lucide-react";
 import {
     type ChangeEvent,
-    type KeyboardEvent,
     type MouseEvent,
     type PointerEvent,
     type ReactNode,
@@ -12,13 +11,12 @@ import {
 } from "react";
 
 import { useFocusOnOpen } from "@/hooks/useFocusOnOpen";
-import { linkClassName } from "../button";
 import { CheckboxBox } from "../checkbox";
 import { Dropdown } from "../dropdown";
 import { Eyebrow } from "../eyebrow";
 import { FilterTrigger } from "../filter-trigger";
 import { Typography } from "../typography";
-import { findMatch } from "./match";
+import { matches } from "./match";
 
 import styles from "./styles.module.css";
 
@@ -37,37 +35,13 @@ export interface ComboboxProps<
     clearLabel: string;
     placeholder: string;
     sectionLabel?: string;
-    clearSearchLabel: string;
     options: readonly O[];
     value: readonly T[];
     disabled?: boolean;
-    renderOption: (option: O, label: ReactNode) => ReactNode;
+    renderOption: (option: O) => ReactNode;
     removeLabel: (label: string) => string;
     noResults: (query: string) => ReactNode;
-    /** Shown while searching. */
-    footer: (results: number) => ReactNode;
     onChange: (value: T[]) => void;
-}
-
-function Highlighted({
-    label,
-    range,
-}: {
-    label: string;
-    range: [number, number];
-}) {
-    const [start, end] = range;
-    if (start === end) return label;
-    const chars = Array.from(label);
-    return (
-        <>
-            {chars.slice(0, start).join("")}
-            <mark className={styles.mark}>
-                {chars.slice(start, end).join("")}
-            </mark>
-            {chars.slice(end).join("")}
-        </>
-    );
 }
 
 export function Combobox<
@@ -80,14 +54,12 @@ export function Combobox<
     clearLabel,
     placeholder,
     sectionLabel,
-    clearSearchLabel,
     options,
     value,
     disabled,
     renderOption,
     removeLabel,
     noResults,
-    footer,
     onChange,
 }: ComboboxProps<T, O>) {
     const id = useId();
@@ -97,10 +69,7 @@ export function Combobox<
     const [activeIndex, setActiveIndex] = useState(0);
     const input = useRef<HTMLInputElement>(null);
 
-    const results = options.flatMap((option) => {
-        const range = findMatch(option.label, query);
-        return range ? [{ option, range }] : [];
-    });
+    const results = options.filter((option) => matches(option.label, query));
     const picked = value.flatMap((picked) => {
         const option = options.find((option) => option.value === picked);
         return option ? [option] : [];
@@ -129,36 +98,10 @@ export function Combobox<
         setActiveIndex(0);
     };
 
-    const moveTo = (index: number) => {
-        setActiveIndex(index);
-        document
-            .getElementById(optionId(index))
-            ?.scrollIntoView({ block: "nearest" });
-    };
-
-    const onInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (results.length === 0) return;
-        if (e.key === "ArrowDown") {
-            moveTo((active + 1) % results.length);
-        } else if (e.key === "ArrowUp") {
-            moveTo((active - 1 + results.length) % results.length);
-        } else if (e.key === "Enter") {
-            toggle(results[active].option.value);
-        } else {
-            return;
-        }
-        e.preventDefault();
-    };
-
-    const onClearSearch = () => {
-        setQuery("");
-        input.current?.focus();
-    };
-
     const onClear = () => onChange([]);
 
     const onOptionClick = (e: MouseEvent<HTMLDivElement>) => {
-        toggle(results[Number(e.currentTarget.dataset.index)].option.value);
+        toggle(results[Number(e.currentTarget.dataset.index)].value);
         input.current?.focus();
     };
 
@@ -213,7 +156,6 @@ export function Combobox<
                             spellCheck={false}
                             className={styles.input}
                             onChange={onQueryChange}
-                            onKeyDown={onInputKeyDown}
                         />
                     </label>
                     {picked.length > 0 && (
@@ -250,8 +192,9 @@ export function Combobox<
                             {sectionLabel}
                         </Eyebrow>
                     )}
-                    {results.map(({ option, range }, index) => {
+                    {results.map((option, index) => {
                         const selected = value.includes(option.value);
+
                         return (
                             <div
                                 key={option.value}
@@ -266,13 +209,7 @@ export function Combobox<
                                 onPointerEnter={onOptionEnter}
                             >
                                 <CheckboxBox checked={selected} />
-                                {renderOption(
-                                    option,
-                                    <Highlighted
-                                        label={option.label}
-                                        range={range}
-                                    />,
-                                )}
+                                {renderOption(option)}
                             </div>
                         );
                     })}
@@ -286,21 +223,6 @@ export function Combobox<
                         </Typography>
                     )}
                 </div>
-                {query && (
-                    <footer className={styles.footer}>
-                        {results.length === 0 ? (
-                            <button
-                                type="button"
-                                className={linkClassName}
-                                onClick={onClearSearch}
-                            >
-                                {clearSearchLabel}
-                            </button>
-                        ) : (
-                            footer(results.length)
-                        )}
-                    </footer>
-                )}
             </Dropdown>
         </>
     );
