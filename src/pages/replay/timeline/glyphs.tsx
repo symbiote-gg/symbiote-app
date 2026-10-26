@@ -54,7 +54,7 @@ const ICONS: Record<Glyph, LucideIcon> = {
     keep: TowerControl,
     knight: SunMoon,
     layers: Layers,
-    mask: HatGlasses,
+    "hat-glasses": HatGlasses,
     mech: Bot,
     nuke: Radiation,
     orb: CircleDot,

@@ -58,6 +58,12 @@ account to create.
 
 Windows is the only packaged platform for now.
 
+## Privacy
+
+`SymbioteGG` collects nothing. It makes no network requests: no analytics, no
+crash reports, no update checks. Your replays are read from disk and the stats
+built from them are stored on your machine only.
+
 ## Contributing
 
 If you'd like to file a bug, suggest a feature, or contribute code, see

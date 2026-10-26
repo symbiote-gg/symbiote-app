@@ -320,7 +320,9 @@
         "meta": {
             "version": "Version",
             "versionValue": "v{version}",
-            "license": "License"
+            "license": "License",
+            "privacy": "Privacy",
+            "privacyValue": "Offline, nothing leaves your machine"
         },
         "footer": "Fan-made, not affiliated",
         "licenses": {

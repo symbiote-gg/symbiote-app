@@ -69,6 +69,14 @@ export function About() {
                             </ExternalLink>
                         </dd>
                     </div>
+                    <div className={styles.metaRow}>
+                        <dt>
+                            <Eyebrow>{t("meta.privacy")}</Eyebrow>
+                        </dt>
+                        <dd className={styles.metaValue}>
+                            {t("meta.privacyValue")}
+                        </dd>
+                    </div>
                 </dl>
             </div>
             <Licenses />
