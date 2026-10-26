@@ -373,6 +373,8 @@ export const listReplays = (
 export const getReplay = (id: number) =>
     invoke<ReplayDetail>("get_replay", { id });
 
+export const watchReplay = (id: number) => invoke<void>("watch_replay", { id });
+
 export const markReplayAsSeen = (id: number) =>
     invoke<void>("mark_replay_as_seen", { id });
 

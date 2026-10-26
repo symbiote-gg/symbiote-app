@@ -1,13 +1,14 @@
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import classNames from "classnames";
-import { Folder, History } from "lucide-react";
+import { Folder, History, MonitorPlay } from "lucide-react";
 import type { ReactNode } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
 import type { HeroRole, ReplayDetail, ReplayPlayerDetail } from "@/api/replays";
 import { BackToReplays, HeroPortrait, Kad, modeIcon } from "@/components";
 import { useImageFallback } from "@/hooks/useImageFallback";
-import { Button, Chip, Eyebrow, Typography } from "@/ui";
+import { useWatchReplay } from "@/hooks/useWatchReplay";
+import { Button, Chip, Eyebrow, Tooltip, Typography } from "@/ui";
 import { formatDuration, usePlayedOn } from "@/utils/dates";
 import { FlowChip } from "./flow-chip";
 
@@ -41,7 +42,10 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
     const playedOn = usePlayedOn();
     const [failed, onError] = useImageFallback();
 
+    const watch = useWatchReplay();
+
     const onReveal = () => revealItemInDir(replay.path);
+    const onWatch = () => watch.mutate(replay.id);
 
     const result =
         replay.ownerWin === null ? "unknown" : replay.ownerWin ? "win" : "loss";
@@ -124,6 +128,27 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                                 <History />
                                 {t("replay.eventsExpired")}
                             </Typography>
+                        )}
+                        {replay.onDisk && (
+                            <Tooltip
+                                content={t("replay.watchInGame")}
+                                description={t("replay.watchInGameDescription")}
+                                placement="bottom"
+                            >
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={onWatch}
+                                    disabled={watch.isPending}
+                                    aria-label={t("replay.watchInGame")}
+                                    className={styles.tool}
+                                >
+                                    <MonitorPlay />
+                                    <span className={styles.toolLabel}>
+                                        {t("replay.watchInGame")}
+                                    </span>
+                                </Button>
+                            </Tooltip>
                         )}
                         {replay.onDisk && (
                             <Button

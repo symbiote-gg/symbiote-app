@@ -1,7 +1,8 @@
 use std::path::Path;
 
 use sqlx::SqlitePool;
-use tauri::State;
+use tauri::{AppHandle, State};
+use tauri_plugin_opener::OpenerExt;
 
 use crate::error::{Error, Result};
 use crate::retention::EventRetention;
@@ -48,6 +49,18 @@ pub async fn get_replay(
         .ok_or(Error::ReplayNotFound(id))?;
     detail.on_disk = Path::new(&detail.replay.path).is_file();
     Ok(detail)
+}
+
+/// Opens the file of the replay with the given `id` in its default app, i.e. the game.
+///
+/// Looked up by id rather than taking a path, so the frontend can't open arbitrary files.
+#[tauri::command]
+pub async fn watch_replay(app: AppHandle, pool: State<'_, SqlitePool>, id: i64) -> Result<()> {
+    let path = crate::db::replays::get_path(&pool, id)
+        .await?
+        .ok_or(Error::ReplayNotFound(id))?;
+    app.opener().open_path(path, None::<&str>)?;
+    Ok(())
 }
 
 #[tauri::command]

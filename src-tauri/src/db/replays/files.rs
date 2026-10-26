@@ -37,6 +37,13 @@ pub async fn hash_status(pool: &SqlitePool, hash: &str, version: i64) -> sqlx::R
     })
 }
 
+pub async fn get_path(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<String>> {
+    sqlx::query_scalar("SELECT path FROM replays WHERE id = ?")
+        .bind(id)
+        .fetch_optional(pool)
+        .await
+}
+
 /// Lists the paths of the replays stored below ingest `version`, newest first.
 pub async fn list_stale_paths(pool: &SqlitePool, version: i64) -> sqlx::Result<Vec<String>> {
     sqlx::query_scalar(

@@ -119,6 +119,8 @@
     "replay": {
         "replays": "Replays",
         "showInFolder": "Show in folder",
+        "watchInGame": "Watch in game",
+        "watchInGameDescription": "Opens the replay in Heroes of the Storm. The game only plays replays from the current patch.",
         "eventsExpired": "Older than your timeline retention - the timeline and team levels are no longer kept",
         "team": "{side, select, ally {Your team} other {Enemy team}}",
         "result": "{result, select, win {Victory} loss {Defeat} other {-}}",

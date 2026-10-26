@@ -1,7 +1,9 @@
 use std::path::PathBuf;
 
 use commands::ingest::{get_ingest_progress, subscribe_ingest, unsubscribe_ingest};
-use commands::replays::{count_replays, get_replay, list_replays, mark_replay_as_seen};
+use commands::replays::{
+    count_replays, get_replay, list_replays, mark_replay_as_seen, watch_replay,
+};
 use commands::settings::{
     get_database_stats, get_replays_folder, get_settings, open_replays_folder,
     preview_event_retention, set_event_retention,
@@ -103,6 +105,7 @@ pub fn run() {
             list_replays,
             get_replay,
             mark_replay_as_seen,
+            watch_replay,
             count_replays,
             get_profile_summary,
             get_most_played_heroes,

@@ -13,7 +13,9 @@ use chrono::{DateTime, Utc};
 use sqlx::{SqliteExecutor, SqlitePool};
 
 pub use detail::get_detail;
-pub use files::{hash_status, list_known_paths, list_stale_paths, prune_superseded, HashStatus};
+pub use files::{
+    get_path, hash_status, list_known_paths, list_stale_paths, prune_superseded, HashStatus,
+};
 pub use insert::{insert_bundles, InsertOutcome};
 pub use list::{get_list_row, list_page};
 pub use retention::{list_expiring, list_restorable, mark_stale, purge_expired_events};
