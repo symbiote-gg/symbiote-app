@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- Use a different icon for stolen camps in the timeline.
 - Add button to open a replay in Heroes of the Storm.
 - Add game flow to replay header, telling what kind of game the player
   experienced.

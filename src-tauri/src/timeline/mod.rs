@@ -49,6 +49,8 @@ struct XpBreakdown {
 #[derive(Deserialize)]
 struct CampData {
     camp_type: Option<String>,
+    #[serde(default)]
+    home_team: Option<u8>,
 }
 
 #[derive(Deserialize)]
@@ -123,6 +125,10 @@ pub fn build(rows: Vec<RawEvent>, duration: f64) -> Timeline {
                     time,
                     team,
                     camp_type: camp.camp_type,
+                    stolen: camp
+                        .home_team
+                        .zip(team)
+                        .is_some_and(|(home, team)| home != team),
                 });
             }
             "structure_death" => {

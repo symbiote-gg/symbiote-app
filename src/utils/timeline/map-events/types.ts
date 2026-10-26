@@ -19,6 +19,7 @@ export type Glyph =
     | "keep"
     | "knight"
     | "layers"
+    | "hat-glasses"
     | "mech"
     | "nuke"
     | "orb"

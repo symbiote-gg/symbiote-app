@@ -165,6 +165,8 @@ pub struct Camp {
     pub time: f64,
     pub team: Option<u8>,
     pub camp_type: Option<String>,
+    /// Captured on the other team's side of the map.
+    pub stolen: bool,
 }
 
 /// A map objective event, with what its map makes of it.

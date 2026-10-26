@@ -72,6 +72,16 @@
     border-color: var(--side);
 }
 
+/* Stolen camps step back up to the kills' tint; the boss band is already
+   tinted, so a stolen boss deepens it instead. */
+.tickBadge.stolen {
+    background: color-mix(in srgb, var(--side) 18%, var(--color-surface));
+}
+
+.mark.stolen {
+    background: color-mix(in srgb, var(--side) 40%, var(--color-surface));
+}
+
 .tickBadge.spawn {
     --side: #6e6582;
 }

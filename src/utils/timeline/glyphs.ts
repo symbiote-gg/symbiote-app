@@ -3,15 +3,15 @@ import { type Glyph, specGlyph } from "./map-events";
 import type { Entry } from "./types";
 
 /** Blackheart's Bay doubloon camps feed the objective, unlike mercenary camps. */
-export const campGlyph = (campType: string | null): Glyph =>
-    campType === "Doubloons Camp" ? "coins" : "tent";
+export const campGlyph = (campType: string | null, stolen: boolean): Glyph =>
+    stolen ? "hat-glasses" : campType === "Doubloons Camp" ? "coins" : "tent";
 
 export const entryGlyph = (entry: Entry): Glyph => {
     switch (entry.type) {
         case "death":
             return "skull";
         case "camp":
-            return campGlyph(entry.campType);
+            return campGlyph(entry.campType, entry.stolen);
         case "structure":
             return entry.keep ? "keep" : "castle";
         case "map":

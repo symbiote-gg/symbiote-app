@@ -178,6 +178,8 @@ export type TimelineCamp = {
     time: number;
     team: number | null;
     campType: string | null;
+    /** Captured on the other team's side of the map. */
+    stolen: boolean;
 };
 
 /** Both teams' progress towards one objective, drawn as two bars. */

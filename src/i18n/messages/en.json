@@ -225,6 +225,7 @@
             "campTitle": "Camp",
             "campGroup": "{count, plural, one {# camp} other {# camps}}",
             "campResult": "{side, select, ally {Captured} enemy {Enemy captured} other {Captured}}",
+            "campStolen": "{side, select, ally {Stolen} enemy {Enemy stole} other {Captured}}",
             "lane": "{lane, select, top {Top lane} middle {Middle lane} bottom {Bottom lane} other {Lane}}",
             "fightKind": "{kind, select, pick {Pick} gank {Gank} skirmish {Skirmish} teamFight {Team fight} other {Fight}}",
             "fightResult": "{result, select, ally {Won} enemy {Lost} other {Traded}} {ally}-{enemy}",

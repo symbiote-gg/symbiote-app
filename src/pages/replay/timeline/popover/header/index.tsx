@@ -22,7 +22,9 @@ function headerGlyph(marker: Marker, view: MarkerView): Glyph | null {
     if (fight) return fightGlyph(fight);
     if (structure) return structure.keep ? "keep" : "castle";
     if (camp) {
-        return marker.shape === "boss" ? "crown" : campGlyph(camp.campType);
+        return marker.shape === "boss"
+            ? "crown"
+            : campGlyph(camp.campType, camp.stolen);
     }
     if (group) return tickGlyph(marker.entries);
     if (map) return entryGlyph(map);
@@ -80,13 +82,20 @@ function Title({ marker, view, text }: HeaderProps) {
         return (
             <HeaderText
                 title={camp.campType ?? t("campTitle")}
-                tag={t("campResult", { side: camp.side ?? "none" })}
+                tag={t(camp.stolen ? "campStolen" : "campResult", {
+                    side: camp.side ?? "none",
+                })}
                 tagClassName={classNames(sideClasses(camp.side))}
                 meta={text.at(marker.time)}
             />
         );
     }
     if (view.group) {
+        const allStolen =
+            view.camps &&
+            marker.entries.every(
+                (entry) => entry.type === "camp" && entry.stolen,
+            );
         return (
             <HeaderText
                 title={
@@ -97,7 +106,9 @@ function Title({ marker, view, text }: HeaderProps) {
                 tag={
                     marker.side &&
                     (view.camps
-                        ? t("campResult", { side: marker.side })
+                        ? t(allStolen ? "campStolen" : "campResult", {
+                              side: marker.side,
+                          })
                         : t(`side.${marker.side}`))
                 }
                 tagClassName={classNames(sideClasses(marker.side))}

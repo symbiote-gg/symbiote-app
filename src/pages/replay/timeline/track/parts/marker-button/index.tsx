@@ -5,7 +5,7 @@ import type { TimelineText } from "@/hooks/useTimelineText";
 import { fightGlyph, tickGlyph } from "@/utils/timeline/glyphs";
 import { fightSize, position } from "@/utils/timeline/layout";
 import { isBandMarker } from "@/utils/timeline/markers";
-import type { Marker } from "@/utils/timeline/types";
+import type { Entry, Marker } from "@/utils/timeline/types";
 import { GlyphIcon } from "../../../glyphs";
 import { sideClass } from "../../../side";
 
@@ -46,6 +46,9 @@ function MarkContent({ marker, longGame, text }: MarkContentProps) {
     }
 }
 
+const anyStolen = (entries: Entry[]) =>
+    entries.some((entry) => entry.type === "camp" && entry.stolen);
+
 function TickVisual({ marker }: { marker: Marker }) {
     if (marker.shape === "spawn")
         return (
@@ -72,6 +75,7 @@ function TickVisual({ marker }: { marker: Marker }) {
                         [styles.minor]: marker.entries.every(
                             (entry) => entry.type === "camp",
                         ),
+                        [styles.stolen]: anyStolen(marker.entries),
                     },
                 )}
             >
@@ -147,6 +151,8 @@ export function MarkerButton({
                     [styles.selected]: selected,
                     [styles.mine]: mine,
                     [styles.dimmed]: dimmed,
+                    [styles.stolen]:
+                        marker.shape === "boss" && anyStolen(marker.entries),
                 },
             )}
             style={{
