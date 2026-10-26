@@ -1,5 +1,5 @@
 @reference "@/index.css";
 
 .popoverKills {
-    @apply max-h-[32rem] w-max max-w-[calc(100vw-16px)];
+    @apply max-h-[32rem] w-max max-w-[min(20rem,calc(100vw-16px))];
 }

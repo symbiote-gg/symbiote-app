@@ -23,7 +23,11 @@ import {
 import { type Placed, layout, position } from "@/utils/timeline/layout";
 import type { LevelCurve } from "@/utils/timeline/levels";
 import { LONG_GAME } from "@/utils/timeline/markers";
-import { involves, isBandMarker } from "@/utils/timeline/markers";
+import {
+    involves,
+    isBandMarker,
+    objectiveRange,
+} from "@/utils/timeline/markers";
 import type { Marker, Side } from "@/utils/timeline/types";
 import { Popover } from "../popover";
 import { sideClass } from "../side";
@@ -205,6 +209,27 @@ export function Track({
                 <Lead curves={curves} duration={duration} />
                 <Bookends winner={winner} />
                 <Tiers curves={curves} duration={duration} />
+                {placed.map((p) => {
+                    const range = objectiveRange(p.marker, duration);
+                    if (!range || p.marker.side === null) return null;
+                    const start = position(range[0], duration);
+                    const end = position(range[1], duration);
+                    return (
+                        <span
+                            key={`span-${p.marker.id}`}
+                            className={classNames(
+                                styles.span,
+                                sideClass(p.marker.side),
+                                { [styles.dimmed]: dimmed(p.marker) },
+                            )}
+                            style={{
+                                left: start,
+                                width: `calc(${end} - ${start})`,
+                                top: top(p),
+                            }}
+                        />
+                    );
+                })}
                 {placed.map((p) =>
                     p.marker.side !== null &&
                     (isBandMarker(p.marker) || p.y === CAMP_Y) ? (
