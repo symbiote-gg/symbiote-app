@@ -165,8 +165,6 @@ pub struct Camp {
     pub time: f64,
     pub team: Option<u8>,
     pub camp_type: Option<String>,
-    /// Which capture of this camp it is, from 1.
-    pub nth: u32,
 }
 
 /// A map objective event, with what its map makes of it.

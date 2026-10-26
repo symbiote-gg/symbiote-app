@@ -1,6 +1,7 @@
 use hots_replay_parser::summary::LOOPS_PER_SECOND;
 use sqlx::{FromRow, SqlitePool};
 
+use crate::timeline;
 use crate::types::replay::{AwardInfo, ReplayDetail, ReplayPlayerDetail, TalentPick, TeamSummary};
 use crate::types::timeline::{RawEvent, Timeline};
 
@@ -114,9 +115,9 @@ pub async fn get_detail(
         .fetch_all(&mut *tx)
         .await?;
 
-        detail.timeline = crate::timeline::build(events, detail.replay.duration as f64);
+        detail.timeline = timeline::build(events, detail.replay.duration as f64);
         detail.flow = winner(&detail).and_then(|winner| {
-            crate::timeline::flow::read(&detail.timeline, winner, detail.replay.duration as f64)
+            timeline::flow::read(&detail.timeline, winner, detail.replay.duration as f64)
         });
     }
     tx.commit().await?;
@@ -141,11 +142,8 @@ pub async fn get_detail(
     }
 
     detail.teams = team_summaries(&detail.players, &detail.timeline);
-    detail.kill_log = crate::timeline::kill_log::build(
-        &detail.timeline,
-        &detail.players,
-        detail.replay.owner_slot,
-    );
+    detail.kill_log =
+        timeline::kill_log::build(&detail.timeline, &detail.players, detail.replay.owner_slot);
     detail.owner_kill_participation = kill_participation(&detail);
 
     Ok(Some(detail))

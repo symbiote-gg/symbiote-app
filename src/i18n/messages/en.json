@@ -211,8 +211,7 @@
                 "capturer": "Captured by",
                 "capture": "Capture",
                 "seconds": "{value}s",
-                "percent": "{value}%",
-                "nth": "#{nth}"
+                "percent": "{value}%"
             },
             "fightRange": "{start}-{end} ({seconds}s)",
             "offset": "+{seconds}s",

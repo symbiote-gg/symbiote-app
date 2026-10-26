@@ -10,8 +10,6 @@ pub mod kill_log;
 mod maps;
 mod milestones;
 
-use std::collections::HashMap;
-
 use hots_replay_parser::summary::Lane;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
@@ -50,7 +48,6 @@ struct XpBreakdown {
 
 #[derive(Deserialize)]
 struct CampData {
-    camp_id: i64,
     camp_type: Option<String>,
 }
 
@@ -69,7 +66,6 @@ pub fn build(rows: Vec<RawEvent>, duration: f64) -> Timeline {
         ..Timeline::default()
     };
     let mut map_rows = Vec::new();
-    let mut captures = HashMap::<i64, u32>::new();
 
     for RawEvent {
         kind,
@@ -122,13 +118,11 @@ pub fn build(rows: Vec<RawEvent>, duration: f64) -> Timeline {
                 let Some(camp) = parse::<CampData>(&kind, data.0) else {
                     continue;
                 };
-                let nth = captures.entry(camp.camp_id).or_default();
-                *nth += 1;
+
                 timeline.camps.push(Camp {
                     time,
                     team,
                     camp_type: camp.camp_type,
-                    nth: *nth,
                 });
             }
             "structure_death" => {
@@ -221,26 +215,6 @@ mod tests {
                 "y": 0.0,
             }),
         )
-    }
-
-    #[test]
-    fn counts_captures_per_camp() {
-        let camp = |time, id| {
-            row(
-                "camp_capture",
-                time,
-                Some(0),
-                json!({ "camp_id": id, "camp_type": "Siege Camp" }),
-            )
-        };
-        let timeline = build(vec![
-            camp(-1.0, 1),
-            camp(10.0, 1),
-            camp(20.0, 2),
-            camp(30.0, 1),
-        ]);
-        let nths: Vec<_> = timeline.camps.iter().map(|camp| camp.nth).collect();
-        assert_eq!(nths, [1, 1, 2]);
     }
 
     #[test]

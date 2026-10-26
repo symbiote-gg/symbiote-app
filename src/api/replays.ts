@@ -178,8 +178,6 @@ export type TimelineCamp = {
     time: number;
     team: number | null;
     campType: string | null;
-    /** Which capture of this camp it is, from 1. */
-    nth: number;
 };
 
 /** Both teams' progress towards one objective, drawn as two bars. */

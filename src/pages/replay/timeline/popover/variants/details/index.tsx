@@ -41,11 +41,6 @@ export function useDetailItems(
                     label: t("detail.capturer"),
                     value: teamName(entry.team),
                 },
-                {
-                    key: "nth",
-                    label: t("detail.capture"),
-                    value: t("detail.nth", { nth: entry.nth }),
-                },
             ];
         case "map":
             return Object.entries({
