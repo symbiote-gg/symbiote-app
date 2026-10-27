@@ -9,7 +9,7 @@
 }
 
 .icon {
-    @apply size-10 shrink-0 rounded-md;
+    @apply size-12 shrink-0 rounded-md;
 }
 
 .headerText {

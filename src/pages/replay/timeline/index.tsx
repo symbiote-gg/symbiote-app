@@ -118,25 +118,31 @@ export function Timeline({
                     />
                 }
             />
-            <div className={styles.body}>
-                <Track
-                    markers={visible}
-                    curves={curves}
-                    duration={duration}
-                    players={players}
-                    allyTeam={allyTeam}
-                    highlightSlot={me ? ownerSlot : null}
-                    winner={
-                        ownerWin === null ? null : ownerWin ? "ally" : "enemy"
-                    }
-                    text={text}
-                    hoverTime={hoverTime}
-                    selectedId={selected?.id ?? null}
-                    empty={FILTERS.every((filter) => !shown(filter))}
-                    lit={lit}
-                    onHover={setHoverTime}
-                    onSelect={setSelected}
-                />
+            <div className={styles.scroll}>
+                <div className={styles.body}>
+                    <Track
+                        markers={visible}
+                        curves={curves}
+                        duration={duration}
+                        players={players}
+                        allyTeam={allyTeam}
+                        highlightSlot={me ? ownerSlot : null}
+                        winner={
+                            ownerWin === null
+                                ? null
+                                : ownerWin
+                                  ? "ally"
+                                  : "enemy"
+                        }
+                        text={text}
+                        hoverTime={hoverTime}
+                        selectedId={selected?.id ?? null}
+                        empty={FILTERS.every((filter) => !shown(filter))}
+                        lit={lit}
+                        onHover={setHoverTime}
+                        onSelect={setSelected}
+                    />
+                </div>
             </div>
         </Card>
     );
