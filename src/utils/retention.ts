@@ -36,6 +36,7 @@ export function buildRetentionChange(
     if (pending === null || preview === undefined) return null;
 
     const years = toYears(pending);
+    if (years === current) return null;
 
     const longer = keptFor(years) > keptFor(current);
     const kind: RetentionChange["kind"] = longer

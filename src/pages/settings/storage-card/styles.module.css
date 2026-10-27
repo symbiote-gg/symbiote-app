@@ -40,7 +40,20 @@
 }
 
 .confirmText {
-    @apply min-w-0 flex-1 basis-64;
+    @apply grid min-w-0 flex-1 basis-64;
+}
+
+.stacked {
+    grid-area: 1 / 1;
+    align-self: center;
+}
+
+.applyLabels {
+    @apply grid justify-items-center;
+}
+
+.hidden {
+    @apply invisible;
 }
 
 .confirmText strong {

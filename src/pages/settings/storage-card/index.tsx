@@ -56,14 +56,11 @@ export function StorageCard({ years }: StorageCardProps) {
     // Prefetch every option so the confirm panel renders on click without a loading gap
     const previews = useRetentionPreviews(RETENTION_YEARS);
     const perGame = bytesPerGame(stats);
-    const change = buildRetentionChange(
-        pending,
-        years,
-        pending === null
-            ? undefined
-            : previews[RETENTIONS.indexOf(pending)].data,
-        perGame,
+    const changes = RETENTIONS.map((value, index) =>
+        buildRetentionChange(value, years, previews[index].data, perGame),
     );
+    const change =
+        pending === null ? null : changes[RETENTIONS.indexOf(pending)];
 
     const saving = retention.isPending ? retention.variables : undefined;
     const shown = pending ?? toRetention(saving === undefined ? years : saving);
@@ -91,6 +88,8 @@ export function StorageCard({ years }: StorageCardProps) {
     }));
 
     const onChange = (value: Retention) => {
+        if (retention.isPending) return;
+
         queryClient.invalidateQueries({
             queryKey: retentionPreviewQuery(toYears(value)).queryKey,
         });
@@ -150,7 +149,7 @@ export function StorageCard({ years }: StorageCardProps) {
                     label={t("title")}
                     options={options}
                     value={shown}
-                    disabled={retention.isPending || importing}
+                    disabled={importing}
                     fill
                     onChange={onChange}
                 />
@@ -194,12 +193,23 @@ export function StorageCard({ years }: StorageCardProps) {
                     ) : (
                         <Info className={styles.confirmIcon} />
                     )}
-                    <Typography
-                        variant="secondary"
-                        className={styles.confirmText}
-                    >
-                        {confirmMessage(change)}
-                    </Typography>
+                    <div className={styles.confirmText}>
+                        {changes.map(
+                            (option, index) =>
+                                option && (
+                                    <Typography
+                                        key={RETENTIONS[index]}
+                                        variant="secondary"
+                                        aria-hidden={option !== change}
+                                        className={classNames(styles.stacked, {
+                                            [styles.hidden]: option !== change,
+                                        })}
+                                    >
+                                        {confirmMessage(option)}
+                                    </Typography>
+                                ),
+                        )}
+                    </div>
                     <div className={styles.confirmActions}>
                         <Button
                             variant="secondary"
@@ -212,7 +222,26 @@ export function StorageCard({ years }: StorageCardProps) {
                             disabled={retention.isPending}
                             onClick={onConfirm}
                         >
-                            {applyLabel(change)}
+                            <span className={styles.applyLabels}>
+                                {changes.map(
+                                    (option, index) =>
+                                        option && (
+                                            <span
+                                                key={RETENTIONS[index]}
+                                                aria-hidden={option !== change}
+                                                className={classNames(
+                                                    styles.stacked,
+                                                    {
+                                                        [styles.hidden]:
+                                                            option !== change,
+                                                    },
+                                                )}
+                                            >
+                                                {applyLabel(option)}
+                                            </span>
+                                        ),
+                                )}
+                            </span>
                         </Button>
                     </div>
                 </div>
