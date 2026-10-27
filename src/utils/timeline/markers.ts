@@ -18,30 +18,6 @@ const OBJECTIVE_MERGE = 15;
 export const isBandMarker = (marker: Marker): marker is BandMarker =>
     marker.shape in BAND_Y;
 
-export function objectiveRange(
-    marker: Marker,
-    duration: number,
-): [number, number] | null {
-    if (marker.shape !== "objective") return null;
-
-    const ranges = marker.entries.flatMap((entry): [number, number][] => {
-        if (entry.type !== "map") return [];
-        const { duel, summon, held, knight } = entry.objective;
-        const range =
-            duel?.range ??
-            summon?.range ??
-            held ??
-            (knight && [knight.range[0], knight.range[1] ?? duration]);
-        return range ? [range] : [];
-    });
-
-    if (ranges.length === 0) return null;
-    return [
-        Math.min(...ranges.map(([start]) => start)),
-        Math.max(...ranges.map(([, end]) => end)),
-    ];
-}
-
 /** Only deaths and structures record which players were in on them. */
 export const involves = (marker: Marker, slot: number) =>
     marker.entries.some((entry) =>
