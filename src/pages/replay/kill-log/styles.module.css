@@ -119,7 +119,7 @@ ul + .unplaced {
 }
 
 .victim {
-    @apply flex shrink-0 rounded-full ring-2 ring-team-red;
+    @apply flex shrink-0 rounded-full ring-2 ring-win;
 }
 
 .ai {

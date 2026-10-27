@@ -125,8 +125,8 @@ export function KillLog({
                         <Empty
                             icon={HeartPulse}
                             tone="win"
-                            title={t("deathless")}
-                            description={t("deathlessHint", {
+                            title={t("immortal")}
+                            description={t("immortalHint", {
                                 duration: formatDuration(Math.round(duration)),
                             })}
                         />
