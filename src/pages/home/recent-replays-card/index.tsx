@@ -9,13 +9,11 @@ import styles from "./styles.module.css";
 
 export interface RecentReplaysCardProps {
     replays: Replay[];
-    total: number;
     loadedAt: Date;
 }
 
 export function RecentReplaysCard({
     replays,
-    total,
     loadedAt,
 }: RecentReplaysCardProps) {
     const t = useTranslations("home.replays");
@@ -26,7 +24,7 @@ export function RecentReplaysCard({
                 icon={Clapperboard}
                 size="sm"
                 title={t("title")}
-                subtitle={t("subtitle", { total })}
+                subtitle={t("subtitle", { count: replays.length })}
                 action={<ButtonLink href="/replays">{t("all")}</ButtonLink>}
                 divided
             />

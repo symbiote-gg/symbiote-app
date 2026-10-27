@@ -25,7 +25,6 @@ export function Home() {
                 <div className={styles.grid}>
                     <RecentReplaysCard
                         replays={firstPage.replays}
-                        total={firstPage.total}
                         loadedAt={new Date(replays.dataUpdatedAt)}
                     />
                     <div className={styles.side}>
