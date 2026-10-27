@@ -7,7 +7,11 @@ import { Typography } from "@/ui";
 import { HeaderText } from "../../../timeline/popover/header/header-text";
 import { Gauge, GaugeValue } from "../../../timeline/popover/parts/gauge";
 import { sideClasses } from "../../../timeline/side";
-import type { RoleStat, StatComparison } from "../../role-performances";
+import {
+    type RoleStat,
+    type StatComparison,
+    barLength,
+} from "../../role-performances";
 import { SidePortrait } from "../../side-portrait";
 
 import styles from "./styles.module.css";
@@ -37,7 +41,9 @@ export function PerHero({
         ...ally.map((player) => ({ player, side: "ally" as const })),
         ...enemy.map((player) => ({ player, side: "enemy" as const })),
     ];
-    const max = Math.max(0, ...heroes.map(({ player }) => player[stat] ?? 0));
+    const values = heroes
+        .map(({ player }) => player[stat])
+        .filter((value) => value !== null);
 
     return (
         <>
@@ -58,7 +64,9 @@ export function PerHero({
             </header>
             <div className={styles.rows}>
                 {heroes.map(({ player, side }) => {
-                    const value = player[stat] ?? 0;
+                    const value = player[stat];
+                    const length =
+                        value === null ? 0 : barLength(stat, value, values);
 
                     return (
                         <div
@@ -75,12 +83,12 @@ export function PerHero({
                                 size="sm"
                             />
                             <Gauge
-                                percent={max > 0 ? (value / max) * 100 : 0}
+                                percent={length * 100}
                                 faded={better !== null && better !== side}
                             />
                             <GaugeValue>
                                 <Typography size="xs" weight="semibold" mono>
-                                    {formatValue(stat, player[stat])}
+                                    {formatValue(stat, value)}
                                 </Typography>
                             </GaugeValue>
                         </div>

@@ -6,7 +6,7 @@ import { Typography } from "@/ui";
 import { Heroes } from "../heroes";
 import { ROLE_ICONS } from "../role-icons";
 import { RoleLabel } from "../role-label";
-import type { RoleComparison, RoleStat, Side } from "../role-performances";
+import type { RoleComparison, RoleStat, TeamSide } from "../role-performances";
 import { SidePortrait } from "../side-portrait";
 import { StatBar } from "../stat-bar";
 import { Verdict } from "../verdict";
@@ -70,7 +70,7 @@ export function OneSidedRow({
     const format = useFormatter();
 
     const { ally, enemy, stats } = comparison;
-    const side: Side = ally.length > 0 ? "ally" : "enemy";
+    const side: TeamSide = ally.length > 0 ? "ally" : "enemy";
     const players = side === "ally" ? ally : enemy;
 
     const phrases = stats
@@ -112,9 +112,11 @@ export function OneSidedRow({
                     </Typography>
                 </span>
             ))}
-            <Typography size="sm" variant="tertiary">
-                {t.rich("onlyOne", { side, stats: statList })}
-            </Typography>
+            {phrases.length > 0 && (
+                <Typography size="sm" variant="tertiary">
+                    {t.rich("onlyOne", { side, stats: statList })}
+                </Typography>
+            )}
         </li>
     );
 }

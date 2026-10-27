@@ -7,8 +7,8 @@ import type { ReplayPlayerDetail } from "@/api/replays";
 import { Eyebrow, Popover, Typography } from "@/ui";
 import {
     type RoleStat,
-    type Side,
     type StatComparison,
+    type TeamSide,
     barLengths,
 } from "../role-performances";
 import { PerHero } from "./per-hero";
@@ -44,7 +44,7 @@ export function StatBar({
     const onOpen = () => setOpen(true);
     const onClose = () => setOpen(false);
 
-    const value = (side: Side) => (
+    const value = (side: TeamSide) => (
         <Typography
             size="sm"
             mono
@@ -57,7 +57,7 @@ export function StatBar({
         </Typography>
     );
 
-    const half = (side: Side) => (
+    const half = (side: TeamSide) => (
         <span className={classNames(styles.half, styles[side])}>
             <span
                 className={classNames(styles.bar, {
@@ -88,9 +88,12 @@ export function StatBar({
         <span
             ref={setAnchor}
             className={styles.trigger}
+            tabIndex={0}
             aria-describedby={open ? id : undefined}
             onPointerEnter={onOpen}
             onPointerLeave={onClose}
+            onFocus={onOpen}
+            onBlur={onClose}
         >
             {row}
             {open && (

@@ -4,6 +4,10 @@
     @apply flex cursor-pointer;
 }
 
+.trigger:focus-visible {
+    @apply rounded-sm outline-3 outline-offset-2 outline-primary-text;
+}
+
 .row {
     @apply grid w-full grid-cols-[4rem_minmax(0,1fr)_4rem] items-end gap-3;
 }

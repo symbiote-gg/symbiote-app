@@ -2,13 +2,13 @@ import classNames from "classnames";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
 import { Typography } from "@/ui";
-import type { Side } from "../role-performances";
+import type { TeamSide } from "../role-performances";
 import { SidePortrait } from "../side-portrait";
 
 import styles from "./styles.module.css";
 
 interface HeroesProps {
-    side: Side;
+    side: TeamSide;
     players: ReplayPlayerDetail[];
     ownerId: number;
 }

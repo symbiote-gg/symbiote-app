@@ -38,7 +38,6 @@ export function RolePerformances({
 
         return format.number(value, {
             notation: "compact",
-            minimumFractionDigits: Math.abs(value) >= 1000 ? 1 : 0,
             maximumFractionDigits: 1,
         });
     };

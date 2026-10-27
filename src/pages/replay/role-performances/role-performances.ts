@@ -30,9 +30,9 @@ export const ROLE_STATS: Record<HeroRole, readonly RoleStat[]> = {
 
 export const LOWER_IS_BETTER: ReadonlySet<RoleStat> = new Set(["deaths"]);
 
-export type Side = "ally" | "enemy";
+export type TeamSide = "ally" | "enemy";
 
-export type Verdict = Side | "even";
+export type Verdict = TeamSide | "even";
 
 export interface StatComparison {
     stat: RoleStat;
@@ -40,7 +40,7 @@ export interface StatComparison {
     ally: number | null;
     enemy: number | null;
     /** Null on a tie or when a side has nothing to compare. */
-    better: Side | null;
+    better: TeamSide | null;
 }
 
 export interface RoleComparison {
@@ -67,7 +67,7 @@ const compareStat = (
     const allyValue = average(ally, stat);
     const enemyValue = average(enemy, stat);
 
-    let better: Side | null = null;
+    let better: TeamSide | null = null;
     if (allyValue !== null && enemyValue !== null && allyValue !== enemyValue) {
         const allyHigher = allyValue > enemyValue;
         better = allyHigher !== LOWER_IS_BETTER.has(stat) ? "ally" : "enemy";
@@ -81,8 +81,8 @@ export const isShared = ({ ally, enemy }: RoleComparison) =>
 
 /**
  * Each role either team played, its heroes compared on the stats that matter
- * for it: the shared ones first, the owner's leading, then the ones only one
- * team had. Heroes with no known role are left out.
+ * for it: the roles both teams had first, the owner's leading among them, then
+ * the ones only one team had. Heroes with no known role are left out.
  */
 export const compareRoles = (
     players: ReplayPlayerDetail[],
@@ -129,21 +129,29 @@ export const verdictOf = (comparison: RoleComparison): Verdict | null => {
 };
 
 /**
- * Bar lengths as fractions of each half track: the larger value fills it. For
- * stats where lower is better the lengths swap, so the longer bar is always
- * the better side.
+ * A value's bar as a fraction of the track, among the values it is drawn
+ * with: the largest fills it. For stats where lower is better the value is
+ * mirrored within their range, so the best one always fills it.
  */
-export const barLengths = ({ stat, ally, enemy }: StatComparison) => {
-    const max = Math.max(ally ?? 0, enemy ?? 0);
-    if (max === 0) return { ally: 0, enemy: 0 };
-
-    if (ally === null || enemy === null) {
-        return { ally: ally === null ? 0 : 1, enemy: enemy === null ? 0 : 1 };
-    }
+export const barLength = (stat: RoleStat, value: number, values: number[]) => {
+    const max = Math.max(0, ...values);
+    if (max === 0) return 0;
 
     if (LOWER_IS_BETTER.has(stat)) {
-        return { ally: enemy / max, enemy: ally / max };
+        return (max + Math.min(...values) - value) / max;
     }
 
-    return { ally: ally / max, enemy: enemy / max };
+    return value / max;
+};
+
+/** Both sides' bars, empty when a side has nothing to compare. */
+export const barLengths = ({ stat, ally, enemy }: StatComparison) => {
+    if (ally === null || enemy === null) return { ally: 0, enemy: 0 };
+
+    const values = [ally, enemy];
+
+    return {
+        ally: barLength(stat, ally, values),
+        enemy: barLength(stat, enemy, values),
+    };
 };

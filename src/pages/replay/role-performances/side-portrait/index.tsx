@@ -2,13 +2,13 @@ import classNames from "classnames";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
 import { HeroPortrait, type HeroPortraitProps } from "@/components";
-import type { Side } from "../role-performances";
+import type { TeamSide } from "../role-performances";
 
 import styles from "./styles.module.css";
 
 interface SidePortraitProps {
     player: ReplayPlayerDetail;
-    side: Side;
+    side: TeamSide;
     owner: boolean;
     size: HeroPortraitProps["size"];
 }

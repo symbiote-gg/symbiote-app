@@ -3,3 +3,7 @@
 .root {
     @apply mt-1 flex flex-wrap items-center gap-2;
 }
+
+.role {
+    @apply sr-only;
+}
