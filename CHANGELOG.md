@@ -73,6 +73,7 @@ and this project adheres to
 
 ### Fixed
 
+- Fix icon alignement for icons in talent popovers.
 - Fix issue with retention settings.
 - Optimize the replays list query.
 - Set the background color on the root layout.

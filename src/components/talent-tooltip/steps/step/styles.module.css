@@ -25,6 +25,7 @@
 }
 
 .label .labelText {
-    @apply tracking-wider;
+    @apply leading-none tracking-wider;
     color: inherit;
+    text-box: trim-both cap alphabetic;
 }
