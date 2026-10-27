@@ -1,0 +1,5 @@
+@reference "@/index.css";
+
+.name {
+    @apply truncate text-fg;
+}

@@ -47,16 +47,43 @@ pub struct ReplayWithPlayers {
     pub owner_awards: Vec<AwardInfo>,
 }
 
+/// Where a page starts: right after the replay with this `id`, whose sort key is `value`.
 #[derive(Debug, Clone, Copy, Deserialize)]
 pub struct ReplayCursor {
-    pub timestamp: DateTime<Utc>,
+    /// Unix seconds when sorting by date played.
+    pub value: Option<i64>,
     pub id: i64,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ReplaySortColumn {
+    #[default]
+    Played,
+    GameTime,
+    HeroDamage,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize)]
+pub struct ReplaySort {
+    pub column: ReplaySortColumn,
+    pub desc: bool,
+}
+
+impl Default for ReplaySort {
+    fn default() -> Self {
+        Self {
+            column: ReplaySortColumn::Played,
+            desc: true,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ReplayFilters {
     pub modes: Vec<Mode>,
+    pub maps: Vec<String>,
     pub heroes: Vec<i64>,
     pub roles: Vec<HeroRole>,
     pub win: Option<bool>,

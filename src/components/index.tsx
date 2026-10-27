@@ -10,6 +10,7 @@ export * from "./hero-filter";
 export * from "./hero-portrait";
 export * from "./ingest-progress";
 export * from "./kad";
+export * from "./map-filter";
 export * from "./mode-filter";
 export * from "./mode-icon";
 export * from "./page";

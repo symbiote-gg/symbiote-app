@@ -1,10 +1,11 @@
-import { RotateCcw } from "lucide-react";
+import { Trash } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { HeroRole, Mode } from "@/api/replays";
 import {
     DateFilter,
     HeroFilter,
+    MapFilter,
     ModeFilter,
     ResultFilter,
     RoleFilter,
@@ -26,6 +27,7 @@ export function Filters({ value, onChange }: FiltersProps) {
     const { data } = useMostPlayedHeroes(ALL_HEROES);
 
     const onModes = (modes: Mode[]) => onChange({ ...value, modes });
+    const onMaps = (maps: string[]) => onChange({ ...value, maps });
     const onWin = (win: boolean | null) => onChange({ ...value, win });
     const onDate = (date: DateRange) => onChange({ ...value, date });
     const onHeroes = (heroes: number[]) => onChange({ ...value, heroes });
@@ -53,6 +55,7 @@ export function Filters({ value, onChange }: FiltersProps) {
         <div role="group" aria-label={t("label")} className={styles.root}>
             <div className={styles.filters}>
                 <ModeFilter value={value.modes} onChange={onModes} />
+                <MapFilter value={value.maps} onChange={onMaps} />
                 <ResultFilter value={value.win} onChange={onWin} />
                 <DateFilter value={value.date} onChange={onDate} />
                 <RoleFilter value={value.roles} onChange={onRoles} />
@@ -69,8 +72,8 @@ export function Filters({ value, onChange }: FiltersProps) {
                     className={styles.reset}
                     onClick={onReset}
                 >
-                    <RotateCcw aria-hidden />
-                    {t("reset", { count: active })}
+                    <Trash aria-hidden />
+                    {t("clear", { count: active })}
                 </Button>
             )}
         </div>

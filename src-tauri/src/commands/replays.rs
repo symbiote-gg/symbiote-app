@@ -7,7 +7,7 @@ use tauri_plugin_opener::OpenerExt;
 use crate::db::replays::StandoutsLoad;
 use crate::error::{Error, Result};
 use crate::retention::EventRetention;
-use crate::types::replay::{ReplayCursor, ReplayDetail, ReplayFilters, ReplayPage};
+use crate::types::replay::{ReplayCursor, ReplayDetail, ReplayFilters, ReplayPage, ReplaySort};
 use crate::types::standouts::StandoutsResult;
 
 const MAX_PAGE_SIZE: i64 = 100;
@@ -15,20 +15,22 @@ const MAX_PAGE_SIZE: i64 = 100;
 const MAX_BASELINE_GAMES: i64 = 20;
 
 /// Returns a page of the stored replays matching `filters`, or all of them if it's
-/// `None`, newest first, along with how many match.
+/// `None`, in `sort` order, newest first if it's `None`, along with how many match.
 ///
-/// The page starts right after the replay at `after`, or at the newest replay if it's
+/// The page starts right after the replay at `after`, or at the first one if it's
 /// `None`. `limit` is clamped to `1..=MAX_PAGE_SIZE`.
 #[tauri::command]
 pub async fn list_replays(
     pool: State<'_, SqlitePool>,
     filters: Option<ReplayFilters>,
+    sort: Option<ReplaySort>,
     after: Option<ReplayCursor>,
     limit: i64,
 ) -> Result<ReplayPage> {
     let page = crate::db::replays::list_page(
         &pool,
         &filters.unwrap_or_default(),
+        sort.unwrap_or_default(),
         after,
         limit.clamp(1, MAX_PAGE_SIZE),
     )

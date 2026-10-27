@@ -26,6 +26,15 @@ pub struct HeroStat {
     pub wins: i64,
 }
 
+#[derive(Debug, FromRow, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MapStat {
+    pub id: String,
+    pub name: String,
+    pub loading_screen: Option<String>,
+    pub games: i64,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MostPlayedHeroes {

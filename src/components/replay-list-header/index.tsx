@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
+import type { ReplaySort, ReplaySortColumn } from "@/api/replays";
 import { TableHead } from "@/ui";
 
 import columns from "../replay-row/columns.module.css";
@@ -17,12 +18,32 @@ const COLUMNS = [
     { key: "result", className: columns.result },
 ] as const;
 
+const SORTABLE: readonly string[] = [
+    "heroDamage",
+    "gameTime",
+    "played",
+] satisfies ReplaySortColumn[];
+
 export interface ReplayListHeaderProps {
     wide?: boolean;
+    sort?: ReplaySort;
+    onSortChange?: (sort: ReplaySort) => void;
 }
 
-export function ReplayListHeader({ wide }: ReplayListHeaderProps) {
+export function ReplayListHeader({
+    wide,
+    sort,
+    onSortChange,
+}: ReplayListHeaderProps) {
     const t = useTranslations("replayRow.columns");
+
+    const onSort = (key: string) => {
+        const column = key as ReplaySortColumn;
+        onSortChange?.({
+            column,
+            desc: sort?.column === column ? !sort.desc : true,
+        });
+    };
 
     return (
         <div
@@ -36,7 +57,10 @@ export function ReplayListHeader({ wide }: ReplayListHeaderProps) {
                     key,
                     label: t(key),
                     className,
+                    sortable: SORTABLE.includes(key),
                 }))}
+                sort={sort && { key: sort.column, desc: sort.desc }}
+                onSort={onSortChange && onSort}
             />
         </div>
     );

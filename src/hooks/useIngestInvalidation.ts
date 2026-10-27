@@ -6,12 +6,13 @@ import {
     type ReplayListData,
     STANDOUTS_KEY,
     applyIngested,
-    isUnfiltered,
+    isDefaultList,
     replayQuery,
 } from "@/api/queries";
 import {
     type ReplayFilters,
     type ReplayIngested,
+    type ReplaySort,
     subscribeIngest,
 } from "@/api/replays";
 
@@ -22,6 +23,12 @@ const STATS_KEY = ["stats"];
 // Refetching a filtered list reloads every page it has loaded, so a bulk ingest
 // refetches it at most this often, the first batch right away.
 const FILTERED_MS = 5000;
+
+const isDefaultListKey = (key: readonly unknown[]) =>
+    isDefaultList(
+        key[REPLAY_LISTS_KEY.length] as ReplayFilters,
+        key[REPLAY_LISTS_KEY.length + 1] as ReplaySort,
+    );
 
 export function useIngestInvalidation() {
     const queryClient = useQueryClient();
@@ -55,10 +62,7 @@ export function useIngestInvalidation() {
 
             queryClient.invalidateQueries({
                 queryKey: REPLAY_LISTS_KEY,
-                predicate: ({ queryKey }) =>
-                    !isUnfiltered(
-                        queryKey[REPLAY_LISTS_KEY.length] as ReplayFilters,
-                    ),
+                predicate: ({ queryKey }) => !isDefaultListKey(queryKey),
             });
         };
 
@@ -76,8 +80,7 @@ export function useIngestInvalidation() {
                 queryKey: REPLAY_LISTS_KEY,
             });
             for (const [key, data] of lists) {
-                const filters = key[REPLAY_LISTS_KEY.length] as ReplayFilters;
-                if (!data || !isUnfiltered(filters)) continue;
+                if (!data || !isDefaultListKey(key)) continue;
                 queryClient.setQueryData(key, applyIngested(data, ingested));
             }
             filteredTimer ??= setTimeout(

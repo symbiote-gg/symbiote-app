@@ -10,6 +10,8 @@ and this project adheres to
 
 ### Added
 
+- Add map filter to the replays.
+- Add sort to the replays for hero damage, game time, and player columns.
 - Add list of what stood out in the replay detail page.
 - Use a different icon for stolen camps in the timeline.
 - Add button to open a replay in Heroes of the Storm.

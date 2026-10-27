@@ -399,23 +399,34 @@ export type StandoutsResult = {
 
 export const PAGE_SIZE = 50;
 
-export type ReplayCursor = Pick<Replay, "timestamp" | "id">;
+export type ReplayCursor = {
+    value: number | null;
+    id: number;
+};
+
+export type ReplaySortColumn = "played" | "gameTime" | "heroDamage";
+
+export type ReplaySort = {
+    column: ReplaySortColumn;
+    desc: boolean;
+};
+
+export const DEFAULT_REPLAY_SORT: ReplaySort = { column: "played", desc: true };
 
 /** Empty lists and nulls don't narrow the list by that field. */
 export type ReplayFilters = {
     modes: Mode[];
-    /** The owner's hero. */
+    maps: string[];
     heroes: number[];
-    /** The owner's hero's role. */
     roles: HeroRole[];
     win: boolean | null;
     from: string | null;
-    /** Exclusive. */
     to: string | null;
 };
 
 export const NO_REPLAY_FILTERS: ReplayFilters = {
     modes: [],
+    maps: [],
     heroes: [],
     roles: [],
     win: null,
@@ -425,9 +436,10 @@ export const NO_REPLAY_FILTERS: ReplayFilters = {
 
 export const listReplays = (
     filters: ReplayFilters,
+    sort: ReplaySort,
     after: ReplayCursor | null,
     limit: number,
-) => invoke<ReplayPage>("list_replays", { filters, after, limit });
+) => invoke<ReplayPage>("list_replays", { filters, sort, after, limit });
 
 export const getReplay = (id: number) =>
     invoke<ReplayDetail>("get_replay", { id });

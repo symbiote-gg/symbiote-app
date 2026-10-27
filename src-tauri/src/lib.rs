@@ -8,7 +8,9 @@ use commands::settings::{
     get_database_stats, get_replays_folder, get_settings, open_replays_folder,
     preview_event_retention, set_event_retention,
 };
-use commands::stats::{get_most_played_heroes, get_profile_summary};
+use commands::stats::{
+    get_most_played_heroes, get_played_maps, get_played_modes, get_profile_summary,
+};
 use retention::EventRetention;
 use tauri::webview::PageLoadEvent;
 use tauri::Manager;
@@ -111,6 +113,8 @@ pub fn run() {
             count_replays,
             get_profile_summary,
             get_most_played_heroes,
+            get_played_maps,
+            get_played_modes,
             subscribe_ingest,
             unsubscribe_ingest,
             get_ingest_progress,

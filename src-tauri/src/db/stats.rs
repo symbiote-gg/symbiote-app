@@ -2,7 +2,8 @@ use chrono::{DateTime, Utc};
 use sqlx::SqlitePool;
 
 use crate::types::hero::HeroRole;
-use crate::types::stats::{HeroStat, MostPlayedHeroes, ProfileSummary};
+use crate::types::replay::Mode;
+use crate::types::stats::{HeroStat, MapStat, MostPlayedHeroes, ProfileSummary};
 
 /// How many of the latest results [`profile_summary`] returns.
 const RECENT_GAMES: i64 = 20;
@@ -112,4 +113,25 @@ pub async fn most_played_heroes(pool: &SqlitePool, limit: i64) -> sqlx::Result<M
         total,
         heroes,
     })
+}
+
+/// Returns the modes the owner has played.
+pub async fn played_modes(pool: &SqlitePool) -> sqlx::Result<Vec<Mode>> {
+    sqlx::query_scalar("SELECT DISTINCT mode FROM replays")
+        .fetch_all(pool)
+        .await
+}
+
+/// Returns the maps the owner has played on, by name, with how many games on each.
+pub async fn played_maps(pool: &SqlitePool) -> sqlx::Result<Vec<MapStat>> {
+    sqlx::query_as::<_, MapStat>(
+        "SELECT r.map AS id, COALESCE(m.name, r.map) AS name, m.loading_screen,
+             COUNT(*) AS games
+         FROM replays r
+         LEFT JOIN maps m ON m.id = r.map
+         GROUP BY r.map
+         ORDER BY name",
+    )
+    .fetch_all(pool)
+    .await
 }

@@ -2,16 +2,20 @@ import { Gamepad2 } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { Mode } from "@/api/replays";
+import { usePlayedModes } from "@/hooks/usePlayedModes";
 import { MultiSelect } from "@/ui";
 
 const MODES: readonly Mode[] = [
     "quick_match",
     "unranked_draft",
     "storm_league",
+    "hero_league",
+    "team_league",
     "aram",
     "brawl",
     "versus_ai",
     "custom",
+    "unknown",
 ];
 
 export interface ModeFilterProps {
@@ -22,8 +26,11 @@ export interface ModeFilterProps {
 export function ModeFilter({ value, onChange }: ModeFilterProps) {
     const t = useTranslations("filters");
     const modes = useTranslations("modes");
+    const { data } = usePlayedModes();
 
-    const options = MODES.map((mode) => ({ value: mode, label: modes(mode) }));
+    const options = MODES.filter((mode) => data?.includes(mode)).map(
+        (mode) => ({ value: mode, label: modes(mode) }),
+    );
 
     const valueLabel =
         value.length === 0

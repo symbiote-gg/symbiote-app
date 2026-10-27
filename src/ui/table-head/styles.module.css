@@ -8,3 +8,27 @@
     @apply overflow-y-hidden border-y border-line bg-surface-2/40 px-gutter py-2;
     scrollbar-gutter: stable;
 }
+
+.root .sorted {
+    @apply text-fg;
+}
+
+.sort {
+    @apply inline-flex cursor-pointer items-center gap-1 uppercase;
+}
+
+.sort:hover {
+    @apply text-fg;
+}
+
+.sort:focus-visible {
+    @apply rounded-sm outline-3 outline-primary-text;
+}
+
+.icon {
+    @apply size-3 shrink-0;
+}
+
+.unsorted {
+    @apply opacity-50;
+}

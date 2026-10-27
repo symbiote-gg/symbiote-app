@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useTranslations } from "use-intl";
 
+import { DEFAULT_REPLAY_SORT, type ReplaySort } from "@/api/replays";
 import { Page, ReplayListHeader, ReplayRow } from "@/components";
 import { useIngestProgress } from "@/hooks/useIngestProgress";
 import { useReplays } from "@/hooks/useReplays";
@@ -37,11 +38,13 @@ const LOAD_AHEAD = 15;
 
 let savedOffset = 0;
 let savedFilters = NO_FILTERS;
+let savedSort = DEFAULT_REPLAY_SORT;
 
 export function Replays() {
     const t = useTranslations("replays");
     const scroller = useRef<HTMLDivElement>(null);
     const [filters, setFilters] = useState(savedFilters);
+    const [sort, setSort] = useState(savedSort);
     const query = useMemo(() => toReplayFilters(filters), [filters]);
     const {
         data,
@@ -53,7 +56,7 @@ export function Replays() {
         refetch,
         dataUpdatedAt,
         isPlaceholderData,
-    } = useReplays(query);
+    } = useReplays(query, sort);
     const importing = useIngestProgress() !== null;
 
     const replays = useMemo(
@@ -61,7 +64,11 @@ export function Replays() {
         [data],
     );
     const total = data?.pages[0]?.total ?? 0;
-    const now = useMemo(() => new Date(dataUpdatedAt), [dataUpdatedAt]);
+    // Zero while the previous list stands in for one that hasn't loaded yet.
+    const now = useMemo(
+        () => new Date(dataUpdatedAt || Date.now()),
+        [dataUpdatedAt],
+    );
 
     const virtualizer = useVirtualizer({
         count: hasNextPage ? total : replays.length,
@@ -95,11 +102,21 @@ export function Replays() {
         savedOffset = e.currentTarget.scrollTop;
     };
 
-    const onFiltersChange = (next: FilterState) => {
-        savedFilters = next;
+    const scrollToTop = () => {
         savedOffset = 0;
         if (scroller.current) scroller.current.scrollTop = 0;
+    };
+
+    const onFiltersChange = (next: FilterState) => {
+        savedFilters = next;
+        scrollToTop();
         setFilters(next);
+    };
+
+    const onSortChange = (next: ReplaySort) => {
+        savedSort = next;
+        scrollToTop();
+        setSort(next);
     };
 
     const onClearFilters = () => onFiltersChange(NO_FILTERS);
@@ -131,7 +148,11 @@ export function Replays() {
                 {error && (
                     <ErrorMessage error={error} className={styles.error} />
                 )}
-                <ReplayListHeader wide />
+                <ReplayListHeader
+                    wide
+                    sort={sort}
+                    onSortChange={onSortChange}
+                />
                 <CardBody ref={scroller} onScroll={onScroll}>
                     {noMatches && (
                         <div className={styles.empty}>

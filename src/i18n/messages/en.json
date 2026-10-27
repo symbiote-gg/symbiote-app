@@ -50,8 +50,7 @@
         "count": "{count, plural, one {# game} other {# games}}",
         "filters": {
             "label": "Filters",
-            "clear": "Clear filters",
-            "reset": "Reset {count} filters",
+            "clear": "Clear {count} filters",
             "empty": "No replays match these filters."
         }
     },
@@ -61,6 +60,15 @@
             "all": "All",
             "clear": "Clear mode filter",
             "count": "{count} modes"
+        },
+        "map": {
+            "label": "Map",
+            "all": "All",
+            "clear": "Clear map filter",
+            "count": "{count, plural, one {# map} other {# maps}}",
+            "search": "Search maps",
+            "remove": "Remove {map}",
+            "noResults": "Maps you haven't played aren't listed."
         },
         "role": {
             "label": "Role",

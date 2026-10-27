@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import type { HeroRole } from "./replays";
+import type { HeroRole, Mode } from "./replays";
 
 export type ProfileSummary = {
     games: number;
@@ -21,6 +21,13 @@ export type HeroStat = {
     wins: number;
 };
 
+export type MapStat = {
+    id: string;
+    name: string;
+    loadingScreen: string | null;
+    games: number;
+};
+
 export type MostPlayedHeroes = {
     played: number;
     total: number;
@@ -34,3 +41,7 @@ export const getProfileSummary = (since: Date) =>
 
 export const getMostPlayedHeroes = (limit: number) =>
     invoke<MostPlayedHeroes>("get_most_played_heroes", { limit });
+
+export const getPlayedModes = () => invoke<Mode[]>("get_played_modes");
+
+export const getPlayedMaps = () => invoke<MapStat[]>("get_played_maps");

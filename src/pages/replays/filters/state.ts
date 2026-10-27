@@ -3,6 +3,7 @@ import { ANY_TIME, type DateRange, rangeBounds } from "@/utils/date-range";
 
 export type FilterState = {
     modes: Mode[];
+    maps: string[];
     win: boolean | null;
     date: DateRange;
     roles: HeroRole[];
@@ -11,6 +12,7 @@ export type FilterState = {
 
 export const NO_FILTERS: FilterState = {
     modes: [],
+    maps: [],
     win: null,
     date: ANY_TIME,
     roles: [],
@@ -20,6 +22,7 @@ export const NO_FILTERS: FilterState = {
 export const activeFilters = (filters: FilterState) =>
     [
         filters.modes.length > 0,
+        filters.maps.length > 0,
         filters.win !== null,
         filters.date.preset !== "any",
         filters.roles.length > 0,
@@ -37,6 +40,7 @@ export function toReplayFilters(filters: FilterState): ReplayFilters {
     const custom = filters.date.preset === "custom";
     return {
         modes: filters.modes,
+        maps: filters.maps,
         heroes: filters.heroes,
         roles: filters.roles,
         win: filters.win,

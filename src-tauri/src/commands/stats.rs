@@ -3,7 +3,8 @@ use sqlx::SqlitePool;
 use tauri::State;
 
 use crate::error::{Error, Result};
-use crate::types::stats::{MostPlayedHeroes, ProfileSummary};
+use crate::types::replay::Mode;
+use crate::types::stats::{MapStat, MostPlayedHeroes, ProfileSummary};
 
 /// Sums up the owner's results; `since` is a unix timestamp in seconds from which
 /// games count as new.
@@ -26,4 +27,16 @@ pub async fn get_most_played_heroes(
     limit: i64,
 ) -> Result<MostPlayedHeroes> {
     Ok(crate::db::stats::most_played_heroes(&pool, limit.clamp(1, MAX_MOST_PLAYED_HEROES)).await?)
+}
+
+/// Returns the modes the owner has played.
+#[tauri::command]
+pub async fn get_played_modes(pool: State<'_, SqlitePool>) -> Result<Vec<Mode>> {
+    Ok(crate::db::stats::played_modes(&pool).await?)
+}
+
+/// Returns the maps the owner has played on, by name.
+#[tauri::command]
+pub async fn get_played_maps(pool: State<'_, SqlitePool>) -> Result<Vec<MapStat>> {
+    Ok(crate::db::stats::played_maps(&pool).await?)
 }
