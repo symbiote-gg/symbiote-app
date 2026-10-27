@@ -272,7 +272,7 @@
             "noKillingBlow": "No hero landed the killing blow",
             "aiCredit": "AI",
             "gatesOpen": "Gates open",
-            "gameEnded": "{side, select, ally {Victory} enemy {Defeat} other {Game ended}}",
+            "gameEnded": "{side, select, ally {Your team won} enemy {Enemy team won} other {Game ended}}",
             "structureTitle": "{keep, select, true {Keep} other {Fort}}",
             "structureResult": "{side, select, ally {Destroyed} other {Lost}}",
             "campTitle": "Camp",

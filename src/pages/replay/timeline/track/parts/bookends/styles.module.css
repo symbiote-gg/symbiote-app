@@ -5,12 +5,34 @@
 }
 
 .bookend {
-    @apply absolute flex size-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border;
+    @apply absolute z-10 flex size-7 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border p-0 outline-none;
     border-color: var(--side);
     background: color-mix(in srgb, var(--side) 18%, var(--color-surface));
     color: var(--side);
 }
 
+.bookend:hover,
+.bookend.open {
+    @apply z-[15];
+}
+
+.bookend.open {
+    @apply outline-2 outline-offset-2 outline-fg/60;
+}
+
 .bookendIcon {
     @apply size-4;
+}
+
+.popover {
+    @apply w-max max-w-[min(20rem,calc(100vw-16px))];
+}
+
+.header {
+    @apply flex items-center gap-2.5;
+}
+
+.icon {
+    @apply size-5 shrink-0;
+    color: var(--side);
 }

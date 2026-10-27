@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- Add popovers to bookend markers on the timeline.
 - Add map filter to the replays.
 - Add sort to the replays for hero damage, game time, and player columns.
 - Add list of what stood out in the replay detail page.

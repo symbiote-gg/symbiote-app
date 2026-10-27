@@ -28,7 +28,7 @@ import type { Marker, Side } from "@/utils/timeline/types";
 import { Popover } from "../popover";
 import { sideClass } from "../side";
 import { AxisTimes } from "./parts/axis-times";
-import { Bookends } from "./parts/bookends";
+import { type Bookend, Bookends } from "./parts/bookends";
 import { Cursor } from "./parts/cursor";
 import { Lead } from "./parts/lead";
 import { MarkerButton } from "./parts/marker-button";
@@ -94,6 +94,7 @@ export function Track({
     const pointer = useRef({ x: 0, dragged: false });
     const closeTimer = useRef<number | undefined>(undefined);
     const [activeId, setActiveId] = useState<string | null>(null);
+    const [bookend, setBookend] = useState<Bookend | null>(null);
 
     const placed = layout(markers, width, duration);
     const byId = new Map(placed.map((p) => [p.marker.id, p]));
@@ -157,16 +158,23 @@ export function Track({
 
     const scheduleClose = () => {
         cancelClose();
-        closeTimer.current = window.setTimeout(
-            () => onSelect(null),
-            CLOSE_DELAY_MS,
-        );
+        closeTimer.current = window.setTimeout(() => {
+            onSelect(null);
+            setBookend(null);
+        }, CLOSE_DELAY_MS);
     };
 
     const onMarkerEnter = (e: PointerEvent<HTMLButtonElement>) => {
         cancelClose();
+        setBookend(null);
         const marker = find(e.currentTarget.dataset.id);
         if (marker) onSelect(marker);
+    };
+
+    const onBookendEnter = (e: PointerEvent<HTMLButtonElement>) => {
+        cancelClose();
+        onSelect(null);
+        setBookend(e.currentTarget.dataset.bookend as Bookend);
     };
 
     // A mouse click lands on a marker hover already opened, so only keyboard
@@ -210,7 +218,15 @@ export function Track({
                 onKeyDown={onKeyDown}
             >
                 <Lead curves={curves} duration={duration} />
-                <Bookends winner={winner} />
+                <Bookends
+                    winner={winner}
+                    duration={duration}
+                    text={text}
+                    open={bookend}
+                    onPointerEnter={onBookendEnter}
+                    onPointerLeave={scheduleClose}
+                    onPopoverEnter={cancelClose}
+                />
                 <Tiers curves={curves} duration={duration} />
                 {placed.map((p) =>
                     p.marker.side !== null &&
