@@ -11,6 +11,7 @@ import { useStandouts } from "@/hooks/useStandouts";
 import { ErrorMessage } from "@/ui";
 import { Header } from "./header";
 import { KillLog } from "./kill-log";
+import { RolePerformances } from "./role-performances";
 import { Scoreboard, ScoreboardTeam } from "./scoreboard";
 import { Standouts } from "./standouts";
 import { Timeline } from "./timeline";
@@ -115,6 +116,12 @@ export function ReplayDetail() {
                                 )}
                             </>
                         )}
+                        <RolePerformances
+                            players={replay.players}
+                            allyTeam={allyTeam}
+                            ownerId={replay.ownerPlayerId}
+                            ownerRole={replay.heroRole}
+                        />
                     </>
                 )}
             </div>

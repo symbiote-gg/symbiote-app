@@ -1,0 +1,17 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex items-center gap-2;
+}
+
+.icon {
+    @apply size-5 shrink-0 text-fg-muted;
+}
+
+.label {
+    text-box: trim-both cap alphabetic;
+}
+
+.averagedInfo {
+    @apply size-3.5 shrink-0 text-fg-muted;
+}

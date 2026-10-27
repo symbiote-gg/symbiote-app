@@ -13,6 +13,7 @@ export interface CardHeaderProps {
     icon?: LucideIcon;
     addon?: ReactNode;
     subtitle?: ReactNode;
+    meta?: ReactNode;
     action?: ReactNode;
     divided?: boolean;
     size?: CardHeaderSize;
@@ -23,6 +24,7 @@ export function CardHeader({
     icon: Icon,
     addon,
     subtitle,
+    meta,
     action,
     divided,
     size = "md",
@@ -44,6 +46,7 @@ export function CardHeader({
                 {subtitle && (
                     <Typography variant="tertiary">{subtitle}</Typography>
                 )}
+                {meta}
             </div>
             {action}
         </header>

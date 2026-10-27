@@ -308,6 +308,36 @@
             "duelPush": "{push, select, strong {Strong push} solid {Solid push} other {Weak push}}",
             "duelPower": "power {value}%"
         },
+        "rolePerformances": {
+            "title": "Role performances",
+            "averaged": "Averaged per hero",
+            "averagedHint": "{ally} vs {enemy} in this role, so each side's numbers are the average of its heroes, not their total. Hover a stat to see every hero's own value.",
+            "perHeroMeta": "{ally} vs {enemy}, averaged per hero",
+            "statResult": "{side, select, ally {Ahead} enemy {Behind} other {Even}}",
+            "onlyOne": "{side, select, ally {Only your team had one} other {Only the enemy had one}}: <stats></stats>.",
+            "even": "Even",
+            "ahead": "{side, select, ally {Ahead} other {Behind}}",
+            "stat": {
+                "heroDamage": "Hero damage",
+                "siegeDamage": "Siege damage",
+                "healing": "Healing",
+                "damageTaken": "Damage soaked",
+                "xp": "Experience",
+                "hardCc": "Hard CC on heroes",
+                "takedowns": "Takedowns",
+                "deaths": "Deaths"
+            },
+            "statPhrase": {
+                "heroDamage": "<b>{value}</b> hero damage",
+                "siegeDamage": "<b>{value}</b> siege damage",
+                "healing": "<b>{value}</b> healing",
+                "damageTaken": "<b>{value}</b> damage soaked",
+                "xp": "<b>{value}</b> experience",
+                "hardCc": "<b>{value}</b> hard CC on heroes",
+                "takedowns": "{count, plural, one {<b>{value}</b> takedown} other {<b>{value}</b> takedowns}}",
+                "deaths": "{count, plural, one {<b>{value}</b> death} other {<b>{value}</b> deaths}}"
+            }
+        },
         "killLog": {
             "title": "{count, plural, one {You killed <n>#</n> hero} other {You killed <n>#</n> heroes}}",
             "deathsTitle": "{count, plural, one {You died <n>#</n> time} other {You died <n>#</n> times}}",

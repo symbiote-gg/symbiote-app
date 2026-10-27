@@ -1,0 +1,17 @@
+@reference "@/index.css";
+
+.portrait {
+    @apply ring-2;
+}
+
+.ally {
+    @apply ring-team-blue;
+}
+
+.enemy {
+    @apply ring-team-red;
+}
+
+.owner {
+    @apply ring-primary;
+}

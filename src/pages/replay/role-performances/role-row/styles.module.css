@@ -1,0 +1,48 @@
+@reference "@/index.css";
+
+.role {
+    @apply flex flex-col gap-4 border-b border-line/60 px-gutter py-4;
+}
+
+.role:last-child {
+    @apply border-b-0;
+}
+
+.own {
+    @apply bg-primary/10;
+    box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.head {
+    @apply flex items-center gap-3;
+}
+
+.body {
+    @apply grid items-center gap-x-6 gap-y-4;
+    grid-template-areas: "ally enemy" "stats stats";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+@container (width >= 56rem) {
+    .body {
+        grid-template-areas: "ally stats enemy";
+        grid-template-columns: minmax(0, 1fr) minmax(0, 3fr) minmax(0, 1fr);
+    }
+}
+
+.stats {
+    @apply flex flex-col gap-2;
+    grid-area: stats;
+}
+
+.oneSided {
+    @apply flex-row flex-wrap items-center gap-x-4 gap-y-2;
+}
+
+.value {
+    @apply text-fg;
+}
+
+.inlineHero {
+    @apply flex items-center gap-2;
+}

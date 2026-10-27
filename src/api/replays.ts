@@ -131,15 +131,19 @@ export type Award = {
 };
 
 export type ReplayPlayerDetail = ReplayPlayer & {
+    heroRole: HeroRole | null;
     kills: number | null;
     assists: number | null;
     deaths: number | null;
+    takedowns: number | null;
     heroDamage: number | null;
     siegeDamage: number | null;
     healing: number | null;
     selfHealing: number | null;
     damageTaken: number | null;
     xp: number | null;
+    /** Seconds of stuns, roots and silences on enemy heroes. */
+    hardCc: number | null;
     timeDead: number | null;
     timeOnFire: number | null;
     upvotes: number;

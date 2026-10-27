@@ -1,0 +1,9 @@
+@reference "@/index.css";
+
+.root {
+    @apply @container self-stretch;
+}
+
+.roles {
+    @apply flex flex-col border-t border-line;
+}

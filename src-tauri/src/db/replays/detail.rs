@@ -54,16 +54,25 @@ pub async fn get_detail(
 
     detail.players = sqlx::query_as::<_, ReplayPlayerDetail>(
         "SELECT rp.player_id, p.name, rp.slot, rp.team, rp.hero_id, h.name AS hero_name,
-             h.portrait AS hero_portrait,
+             h.role AS hero_role, h.portrait AS hero_portrait,
              json_extract(rp.score, '$.SoloKill') AS kills,
              json_extract(rp.score, '$.Assists') AS assists,
              json_extract(rp.score, '$.Deaths') AS deaths,
+             json_extract(rp.score, '$.Takedowns') AS takedowns,
              json_extract(rp.score, '$.HeroDamage') AS hero_damage,
              json_extract(rp.score, '$.SiegeDamage') AS siege_damage,
              json_extract(rp.score, '$.Healing') AS healing,
              json_extract(rp.score, '$.SelfHealing') AS self_healing,
              json_extract(rp.score, '$.DamageTaken') AS damage_taken,
              json_extract(rp.score, '$.ExperienceContribution') AS xp,
+             CASE WHEN json_extract(rp.score, '$.TimeStunningEnemyHeroes') IS NULL
+                     AND json_extract(rp.score, '$.TimeRootingEnemyHeroes') IS NULL
+                     AND json_extract(rp.score, '$.TimeSilencingEnemyHeroes') IS NULL
+                 THEN NULL
+                 ELSE COALESCE(json_extract(rp.score, '$.TimeStunningEnemyHeroes'), 0)
+                     + COALESCE(json_extract(rp.score, '$.TimeRootingEnemyHeroes'), 0)
+                     + COALESCE(json_extract(rp.score, '$.TimeSilencingEnemyHeroes'), 0)
+             END AS hard_cc,
              rp.time_dead_secs AS time_dead,
              rp.time_on_fire_secs AS time_on_fire, rp.upvotes, rp.party
          FROM replays_players rp

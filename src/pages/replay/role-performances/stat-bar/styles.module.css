@@ -1,0 +1,53 @@
+@reference "@/index.css";
+
+.trigger {
+    @apply flex cursor-pointer;
+}
+
+.row {
+    @apply grid w-full grid-cols-[4rem_minmax(0,1fr)_4rem] items-end gap-3;
+}
+
+.value.ally {
+    @apply text-right;
+}
+
+.trackWrap {
+    @apply flex min-w-0 flex-col items-center gap-1 pb-1.5;
+}
+
+.track {
+    @apply grid h-1 w-full grid-cols-2;
+}
+
+.half {
+    @apply flex h-full overflow-hidden bg-fg/6;
+}
+
+.half.ally {
+    @apply justify-end rounded-l-full;
+}
+
+.half.enemy {
+    @apply rounded-r-full;
+}
+
+.bar {
+    @apply h-full;
+}
+
+.half.ally .bar {
+    @apply rounded-l-full bg-team-blue;
+}
+
+.half.enemy .bar {
+    @apply rounded-r-full bg-team-red;
+}
+
+.bar.trailing {
+    @apply opacity-45;
+}
+
+.popover {
+    @apply w-max max-w-[min(20rem,calc(100vw-16px))];
+}
