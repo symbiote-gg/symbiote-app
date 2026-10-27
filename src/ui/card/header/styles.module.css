@@ -19,6 +19,7 @@
 .titles .title {
     @apply leading-none font-extrabold uppercase;
     font-stretch: 75%;
+    text-box: trim-both cap alphabetic;
 }
 
 .sm .title {

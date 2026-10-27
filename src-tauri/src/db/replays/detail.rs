@@ -101,20 +101,7 @@ pub async fn get_detail(
 
     detail.events_expired = detail.replay.timestamp.timestamp() < events_cutoff;
     if !detail.events_expired {
-        let events = sqlx::query_as::<_, RawEvent>(
-            "SELECT k.name AS kind, CAST(e.gameloop - r.gates_open_loop AS REAL) / ? AS time,
-                 e.team, json(e.data) AS data
-             FROM events e
-             JOIN replays r ON r.id = e.replay_id
-             JOIN event_kinds k ON k.id = e.kind_id
-             WHERE e.replay_id = ?
-             ORDER BY e.gameloop, e.id",
-        )
-        .bind(LOOPS_PER_SECOND)
-        .bind(id)
-        .fetch_all(&mut *tx)
-        .await?;
-
+        let events = fetch_event_rows(&mut tx, id).await?;
         detail.timeline = timeline::build(events, detail.replay.duration as f64);
         detail.flow = winner(&detail).and_then(|winner| {
             timeline::flow::read(&detail.timeline, winner, detail.replay.duration as f64)
@@ -147,6 +134,26 @@ pub async fn get_detail(
     detail.owner_kill_participation = kill_participation(&detail);
 
     Ok(Some(detail))
+}
+
+/// Reads a replay's event rows, timed in seconds since the gates opened.
+pub(crate) async fn fetch_event_rows(
+    tx: &mut sqlx::SqliteConnection,
+    id: i64,
+) -> sqlx::Result<Vec<RawEvent>> {
+    sqlx::query_as::<_, RawEvent>(
+        "SELECT k.name AS kind, CAST(e.gameloop - r.gates_open_loop AS REAL) / ? AS time,
+             e.team, json(e.data) AS data
+         FROM events e
+         JOIN replays r ON r.id = e.replay_id
+         JOIN event_kinds k ON k.id = e.kind_id
+         WHERE e.replay_id = ?
+         ORDER BY e.gameloop, e.id",
+    )
+    .bind(LOOPS_PER_SECOND)
+    .bind(id)
+    .fetch_all(tx)
+    .await
 }
 
 fn team_summaries(players: &[ReplayPlayerDetail], timeline: &Timeline) -> [TeamSummary; 2] {

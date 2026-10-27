@@ -1,0 +1,69 @@
+@reference "@/index.css";
+
+.standouts {
+    @apply self-stretch;
+}
+
+.tiles {
+    @apply flex gap-3 overflow-x-auto px-gutter pb-6;
+}
+
+.tile {
+    @apply min-w-sm shrink-0 rounded-lg border border-line bg-surface-2;
+    --tone: var(--color-loss);
+}
+
+.body {
+    @apply flex h-full w-full items-start gap-3 rounded-lg p-3 pr-4 text-left;
+}
+
+.clickable {
+    @apply cursor-pointer;
+}
+
+.tile:not(.active) .clickable:hover {
+    background: color-mix(
+        in srgb,
+        var(--color-primary) 6%,
+        var(--color-surface-2)
+    );
+}
+
+.tile[data-tone="watch"] {
+    --tone: var(--color-warn);
+}
+
+.tile[data-tone="good"] {
+    --tone: var(--color-win);
+}
+
+.active {
+    background: color-mix(
+        in srgb,
+        var(--color-primary) 12%,
+        var(--color-surface-2)
+    );
+}
+
+.iconBox {
+    @apply flex shrink-0 items-center justify-center rounded-lg p-2.5;
+    background: color-mix(in srgb, var(--tone) 14%, transparent);
+}
+
+.icon {
+    @apply size-5;
+    color: var(--tone);
+}
+
+.text {
+    @apply flex min-w-0 flex-col;
+}
+
+.figure {
+    @apply flex flex-wrap items-baseline gap-x-1.5;
+}
+
+.value {
+    @apply text-2xl font-semibold leading-tight;
+    color: var(--tone);
+}

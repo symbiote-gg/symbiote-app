@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .timeline {
-    @apply self-stretch;
+    @apply scroll-mt-6 self-stretch;
 }
 
 .body {

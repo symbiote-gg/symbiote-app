@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use hots_replay_parser::summary::Lane;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::types::Json;
 use sqlx::FromRow;
 
@@ -12,6 +12,18 @@ pub struct RawEvent {
     pub time: f64,
     pub team: Option<i64>,
     pub data: Json<serde_json::Value>,
+}
+
+/// A team's or player's XP split by where it came from. Stored rows may miss keys,
+/// which read back as 0.
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+pub struct XpBreakdown {
+    pub minion: f64,
+    pub creep: f64,
+    pub structure: f64,
+    pub hero: f64,
+    pub trickle: f64,
 }
 
 /// What happened over a game, read from its event rows. Events before the gates
@@ -33,7 +45,7 @@ pub struct Timeline {
     pub milestones: Vec<Milestone>,
 }
 
-/// Deaths close enough in time to be one fight.
+/// Deaths close enough in time and on the map to be one fight.
 #[derive(Debug, Serialize)]
 pub struct Fight {
     pub start: f64,
@@ -141,8 +153,18 @@ pub struct Death {
     pub killers: Vec<u8>,
     /// `None` when no hero landed it: minions, structures, mercenaries.
     pub killing_blow: Option<u8>,
-    /// `None` when unknown, e.g. replays ingested before it was tracked.
-    pub alone: Option<bool>,
+    /// Where, in map units. `None` on replays ingested before it was tracked.
+    #[serde(skip_serializing)]
+    pub x: Option<f64>,
+    #[serde(skip_serializing)]
+    pub y: Option<f64>,
+    /// Living teammates near the victim as it died: 0 means it died alone. `None`
+    /// when unknown, e.g. replays ingested before it was tracked.
+    pub allies_nearby: Option<u8>,
+    /// Players of either team placed near the death; approximate and empty on
+    /// replays ingested before it was tracked.
+    #[serde(skip_serializing)]
+    pub near_players: Vec<u8>,
 }
 
 #[derive(Debug, Serialize)]

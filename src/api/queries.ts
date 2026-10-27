@@ -16,6 +16,7 @@ import {
     type ReplayIngested,
     type ReplayPage,
     getReplay,
+    getStandouts,
     listReplays,
 } from "./replays";
 import {
@@ -212,6 +213,14 @@ export const replayQuery = (id: number) =>
                 );
             return replay;
         },
+    });
+
+export const STANDOUTS_KEY = ["replays", "standouts"];
+
+export const standoutsQuery = (id: number) =>
+    queryOptions({
+        queryKey: [...STANDOUTS_KEY, id],
+        queryFn: () => getStandouts(id),
     });
 
 export const settingsQuery = queryOptions({

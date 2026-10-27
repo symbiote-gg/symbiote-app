@@ -565,7 +565,7 @@ mod tests {
                 "killers": [],
                 "x": 0.0,
                 "y": 0.0,
-                "alone": true,
+                "allies_nearby": 0,
             }),
         }];
         fresh.refreshes = Some(id);
@@ -580,7 +580,7 @@ mod tests {
         assert!(detail.replay.is_new);
         assert!(detail.players[0].awards.is_empty());
         assert_eq!(detail.timeline.deaths.len(), 1);
-        assert_eq!(detail.timeline.deaths[0].alone, Some(true));
+        assert_eq!(detail.timeline.deaths[0].allies_nearby, Some(0));
 
         let kind: String =
             sqlx::query_scalar("SELECT typeof(data) FROM events WHERE replay_id = ?")

@@ -70,6 +70,8 @@ interface TrackProps {
     hoverTime: number | null;
     selectedId: string | null;
     empty: boolean;
+    /** Marker ids a shown standout lights; the rest dim while it's set. */
+    lit?: Set<string> | null;
     onHover: (time: number | null) => void;
     onSelect: (marker: Marker | null) => void;
 }
@@ -86,6 +88,7 @@ export function Track({
     hoverTime,
     selectedId,
     empty,
+    lit,
     onHover,
     onSelect,
 }: TrackProps) {
@@ -110,9 +113,13 @@ export function Track({
 
     const longGame = duration > LONG_GAME;
 
+    // a shown standout takes over the me filter's lighting until it's cleared
     const mine = (marker: Marker) =>
-        highlightSlot !== null && involves(marker, highlightSlot);
-    const dimmed = (marker: Marker) => highlightSlot !== null && !mine(marker);
+        lit
+            ? lit.has(marker.id)
+            : highlightSlot !== null && involves(marker, highlightSlot);
+    const dimmed = (marker: Marker) =>
+        lit ? !lit.has(marker.id) : highlightSlot !== null && !mine(marker);
 
     const find = (id: string | undefined) =>
         id ? (byId.get(id)?.marker ?? null) : null;

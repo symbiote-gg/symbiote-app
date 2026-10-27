@@ -141,7 +141,8 @@ function fightMarkers(fights: TimelineFight[], deaths: DeathEntry[]) {
         const group = fight.deaths.map((index) => deaths[index]);
         const [first] = group;
         const base = {
-            id: `death-${first.time}`,
+            // By death index: fights split by distance can share a start time.
+            id: `death-${fight.deaths[0]}`,
             time: first.time,
             filter: "fights" as const,
             kind: fight.kind,
@@ -157,7 +158,7 @@ function fightMarkers(fights: TimelineFight[], deaths: DeathEntry[]) {
 
         return {
             ...base,
-            id: `fight-${first.time}`,
+            id: `fight-${fight.deaths[0]}`,
             shape: "fight",
             side: ally === enemy ? null : ally > enemy ? "ally" : "enemy",
             end: fight.end,

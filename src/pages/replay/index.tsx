@@ -1,12 +1,18 @@
+import { useRef, useState } from "react";
 import { useParams } from "wouter";
 
-import type { ReplayDetail as ReplayDetailData } from "@/api/replays";
+import type {
+    ReplayDetail as ReplayDetailData,
+    StandoutId,
+} from "@/api/replays";
 import { BackToReplays, Page } from "@/components";
 import { useReplay } from "@/hooks/useReplay";
+import { useStandouts } from "@/hooks/useStandouts";
 import { ErrorMessage } from "@/ui";
 import { Header } from "./header";
 import { KillLog } from "./kill-log";
 import { Scoreboard, ScoreboardTeam } from "./scoreboard";
+import { Standouts } from "./standouts";
 import { Timeline } from "./timeline";
 
 import styles from "./styles.module.css";
@@ -29,9 +35,30 @@ const scoreboardTeam = (
 export function ReplayDetail() {
     const { replayId } = useParams<{ replayId: string }>();
     const { data: replay, error } = useReplay(Number(replayId));
+    const [shownStandout, setShownStandout] = useState<StandoutId | null>(null);
+    const timelineRef = useRef<HTMLElement>(null);
+
+    const standouts = useStandouts(
+        Number(replayId),
+        !!replay && !replay.eventsExpired,
+    );
+    const items = standouts.data?.items ?? [];
+    const result = standouts.data ?? null;
 
     const owner = replay?.players.find((p) => p.slot === replay.ownerSlot);
     const allyTeam = replay?.ownerTeam ?? 0;
+    const shown = items.find((item) => item.id === shownStandout) ?? null;
+
+    const onShowStandout = (id: StandoutId) => {
+        const next = shownStandout === id ? null : id;
+        setShownStandout(next);
+        if (next !== null) {
+            timelineRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+            });
+        }
+    };
 
     return (
         <Page>
@@ -59,7 +86,16 @@ export function ReplayDetail() {
                         />
                         {!replay.eventsExpired && (
                             <>
+                                {result && (
+                                    <Standouts
+                                        result={result}
+                                        shown={shownStandout}
+                                        onShow={onShowStandout}
+                                    />
+                                )}
                                 <Timeline
+                                    ref={timelineRef}
+                                    highlight={shown?.highlight ?? null}
                                     timeline={replay.timeline}
                                     duration={replay.duration}
                                     players={replay.players}

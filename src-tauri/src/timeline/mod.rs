@@ -14,7 +14,7 @@ use hots_replay_parser::summary::Lane;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 
-use crate::types::timeline::{Camp, Death, RawEvent, Structure, Timeline};
+use crate::types::timeline::{Camp, Death, RawEvent, Structure, Timeline, XpBreakdown};
 use maps::{MapData, MapRow};
 
 const KEEP_UNIT: &str = "TownTownHallL3";
@@ -24,7 +24,11 @@ struct DeathData {
     victim: u8,
     killers: Vec<u8>,
     killing_blow: Option<u8>,
-    alone: Option<bool>,
+    x: Option<f64>,
+    y: Option<f64>,
+    allies_nearby: Option<u8>,
+    #[serde(default)]
+    near_players: Vec<u8>,
 }
 
 #[derive(Deserialize)]
@@ -35,15 +39,6 @@ struct LevelData {
 #[derive(Deserialize)]
 struct XpData {
     xp: XpBreakdown,
-}
-
-#[derive(Deserialize)]
-struct XpBreakdown {
-    minion: f64,
-    creep: f64,
-    structure: f64,
-    hero: f64,
-    trickle: f64,
 }
 
 #[derive(Deserialize)]
@@ -91,7 +86,10 @@ pub fn build(rows: Vec<RawEvent>, duration: f64) -> Timeline {
                     victim: death.victim,
                     killers: death.killers,
                     killing_blow: death.killing_blow,
-                    alone: death.alone,
+                    x: death.x,
+                    y: death.y,
+                    allies_nearby: death.allies_nearby,
+                    near_players: death.near_players,
                 });
             }
             "team_level" => {
@@ -219,6 +217,7 @@ mod tests {
                 "killing_blow": killers.first(),
                 "x": 0.0,
                 "y": 0.0,
+                "allies_nearby": 1,
             }),
         )
     }
@@ -259,11 +258,22 @@ mod tests {
             row("team_level", 0.0, Some(1), json!({ "level": 1 })),
             row("team_level", 60.0, Some(1), json!({ "level": 2 })),
             row("death", 9.0, Some(0), json!({ "victim": 1 })),
+            // An ingest from before positions were tracked.
+            row(
+                "death",
+                100.0,
+                Some(0),
+                json!({ "victim": 2, "killers": [6] }),
+            ),
         ]);
 
-        assert_eq!(timeline.deaths.len(), 1);
+        assert_eq!(timeline.deaths.len(), 2);
         assert_eq!(timeline.deaths[0].killing_blow, Some(6));
-        assert_eq!(timeline.deaths[0].alone, None);
+        assert_eq!(timeline.deaths[0].x, Some(0.0));
+        assert_eq!(timeline.deaths[0].y, Some(0.0));
+        assert_eq!(timeline.deaths[0].allies_nearby, Some(1));
+        assert_eq!(timeline.deaths[1].x, None);
+        assert_eq!(timeline.deaths[1].allies_nearby, None);
         assert!(timeline.structures[0].keep);
         assert_eq!(timeline.levels[0], [(0.0, 1)]);
         assert_eq!(timeline.levels[1], [(0.0, 1), (60.0, 2)]);

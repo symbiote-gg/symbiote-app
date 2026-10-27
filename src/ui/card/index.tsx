@@ -1,16 +1,17 @@
 import classNames from "classnames";
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 
 import styles from "./styles.module.css";
 
 export interface CardProps {
+    ref?: Ref<HTMLElement>;
     className?: string;
     children: ReactNode;
 }
 
-export function Card({ className, children }: CardProps) {
+export function Card({ ref, className, children }: CardProps) {
     return (
-        <section className={classNames(className, styles.root)}>
+        <section ref={ref} className={classNames(className, styles.root)}>
             {children}
         </section>
     );

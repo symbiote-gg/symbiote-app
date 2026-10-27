@@ -1,5 +1,5 @@
 import { Clock } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { type Ref, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import type {
@@ -13,6 +13,7 @@ import { Card, CardHeader } from "@/ui";
 import { FILTERS, type Filter } from "@/utils/timeline/filters";
 import { levelCurves } from "@/utils/timeline/levels";
 import { buildMarkers, involves } from "@/utils/timeline/markers";
+import { type StandoutHighlight, litMarkers } from "@/utils/timeline/standouts";
 import type { Marker } from "@/utils/timeline/types";
 import { Filters } from "./filters";
 import { Track } from "./track";
@@ -20,21 +21,27 @@ import { Track } from "./track";
 import styles from "./styles.module.css";
 
 interface TimelineProps {
+    /** Scrolled to when a standout is shown on the timeline. */
+    ref?: Ref<HTMLElement>;
     timeline: TimelineData;
     duration: number;
     players: ReplayPlayerDetail[];
     allyTeam: number;
     ownerSlot: number;
     ownerWin: boolean | null;
+    /** The shown standout's events, lit while everything else dims. */
+    highlight: StandoutHighlight | null;
 }
 
 export function Timeline({
+    ref,
     timeline,
     duration,
     players,
     allyTeam,
     ownerSlot,
     ownerWin,
+    highlight,
 }: TimelineProps) {
     const t = useTranslations("replay.timeline");
     const text = useTimelineText(players);
@@ -50,6 +57,10 @@ export function Timeline({
     const curves = useMemo(
         () => levelCurves(timeline.levels, allyTeam),
         [timeline.levels, allyTeam],
+    );
+    const lit = useMemo(
+        () => (highlight ? litMarkers(markers, highlight) : null),
+        [markers, highlight],
     );
 
     const counts = useMemo(() => {
@@ -90,7 +101,7 @@ export function Timeline({
     };
 
     return (
-        <Card className={styles.timeline}>
+        <Card ref={ref} className={styles.timeline}>
             <CardHeader
                 icon={Clock}
                 size="sm"
@@ -122,6 +133,7 @@ export function Timeline({
                     hoverTime={hoverTime}
                     selectedId={selected?.id ?? null}
                     empty={FILTERS.every((filter) => !shown(filter))}
+                    lit={lit}
                     onHover={setHoverTime}
                     onSelect={setSelected}
                 />

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import {
     REPLAY_LISTS_KEY,
     type ReplayListData,
+    STANDOUTS_KEY,
     applyIngested,
     isUnfiltered,
     replayQuery,
@@ -95,6 +96,8 @@ export function useIngestInvalidation() {
                     });
                 }
             }
+            // New games shift the hero baselines the standouts are judged against.
+            queryClient.invalidateQueries({ queryKey: STANDOUTS_KEY });
             statsTimer ??= setTimeout(refreshStats, STATS_MS);
         };
 

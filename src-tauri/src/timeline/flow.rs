@@ -171,7 +171,10 @@ mod tests {
                 victim: 0,
                 killers: vec![],
                 killing_blow: None,
-                alone: None,
+                x: None,
+                y: None,
+                allies_nearby: None,
+                near_players: vec![],
             });
         }
     }

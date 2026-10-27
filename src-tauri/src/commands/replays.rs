@@ -4,11 +4,15 @@ use sqlx::SqlitePool;
 use tauri::{AppHandle, State};
 use tauri_plugin_opener::OpenerExt;
 
+use crate::db::replays::StandoutsLoad;
 use crate::error::{Error, Result};
 use crate::retention::EventRetention;
 use crate::types::replay::{ReplayCursor, ReplayDetail, ReplayFilters, ReplayPage};
+use crate::types::standouts::StandoutsResult;
 
 const MAX_PAGE_SIZE: i64 = 100;
+/// Most games a hero baseline is read from.
+const MAX_BASELINE_GAMES: i64 = 20;
 
 /// Returns a page of the stored replays matching `filters`, or all of them if it's
 /// `None`, newest first, along with how many match.
@@ -49,6 +53,29 @@ pub async fn get_replay(
         .ok_or(Error::ReplayNotFound(id))?;
     detail.on_disk = Path::new(&detail.replay.path).is_file();
     Ok(detail)
+}
+
+/// Returns the coaching standouts of the replay `id`, judged against the owner's
+/// last games on the same hero. Only ids, variant keys and numbers: the copy lives
+/// in the frontend's i18n catalog.
+///
+/// # Errors
+///
+/// Fails if no replay has that id or the database query fails.
+#[tauri::command]
+pub async fn get_standouts(
+    pool: State<'_, SqlitePool>,
+    retention: State<'_, EventRetention>,
+    id: i64,
+) -> Result<StandoutsResult> {
+    let load =
+        crate::db::replays::get_standouts_input(&pool, id, retention.cutoff(), MAX_BASELINE_GAMES)
+            .await?
+            .ok_or(Error::ReplayNotFound(id))?;
+    Ok(match load {
+        StandoutsLoad::Expired => StandoutsResult::expired(),
+        StandoutsLoad::Ready(input) => crate::standouts::compute(&input),
+    })
 }
 
 /// Opens the file of the replay with the given `id` in its default app, i.e. the game.

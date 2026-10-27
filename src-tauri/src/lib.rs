@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use commands::ingest::{get_ingest_progress, subscribe_ingest, unsubscribe_ingest};
 use commands::replays::{
-    count_replays, get_replay, list_replays, mark_replay_as_seen, watch_replay,
+    count_replays, get_replay, get_standouts, list_replays, mark_replay_as_seen, watch_replay,
 };
 use commands::settings::{
     get_database_stats, get_replays_folder, get_settings, open_replays_folder,
@@ -19,6 +19,7 @@ mod db;
 mod error;
 mod ingester;
 mod retention;
+mod standouts;
 mod timeline;
 mod types;
 
@@ -104,6 +105,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             list_replays,
             get_replay,
+            get_standouts,
             mark_replay_as_seen,
             watch_replay,
             count_replays,

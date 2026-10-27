@@ -90,7 +90,7 @@ pub fn death() -> NewEvent {
             "killers": [],
             "x": 0.0,
             "y": 0.0,
-            "alone": true,
+            "allies_nearby": 0,
         }),
     }
 }

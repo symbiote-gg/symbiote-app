@@ -158,8 +158,11 @@ export type TimelineDeath = {
     killers: number[];
     /** Null when no hero landed it: minions, structures, mercenaries. */
     killingBlow: number | null;
-    /** Null when unknown, e.g. replays ingested before it was tracked. */
-    alone: boolean | null;
+    /**
+     * Living teammates near the victim as it died: 0 means it died alone. Null
+     * when unknown, e.g. replays ingested before it was tracked.
+     */
+    alliesNearby: number | null;
 };
 
 export type TimelineStructure = {
@@ -338,6 +341,62 @@ export type ReplayDetail = Omit<
     eventsExpired: boolean;
 };
 
+export type StandoutId =
+    | "aloneDeaths"
+    | "pickDeaths"
+    | "firstDead"
+    | "stayedInLost"
+    | "deathsPunished"
+    | "timeDead"
+    | "fightRecord"
+    | "missedFights"
+    | "allFights"
+    | "stolenCamps"
+    | "unansweredEngages"
+    | "lanePressure";
+
+/** Colours the key figure: a cost, worth a look, or something done right. */
+export type StandoutTone = "bad" | "watch" | "good";
+
+/** The key figure as a number, formatted by `unit`. */
+export type StandoutFigure = {
+    value: number;
+    /** Renders the figure as "value of total" when set. */
+    total: number | null;
+    unit: "count" | "seconds" | "duration";
+};
+
+/** Timeline event times a standout lights up, matched against marker entries. */
+export type StandoutHighlight = {
+    deaths?: number[];
+    /** Fight start times, matching fight and kill markers. */
+    fights?: number[];
+    structures?: number[];
+    objectives?: number[];
+    camps?: number[];
+};
+
+/**
+ * Which sentence fits the hero, e.g. a tank's fight record counts only the fights
+ * that opened with it there. Null is the default sentence.
+ */
+export type StandoutVariant = "tank";
+
+export type Standout = {
+    id: StandoutId;
+    tone: StandoutTone;
+    figure: StandoutFigure;
+    /** Fills the sentence and the figure's unit line. */
+    params: Record<string, number>;
+    highlight: StandoutHighlight | null;
+    variant: StandoutVariant | null;
+};
+
+export type StandoutsResult = {
+    items: Standout[];
+    eventsExpired: boolean;
+};
+
 export const PAGE_SIZE = 50;
 
 export type ReplayCursor = Pick<Replay, "timestamp" | "id">;
@@ -372,6 +431,9 @@ export const listReplays = (
 
 export const getReplay = (id: number) =>
     invoke<ReplayDetail>("get_replay", { id });
+
+export const getStandouts = (id: number) =>
+    invoke<StandoutsResult>("get_standouts", { id });
 
 export const watchReplay = (id: number) => invoke<void>("watch_replay", { id });
 

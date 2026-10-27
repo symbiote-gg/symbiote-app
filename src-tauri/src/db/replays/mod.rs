@@ -6,6 +6,7 @@ mod files;
 mod insert;
 mod list;
 mod retention;
+mod standouts;
 #[cfg(test)]
 mod test_utils;
 
@@ -19,6 +20,7 @@ pub use files::{
 pub use insert::{insert_bundles, InsertOutcome};
 pub use list::{get_list_row, list_page};
 pub use retention::{list_expiring, list_restorable, mark_stale, purge_expired_events};
+pub use standouts::{get_standouts_input, StandoutsLoad};
 
 pub async fn mark_seen(pool: &SqlitePool, id: i64) -> sqlx::Result<()> {
     sqlx::query("UPDATE replays SET is_new = 0 WHERE id = ?")

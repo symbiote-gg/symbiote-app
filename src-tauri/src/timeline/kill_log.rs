@@ -36,7 +36,7 @@ pub fn build(timeline: &Timeline, players: &[ReplayPlayerDetail], owner_slot: i6
 }
 
 fn entries(deaths: &[Death], fights: &[Fight], owner: u8) -> Vec<KillLogEntry> {
-    fights
+    let mut entries: Vec<_> = fights
         .iter()
         .flat_map(|fight| {
             fight.deaths.iter().filter_map(move |&index| {
@@ -48,7 +48,10 @@ fn entries(deaths: &[Death], fights: &[Fight], owner: u8) -> Vec<KillLogEntry> {
                 })
             })
         })
-        .collect()
+        .collect();
+    // Fights can interleave in time; the log reads in death order.
+    entries.sort_by_key(|entry| entry.death);
+    entries
 }
 
 fn kind(death: &Death, fight: &Fight) -> DeathKind {
@@ -179,7 +182,10 @@ mod tests {
             victim,
             killers: killers.to_vec(),
             killing_blow,
-            alone: None,
+            x: None,
+            y: None,
+            allies_nearby: None,
+            near_players: vec![],
         }
     }
 
