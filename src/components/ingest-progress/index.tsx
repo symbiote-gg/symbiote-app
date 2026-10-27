@@ -74,7 +74,7 @@ export function IngestProgress() {
                 onBlur={onLeave}
             >
                 <Ring ratio={ratio} />
-                <span>{label}</span>
+                <span className={styles.label}>{label}</span>
                 <span className={styles.percent}>
                     {Math.floor(ratio * 100)}%
                 </span>

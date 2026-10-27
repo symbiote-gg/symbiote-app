@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .root {
-    @apply lg:w-1/2;
+    @apply xl:w-1/2;
 }
 
 .body {

@@ -74,6 +74,7 @@ and this project adheres to
 
 ### Fixed
 
+- Fix nav component on small screens.
 - Fix icon alignement for icons in talent popovers.
 - Fix issue with retention settings.
 - Optimize the replays list query.
