@@ -37,16 +37,20 @@ export function buildRetentionChange(
 
     const years = toYears(pending);
 
-    let kind: RetentionChange["kind"] = "longer";
-    if (preview.expiring > 0) kind = "delete";
-    else if (preview.restorable > 0) kind = "restore";
-    else if (keptFor(years) < keptFor(current)) kind = "shorter";
+    const longer = keptFor(years) > keptFor(current);
+    const kind: RetentionChange["kind"] = longer
+        ? preview.restorable > 0
+            ? "restore"
+            : "longer"
+        : preview.expiring > 0
+          ? "delete"
+          : "shorter";
 
     return {
         years,
         kind,
         preview,
-        freed: preview.expiring * perGame,
-        restored: preview.restorable * perGame,
+        freed: longer ? 0 : preview.expiring * perGame,
+        restored: longer ? preview.restorable * perGame : 0,
     };
 }

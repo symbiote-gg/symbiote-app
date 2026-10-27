@@ -145,7 +145,8 @@ async fn refresh_bundle_in(
     let updated = sqlx::query(
         "UPDATE replays SET path = ?, game_id = ?, timestamp = ?, mode = ?, map = ?,
              owner_hero_id = ?, owner_player_id = ?, owner_party_id = ?, owner_win = ?,
-             duration = ?, game_loops = ?, gates_open_loop = ?, ingest_version = ?
+             duration = ?, game_loops = ?, gates_open_loop = ?, ingest_version = ?,
+             reparse = 0
          WHERE id = ?",
     )
     .bind(&replay.path)
@@ -434,7 +435,7 @@ async fn insert_superseded(
 mod tests {
     use super::*;
     use crate::db::replays::test_utils::*;
-    use crate::db::replays::{count, get_detail, HashStatus};
+    use crate::db::replays::{count, get_detail, mark_stale, HashStatus};
     use crate::db::test_utils::pool;
     use crate::types::player::Player;
 
@@ -664,5 +665,25 @@ mod tests {
         let mut outcomes = insert_bundles(&pool, vec![fresh], 200).await.unwrap();
         assert_eq!(outcomes.remove(0).unwrap(), InsertOutcome::Refreshed(id));
         assert_eq!(event_count(&pool, id).await, 0);
+    }
+
+    #[tokio::test]
+    async fn refresh_clears_the_reparse_flag() {
+        let pool = pool().await;
+        let InsertOutcome::Inserted(id) = insert_bundle(&pool, bundle("a", 1000)).await.unwrap()
+        else {
+            panic!("the replay should be inserted");
+        };
+
+        mark_stale(&pool, &[id]).await.unwrap();
+        assert_eq!(status(&pool, "a").await, HashStatus::Stale(id));
+
+        let mut fresh = bundle("a", 1000);
+        fresh.refreshes = Some(id);
+        assert_eq!(
+            insert_bundle(&pool, fresh).await.unwrap(),
+            InsertOutcome::Refreshed(id)
+        );
+        assert_eq!(status(&pool, "a").await, HashStatus::Current);
     }
 }

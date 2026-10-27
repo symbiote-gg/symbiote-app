@@ -29,11 +29,11 @@ pub async fn list_restorable(pool: &SqlitePool, cutoff: i64) -> sqlx::Result<Vec
     .await
 }
 
-/// Marks the replays `ids` as stored at an outdated ingest version, so they're re-parsed.
+/// Flags the replays `ids` for a re-parse, e.g. to read their purged events back.
 pub async fn mark_stale(pool: &SqlitePool, ids: &[i64]) -> sqlx::Result<()> {
     let ids = serde_json::to_string(ids).map_err(|e| sqlx::Error::Encode(Box::new(e)))?;
     sqlx::query(
-        "UPDATE replays SET ingest_version = 0
+        "UPDATE replays SET reparse = 1
          WHERE id IN (SELECT value FROM json_each(?))",
     )
     .bind(ids)
@@ -70,7 +70,10 @@ pub async fn purge_expired_events(pool: &SqlitePool, cutoff: i64) -> sqlx::Resul
 mod tests {
     use super::*;
     use crate::db::replays::test_utils::*;
-    use crate::db::replays::{count, count_since, count_with_events, HashStatus, InsertOutcome};
+    use crate::db::replays::{
+        count, count_since, count_with_events, hash_status, list_stale_paths, HashStatus,
+        InsertOutcome,
+    };
     use crate::db::test_utils::pool;
 
     #[tokio::test]
@@ -123,5 +126,28 @@ mod tests {
             HashStatus::Stale(restorable[0].0)
         );
         assert_eq!(status(&pool, "kept").await, HashStatus::Current);
+    }
+
+    #[tokio::test]
+    async fn marks_purged_replays_stale_at_the_real_ingest_version() {
+        let version = crate::ingester::INGEST_VERSION;
+        let pool = pool().await;
+        let mut game = game_with_events("purged", 100);
+        game.replay.ingest_version = version;
+        let InsertOutcome::Inserted(id) = insert_bundle(&pool, game).await.unwrap() else {
+            panic!("the replay should be inserted");
+        };
+        purge_expired_events(&pool, 200).await.unwrap();
+        assert!(list_stale_paths(&pool, version).await.unwrap().is_empty());
+
+        mark_stale(&pool, &[id]).await.unwrap();
+        assert_eq!(
+            hash_status(&pool, &hex("purged"), version).await.unwrap(),
+            HashStatus::Stale(id)
+        );
+        assert_eq!(
+            list_stale_paths(&pool, version).await.unwrap(),
+            ["purged.StormReplay"]
+        );
     }
 }

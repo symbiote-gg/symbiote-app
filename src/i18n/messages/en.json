@@ -420,7 +420,7 @@
                 "growth": "Next 12 months at your pace"
             },
             "confirm": "Removes the match events of <b>{count, plural, one {# game} other {# games}}</b> played before {date}, freeing about <mono>{size}</mono>{lost, plural, =0 {.} one {, but <b># of them</b> can't be restored later because its replay file is gone.} other {, but <b># of them</b> can't be restored later because their replay files are no longer on disk.}}",
-            "confirmNone": "No games are older than {years, plural, one {# year} other {# years}} yet, so nothing is removed now. Games lose their events once they pass that age.",
+            "confirmNone": "No games older than {years, plural, one {# year} other {# years}} still have match events, so nothing is removed now. Games lose their events once they pass that age.",
             "confirmRestore": "Reads the match events of <b>{count, plural, one {# game} other {# games}}</b> back from their replay files, adding about <mono>{size}</mono>{lost, plural, =0 {.} one {, while <b># game</b> stays without events because its replay file is gone.} other {, while <b># games</b> stay without events because their replay files are no longer on disk.}}",
             "confirmNoRestore": "No games in this range can get their events back, so nothing changes now.",
             "cancel": "Cancel",

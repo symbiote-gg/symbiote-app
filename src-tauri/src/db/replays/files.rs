@@ -6,19 +6,21 @@ pub enum HashStatus {
     Unknown,
     /// Stored at the current ingest version, or superseded by a longer replay.
     Current,
-    /// Stored at an older ingest version, as the replay with this id.
+    /// Stored at an older ingest version or flagged for re-parse, as the replay with
+    /// this id.
     Stale(i64),
 }
 
-/// Looks up what is stored for `hash`, a replay being stale below ingest `version`.
+/// Looks up what is stored for `hash`, a replay being stale below ingest `version` or
+/// when flagged for re-parse.
 pub async fn hash_status(pool: &SqlitePool, hash: &str, version: i64) -> sqlx::Result<HashStatus> {
-    let stored: Option<(i64, i64)> =
-        sqlx::query_as("SELECT id, ingest_version FROM replays WHERE hash = ?")
+    let stored: Option<(i64, i64, bool)> =
+        sqlx::query_as("SELECT id, ingest_version, reparse FROM replays WHERE hash = ?")
             .bind(hash)
             .fetch_optional(pool)
             .await?;
-    if let Some((id, stored_version)) = stored {
-        return Ok(if stored_version < version {
+    if let Some((id, stored_version, reparse)) = stored {
+        return Ok(if stored_version < version || reparse {
             HashStatus::Stale(id)
         } else {
             HashStatus::Current
@@ -44,10 +46,11 @@ pub async fn get_path(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<String>
         .await
 }
 
-/// Lists the paths of the replays stored below ingest `version`, newest first.
+/// Lists the paths of the replays stored below ingest `version` or flagged for
+/// re-parse, newest first.
 pub async fn list_stale_paths(pool: &SqlitePool, version: i64) -> sqlx::Result<Vec<String>> {
     sqlx::query_scalar(
-        "SELECT path FROM replays WHERE ingest_version < ?
+        "SELECT path FROM replays WHERE ingest_version < ? OR reparse != 0
          ORDER BY timestamp DESC, id DESC",
     )
     .bind(version)

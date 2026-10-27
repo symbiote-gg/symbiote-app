@@ -69,6 +69,7 @@ CREATE TABLE "replays" (
 	"game_id" TEXT NOT NULL CHECK (length("game_id") = 64 AND "game_id" NOT GLOB '*[^0-9a-f]*'),
 	"ingest_date" INTEGER NOT NULL DEFAULT (unixepoch()),
 	"ingest_version" INTEGER NOT NULL DEFAULT 0 CHECK ("ingest_version" >= 0),
+	"reparse" INTEGER NOT NULL DEFAULT 0 CHECK ("reparse" IN (0, 1)),
 	"timestamp" INTEGER NOT NULL CHECK ("timestamp" > 0),
 	"mode" TEXT NOT NULL CHECK ("mode" IN ('quick_match', 'versus_ai', 'brawl', 'unranked_draft',
 		'hero_league', 'team_league', 'storm_league', 'aram', 'custom', 'unknown')),

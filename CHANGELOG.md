@@ -72,6 +72,7 @@ and this project adheres to
 
 ### Fixed
 
+- Fix issue with retention settings.
 - Optimize the replays list query.
 - Set the background color on the root layout.
 - Avoid a negative infinity team level when no XP samples are available.

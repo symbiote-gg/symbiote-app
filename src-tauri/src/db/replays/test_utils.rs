@@ -7,7 +7,9 @@ use crate::types::hero::Hero;
 use crate::types::player::Player;
 use crate::types::replay::{Mode, NewEvent, NewReplay, NewReplayBundle, NewReplayPlayer};
 
-/// The ingest version replays are stored at; a stale one is stored below it.
+/// The ingest version replays are stored at; a stale one is stored below it. It differs
+/// from the real [`INGEST_VERSION`](crate::ingester::INGEST_VERSION), so behavior that
+/// depends on the live value must be tested against that constant instead.
 pub const VERSION: i64 = 1;
 
 pub async fn insert_bundle(
