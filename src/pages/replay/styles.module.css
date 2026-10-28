@@ -3,3 +3,11 @@
 .main {
     @apply flex flex-col items-start gap-6;
 }
+
+.anchor {
+    @apply -mb-6;
+}
+
+.tabs {
+    @apply sticky top-0 z-30 w-full border-b border-line bg-bg/90 backdrop-blur;
+}

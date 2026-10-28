@@ -373,16 +373,6 @@ export type StandoutFigure = {
     unit: "count" | "seconds" | "duration";
 };
 
-/** Timeline event times a standout lights up, matched against marker entries. */
-export type StandoutHighlight = {
-    deaths?: number[];
-    /** Fight start times, matching fight and kill markers. */
-    fights?: number[];
-    structures?: number[];
-    objectives?: number[];
-    camps?: number[];
-};
-
 /**
  * Which sentence fits the hero, e.g. a tank's fight record counts only the fights
  * that opened with it there. Null is the default sentence.
@@ -395,7 +385,6 @@ export type Standout = {
     figure: StandoutFigure;
     /** Fills the sentence and the figure's unit line. */
     params: Record<string, number>;
-    highlight: StandoutHighlight | null;
     variant: StandoutVariant | null;
 };
 

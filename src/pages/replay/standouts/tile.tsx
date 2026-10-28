@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import {
     Castle,
     Crosshair,
@@ -16,9 +15,9 @@ import {
 } from "lucide-react";
 import { useTranslations } from "use-intl";
 
+import type { Standout, StandoutId } from "@/api/replays";
 import { Eyebrow, Typography } from "@/ui";
 import { formatDuration } from "@/utils/dates";
-import type { Standout, StandoutId } from "@/utils/timeline/standouts";
 
 import styles from "./styles.module.css";
 
@@ -39,16 +38,12 @@ const ICONS: Record<StandoutId, LucideIcon> = {
 
 interface TileProps {
     standout: Standout;
-    shown: boolean;
-    onShow: (id: StandoutId) => void;
 }
 
-export function Tile({ standout, shown, onShow }: TileProps) {
+export function Tile({ standout }: TileProps) {
     const t = useTranslations("replay.standouts");
-    const { id, tone, figure, params, highlight, variant } = standout;
+    const { id, tone, figure, params, variant } = standout;
     const Icon = ICONS[id];
-
-    const onClick = () => onShow(id);
 
     const figureText = () => {
         if (figure.unit === "duration") return formatDuration(figure.value);
@@ -59,8 +54,8 @@ export function Tile({ standout, shown, onShow }: TileProps) {
         return figure.value;
     };
 
-    const content = (
-        <>
+    return (
+        <li className={styles.tile} data-tone={tone}>
             <span className={styles.iconBox}>
                 <Icon className={styles.icon} aria-hidden />
             </span>
@@ -78,26 +73,6 @@ export function Tile({ standout, shown, onShow }: TileProps) {
                     {t(id, { ...params, variant: variant ?? "none" })}
                 </Typography>
             </div>
-        </>
-    );
-
-    return (
-        <li
-            className={classNames(styles.tile, { [styles.active]: shown })}
-            data-tone={tone}
-        >
-            {highlight ? (
-                <button
-                    type="button"
-                    className={classNames(styles.body, styles.clickable)}
-                    aria-pressed={shown}
-                    onClick={onClick}
-                >
-                    {content}
-                </button>
-            ) : (
-                <div className={styles.body}>{content}</div>
-            )}
         </li>
     );
 }

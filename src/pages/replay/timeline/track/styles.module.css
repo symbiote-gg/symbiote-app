@@ -1,16 +1,18 @@
 @reference "@/index.css";
 
-.dimmed {
-    @apply opacity-35 transition-opacity;
-}
-
 .track {
     @apply relative select-none will-change-transform;
 }
 
 .stem {
-    @apply pointer-events-none absolute w-0 -translate-x-1/2 border-l-[1.5px] border-dotted;
+    @apply pointer-events-none absolute w-0 -translate-x-1/2 border-l-[1.5px] border-dotted transition-colors;
     border-color: var(--side);
+}
+
+/* Color, not opacity: an opacity fade composites the stem, and once WebKit
+   drops the layer it repaints snapped to another pixel, visibly jumping. */
+.stem.dimmed {
+    border-color: color-mix(in srgb, var(--side) 35%, transparent);
 }
 
 .empty {

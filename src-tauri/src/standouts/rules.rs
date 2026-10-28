@@ -12,7 +12,7 @@ use std::collections::BTreeMap;
 use super::baseline::HeroBaseline;
 use super::metrics::GameMetrics;
 use crate::types::hero::HeroRole;
-use crate::types::standouts::{Figure, FigureUnit, Highlight, Standout, StandoutId, Tone, Variant};
+use crate::types::standouts::{Figure, FigureUnit, Standout, StandoutId, Tone, Variant};
 
 /// Most standouts shown, best first.
 const MAX_STANDOUTS: usize = 4;
@@ -62,14 +62,12 @@ fn count_figure(value: usize, total: Option<usize>) -> Figure {
     }
 }
 
-fn standout(id: StandoutId, tone: Tone, figure: Figure, highlight: Highlight) -> Standout {
+fn standout(id: StandoutId, tone: Tone, figure: Figure) -> Standout {
     Standout {
         id,
         tone,
         figure,
         params: BTreeMap::new(),
-        // Nothing to light, so the tile isn't clickable.
-        highlight: (!highlight.is_empty()).then_some(highlight),
         variant: None,
     }
 }
@@ -112,10 +110,6 @@ impl Evaluation<'_> {
                 StandoutId::AloneDeaths,
                 Tone::Bad,
                 count_figure(alone.count, Some(alone.known)),
-                Highlight {
-                    deaths: alone.times.clone(),
-                    ..Highlight::default()
-                },
             ));
         }
     }
@@ -137,10 +131,6 @@ impl Evaluation<'_> {
                 StandoutId::PickDeaths,
                 Tone::Bad,
                 count_figure(self.m.picks.count, Some(self.m.owner_deaths)),
-                Highlight {
-                    fights: self.m.picks.fight_starts.clone(),
-                    ..Highlight::default()
-                },
             ));
         }
     }
@@ -168,11 +158,6 @@ impl Evaluation<'_> {
                     StandoutId::UnansweredEngages,
                     Tone::Bad,
                     count_figure(self.m.unanswered.count, None),
-                    Highlight {
-                        deaths: self.m.unanswered.death_times.clone(),
-                        fights: self.m.unanswered.fight_starts.clone(),
-                        ..Highlight::default()
-                    },
                 ));
             }
         } else {
@@ -198,10 +183,6 @@ impl Evaluation<'_> {
                         self.m.first_dead.count,
                         Some(self.m.first_dead.multi_death_fights),
                     ),
-                    Highlight {
-                        fights: self.m.first_dead.fight_starts.clone(),
-                        ..Highlight::default()
-                    },
                 ));
             }
         }
@@ -223,10 +204,6 @@ impl Evaluation<'_> {
                     total: None,
                     unit: FigureUnit::Seconds,
                 },
-                Highlight {
-                    fights: self.m.stays.fight_starts.clone(),
-                    ..Highlight::default()
-                },
             );
             stayed
                 .params
@@ -245,12 +222,6 @@ impl Evaluation<'_> {
                 StandoutId::DeathsPunished,
                 Tone::Bad,
                 count_figure(self.m.punished.count, Some(self.m.owner_deaths)),
-                Highlight {
-                    deaths: self.m.punished.deaths.clone(),
-                    structures: self.m.punished.structures.clone(),
-                    objectives: self.m.punished.objectives.clone(),
-                    ..Highlight::default()
-                },
             ));
         }
     }
@@ -276,10 +247,6 @@ impl Evaluation<'_> {
                     total: None,
                     unit: FigureUnit::Duration,
                 },
-                Highlight {
-                    deaths: self.m.death_times.clone(),
-                    ..Highlight::default()
-                },
             );
             dead.params
                 .insert("percent".to_owned(), (share * 100.0).round() as i64);
@@ -295,16 +262,11 @@ impl Evaluation<'_> {
         }
 
         let tank = self.ctx.tank();
-        let (joined, won, lost, starts) = if tank {
+        let (joined, won, lost) = if tank {
             let started = &self.m.fights.started;
-            (started.joined, started.won, started.lost, &started.starts)
+            (started.joined, started.won, started.lost)
         } else {
-            (
-                self.m.fights.joined,
-                self.m.fights.won,
-                self.m.fights.lost,
-                &self.m.fights.joined_starts,
-            )
+            (self.m.fights.joined, self.m.fights.won, self.m.fights.lost)
         };
 
         if joined >= 2 {
@@ -318,10 +280,6 @@ impl Evaluation<'_> {
                 StandoutId::FightRecord,
                 tone,
                 count_figure(won, Some(joined)),
-                Highlight {
-                    fights: starts.clone(),
-                    ..Highlight::default()
-                },
             );
             record.variant = tank.then_some(Variant::Tank);
             self.found.push(record);
@@ -333,7 +291,7 @@ impl Evaluation<'_> {
             return;
         }
 
-        let missed = self.m.fights.missed_starts.len();
+        let missed = self.m.fights.missed;
         let usual = self.ctx.usual(|b| b.miss_rate).flatten();
         let rate = (self.m.fights.total > 0).then(|| missed as f64 / self.m.fights.total as f64);
 
@@ -342,10 +300,6 @@ impl Evaluation<'_> {
                 StandoutId::MissedFights,
                 Tone::Watch,
                 count_figure(missed, Some(self.m.fights.total)),
-                Highlight {
-                    fights: self.m.fights.missed_starts.clone(),
-                    ..Highlight::default()
-                },
             ));
         }
     }
@@ -356,15 +310,11 @@ impl Evaluation<'_> {
             return;
         }
 
-        if self.m.fights.total >= 3 && self.m.fights.missed_starts.is_empty() {
+        if self.m.fights.total >= 3 && self.m.fights.missed == 0 {
             self.found.push(standout(
                 StandoutId::AllFights,
                 Tone::Good,
                 count_figure(self.m.fights.total, Some(self.m.fights.total)),
-                Highlight {
-                    fights: self.m.fights.all_starts.clone(),
-                    ..Highlight::default()
-                },
             ));
         }
     }
@@ -392,10 +342,6 @@ impl Evaluation<'_> {
                 StandoutId::LanePressure,
                 Tone::Good,
                 count_figure(self.m.lane.structures, None),
-                Highlight {
-                    structures: self.m.lane.structure_times.clone(),
-                    ..Highlight::default()
-                },
             ));
         }
     }
@@ -409,10 +355,6 @@ impl Evaluation<'_> {
                 StandoutId::StolenCamps,
                 Tone::Watch,
                 count_figure(count, None),
-                Highlight {
-                    camps: self.m.stolen_camps.times.clone(),
-                    ..Highlight::default()
-                },
             ));
         }
     }
@@ -521,7 +463,7 @@ mod tests {
         m.time_dead_share = Some(0.2);
         m.fights.total = 5;
         m.fights.joined = 2;
-        m.fights.missed_starts = vec![1.0, 2.0, 3.0];
+        m.fights.missed = 3;
         m.lane.structures = 2;
 
         let mut push = ctx(None);
@@ -569,7 +511,7 @@ mod tests {
         m.fights.total = 4;
         m.fights.joined = 3;
         m.fights.won = 3;
-        m.fights.missed_starts = vec![50.0];
+        m.fights.missed = 1;
         m.fights.started.joined = 2;
         m.fights.started.lost = 2;
 
@@ -651,20 +593,6 @@ mod tests {
 
         let items = evaluate(&m, &ctx(None));
         assert_eq!(find(&items, StandoutId::FightRecord).tone, Tone::Watch);
-    }
-
-    #[test]
-    fn leaves_a_standout_with_nothing_to_light_unclickable() {
-        let mut m = metrics::empty();
-        m.fights.total = 2;
-        m.fights.joined = 2;
-        let items = evaluate(&m, &ctx(None));
-        assert!(find(&items, StandoutId::FightRecord).highlight.is_none());
-
-        m.fights.joined_starts = vec![100.0, 200.0];
-        let items = evaluate(&m, &ctx(None));
-        let highlight = find(&items, StandoutId::FightRecord).highlight.as_ref();
-        assert_eq!(highlight.unwrap().fights, [100.0, 200.0]);
     }
 
     #[test]

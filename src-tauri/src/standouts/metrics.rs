@@ -1,6 +1,5 @@
-//! Counting pass over one game: what each rule judges, plus the event times the
-//! current game's tiles highlight. Runs the same way on the open replay and on
-//! each game of the hero baseline.
+//! Counting pass over one game: what each rule judges. Runs the same way on the
+//! open replay and on each game of the hero baseline.
 
 use std::collections::HashSet;
 
@@ -16,7 +15,6 @@ const ANSWER_SECS: f64 = 5.0;
 #[derive(Debug)]
 pub struct GameMetrics {
     pub owner_deaths: usize,
-    pub death_times: Vec<f64>,
     /// Deaths with nobody around outside team fights, among those where allies
     /// nearby are known.
     pub alone: Alone,
@@ -49,20 +47,17 @@ pub struct GameMetrics {
 pub struct Alone {
     pub count: usize,
     pub known: usize,
-    pub times: Vec<f64>,
 }
 
 #[derive(Debug)]
 pub struct Picks {
     pub count: usize,
-    pub fight_starts: Vec<f64>,
 }
 
 #[derive(Debug)]
 pub struct FirstDead {
     pub count: usize,
     pub multi_death_fights: usize,
-    pub fight_starts: Vec<f64>,
 }
 
 #[derive(Debug)]
@@ -70,23 +65,17 @@ pub struct Unanswered {
     pub count: usize,
     /// Owner deaths inside fights, the base the count is judged against.
     pub fight_deaths: usize,
-    pub death_times: Vec<f64>,
-    pub fight_starts: Vec<f64>,
 }
 
 #[derive(Debug)]
 pub struct Stays {
     pub count: usize,
     pub avg_stay: f64,
-    pub fight_starts: Vec<f64>,
 }
 
 #[derive(Debug)]
 pub struct Punished {
     pub count: usize,
-    pub deaths: Vec<f64>,
-    pub structures: Vec<f64>,
-    pub objectives: Vec<f64>,
 }
 
 #[derive(Debug)]
@@ -95,9 +84,7 @@ pub struct Fights {
     pub joined: usize,
     pub won: usize,
     pub lost: usize,
-    pub joined_starts: Vec<f64>,
-    pub missed_starts: Vec<f64>,
-    pub all_starts: Vec<f64>,
+    pub missed: usize,
     /// The record over the fights whose opening death involved the owner, the
     /// record a frontliner is judged on.
     pub started: FightRecord,
@@ -108,19 +95,16 @@ pub struct FightRecord {
     pub joined: usize,
     pub won: usize,
     pub lost: usize,
-    pub starts: Vec<f64>,
 }
 
 #[derive(Debug)]
 pub struct StolenCamps {
     pub count: usize,
-    pub times: Vec<f64>,
 }
 
 #[derive(Debug)]
 pub struct LanePressure {
     pub structures: usize,
-    pub structure_times: Vec<f64>,
     /// Minion and creep XP earned, the soak proxy. `None` on games stored
     /// without the XP breakdown.
     pub soak: Option<f64>,
@@ -164,11 +148,7 @@ pub fn game_metrics(
     let caught_alone = |&(index, death): &(usize, &Death)| {
         death.allies_nearby == Some(0) && !team_fight_deaths.contains(&index)
     };
-    let alone_times: Vec<f64> = known
-        .iter()
-        .filter(|entry| caught_alone(entry))
-        .map(|(_, d)| d.time)
-        .collect();
+    let alone = known.iter().filter(|entry| caught_alone(entry)).count();
     let near_objective = |time: f64| {
         timeline
             .objectives
@@ -179,11 +159,10 @@ pub fn game_metrics(
         .iter()
         .filter(|(_, d)| near_objective(d.time))
         .collect();
-    let alone_near_times: Vec<f64> = known_near
+    let alone_near = known_near
         .iter()
         .filter(|entry| caught_alone(entry))
-        .map(|(_, d)| d.time)
-        .collect();
+        .count();
 
     let caught_fights: Vec<&Fight> = timeline
         .fights
@@ -214,11 +193,9 @@ pub fn game_metrics(
                 && death.time <= time + ANSWER_SECS
         })
     };
-    let mut unanswered_deaths = Vec::new();
-    let mut unanswered_fights = Vec::new();
+    let mut unanswered = 0;
     let mut fight_deaths = 0;
     for fight in &timeline.fights {
-        let mut hit = false;
         for &i in &fight.deaths {
             let death = &timeline.deaths[i];
             if death.victim != owner_slot {
@@ -226,12 +203,8 @@ pub fn game_metrics(
             }
             fight_deaths += 1;
             if !answered(fight, death.time) {
-                unanswered_deaths.push(death.time);
-                hit = true;
+                unanswered += 1;
             }
-        }
-        if hit {
-            unanswered_fights.push(fight.start);
         }
     }
 
@@ -241,12 +214,12 @@ pub fn game_metrics(
         .iter()
         .filter(|f| f.deaths.len() >= 2)
         .collect();
-    let first_dead: Vec<&&Fight> = multi_death
+    let first_dead = multi_death
         .iter()
         .filter(|fight| timeline.deaths[fight.deaths[0]].victim == owner_slot)
-        .collect();
+        .count();
 
-    let stays: Vec<(f64, f64)> = timeline
+    let stays: Vec<f64> = timeline
         .fights
         .iter()
         .filter_map(|fight| {
@@ -264,35 +237,22 @@ pub fn game_metrics(
             if mine == 0 {
                 return None;
             }
-            Some((fight.start, deaths[mine].time - fight.start))
+            Some(deaths[mine].time - fight.start)
         })
         .collect();
-    let avg_stay = stays.iter().map(|(_, stay)| stay).sum::<f64>() / (stays.len().max(1) as f64);
+    let avg_stay = stays.iter().sum::<f64>() / (stays.len().max(1) as f64);
 
-    let punishment = |time: f64| {
-        let structure = timeline
+    let punished = |time: f64| {
+        timeline
             .structures
             .iter()
-            .find(|s| s.team == Some(ally_team) && s.time > time && s.time <= time + PUNISH_SECS);
-        if let Some(structure) = structure {
-            return Some((true, structure.time));
-        }
-        timeline
-            .objectives
-            .iter()
-            .find(|o| {
+            .any(|s| s.team == Some(ally_team) && s.time > time && s.time <= time + PUNISH_SECS)
+            || timeline.objectives.iter().any(|o| {
                 o.team.is_some_and(|team| team != ally_team)
                     && o.time > time
                     && o.time <= time + PUNISH_SECS
             })
-            .map(|objective| (false, objective.time))
     };
-    let punished: Vec<(f64, bool, f64)> = owner_deaths
-        .iter()
-        .filter_map(|death| {
-            punishment(death.time).map(|(structure, time)| (death.time, structure, time))
-        })
-        .collect();
 
     let team_fights: Vec<&Fight> = timeline
         .fights
@@ -308,7 +268,6 @@ pub fn game_metrics(
     };
     let in_fight = |fight: &Fight| fight.deaths.iter().any(|&i| involves(&timeline.deaths[i]));
     let joined: Vec<&&Fight> = team_fights.iter().filter(|f| in_fight(f)).collect();
-    let missed: Vec<&&Fight> = team_fights.iter().filter(|f| !in_fight(f)).collect();
     let started: Vec<&&Fight> = team_fights
         .iter()
         .filter(|fight| involves(&timeline.deaths[fight.deaths[0]]))
@@ -340,69 +299,48 @@ pub fn game_metrics(
     let (won, lost) = record(&joined);
     let (started_won, started_lost) = record(&started);
 
-    let structure_times: Vec<f64> = timeline
+    let structures = timeline
         .structures
         .iter()
         .filter(|s| {
             s.team.is_some_and(|team| team != ally_team)
                 && (s.killing_blow == Some(owner_slot) || s.killers.contains(&owner_slot))
         })
-        .map(|s| s.time)
-        .collect();
+        .count();
 
-    let stolen: Vec<f64> = timeline
+    let stolen = timeline
         .camps
         .iter()
         .filter(|camp| camp.stolen && camp.team.is_some_and(|team| team != ally_team))
-        .map(|camp| camp.time)
-        .collect();
+        .count();
 
     GameMetrics {
         owner_deaths: owner_deaths.len(),
-        death_times: owner_deaths.iter().map(|d| d.time).collect(),
         alone: Alone {
-            count: alone_times.len(),
+            count: alone,
             known: known.len(),
-            times: alone_times,
         },
         alone_near: Alone {
-            count: alone_near_times.len(),
+            count: alone_near,
             known: known_near.len(),
-            times: alone_near_times,
         },
         picks: Picks {
             count: caught_times.len(),
-            fight_starts: caught_fights.iter().map(|f| f.start).collect(),
         },
         first_dead: FirstDead {
-            count: first_dead.len(),
+            count: first_dead,
             multi_death_fights: multi_death.len(),
-            fight_starts: first_dead.iter().map(|f| f.start).collect(),
         },
         unanswered: Unanswered {
-            count: unanswered_deaths.len(),
+            count: unanswered,
             fight_deaths,
-            death_times: unanswered_deaths,
-            fight_starts: unanswered_fights,
         },
         stays: Stays {
             count: stays.len(),
             avg_stay,
-            fight_starts: stays.iter().map(|(start, _)| *start).collect(),
         },
         punished: Punished {
-            count: punished.len(),
-            deaths: punished.iter().map(|(death, ..)| *death).collect(),
-            structures: punished
-                .iter()
-                .filter(|(_, structure, _)| *structure)
-                .map(|(.., time)| *time)
-                .collect(),
-            objectives: punished
-                .iter()
-                .filter(|(_, structure, _)| !structure)
-                .map(|(.., time)| *time)
-                .collect(),
+            count: owner_deaths.iter().filter(|d| punished(d.time)).count(),
         },
         time_dead: owner_time_dead,
         time_dead_share: owner_time_dead
@@ -413,23 +351,16 @@ pub fn game_metrics(
             joined: joined.len(),
             won,
             lost,
-            joined_starts: joined.iter().map(|f| f.start).collect(),
-            missed_starts: missed.iter().map(|f| f.start).collect(),
-            all_starts: team_fights.iter().map(|f| f.start).collect(),
+            missed: team_fights.len() - joined.len(),
             started: FightRecord {
                 joined: started.len(),
                 won: started_won,
                 lost: started_lost,
-                starts: started.iter().map(|f| f.start).collect(),
             },
         },
-        stolen_camps: StolenCamps {
-            count: stolen.len(),
-            times: stolen,
-        },
+        stolen_camps: StolenCamps { count: stolen },
         lane: LanePressure {
-            structures: structure_times.len(),
-            structure_times,
+            structures,
             soak: owner_xp.map(|xp| xp.minion + xp.creep),
             soak_per_min: owner_xp
                 .filter(|_| duration > 0.0)
@@ -507,8 +438,6 @@ mod tests {
         let m = game_metrics(&timeline, 600.0, 1, 0, None, None);
         assert_eq!(m.unanswered.fight_deaths, 3);
         assert_eq!(m.unanswered.count, 2);
-        assert_eq!(m.unanswered.death_times, [200.0, 300.0]);
-        assert_eq!(m.unanswered.fight_starts, [200.0, 300.0]);
     }
 
     #[test]
@@ -534,7 +463,6 @@ mod tests {
         let m = game_metrics(&timeline, 600.0, 1, 0, None, None);
         assert_eq!((m.fights.joined, m.fights.won), (2, 2));
         assert_eq!((m.fights.started.joined, m.fights.started.won), (1, 1));
-        assert_eq!(m.fights.started.starts, [100.0]);
     }
 
     #[test]
@@ -562,9 +490,9 @@ mod tests {
 
         let m = game_metrics(&timeline, 600.0, 1, 0, None, None);
         assert_eq!((m.fights.joined, m.fights.won), (1, 1));
-        assert_eq!(m.fights.missed_starts, [200.0]);
+        assert_eq!(m.fights.missed, 1);
         // Present at the first death counts as being there for the open.
-        assert_eq!(m.fights.started.starts, [100.0]);
+        assert_eq!(m.fights.started.joined, 1);
     }
 
     #[test]
@@ -582,7 +510,6 @@ mod tests {
         let m = game_metrics(&timeline, 600.0, 1, 0, None, None);
         assert_eq!((m.alone.count, m.alone.known), (2, 2));
         assert_eq!((m.alone_near.count, m.alone_near.known), (1, 1));
-        assert_eq!(m.alone_near.times, [120.0]);
     }
 
     #[test]
@@ -608,7 +535,6 @@ mod tests {
 
         let m = game_metrics(&timeline, 600.0, 1, 0, None, None);
         assert_eq!((m.alone.count, m.alone.known), (1, 2));
-        assert_eq!(m.alone.times, [100.0]);
     }
 
     #[test]

@@ -39,9 +39,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     const [location] = useLocation();
     const main = useRef<HTMLElement>(null);
 
+    const page = location.split("/").slice(0, 3).join("/");
+
     useEffect(() => {
         main.current?.scrollTo({ top: 0 });
-    }, [location]);
+    }, [page]);
 
     return (
         <div className={styles.root}>

@@ -1,0 +1,29 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex w-full items-end gap-6;
+}
+
+.tab {
+    @apply -mb-px flex items-center gap-2 whitespace-nowrap border-b-2 border-transparent px-1 py-3 text-sm font-medium text-fg-muted transition-colors hover:text-fg;
+}
+
+.tab:focus-visible {
+    @apply outline-3 outline-primary-text;
+}
+
+.active {
+    @apply border-primary text-fg hover:text-fg;
+}
+
+.icon {
+    @apply size-4 shrink-0;
+}
+
+.hint {
+    @apply ml-auto flex items-center gap-1 self-center text-xs text-fg-muted;
+}
+
+.key {
+    @apply rounded border border-line px-1.5 font-mono text-fg-muted;
+}

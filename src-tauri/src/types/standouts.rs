@@ -51,33 +51,6 @@ pub enum FigureUnit {
     Duration,
 }
 
-/// Timeline event times the standout lights up, matched against marker entries.
-#[derive(Debug, Default, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Highlight {
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub deaths: Vec<f64>,
-    /// Fight start times, matching fight and kill markers.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub fights: Vec<f64>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub structures: Vec<f64>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub objectives: Vec<f64>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub camps: Vec<f64>,
-}
-
-impl Highlight {
-    pub fn is_empty(&self) -> bool {
-        self.deaths.is_empty()
-            && self.fights.is_empty()
-            && self.structures.is_empty()
-            && self.objectives.is_empty()
-            && self.camps.is_empty()
-    }
-}
-
 /// Which sentence fits the hero, e.g. a tank's fight record counts only the fights
 /// that opened with it there. `None` is the default sentence.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -94,7 +67,6 @@ pub struct Standout {
     pub figure: Figure,
     /// Fills the sentence and the figure's unit line.
     pub params: BTreeMap<String, i64>,
-    pub highlight: Option<Highlight>,
     pub variant: Option<Variant>,
 }
 

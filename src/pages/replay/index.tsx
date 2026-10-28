@@ -1,14 +1,13 @@
-import { useRef, useState } from "react";
+import { type LucideIcon, PanelsTopLeft, Scale, Swords } from "lucide-react";
+import { Activity, useEffect, useRef } from "react";
+import { useTranslations } from "use-intl";
 import { useParams } from "wouter";
 
-import type {
-    ReplayDetail as ReplayDetailData,
-    StandoutId,
-} from "@/api/replays";
+import type { ReplayDetail as ReplayDetailData } from "@/api/replays";
 import { BackToReplays, Page } from "@/components";
 import { useReplay } from "@/hooks/useReplay";
 import { useStandouts } from "@/hooks/useStandouts";
-import { ErrorMessage } from "@/ui";
+import { ErrorMessage, type TabItem, Tabs } from "@/ui";
 import { DeathMap } from "./death-map";
 import { Header } from "./header";
 import { KillLog } from "./kill-log";
@@ -18,6 +17,16 @@ import { Standouts } from "./standouts";
 import { Timeline } from "./timeline";
 
 import styles from "./styles.module.css";
+
+const TABS = ["overview", "fights", "matchups"] as const;
+
+type ReplayTab = (typeof TABS)[number];
+
+const ICONS: Record<ReplayTab, LucideIcon> = {
+    overview: PanelsTopLeft,
+    fights: Swords,
+    matchups: Scale,
+};
 
 const scoreboardTeam = (
     replay: ReplayDetailData,
@@ -35,32 +44,59 @@ const scoreboardTeam = (
 });
 
 export function ReplayDetail() {
-    const { replayId } = useParams<{ replayId: string }>();
+    const t = useTranslations("replay.tabs");
+    const { replayId, tab: tabParam } = useParams<{
+        replayId: string;
+        tab?: string;
+    }>();
     const { data: replay, error } = useReplay(Number(replayId));
-    const [shownStandout, setShownStandout] = useState<StandoutId | null>(null);
-    const timelineRef = useRef<HTMLElement>(null);
+    const anchorRef = useRef<HTMLDivElement>(null);
+    const tabsRef = useRef<HTMLDivElement>(null);
 
     const standouts = useStandouts(
         Number(replayId),
         !!replay && !replay.eventsExpired,
     );
-    const items = standouts.data?.items ?? [];
     const result = standouts.data ?? null;
+
+    // Standouts sit above the scoreboard, so the overview waits for them
+    // instead of pushing the scoreboard down when they land.
+    const standoutsPending = !replay?.eventsExpired && standouts.isPending;
 
     const owner = replay?.players.find((p) => p.slot === replay.ownerSlot);
     const allyTeam = replay?.ownerTeam ?? 0;
-    const shown = items.find((item) => item.id === shownStandout) ?? null;
 
-    const onShowStandout = (id: StandoutId) => {
-        const next = shownStandout === id ? null : id;
-        setShownStandout(next);
-        if (next !== null) {
-            timelineRef.current?.scrollIntoView({
-                behavior: "smooth",
-                block: "nearest",
-            });
-        }
-    };
+    const available = TABS.filter(
+        (value) => value !== "fights" || !replay?.eventsExpired,
+    );
+    const tab = available.find((value) => value === tabParam) ?? "overview";
+
+    const tabHref = (value: ReplayTab) =>
+        value === "overview"
+            ? `/replays/${replayId}`
+            : `/replays/${replayId}/${value}`;
+
+    const mode = (value: ReplayTab) => (value === tab ? "visible" : "hidden");
+
+    const tabItems: TabItem<ReplayTab>[] = available.map((value) => ({
+        value,
+        label: t(value),
+        href: tabHref(value),
+        icon: ICONS[value],
+    }));
+
+    // Once the bar is stuck, a new tab starts at its own top instead of the
+    // old tab's scroll offset.
+    useEffect(() => {
+        const anchor = anchorRef.current;
+        const bar = tabsRef.current;
+        if (!anchor || !bar) return;
+
+        if (
+            anchor.getBoundingClientRect().top < bar.getBoundingClientRect().top
+        )
+            anchor.scrollIntoView({ block: "start" });
+    }, [tab]);
 
     return (
         <Page>
@@ -78,26 +114,31 @@ export function ReplayDetail() {
                             owner={owner}
                             allyTeam={allyTeam}
                         />
-                        <Scoreboard
-                            ownerId={replay.ownerPlayerId}
-                            teams={[
-                                scoreboardTeam(replay, allyTeam),
-                                scoreboardTeam(replay, 1 - allyTeam),
-                            ]}
-                            duration={replay.duration}
-                        />
-                        {!replay.eventsExpired && (
-                            <>
-                                {result && (
-                                    <Standouts
-                                        result={result}
-                                        shown={shownStandout}
-                                        onShow={onShowStandout}
-                                    />
-                                )}
+                        <div ref={anchorRef} className={styles.anchor} />
+                        <div ref={tabsRef} className={styles.tabs}>
+                            <Tabs
+                                label={t("label")}
+                                items={tabItems}
+                                value={tab}
+                                shortcutsLabel={t("keys")}
+                            />
+                        </div>
+                        {!standoutsPending && (
+                            <Activity mode={mode("overview")}>
+                                {result && <Standouts result={result} />}
+                                <Scoreboard
+                                    ownerId={replay.ownerPlayerId}
+                                    teams={[
+                                        scoreboardTeam(replay, allyTeam),
+                                        scoreboardTeam(replay, 1 - allyTeam),
+                                    ]}
+                                    duration={replay.duration}
+                                />
+                            </Activity>
+                        )}
+                        {available.includes("fights") && (
+                            <Activity mode={mode("fights")}>
                                 <Timeline
-                                    ref={timelineRef}
-                                    highlight={shown?.highlight ?? null}
                                     timeline={replay.timeline}
                                     duration={replay.duration}
                                     players={replay.players}
@@ -114,24 +155,26 @@ export function ReplayDetail() {
                                     allyTeam={allyTeam}
                                     ownerSlot={replay.ownerSlot}
                                 />
-                                {owner && (
-                                    <KillLog
-                                        timeline={replay.timeline}
-                                        killLog={replay.killLog}
-                                        duration={replay.duration}
-                                        players={replay.players}
-                                        allyTeam={allyTeam}
-                                        owner={owner}
-                                    />
-                                )}
-                            </>
+                            </Activity>
                         )}
-                        <RolePerformances
-                            players={replay.players}
-                            allyTeam={allyTeam}
-                            ownerId={replay.ownerPlayerId}
-                            ownerRole={replay.heroRole}
-                        />
+                        <Activity mode={mode("matchups")}>
+                            <RolePerformances
+                                players={replay.players}
+                                allyTeam={allyTeam}
+                                ownerId={replay.ownerPlayerId}
+                                ownerRole={replay.heroRole}
+                            />
+                            {!replay.eventsExpired && owner && (
+                                <KillLog
+                                    timeline={replay.timeline}
+                                    killLog={replay.killLog}
+                                    duration={replay.duration}
+                                    players={replay.players}
+                                    allyTeam={allyTeam}
+                                    owner={owner}
+                                />
+                            )}
+                        </Activity>
                     </>
                 )}
             </div>

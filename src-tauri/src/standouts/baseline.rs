@@ -79,7 +79,7 @@ pub fn aggregate(games: &[(GameMetrics, f64)]) -> Option<HeroBaseline> {
         ),
         punished_rate: rate(sum(&|m| m.punished.count as f64), owner_deaths),
         time_dead_share: rate(dead, dead_duration),
-        miss_rate: rate(sum(&|m| m.fights.missed_starts.len() as f64), fight_total),
+        miss_rate: rate(sum(&|m| m.fights.missed as f64), fight_total),
         stolen_per_game: sum(&|m| m.stolen_camps.count as f64) / games.len() as f64,
         structures_per_game: sum(&|m| m.lane.structures as f64) / games.len() as f64,
         soak_per_min: rate(soak, soak_duration / 60.0),

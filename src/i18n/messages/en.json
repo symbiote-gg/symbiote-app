@@ -126,6 +126,13 @@
     },
     "replay": {
         "replays": "Replays",
+        "tabs": {
+            "label": "Replay sections",
+            "overview": "Overview",
+            "fights": "Fights",
+            "matchups": "Matchups",
+            "keys": "Keys"
+        },
         "showInFolder": "Show in folder",
         "watchInGame": "Watch in game",
         "watchInGameDescription": "Opens the replay in Heroes of the Storm. The game only plays replays from the current patch.",

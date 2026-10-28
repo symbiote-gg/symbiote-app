@@ -9,24 +9,8 @@
 }
 
 .tile {
-    @apply min-w-sm shrink-0 rounded-lg border border-line bg-surface-2;
+    @apply flex min-w-sm shrink-0 items-start gap-3 rounded-lg border border-line bg-surface-2 p-3 pr-4;
     --tone: var(--color-loss);
-}
-
-.body {
-    @apply flex h-full w-full items-start gap-3 rounded-lg p-3 pr-4 text-left;
-}
-
-.clickable {
-    @apply cursor-pointer transition-colors;
-}
-
-.tile:not(.active) .clickable:hover {
-    background: color-mix(
-        in srgb,
-        var(--color-primary) 6%,
-        var(--color-surface-2)
-    );
 }
 
 .tile[data-tone="watch"] {
@@ -35,14 +19,6 @@
 
 .tile[data-tone="good"] {
     --tone: var(--color-win);
-}
-
-.active {
-    background: color-mix(
-        in srgb,
-        var(--color-primary) 12%,
-        var(--color-surface-2)
-    );
 }
 
 .iconBox {

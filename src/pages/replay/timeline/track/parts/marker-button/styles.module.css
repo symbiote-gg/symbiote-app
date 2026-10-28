@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .dimmed {
-    @apply opacity-35 transition-opacity;
+    @apply opacity-35;
 }
 
 .dimmed:hover,
@@ -19,7 +19,7 @@
 }
 
 .tick {
-    @apply absolute z-10 flex size-8 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center outline-none;
+    @apply absolute z-10 flex size-8 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center outline-none transition-opacity;
 }
 
 .tickVisual {
@@ -87,7 +87,7 @@
 }
 
 .mark {
-    @apply absolute z-10 inline-flex -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center gap-1 border text-xs font-semibold whitespace-nowrap text-fg outline-none;
+    @apply absolute z-10 inline-flex -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center gap-1 border text-xs font-semibold whitespace-nowrap text-fg outline-none transition-opacity;
     border-color: var(--side);
     background: color-mix(in srgb, var(--side) 18%, var(--color-surface));
 }

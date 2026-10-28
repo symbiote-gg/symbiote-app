@@ -20,5 +20,6 @@ export * from "./segmented";
 export * from "./select";
 export * from "./stat-tile";
 export * from "./table-head";
+export * from "./tabs";
 export * from "./tooltip";
 export * from "./typography";
