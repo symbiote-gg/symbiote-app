@@ -120,7 +120,6 @@ export function ReplayDetail() {
                                 label={t("label")}
                                 items={tabItems}
                                 value={tab}
-                                shortcutsLabel={t("keys")}
                             />
                         </div>
                         {!standoutsPending && (

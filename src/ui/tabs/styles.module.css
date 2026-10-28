@@ -19,11 +19,3 @@
 .icon {
     @apply size-4 shrink-0;
 }
-
-.hint {
-    @apply ml-auto flex items-center gap-1 self-center text-xs text-fg-muted;
-}
-
-.key {
-    @apply rounded border border-line px-1.5 font-mono text-fg-muted;
-}

@@ -130,8 +130,7 @@
             "label": "Replay sections",
             "overview": "Overview",
             "fights": "Fights",
-            "matchups": "Matchups",
-            "keys": "Keys"
+            "matchups": "Matchups"
         },
         "showInFolder": "Show in folder",
         "watchInGame": "Watch in game",
