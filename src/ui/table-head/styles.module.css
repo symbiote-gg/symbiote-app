@@ -14,7 +14,7 @@
 }
 
 .sort {
-    @apply inline-flex cursor-pointer items-center gap-1 uppercase;
+    @apply inline-flex cursor-pointer items-center gap-1 uppercase transition-colors;
 }
 
 .sort:hover {

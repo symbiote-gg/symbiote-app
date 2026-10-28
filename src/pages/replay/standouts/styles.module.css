@@ -18,7 +18,7 @@
 }
 
 .clickable {
-    @apply cursor-pointer;
+    @apply cursor-pointer transition-colors;
 }
 
 .tile:not(.active) .clickable:hover {

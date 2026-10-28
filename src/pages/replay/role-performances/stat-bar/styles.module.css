@@ -53,5 +53,5 @@
 }
 
 .popover {
-    @apply w-max max-w-[min(20rem,calc(100vw-16px))];
+    @apply max-h-none w-max max-w-[min(20rem,calc(100vw-16px))];
 }

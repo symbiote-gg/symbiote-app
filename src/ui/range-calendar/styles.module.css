@@ -37,7 +37,7 @@
 }
 
 .day {
-    @apply mx-auto inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-sm text-fg;
+    @apply mx-auto inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-sm text-fg transition-colors;
 }
 
 .day:hover:enabled:not(.edge) {

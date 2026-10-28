@@ -18,11 +18,15 @@
 }
 
 .row {
-    @apply flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left transition-[background-color,box-shadow] focus-visible:-outline-offset-2;
+    @apply flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left transition-colors focus-visible:-outline-offset-2;
 }
 
 .row:hover {
-    @apply bg-surface-2/50;
+    background-color: color-mix(
+        in oklab,
+        var(--color-surface-2) 50%,
+        var(--color-surface)
+    );
 }
 
 .row.mine {
@@ -32,7 +36,6 @@
 
 .row.selected {
     @apply bg-surface-2;
-    box-shadow: inset 3px 0 0 var(--color-fg-muted);
 }
 
 .row.later {

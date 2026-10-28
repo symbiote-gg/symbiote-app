@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .root {
-    @apply transition-colors hover:bg-surface-2/50;
+    @apply transition-[background-color,box-shadow] hover:bg-surface-2/50;
 }
 
 .new {
