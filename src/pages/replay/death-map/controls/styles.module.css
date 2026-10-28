@@ -1,0 +1,5 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex flex-wrap justify-end gap-2;
+}

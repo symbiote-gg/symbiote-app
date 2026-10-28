@@ -9,6 +9,7 @@ import { BackToReplays, Page } from "@/components";
 import { useReplay } from "@/hooks/useReplay";
 import { useStandouts } from "@/hooks/useStandouts";
 import { ErrorMessage } from "@/ui";
+import { DeathMap } from "./death-map";
 import { Header } from "./header";
 import { KillLog } from "./kill-log";
 import { RolePerformances } from "./role-performances";
@@ -103,6 +104,15 @@ export function ReplayDetail() {
                                     allyTeam={allyTeam}
                                     ownerSlot={replay.ownerSlot}
                                     ownerWin={replay.ownerWin}
+                                />
+                                <DeathMap
+                                    key={replay.id}
+                                    map={replay.map}
+                                    timeline={replay.timeline}
+                                    duration={replay.duration}
+                                    players={replay.players}
+                                    allyTeam={allyTeam}
+                                    ownerSlot={replay.ownerSlot}
                                 />
                                 {owner && (
                                     <KillLog

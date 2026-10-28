@@ -154,9 +154,7 @@ pub struct Death {
     /// `None` when no hero landed it: minions, structures, mercenaries.
     pub killing_blow: Option<u8>,
     /// Where, in map units. `None` on replays ingested before it was tracked.
-    #[serde(skip_serializing)]
     pub x: Option<f64>,
-    #[serde(skip_serializing)]
     pub y: Option<f64>,
     /// Living teammates near the victim as it died: 0 means it died alone. `None`
     /// when unknown, e.g. replays ingested before it was tracked.

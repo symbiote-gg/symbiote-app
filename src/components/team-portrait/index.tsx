@@ -7,7 +7,7 @@ import styles from "./styles.module.css";
 
 interface TeamPortraitProps {
     slot: number;
-    size: "xs" | "sm";
+    size: "xs" | "sm" | "md";
     roster: Roster;
     thin?: boolean;
 }

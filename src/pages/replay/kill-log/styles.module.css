@@ -64,20 +64,6 @@
     @apply max-h-[26rem];
 }
 
-.half .body {
-    scrollbar-gutter: auto;
-}
-
-.half .head {
-    @apply sticky top-0 z-10;
-    scrollbar-gutter: auto;
-    background-color: color-mix(
-        in oklab,
-        var(--color-surface-2) 40%,
-        var(--color-surface)
-    );
-}
-
 .row {
     @apply min-h-16 border-b border-line/60 px-gutter py-2.5;
 }

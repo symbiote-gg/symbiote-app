@@ -1,6 +1,6 @@
 @reference "@/index.css";
 
-.filters {
+.root {
     @apply flex flex-wrap gap-1 rounded-lg border border-line bg-bg p-1;
 }
 
@@ -8,23 +8,27 @@
     @apply inline-flex cursor-pointer items-center gap-2 rounded-md border border-transparent px-3 py-1.5 text-sm font-semibold text-fg-muted transition-colors;
 }
 
-.chipIcon {
+.icon {
+    @apply flex shrink-0;
+}
+
+.icon svg {
     @apply size-4 shrink-0;
 }
 
-.chipCount {
+.count {
     @apply font-mono text-xs font-normal text-fg-muted;
 }
 
-.chipOn {
+.on {
     @apply bg-surface-2 text-fg;
 }
 
-.chipOff {
+.off {
     @apply text-fg-muted/70;
 }
 
-.chip:not(.chipOn):hover:enabled {
+.chip:not(.on):hover:enabled {
     @apply bg-surface-2/50;
 }
 
@@ -36,14 +40,14 @@
     @apply outline-3 outline-primary-text;
 }
 
-.chipMe.chipOn {
+.primary.on {
     @apply bg-primary/20 text-primary-text;
 }
 
-.chipMe.chipOn .chipCount {
+.primary.on .count {
     @apply text-primary-text/70;
 }
 
-.filterDivider {
+.divider {
     @apply mx-0.5 w-px self-stretch bg-line;
 }

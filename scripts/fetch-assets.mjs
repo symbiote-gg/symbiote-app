@@ -1,6 +1,6 @@
 // Fetches hero, talent, award and map facts and images from pinned HeroesToolChest
-// data versions and images commit at build time. Assets are never committed:
-// outputs live in gitignored folders.
+// data versions and images commit, and the minimap renders, at build time. Assets
+// are never committed: outputs live in gitignored folders.
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import process from "node:process";
@@ -10,11 +10,13 @@ import {
     DATA_DIR,
     IMAGE,
     MANIFEST,
+    MINIMAPS,
     PINS,
     SOURCES,
 } from "./assets/config.mjs";
 import { downloadImages, webp } from "./assets/images.mjs";
 import { exists, hashTree, readJson, writeJson } from "./assets/io.mjs";
+import { MINIMAPS_DIR, fetchMinimaps } from "./assets/minimaps.mjs";
 import { loadFacts } from "./assets/sources/index.mjs";
 
 // The heroes-images category, fact field and maximum size of each kind of
@@ -44,14 +46,17 @@ const IMAGES = [
 // Pins fully determine upstream content, so outputs only go stale when the pins
 // or this script change, or when an output was deleted.
 async function isUpToDate(pins, source) {
-    if (!(await exists(MANIFEST))) return false;
+    if (MINIMAPS_DIR || !(await exists(MANIFEST))) return false;
 
     const manifest = await readJson(MANIFEST);
+    // minimaps from a local folder may have changed since
+    if (manifest.localMinimaps) return false;
     if (JSON.stringify(manifest.pins) !== JSON.stringify(pins)) return false;
     if (manifest.source !== source) return false;
 
     const outputs = [
         ...IMAGES.map(({ kind }) => join(DATA_DIR, `${kind}.json`)),
+        MINIMAPS,
         ...Object.keys(manifest.files).map((file) => join(ASSETS_DIR, file)),
     ];
     for (const output of outputs) {
@@ -73,6 +78,7 @@ async function main() {
     const pins = {
         heroesData: PINS.heroesData.map((pin) => pin.version),
         heroesImages: PINS.heroesImages.commit,
+        minimaps: PINS.minimaps?.commit ?? null,
         image: {
             ...IMAGE,
             sizes: Object.fromEntries(
@@ -115,12 +121,17 @@ async function main() {
         }
     }
 
+    const minimaps = await fetchMinimaps(PINS.minimaps);
+    Object.assign(files, minimaps.hashes);
+    summary.push(`${minimaps.count} minimaps`);
+
     for (const { kind } of IMAGES) {
         await writeJson(join(DATA_DIR, `${kind}.json`), facts[kind]);
     }
     await writeJson(MANIFEST, {
         pins,
         source,
+        localMinimaps: Boolean(MINIMAPS_DIR),
         files: Object.fromEntries(Object.entries(files).sort()),
     });
 

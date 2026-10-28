@@ -45,6 +45,9 @@ export function useTimelineText(players: ReplayPlayerDetail[]) {
         }
     };
 
+    const entryLabel = (entry: Entry) =>
+        t("at", { time: at(entry.time), label: entryText(entry) });
+
     const objectiveLabel = (marker: ObjectiveMarker) =>
         marker.label ? t(`objective.${marker.label}`) : humanize(marker.kind);
 
@@ -75,6 +78,7 @@ export function useTimelineText(players: ReplayPlayerDetail[]) {
         at,
         heroOf,
         entryText,
+        entryLabel,
         markerText,
         markerLabel,
         objectiveLabel,

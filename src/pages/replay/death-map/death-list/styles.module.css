@@ -1,0 +1,48 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex max-h-80 min-h-32 flex-col overflow-hidden rounded-lg border border-line @5xl:max-h-none @5xl:flex-1;
+}
+
+.listHead {
+    @apply flex shrink-0 items-center justify-between border-b border-line px-3 py-2;
+    background-color: color-mix(
+        in oklab,
+        var(--color-surface-2) 40%,
+        var(--color-surface)
+    );
+}
+
+.rows {
+    @apply min-h-0 flex-1 overflow-y-auto py-1;
+}
+
+.row {
+    @apply flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left transition-[background-color,box-shadow] focus-visible:-outline-offset-2;
+}
+
+.row:hover {
+    @apply bg-surface-2/50;
+}
+
+.row.mine {
+    @apply bg-primary/10;
+    box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.row.selected {
+    @apply bg-surface-2;
+    box-shadow: inset 3px 0 0 var(--color-fg-muted);
+}
+
+.row.later {
+    @apply opacity-40;
+}
+
+.rowTime {
+    @apply w-9 shrink-0 font-mono text-xs text-fg-muted;
+}
+
+.rowText {
+    @apply flex min-w-0 flex-col;
+}

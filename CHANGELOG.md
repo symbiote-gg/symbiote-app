@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- Add deaths map with kill feed to replay detail page.
 - Add team roles performances section to replay detail page.
 - Add popovers to bookend markers on the timeline.
 - Add map filter to the replays.

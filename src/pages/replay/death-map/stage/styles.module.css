@@ -1,0 +1,74 @@
+@reference "@/index.css";
+
+.root {
+    @apply relative min-w-0;
+    --map-height: min(100vh - 10.5rem, 47rem);
+    --map-width: calc(var(--map-height) * var(--aspect));
+}
+
+.backdrop {
+    @apply pointer-events-none absolute inset-0;
+    --grid: 2rem;
+    --edge: calc(50% - min(100%, var(--map-width)) / 2);
+    background-image:
+        linear-gradient(to right, var(--color-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+    background-size: var(--grid) var(--grid);
+    background-position: center;
+    mask-image:
+        linear-gradient(
+            to right,
+            transparent,
+            #000 var(--edge),
+            #000 calc(100% - var(--edge)),
+            transparent
+        ),
+        linear-gradient(
+            to bottom,
+            transparent,
+            #000 4rem,
+            #000 calc(100% - 4rem),
+            transparent
+        );
+    mask-composite: intersect;
+}
+
+.stage {
+    @apply relative mx-auto flex w-full flex-col;
+    max-width: var(--map-width);
+    --fade: 3.5rem;
+}
+
+.map {
+    @apply relative;
+    aspect-ratio: var(--aspect);
+}
+
+.render {
+    @apply absolute inset-0;
+    mask-image:
+        linear-gradient(
+            to right,
+            transparent,
+            #000 var(--fade),
+            #000 calc(100% - var(--fade)),
+            transparent
+        ),
+        linear-gradient(
+            to bottom,
+            transparent,
+            #000 var(--fade),
+            #000 calc(100% - var(--fade)),
+            transparent
+        );
+    mask-composite: intersect;
+}
+
+.image {
+    @apply block size-full select-none;
+    filter: brightness(0.55) saturate(0.6);
+}
+
+.pins {
+    @apply absolute inset-0;
+}

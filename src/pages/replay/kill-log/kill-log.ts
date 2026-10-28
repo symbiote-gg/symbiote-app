@@ -21,9 +21,6 @@ export function ownerDeaths(
     }));
 }
 
-export const killerOf = (death: DeathEntry) =>
-    death.killingBlow ?? death.killers[0] ?? null;
-
 export interface TopSlot {
     slot: number;
     count: number;

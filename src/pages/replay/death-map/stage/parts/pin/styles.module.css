@@ -1,0 +1,19 @@
+@reference "@/index.css";
+
+.root {
+    @apply absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full transition-opacity;
+}
+
+.faded {
+    @apply opacity-40;
+}
+
+.root:hover,
+.root:focus-visible,
+.root.selected {
+    @apply z-[15] opacity-100;
+}
+
+.root.selected {
+    @apply outline-2 outline-offset-2 outline-fg/60;
+}

@@ -35,9 +35,11 @@ interface HeaderProps {
     marker: Marker;
     view: MarkerView;
     text: TimelineText;
+    /** Off for one death out of a fight, whose score isn't the fight's. */
+    result?: boolean;
 }
 
-function Title({ marker, view, text }: HeaderProps) {
+function Title({ marker, view, text, result = true }: HeaderProps) {
     const t = useTranslations("replay.timeline");
 
     const { fight, score, end, structure, camp, map, race } = view;
@@ -57,11 +59,14 @@ function Title({ marker, view, text }: HeaderProps) {
         return (
             <HeaderText
                 title={t("fightKind", { kind: fight })}
-                tag={t("fightResult", {
-                    result: winner ?? "none",
-                    ally: score[0],
-                    enemy: score[1],
-                })}
+                tag={
+                    result &&
+                    t("fightResult", {
+                        result: winner ?? "none",
+                        ally: score[0],
+                        enemy: score[1],
+                    })
+                }
                 tagClassName={classNames(sideClasses(winner))}
                 meta={timeRange}
             />
@@ -177,7 +182,7 @@ function Title({ marker, view, text }: HeaderProps) {
     );
 }
 
-export function Header({ marker, view, text }: HeaderProps) {
+export function Header({ marker, view, text, result }: HeaderProps) {
     const glyph = headerGlyph(marker, view);
 
     return (
@@ -191,7 +196,7 @@ export function Header({ marker, view, text }: HeaderProps) {
                     )}
                 />
             )}
-            <Title marker={marker} view={view} text={text} />
+            <Title marker={marker} view={view} text={text} result={result} />
         </header>
     );
 }

@@ -1,0 +1,19 @@
+@reference "@/index.css";
+
+.root {
+    @apply @container self-stretch;
+}
+
+.body {
+    @apply grid grid-cols-1 gap-x-6 gap-y-4 px-gutter pb-6 @5xl:grid-cols-[minmax(0,1fr)_22rem];
+}
+
+/* Side: at full width the stage alone sets the row's height */
+
+.side {
+    @apply relative min-w-0;
+}
+
+.sideInner {
+    @apply flex flex-col gap-4 @5xl:absolute @5xl:inset-0;
+}

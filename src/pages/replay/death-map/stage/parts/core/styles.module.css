@@ -1,0 +1,22 @@
+@reference "@/index.css";
+
+/* Under the pins, which matter more where both fall. */
+.root {
+    @apply absolute -translate-x-1/2 -translate-y-1/2;
+}
+
+.badge {
+    @apply flex size-12 items-center justify-center rounded-full bg-surface-2 ring-[3px];
+}
+
+.badge.ally {
+    @apply text-team-blue ring-team-blue;
+}
+
+.badge.enemy {
+    @apply text-team-red ring-team-red;
+}
+
+.icon {
+    @apply size-6;
+}

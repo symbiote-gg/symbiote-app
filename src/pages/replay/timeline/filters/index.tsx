@@ -1,12 +1,10 @@
-import classNames from "classnames";
 import { UserRound } from "lucide-react";
 import type { MouseEvent } from "react";
 import { useTranslations } from "use-intl";
 
+import { ChipButton, ChipDivider, ChipGroup } from "@/ui";
 import { FILTERS, FILTER_GLYPHS, type Filter } from "@/utils/timeline/filters";
 import { GlyphIcon } from "../glyphs";
-
-import styles from "./styles.module.css";
 
 interface FiltersProps {
     hidden: Set<Filter>;
@@ -33,50 +31,33 @@ export function Filters({
         onToggle(e.currentTarget.value as Filter);
 
     return (
-        <div role="group" aria-label={t("label")} className={styles.filters}>
-            <button
-                type="button"
-                aria-pressed={me}
-                className={classNames(styles.chip, styles.chipMe, {
-                    [styles.chipOn]: me,
-                    [styles.chipOff]: !me,
-                })}
+        <ChipGroup label={t("label")}>
+            <ChipButton
+                icon={<UserRound />}
+                count={meCount}
+                pressed={me}
+                accent="primary"
                 onClick={onToggleMe}
             >
-                <UserRound className={styles.chipIcon} aria-hidden />
                 {t("me")}
-                <span className={styles.chipCount}>{meCount}</span>
-            </button>
-            <span className={styles.filterDivider} aria-hidden />
+            </ChipButton>
+            <ChipDivider />
             {FILTERS.map((filter) => {
                 const off = disabled.has(filter);
-                const on = !off && !hidden.has(filter);
                 return (
-                    <button
+                    <ChipButton
                         key={filter}
-                        type="button"
-                        value={filter}
-                        aria-pressed={on}
+                        icon={<GlyphIcon glyph={FILTER_GLYPHS[filter]} />}
+                        count={off ? undefined : counts[filter]}
+                        pressed={!off && !hidden.has(filter)}
                         disabled={off}
-                        className={classNames(styles.chip, {
-                            [styles.chipOn]: on,
-                            [styles.chipOff]: !off && !on,
-                        })}
+                        value={filter}
                         onClick={onClick}
                     >
-                        <GlyphIcon
-                            glyph={FILTER_GLYPHS[filter]}
-                            className={styles.chipIcon}
-                        />
                         {t(filter)}
-                        {!off && (
-                            <span className={styles.chipCount}>
-                                {counts[filter]}
-                            </span>
-                        )}
-                    </button>
+                    </ChipButton>
                 );
             })}
-        </div>
+        </ChipGroup>
     );
 }

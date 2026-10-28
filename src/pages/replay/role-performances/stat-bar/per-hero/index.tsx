@@ -45,6 +45,19 @@ export function PerHero({
         .map(({ player }) => player[stat])
         .filter((value) => value !== null);
 
+    // Best first: barLength already inverts lower-is-better stats.
+    const rows = heroes
+        .map((hero) => {
+            const value = hero.player[stat];
+
+            return {
+                ...hero,
+                value,
+                length: value === null ? null : barLength(stat, value, values),
+            };
+        })
+        .sort((a, b) => (b.length ?? -1) - (a.length ?? -1));
+
     return (
         <>
             <header className={styles.header}>
@@ -63,37 +76,28 @@ export function PerHero({
                 />
             </header>
             <div className={styles.rows}>
-                {heroes.map(({ player, side }) => {
-                    const value = player[stat];
-                    const length =
-                        value === null ? 0 : barLength(stat, value, values);
-
-                    return (
-                        <div
-                            key={player.playerId}
-                            className={classNames(
-                                styles.row,
-                                sideClasses(side),
-                            )}
-                        >
-                            <SidePortrait
-                                player={player}
-                                side={side}
-                                owner={player.playerId === ownerId}
-                                size="sm"
-                            />
-                            <Gauge
-                                percent={length * 100}
-                                faded={better !== null && better !== side}
-                            />
-                            <GaugeValue>
-                                <Typography size="xs" weight="semibold" mono>
-                                    {formatValue(stat, value)}
-                                </Typography>
-                            </GaugeValue>
-                        </div>
-                    );
-                })}
+                {rows.map(({ player, side, value, length }) => (
+                    <div
+                        key={player.playerId}
+                        className={classNames(styles.row, sideClasses(side))}
+                    >
+                        <SidePortrait
+                            player={player}
+                            side={side}
+                            owner={player.playerId === ownerId}
+                            size="sm"
+                        />
+                        <Gauge
+                            percent={(length ?? 0) * 100}
+                            faded={better !== null && better !== side}
+                        />
+                        <GaugeValue>
+                            <Typography size="xs" weight="semibold" mono>
+                                {formatValue(stat, value)}
+                            </Typography>
+                        </GaugeValue>
+                    </div>
+                ))}
             </div>
         </>
     );

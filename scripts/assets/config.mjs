@@ -10,6 +10,7 @@ export const PINS = JSON.parse(
 export const ASSETS_DIR = join(ROOT, "public/game");
 export const MANIFEST = join(ASSETS_DIR, "manifest.json");
 export const DATA_DIR = join(ROOT, "src-tauri/data");
+export const MINIMAPS = join(ROOT, "src/generated/minimaps.json");
 export const SOURCES = [
     join(ROOT, "scripts/fetch-assets.mjs"),
     join(ROOT, "scripts/assets"),

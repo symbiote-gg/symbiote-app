@@ -167,6 +167,9 @@ export type TimelineDeath = {
      * when unknown, e.g. replays ingested before it was tracked.
      */
     alliesNearby: number | null;
+    /** Where, in map units. Null on replays ingested before it was tracked. */
+    x: number | null;
+    y: number | null;
 };
 
 export type TimelineStructure = {

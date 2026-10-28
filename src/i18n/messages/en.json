@@ -338,6 +338,25 @@
                 "deaths": "{count, plural, one {<b>{value}</b> death} other {<b>{value}</b> deaths}}"
             }
         },
+        "deathMap": {
+            "title": "Deaths on the map",
+            "layer": "Map level",
+            "surface": "Surface",
+            "mines": "Mines",
+            "scrub": "Game time",
+            "filterLabel": "Show deaths",
+            "filter": {
+                "all": "All",
+                "team": "Allies",
+                "you": "Me",
+                "enemy": "Enemies"
+            },
+            "base": {
+                "ally": "Your core",
+                "enemy": "Enemy core"
+            },
+            "killFeed": "Kill feed"
+        },
         "killLog": {
             "title": "{count, plural, one {You killed <n>#</n> hero} other {You killed <n>#</n> heroes}}",
             "deathsTitle": "{count, plural, one {You died <n>#</n> time} other {You died <n>#</n> times}}",

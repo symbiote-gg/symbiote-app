@@ -10,10 +10,11 @@ import type {
 } from "@/api/replays";
 import { Card } from "@/ui";
 import { formatDuration } from "@/utils/dates";
+import { killerOf } from "@/utils/timeline/markers";
 import type { Roster } from "@/utils/timeline/roster";
 import { Empty } from "./empty";
 import { Half, type Tone } from "./half";
-import { killerOf, mostFrequent, ownerDeaths } from "./kill-log";
+import { mostFrequent, ownerDeaths } from "./kill-log";
 import { Top } from "./top";
 import { Unplaced } from "./unplaced";
 

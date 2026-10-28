@@ -16,5 +16,10 @@
     "heroesImages": {
         "repo": "HeroesToolChest/heroes-images",
         "commit": "ea99cc6327291e6354770f458ab06c52812b9a61"
+    },
+    "minimaps": {
+        "repo": "symbiote-gg/hots-assets",
+        "commit": "bb9e36cb6dcd56e0c7a6b126308f5f516160164b",
+        "path": "battlegrounds"
     }
 }
