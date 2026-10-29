@@ -95,6 +95,7 @@ export function Timeline({
                 icon={Clock}
                 size="sm"
                 title={t("title")}
+                subtitle={t("subtitle")}
                 action={
                     <Filters
                         hidden={hidden}

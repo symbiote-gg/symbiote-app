@@ -142,6 +142,7 @@
         "flowDescription": "{flow, select, stomp {Your team never fell behind on XP and won by a wide margin} stomped {The enemy never fell behind on XP and won by a wide margin} comeback {Your team trailed on XP or lost several forts, and turned it around} leadLost {Your team led on XP or took several forts, but the enemy turned it around} controlled {Your team held the XP lead for most of the game} outpaced {The enemy held the XP lead for most of the game} other {XP, kills and forts stayed even, or the XP lead kept changing hands}}",
         "standouts": {
             "title": "What stood out",
+            "subtitle": "The highs and lows of this game. Once you've played this hero a few times, slip-ups only show up when they're worse than your usual.",
             "aloneDeaths": "came with no ally nearby, outside a team fight.",
             "pickDeaths": "were picks or ganks: deaths outside a real fight.",
             "firstDead": "started with you going down first.",
@@ -207,6 +208,7 @@
         "talents": "Talents",
         "timeline": {
             "title": "Timeline",
+            "subtitle": "The whole game, beat by beat: fights, objectives, structures and camps for both teams. The level row shows which team hit each talent tier first, and by how much.",
             "side": {
                 "ally": "Your team",
                 "enemy": "Enemy team"
@@ -362,6 +364,7 @@
         },
         "deathMap": {
             "title": "Deaths on the map",
+            "subtitle": "Where heroes went down. Drag through the game, pick a side, or hover a death to see who got them.",
             "layer": "Map level",
             "surface": "Surface",
             "mines": "Mines",

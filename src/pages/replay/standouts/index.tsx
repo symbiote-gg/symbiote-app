@@ -18,7 +18,12 @@ export function Standouts({ result }: StandoutsProps) {
 
     return (
         <Card className={styles.standouts}>
-            <CardHeader icon={ScanSearch} size="sm" title={t("title")} />
+            <CardHeader
+                icon={ScanSearch}
+                size="sm"
+                title={t("title")}
+                subtitle={t("subtitle")}
+            />
             <ul className={styles.tiles}>
                 {result.items.map((item) => (
                     <Tile key={item.id} standout={item} />

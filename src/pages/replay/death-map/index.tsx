@@ -169,6 +169,7 @@ export function DeathMap({
                 icon={MapPin}
                 size="sm"
                 title={t("title")}
+                subtitle={t("subtitle")}
                 action={
                     <Controls
                         layerCount={layers.length}
