@@ -1,7 +1,7 @@
 import { useTranslations } from "use-intl";
 
 import { ROLE_ICONS } from "../role-icons";
-import { type RoleComparison, verdictOf } from "../role-performances";
+import type { RoleComparison } from "../role-performances";
 import { Verdict } from "../verdict";
 
 import styles from "./styles.module.css";
@@ -13,7 +13,7 @@ interface VerdictTallyProps {
 export function VerdictTally({ roles }: VerdictTallyProps) {
     const roleNames = useTranslations("roles");
 
-    const shared = roles.filter((comparison) => verdictOf(comparison) !== null);
+    const shared = roles.filter(({ score }) => score.verdict !== null);
     if (shared.length === 0) return null;
 
     return (

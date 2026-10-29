@@ -5,7 +5,7 @@ import { HeroPortrait } from "@/components";
 import { Roster } from "@/utils/timeline/roster";
 import { playerOf } from "@/utils/timeline/roster";
 import { DeathEntry } from "@/utils/timeline/types";
-import { sideClasses } from "../../../side";
+import { sideClasses } from "../../../../side";
 import { KillCells } from "./kill-cells";
 
 import styles from "./styles.module.css";

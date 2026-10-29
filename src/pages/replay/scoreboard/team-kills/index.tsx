@@ -4,6 +4,7 @@ import { useTranslations } from "use-intl";
 import type { TeamSummary } from "@/api/replays";
 import { Eyebrow, Typography } from "@/ui";
 import { formatDuration } from "@/utils/dates";
+import { sideClasses } from "../../side";
 
 import styles from "./styles.module.css";
 
@@ -22,7 +23,13 @@ function TeamLabel({ side, summary }: TeamLabelProps) {
     const t = useTranslations("replay");
 
     return (
-        <div className={classNames(styles.label, styles[side])}>
+        <div
+            className={classNames(
+                styles.label,
+                styles[side],
+                sideClasses(side),
+            )}
+        >
             <div className={styles.heading}>
                 <Typography
                     size="lg"
@@ -72,7 +79,7 @@ export function TeamKills({ ally, enemy, duration }: TeamKillsProps) {
             <Typography
                 weight="semibold"
                 display
-                className={classNames(styles.count, styles.ally)}
+                className={classNames(styles.count, sideClasses("ally"))}
             >
                 {ally.kills + ally.aiKills}
             </Typography>
@@ -87,7 +94,7 @@ export function TeamKills({ ally, enemy, duration }: TeamKillsProps) {
             <Typography
                 weight="semibold"
                 display
-                className={classNames(styles.count, styles.enemy)}
+                className={classNames(styles.count, sideClasses("enemy"))}
             >
                 {enemy.kills + enemy.aiKills}
             </Typography>

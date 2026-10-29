@@ -5,8 +5,7 @@
 }
 
 .owner {
-    @apply bg-primary/10;
-    box-shadow: inset 3px 0 0 var(--color-primary);
+    @apply row-marker;
 }
 
 .hero {
@@ -18,7 +17,7 @@
 }
 
 .portrait {
-    @apply ring-2;
+    @apply ring-2 ring-side;
 }
 
 .party {
@@ -43,14 +42,6 @@
 
 .party4 {
     @apply text-party-4;
-}
-
-.ally {
-    @apply ring-team-blue;
-}
-
-.enemy {
-    @apply ring-team-red;
 }
 
 .playerText {
@@ -90,23 +81,11 @@
 }
 
 .statCell .bar {
-    @apply h-full rounded-full;
+    @apply h-full rounded-full bg-side-soft;
 }
 
-.allyBar .bar {
-    @apply bg-team-blue/35;
-}
-
-.enemyBar .bar {
-    @apply bg-team-red/35;
-}
-
-.allyBar.top .bar {
-    @apply bg-team-blue;
-}
-
-.enemyBar.top .bar {
-    @apply bg-team-red;
+.statCell.top .bar {
+    @apply bg-side-strong;
 }
 
 .secondary {

@@ -1,11 +1,11 @@
 @reference "@/index.css";
 
 .root {
-    @apply transition-[background-color,box-shadow] hover:bg-surface-2/50;
+    @apply transition-colors hover:bg-surface-2/50;
 }
 
 .new {
-    @apply bg-primary/10 shadow-[inset_3px_0_0_var(--color-primary)] hover:bg-primary/15;
+    @apply row-marker;
 }
 
 .badge {

@@ -5,18 +5,14 @@
 }
 
 .summary {
-    @apply grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_10rem_14rem_1.5rem] items-center gap-4 px-gutter py-2.5 transition-colors hover:bg-surface-2/50;
-}
-
-.summary::-webkit-details-marker {
-    @apply hidden;
+    @apply grid w-full cursor-pointer text-left grid-cols-[minmax(0,1fr)_10rem_14rem_1.5rem] items-center gap-4 px-gutter py-2.5 transition-colors hover:bg-surface-2/50;
 }
 
 .chevron {
     @apply justify-self-end text-fg-muted transition-transform;
 }
 
-.root[open] .chevron {
+.summary[aria-expanded="true"] .chevron {
     @apply rotate-180;
 }
 

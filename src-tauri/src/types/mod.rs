@@ -3,6 +3,7 @@ pub mod hero;
 pub mod map;
 pub mod player;
 pub mod replay;
+pub mod role_performances;
 pub mod settings;
 pub mod standouts;
 pub mod stats;

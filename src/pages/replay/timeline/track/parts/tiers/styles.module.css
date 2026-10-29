@@ -1,19 +1,14 @@
 @reference "@/index.css";
 
 .tier {
-    @apply pointer-events-auto absolute flex -translate-x-1/2 items-stretch overflow-hidden rounded-md border font-mono text-[11px] whitespace-nowrap;
-    background: color-mix(in srgb, var(--team) 55%, black);
-    border-color: var(--team);
-    color: color-mix(in srgb, var(--team) 8%, white);
+    @apply pointer-events-auto absolute flex -translate-x-1/2 items-stretch overflow-hidden rounded-md border border-side bg-side-soft font-mono text-[11px] whitespace-nowrap text-fg;
 }
 
 .tierAlly {
-    --team: var(--color-team-blue);
     @apply top-0;
 }
 
 .tierEnemy {
-    --team: var(--color-team-red);
     @apply bottom-0;
 }
 
@@ -26,19 +21,17 @@
 }
 
 .tierAhead {
-    @apply px-1.5 py-0.5 font-bold;
-    background: color-mix(in srgb, var(--team) 15%, var(--color-bg));
-    color: color-mix(in srgb, var(--team) 80%, white);
+    @apply bg-side-strong px-1.5 py-0.5 font-bold;
 }
 
 .levelLine {
-    @apply pointer-events-none absolute w-0 border-l;
+    @apply pointer-events-none absolute w-0 border-l border-side/45;
 }
 
 .levelLineAlly {
-    @apply top-0 border-team-blue/45 text-team-blue;
+    @apply top-0;
 }
 
 .levelLineEnemy {
-    @apply bottom-0 border-team-red/45 text-team-red;
+    @apply bottom-0;
 }

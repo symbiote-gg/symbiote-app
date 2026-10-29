@@ -1,5 +1,5 @@
 import { type LucideIcon, PanelsTopLeft, Scale, Swords } from "lucide-react";
-import { Activity, useEffect, useRef } from "react";
+import { Activity } from "react";
 import { useTranslations } from "use-intl";
 import { useParams } from "wouter";
 
@@ -50,8 +50,6 @@ export function ReplayDetail() {
         tab?: string;
     }>();
     const { data: replay, error } = useReplay(Number(replayId));
-    const anchorRef = useRef<HTMLDivElement>(null);
-    const tabsRef = useRef<HTMLDivElement>(null);
 
     const standouts = useStandouts(
         Number(replayId),
@@ -85,19 +83,6 @@ export function ReplayDetail() {
         icon: ICONS[value],
     }));
 
-    // Once the bar is stuck, a new tab starts at its own top instead of the
-    // old tab's scroll offset.
-    useEffect(() => {
-        const anchor = anchorRef.current;
-        const bar = tabsRef.current;
-        if (!anchor || !bar) return;
-
-        if (
-            anchor.getBoundingClientRect().top < bar.getBoundingClientRect().top
-        )
-            anchor.scrollIntoView({ block: "start" });
-    }, [tab]);
-
     return (
         <Page>
             <div className={styles.main}>
@@ -113,15 +98,14 @@ export function ReplayDetail() {
                             replay={replay}
                             owner={owner}
                             allyTeam={allyTeam}
+                            tabs={
+                                <Tabs
+                                    label={t("label")}
+                                    items={tabItems}
+                                    value={tab}
+                                />
+                            }
                         />
-                        <div ref={anchorRef} className={styles.anchor} />
-                        <div ref={tabsRef} className={styles.tabs}>
-                            <Tabs
-                                label={t("label")}
-                                items={tabItems}
-                                value={tab}
-                            />
-                        </div>
                         {!standoutsPending && (
                             <Activity mode={mode("overview")}>
                                 {result && <Standouts result={result} />}
@@ -158,8 +142,8 @@ export function ReplayDetail() {
                         )}
                         <Activity mode={mode("matchups")}>
                             <RolePerformances
+                                performances={replay.rolePerformances}
                                 players={replay.players}
-                                allyTeam={allyTeam}
                                 ownerId={replay.ownerPlayerId}
                                 ownerRole={replay.heroRole}
                             />

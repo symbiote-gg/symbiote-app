@@ -1,0 +1,13 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex flex-row flex-wrap items-center gap-x-4 gap-y-2 border-b border-line/60 px-gutter py-4;
+}
+
+.root:last-child {
+    @apply border-b-0;
+}
+
+.own {
+    @apply row-marker;
+}

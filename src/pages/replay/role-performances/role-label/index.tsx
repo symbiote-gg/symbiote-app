@@ -1,4 +1,5 @@
 import { Info } from "lucide-react";
+import type { MouseEvent } from "react";
 import { useTranslations } from "use-intl";
 
 import { Eyebrow, Tooltip } from "@/ui";
@@ -20,10 +21,16 @@ export function RoleLabel({
     const Icon = ROLE_ICONS[role];
     const averaged = ally.length > 1 || enemy.length > 1;
 
+    const onInfoClick = (event: MouseEvent) => {
+        event.stopPropagation();
+    };
+
     return (
         <span className={styles.root}>
             <Icon className={styles.icon} aria-hidden />
-            <Eyebrow className={styles.label}>{roles(role)}</Eyebrow>
+            <Eyebrow as="span" noWrap className={styles.label}>
+                {roles(role)}
+            </Eyebrow>
             {averaged && (
                 <Tooltip
                     content={t("averaged")}
@@ -35,6 +42,7 @@ export function RoleLabel({
                     <Info
                         className={styles.averagedInfo}
                         aria-label={t("averaged")}
+                        onClick={onInfoClick}
                     />
                 </Tooltip>
             )}

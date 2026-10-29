@@ -10,6 +10,7 @@ import { useImageFallback } from "@/hooks/useImageFallback";
 import { useWatchReplay } from "@/hooks/useWatchReplay";
 import { Button, Chip, Eyebrow, Tooltip, Typography } from "@/ui";
 import { formatDuration, usePlayedOn } from "@/utils/dates";
+import { sideClasses } from "../side";
 import { FlowChip } from "./flow-chip";
 
 import styles from "./styles.module.css";
@@ -29,6 +30,7 @@ export interface HeaderProps {
     replay: ReplayDetail;
     owner: ReplayPlayerDetail | undefined;
     allyTeam: number;
+    tabs: ReactNode;
 }
 
 interface HeaderStat {
@@ -36,7 +38,7 @@ interface HeaderStat {
     value: ReactNode;
 }
 
-export function Header({ replay, owner, allyTeam }: HeaderProps) {
+export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
     const t = useTranslations();
     const format = useFormatter();
     const playedOn = usePlayedOn();
@@ -108,210 +110,220 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
 
     return (
         <header className={classNames(styles.root, styles[result])}>
-            {replay.mapLoadingScreen && !failed && (
-                <img
-                    src={`/game/loadingscreens/${replay.mapLoadingScreen}`}
-                    alt=""
-                    decoding="sync"
-                    className={styles.art}
-                    onError={onError}
-                />
-            )}
-            <div className={styles.shade} />
-            <div className={styles.glow} />
-            <div className={styles.content}>
-                <div className={styles.toolbar}>
-                    <BackToReplays className={styles.tool} />
-                    <div className={styles.actions}>
-                        {replay.eventsExpired && (
-                            <Typography size="sm" className={styles.notice}>
-                                <History />
-                                {t("replay.eventsExpired")}
-                            </Typography>
-                        )}
-                        {replay.onDisk && (
-                            <Tooltip
-                                content={t("replay.watchInGame")}
-                                description={t("replay.watchInGameDescription")}
-                                placement="bottom"
-                            >
+            <div className={styles.hero}>
+                {replay.mapLoadingScreen && !failed && (
+                    <img
+                        src={`/game/loadingscreens/${replay.mapLoadingScreen}`}
+                        alt=""
+                        decoding="sync"
+                        className={styles.art}
+                        onError={onError}
+                    />
+                )}
+                <div className={styles.shade} />
+                <div className={styles.glow} />
+                <div className={styles.content}>
+                    <div className={styles.toolbar}>
+                        <BackToReplays className={styles.tool} />
+                        <div className={styles.actions}>
+                            {replay.eventsExpired && (
+                                <Typography size="sm" className={styles.notice}>
+                                    <History />
+                                    {t("replay.eventsExpired")}
+                                </Typography>
+                            )}
+                            {replay.onDisk && (
+                                <Tooltip
+                                    content={t("replay.watchInGame")}
+                                    description={t(
+                                        "replay.watchInGameDescription",
+                                    )}
+                                    placement="bottom"
+                                >
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={onWatch}
+                                        disabled={watch.isPending}
+                                        aria-label={t("replay.watchInGame")}
+                                        className={styles.tool}
+                                    >
+                                        <MonitorPlay />
+                                        <span className={styles.toolLabel}>
+                                            {t("replay.watchInGame")}
+                                        </span>
+                                    </Button>
+                                </Tooltip>
+                            )}
+                            {replay.onDisk && (
                                 <Button
                                     variant="secondary"
                                     size="sm"
-                                    onClick={onWatch}
-                                    disabled={watch.isPending}
-                                    aria-label={t("replay.watchInGame")}
+                                    onClick={onReveal}
+                                    aria-label={t("replay.showInFolder")}
                                     className={styles.tool}
                                 >
-                                    <MonitorPlay />
+                                    <Folder />
                                     <span className={styles.toolLabel}>
-                                        {t("replay.watchInGame")}
+                                        {t("replay.showInFolder")}
                                     </span>
                                 </Button>
-                            </Tooltip>
-                        )}
-                        {replay.onDisk && (
-                            <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={onReveal}
-                                aria-label={t("replay.showInFolder")}
-                                className={styles.tool}
-                            >
-                                <Folder />
-                                <span className={styles.toolLabel}>
-                                    {t("replay.showInFolder")}
-                                </span>
-                            </Button>
-                        )}
+                            )}
+                        </div>
                     </div>
-                </div>
-                <div className={styles.summary}>
-                    <div className={styles.identity}>
-                        <span className={styles.portrait}>
-                            <HeroPortrait
-                                name={replay.heroName}
-                                portrait={replay.heroPortrait}
-                                size="lg"
-                                className={styles.portraitImage}
-                            />
-                        </span>
-                        <div className={styles.text}>
-                            <div className={styles.facts}>
-                                {result !== "unknown" && (
+                    <div className={styles.summary}>
+                        <div className={styles.identity}>
+                            <span className={styles.portrait}>
+                                <HeroPortrait
+                                    name={replay.heroName}
+                                    portrait={replay.heroPortrait}
+                                    size="lg"
+                                    className={styles.portraitImage}
+                                />
+                            </span>
+                            <div className={styles.text}>
+                                <div className={styles.facts}>
+                                    {result !== "unknown" && (
+                                        <Chip
+                                            size="sm"
+                                            tone={result}
+                                            uppercase
+                                            className={classNames(
+                                                styles.tag,
+                                                styles.resultTag,
+                                            )}
+                                        >
+                                            {t("replay.result", { result })}
+                                        </Chip>
+                                    )}
                                     <Chip
                                         size="sm"
-                                        tone={result}
+                                        icon={modeIcon(replay.mode)}
                                         uppercase
-                                        className={classNames(
-                                            styles.tag,
-                                            styles.resultTag,
-                                        )}
+                                        className={styles.tag}
                                     >
-                                        {t("replay.result", { result })}
+                                        {t(`modes.${replay.mode}`)}
                                     </Chip>
-                                )}
-                                <Chip
-                                    size="sm"
-                                    icon={modeIcon(replay.mode)}
+                                    {replay.flow &&
+                                        replay.ownerWin !== null && (
+                                            <FlowChip
+                                                flow={replay.flow}
+                                                ownerWin={replay.ownerWin}
+                                                className={classNames(
+                                                    styles.tag,
+                                                    styles.flowTag,
+                                                )}
+                                            />
+                                        )}
+                                    <Typography
+                                        size="sm"
+                                        noWrap
+                                        className={styles.fact}
+                                    >
+                                        {played}
+                                    </Typography>
+                                </div>
+                                <Typography
+                                    size="xl2"
+                                    weight="semibold"
+                                    display
                                     uppercase
-                                    className={styles.tag}
+                                    className={styles.title}
                                 >
-                                    {t(`modes.${replay.mode}`)}
-                                </Chip>
+                                    {replay.mapName}
+                                </Typography>
+                            </div>
+                            {reached.length > 0 && (
+                                <div className={styles.moments}>
+                                    {reached.map(({ kind, team, time }) => {
+                                        const side =
+                                            team === allyTeam
+                                                ? "ally"
+                                                : "enemy";
+
+                                        return (
+                                            <div
+                                                key={kind}
+                                                className={classNames(
+                                                    styles.moment,
+                                                    sideClasses(side),
+                                                )}
+                                            >
+                                                <Typography
+                                                    size="xs"
+                                                    variant="tertiary"
+                                                    noWrap
+                                                >
+                                                    {t(
+                                                        `replay.milestone.${kind}`,
+                                                    )}
+                                                </Typography>
+                                                <Typography
+                                                    size="xs"
+                                                    weight="semibold"
+                                                    mono
+                                                    noWrap
+                                                >
+                                                    {formatDuration(
+                                                        Math.round(time),
+                                                    )}
+                                                </Typography>
+                                                <Typography
+                                                    size="xs"
+                                                    weight="semibold"
+                                                    noWrap
+                                                    className={styles.side}
+                                                >
+                                                    {t("replay.milestoneSide", {
+                                                        side,
+                                                    })}
+                                                </Typography>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                        <div className={styles.outcome}>
+                            <div className={styles.verdict}>
+                                <Typography
+                                    size="lg"
+                                    weight="semibold"
+                                    display
+                                    uppercase
+                                    noWrap
+                                    className={styles.result}
+                                >
+                                    {t("replay.result", { result })}
+                                </Typography>
                                 {replay.flow && replay.ownerWin !== null && (
                                     <FlowChip
                                         flow={replay.flow}
                                         ownerWin={replay.ownerWin}
-                                        className={classNames(
-                                            styles.tag,
-                                            styles.flowTag,
-                                        )}
+                                        size="md"
                                     />
                                 )}
-                                <Typography
-                                    size="sm"
-                                    noWrap
-                                    className={styles.fact}
-                                >
-                                    {played}
-                                </Typography>
                             </div>
-                            <Typography
-                                size="xl2"
-                                weight="semibold"
-                                display
-                                uppercase
-                                className={styles.title}
-                            >
-                                {replay.mapName}
-                            </Typography>
-                        </div>
-                        {reached.length > 0 && (
-                            <div className={styles.moments}>
-                                {reached.map(({ kind, team, time }) => {
-                                    const side =
-                                        team === allyTeam ? "ally" : "enemy";
-
-                                    return (
-                                        <div
-                                            key={kind}
-                                            className={classNames(
-                                                styles.moment,
-                                                styles[side],
-                                            )}
+                            <div className={styles.panel}>
+                                {stats.map(({ label, value }) => (
+                                    <div key={label} className={styles.stat}>
+                                        <Eyebrow noWrap>{label}</Eyebrow>
+                                        <Typography
+                                            weight="semibold"
+                                            mono
+                                            noWrap
+                                            className={styles.statValue}
                                         >
-                                            <Typography
-                                                size="xs"
-                                                variant="tertiary"
-                                                noWrap
-                                            >
-                                                {t(`replay.milestone.${kind}`)}
-                                            </Typography>
-                                            <Typography
-                                                size="xs"
-                                                weight="semibold"
-                                                mono
-                                                noWrap
-                                            >
-                                                {formatDuration(
-                                                    Math.round(time),
-                                                )}
-                                            </Typography>
-                                            <Typography
-                                                size="xs"
-                                                weight="semibold"
-                                                noWrap
-                                                className={styles.side}
-                                            >
-                                                {t("replay.milestoneSide", {
-                                                    side,
-                                                })}
-                                            </Typography>
-                                        </div>
-                                    );
-                                })}
+                                            {value}
+                                        </Typography>
+                                    </div>
+                                ))}
                             </div>
-                        )}
-                    </div>
-                    <div className={styles.outcome}>
-                        <div className={styles.verdict}>
-                            <Typography
-                                size="lg"
-                                weight="semibold"
-                                display
-                                uppercase
-                                noWrap
-                                className={styles.result}
-                            >
-                                {t("replay.result", { result })}
-                            </Typography>
-                            {replay.flow && replay.ownerWin !== null && (
-                                <FlowChip
-                                    flow={replay.flow}
-                                    ownerWin={replay.ownerWin}
-                                    size="md"
-                                />
-                            )}
-                        </div>
-                        <div className={styles.panel}>
-                            {stats.map(({ label, value }) => (
-                                <div key={label} className={styles.stat}>
-                                    <Eyebrow noWrap>{label}</Eyebrow>
-                                    <Typography
-                                        weight="semibold"
-                                        mono
-                                        noWrap
-                                        className={styles.statValue}
-                                    >
-                                        {value}
-                                    </Typography>
-                                </div>
-                            ))}
                         </div>
                     </div>
                 </div>
             </div>
+            <div className={styles.tabs}>{tabs}</div>
         </header>
     );
 }

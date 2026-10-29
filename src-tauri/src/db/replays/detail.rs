@@ -1,6 +1,7 @@
 use hots_replay_parser::summary::LOOPS_PER_SECOND;
 use sqlx::{FromRow, SqlitePool};
 
+use crate::role_performances;
 use crate::timeline;
 use crate::types::replay::{AwardInfo, ReplayDetail, ReplayPlayerDetail, TalentPick, TeamSummary};
 use crate::types::timeline::{RawEvent, Timeline};
@@ -53,8 +54,8 @@ pub async fn get_detail(
     };
 
     detail.players = sqlx::query_as::<_, ReplayPlayerDetail>(
-        "SELECT rp.player_id, p.name, rp.slot, rp.team, rp.hero_id, h.name AS hero_name,
-             h.role AS hero_role, h.portrait AS hero_portrait,
+        "SELECT rp.player_id, p.name, rp.slot, rp.team, rp.hero_id, h.slug AS hero_slug,
+             h.name AS hero_name, h.role AS hero_role, h.portrait AS hero_portrait,
              json_extract(rp.score, '$.SoloKill') AS kills,
              json_extract(rp.score, '$.Assists') AS assists,
              json_extract(rp.score, '$.Deaths') AS deaths,
@@ -64,6 +65,7 @@ pub async fn get_detail(
              json_extract(rp.score, '$.Healing') AS healing,
              json_extract(rp.score, '$.SelfHealing') AS self_healing,
              json_extract(rp.score, '$.DamageTaken') AS damage_taken,
+             json_extract(rp.score, '$.TeamfightDamageTaken') AS teamfight_damage_taken,
              json_extract(rp.score, '$.ExperienceContribution') AS xp,
              CASE WHEN json_extract(rp.score, '$.TimeStunningEnemyHeroes') IS NULL
                      AND json_extract(rp.score, '$.TimeRootingEnemyHeroes') IS NULL
@@ -73,6 +75,7 @@ pub async fn get_detail(
                      + COALESCE(json_extract(rp.score, '$.TimeRootingEnemyHeroes'), 0)
                      + COALESCE(json_extract(rp.score, '$.TimeSilencingEnemyHeroes'), 0)
              END AS hard_cc,
+             json_extract(rp.score, '$.ProtectionGivenToAllies') AS protection,
              rp.time_dead_secs AS time_dead,
              rp.time_on_fire_secs AS time_on_fire, rp.upvotes, rp.party
          FROM replays_players rp
@@ -141,6 +144,8 @@ pub async fn get_detail(
     detail.kill_log =
         timeline::kill_log::build(&detail.timeline, &detail.players, detail.replay.owner_slot);
     detail.owner_kill_participation = kill_participation(&detail);
+    detail.role_performances =
+        role_performances::compare(&detail.players, detail.replay.owner_team, detail.hero_role);
 
     Ok(Some(detail))
 }

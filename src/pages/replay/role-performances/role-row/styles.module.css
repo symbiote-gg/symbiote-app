@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .role {
-    @apply flex flex-col gap-4 border-b border-line/60 px-gutter py-4;
+    @apply border-b border-line/60;
 }
 
 .role:last-child {
@@ -9,34 +9,53 @@
 }
 
 .own {
-    @apply bg-primary/10;
-    box-shadow: inset 3px 0 0 var(--color-primary);
+    @apply row-marker;
 }
 
-.head {
-    @apply flex items-center gap-3;
+.summary {
+    @apply grid w-full cursor-pointer items-center text-left gap-x-6 gap-y-4 px-gutter py-4 transition-colors hover:bg-surface-2/50;
+    grid-template-areas:
+        "label label chevron"
+        "ally enemy enemy"
+        "score score score";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 1rem;
 }
 
-.body {
-    @apply grid items-center gap-x-6 gap-y-4;
-    grid-template-areas: "ally enemy" "stats stats";
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+.summary:focus-visible {
+    @apply outline-3 -outline-offset-3 outline-primary-text;
 }
 
 @container (width >= 56rem) {
-    .body {
-        grid-template-areas: "ally stats enemy";
-        grid-template-columns: minmax(0, 1fr) minmax(0, 3fr) minmax(0, 1fr);
+    .summary {
+        grid-template-areas: "label ally score enemy chevron";
+        grid-template-columns: var(--role-columns);
     }
 }
 
-.stats {
-    @apply flex flex-col gap-2;
-    grid-area: stats;
+.label {
+    @apply flex items-center gap-2;
+    grid-area: label;
+}
+
+.score {
+    grid-area: score;
+}
+
+.chevron {
+    @apply justify-self-end text-fg-muted transition-transform;
+    grid-area: chevron;
+}
+
+.summary[aria-expanded="true"] .chevron {
+    @apply rotate-180;
+}
+
+.breakdown {
+    @apply pr-gutter pb-5;
 }
 
 .oneSided {
-    @apply flex-row flex-wrap items-center gap-x-4 gap-y-2;
+    @apply flex flex-row flex-wrap items-center gap-x-4 gap-y-2 px-gutter py-4;
 }
 
 .value {

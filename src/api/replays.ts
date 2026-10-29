@@ -131,6 +131,7 @@ export type Award = {
 };
 
 export type ReplayPlayerDetail = ReplayPlayer & {
+    heroSlug: string;
     heroRole: HeroRole | null;
     kills: number | null;
     assists: number | null;
@@ -141,9 +142,12 @@ export type ReplayPlayerDetail = ReplayPlayer & {
     healing: number | null;
     selfHealing: number | null;
     damageTaken: number | null;
+    teamfightDamageTaken: number | null;
     xp: number | null;
     /** Seconds of stuns, roots and silences on enemy heroes. */
     hardCc: number | null;
+    /** Damage prevented on allies, by shields or damage reduction. */
+    protection: number | null;
     timeDead: number | null;
     timeOnFire: number | null;
     upvotes: number;
@@ -327,6 +331,74 @@ export type TeamSummary = {
     level: number | null;
 };
 
+export type RoleStat =
+    | "heroDamage"
+    | "siegeDamage"
+    | "healing"
+    | "damageTakenShare"
+    | "teamfightDamageTakenShare"
+    | "xp"
+    | "hardCc"
+    | "protection"
+    | "killParticipation"
+    | "deathShare";
+
+export type RoleVerdict = "ally" | "enemy" | "even";
+
+export type RoleScorePart = {
+    stat: RoleStat;
+    value: number;
+    /** The rate against the best of the role's heroes, from 0 to 1. */
+    share: number;
+    /** From 1 to 3. */
+    weight: number;
+    points: number;
+};
+
+export type RoleUnscoredReason = "noData" | "noneInRole" | "noTeamKills";
+
+export type RoleUnscoredStat = {
+    stat: RoleStat;
+    reason: RoleUnscoredReason;
+};
+
+export type RoleHeroScore = {
+    playerId: number;
+    score: number | null;
+    parts: RoleScorePart[];
+    /** Stats the hero is weighted on that didn't count toward the score. */
+    unscored: RoleUnscoredStat[];
+};
+
+export type RoleScore = {
+    ally: number | null;
+    enemy: number | null;
+    gap: number | null;
+    /** Null when the role isn't shared or a side has no score. */
+    verdict: RoleVerdict | null;
+};
+
+export type RoleStatAverage = {
+    stat: RoleStat;
+    ally: number | null;
+    enemy: number | null;
+};
+
+export type RoleStatColumn = {
+    stat: RoleStat;
+    weight: number;
+};
+
+export type RolePerformance = {
+    role: HeroRole;
+    score: RoleScore;
+    heroes: { ally: RoleHeroScore[]; enemy: RoleHeroScore[] };
+    stats: RoleStatAverage[];
+    columns: RoleStatColumn[];
+    /** Support heroes with different kits, so they're listed but not scored. */
+    kitsDiffer: boolean;
+};
+
 export type ReplayDetail = Omit<
     Replay,
     | "players"
@@ -343,6 +415,7 @@ export type ReplayDetail = Omit<
     killLog: KillLog;
     teams: [TeamSummary, TeamSummary];
     ownerKillParticipation: number | null;
+    rolePerformances: RolePerformance[];
     flow: GameFlow | null;
     onDisk: boolean;
     eventsExpired: boolean;

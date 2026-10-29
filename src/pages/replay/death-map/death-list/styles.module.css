@@ -30,8 +30,7 @@
 }
 
 .row.mine {
-    @apply bg-primary/10;
-    box-shadow: inset 3px 0 0 var(--color-primary);
+    @apply row-marker;
 }
 
 .row.selected {

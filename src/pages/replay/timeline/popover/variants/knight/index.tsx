@@ -7,7 +7,7 @@ import type { TimelineText } from "@/hooks/useTimelineText";
 import { Typography } from "@/ui";
 import { type Roster, heroName } from "@/utils/timeline/roster";
 import type { Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../side";
+import { sideClasses } from "../../../../side";
 import { Footer } from "../../parts/footer";
 import { LifeBar } from "../../parts/life-bar";
 import { Stat } from "../../parts/stat";

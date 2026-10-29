@@ -6,6 +6,7 @@ import styles from "./styles.module.css";
 export type TypographySize = "xs" | "sm" | "base" | "lg" | "xl2";
 
 interface BaseTypographyProps {
+    as?: ElementType;
     size?: TypographySize;
     weight?: "regular" | "semibold";
     variant?: "primary" | "secondary" | "tertiary";
@@ -34,6 +35,7 @@ const COMPONENT_MAP: Record<TypographySize, ElementType> = {
 };
 
 export function Typography({
+    as,
     size = "base",
     weight = "regular",
     variant = "primary",
@@ -46,7 +48,7 @@ export function Typography({
     children,
     ...rest
 }: TypographyProps) {
-    const Root = COMPONENT_MAP[size];
+    const Root = as ?? COMPONENT_MAP[size];
 
     return (
         <Root

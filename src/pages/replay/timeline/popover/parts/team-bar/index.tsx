@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 
 import type { Glyph } from "@/utils/timeline/map-events";
 import type { Side } from "@/utils/timeline/types";
+import { sideClasses } from "../../../../side";
 import { GlyphIcon } from "../../../glyphs";
-import { sideClasses } from "../../../side";
 import { Gauge, GaugeBadge, GaugeValue } from "../gauge";
 
 import styles from "./styles.module.css";

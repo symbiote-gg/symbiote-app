@@ -1,0 +1,72 @@
+@reference "@/index.css";
+
+.root {
+    @apply grid items-center gap-x-2 gap-y-1.5;
+}
+
+.statHead {
+    @apply flex min-w-0 items-center gap-2 px-1;
+}
+
+.weight {
+    @apply flex shrink-0;
+}
+
+.weight svg {
+    @apply @max-6xl:hidden;
+}
+
+.srOnly {
+    @apply sr-only;
+}
+
+.name,
+.score {
+    @apply text-right text-side;
+}
+
+.scoreHead {
+    @apply text-right;
+}
+
+.cell {
+    @apply relative flex h-7 min-w-0 overflow-hidden rounded-md bg-fg/6;
+}
+
+.skipped {
+    background: repeating-linear-gradient(
+        -45deg,
+        color-mix(in oklab, var(--color-fg-muted) 10%, var(--color-surface)) 0
+            4px,
+        color-mix(in oklab, var(--color-fg-muted) 4%, var(--color-surface)) 4px
+            8px
+    );
+}
+
+.fill {
+    @apply absolute inset-y-0 left-0 rounded-md bg-side-soft;
+}
+
+.best .fill {
+    @apply bg-side-strong;
+}
+
+.value {
+    @apply relative min-w-0 self-center px-2;
+}
+
+.points {
+    @apply relative ml-auto shrink-0 self-center px-2;
+}
+
+.extras {
+    @apply flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-md border border-dashed border-side/35 bg-side/4 px-3 py-1.5;
+}
+
+.extra {
+    @apply flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1;
+}
+
+.track {
+    @apply relative h-1.5 w-48 shrink-0 overflow-hidden rounded-full bg-fg/6;
+}

@@ -1,5 +1,5 @@
 //! Coaching standouts: conclusions about the owner's game, judged against their
-//! recent games on the same hero. Computed here so the frontend only renders.
+//! recent games on the same hero.
 
 mod baseline;
 mod metrics;

@@ -1,5 +1,5 @@
 import { ArrowUpRight, ChevronDown } from "lucide-react";
-import { type SyntheticEvent, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "use-intl";
 
 import type { ThirdPartyPackage } from "@/api/licenses";
@@ -17,13 +17,18 @@ export function PackageEntry({ pkg, texts }: PackageEntryProps) {
     const t = useTranslations("about.licenses");
     const [open, setOpen] = useState(false);
 
-    const onToggle = (event: SyntheticEvent<HTMLDetailsElement>) => {
-        setOpen(event.currentTarget.open);
+    const onToggle = () => {
+        setOpen((value) => !value);
     };
 
     return (
-        <details className={styles.root} onToggle={onToggle}>
-            <summary className={styles.summary}>
+        <div className={styles.root}>
+            <button
+                type="button"
+                aria-expanded={open}
+                className={styles.summary}
+                onClick={onToggle}
+            >
                 <Typography size="sm" weight="semibold" truncate>
                     {pkg.name}
                 </Typography>
@@ -34,7 +39,7 @@ export function PackageEntry({ pkg, texts }: PackageEntryProps) {
                     {pkg.license}
                 </Typography>
                 <ChevronDown size={14} className={styles.chevron} />
-            </summary>
+            </button>
             {open && (
                 <div className={styles.body}>
                     <div>
@@ -55,6 +60,6 @@ export function PackageEntry({ pkg, texts }: PackageEntryProps) {
                     ))}
                 </div>
             )}
-        </details>
+        </div>
     );
 }

@@ -1,7 +1,8 @@
 import classNames from "classnames";
+import { useFormatter, useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
-import { Typography } from "@/ui";
+import { Tooltip, Typography } from "@/ui";
 import type { TeamSide } from "../role-performances";
 import { SidePortrait } from "../side-portrait";
 
@@ -14,26 +15,43 @@ interface HeroesProps {
 }
 
 export function Heroes({ side, players, ownerId }: HeroesProps) {
+    const t = useTranslations("replay.rolePerformances");
+    const format = useFormatter();
+
     return (
-        <div className={classNames(styles.root, styles[side])}>
-            {players.map((p) => (
-                <span key={p.playerId} className={styles.hero}>
-                    <SidePortrait
-                        player={p}
-                        side={side}
-                        owner={p.playerId === ownerId}
-                        size="md"
-                    />
-                    <span className={styles.text}>
-                        <Typography weight="semibold" truncate>
-                            {p.heroName}
-                        </Typography>
-                        <Typography size="sm" variant="tertiary" truncate>
-                            {p.name}
-                        </Typography>
-                    </span>
-                </span>
-            ))}
-        </div>
+        <span className={classNames(styles.root, styles[side])}>
+            <span className={styles.portraits}>
+                {[...players].reverse().map((p) => (
+                    <Tooltip
+                        key={p.playerId}
+                        content={t("hero", {
+                            player: p.name,
+                            hero: p.heroName,
+                        })}
+                    >
+                        <SidePortrait
+                            player={p}
+                            side={side}
+                            owner={p.playerId === ownerId}
+                            size="md"
+                        />
+                    </Tooltip>
+                ))}
+            </span>
+            <span className={styles.text}>
+                <Typography as="span" weight="semibold" truncate>
+                    {format.list(
+                        players.map((p) => p.heroName),
+                        { type: "unit" },
+                    )}
+                </Typography>
+                <Typography as="span" size="sm" variant="tertiary" truncate>
+                    {format.list(
+                        players.map((p) => p.name),
+                        { type: "unit" },
+                    )}
+                </Typography>
+            </span>
+        </span>
     );
 }

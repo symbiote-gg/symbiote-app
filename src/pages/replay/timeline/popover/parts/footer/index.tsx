@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 import { Typography } from "@/ui";
 import type { Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../side";
+import { sideClasses } from "../../../../side";
 
 import styles from "./styles.module.css";
 

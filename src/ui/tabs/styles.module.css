@@ -1,19 +1,19 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex w-full items-end gap-6;
+    @apply grid w-full auto-cols-fr grid-flow-col divide-x divide-line;
 }
 
 .tab {
-    @apply -mb-px flex items-center gap-2 whitespace-nowrap border-b-2 border-transparent px-1 py-3 text-sm font-medium text-fg-muted transition-colors hover:text-fg;
+    @apply flex items-center justify-center gap-2.5 py-4 font-display text-[15px] font-semibold tracking-wider whitespace-nowrap text-fg-muted uppercase transition-colors hover:bg-fg/5 hover:text-fg;
 }
 
 .tab:focus-visible {
-    @apply outline-3 outline-primary-text;
+    @apply outline-3 -outline-offset-3 outline-primary-text;
 }
 
 .active {
-    @apply border-primary text-fg hover:text-fg;
+    @apply bg-primary/10 text-fg hover:bg-primary/10;
 }
 
 .icon {

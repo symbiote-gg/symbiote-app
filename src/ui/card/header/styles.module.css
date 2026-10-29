@@ -16,6 +16,10 @@
     @apply flex items-center gap-2;
 }
 
+.titles .subtitle {
+    @apply max-w-3xl;
+}
+
 .titles .title {
     @apply leading-none font-extrabold uppercase;
     font-stretch: 75%;

@@ -21,6 +21,7 @@ mod db;
 mod error;
 mod ingester;
 mod retention;
+mod role_performances;
 mod standouts;
 mod timeline;
 mod types;

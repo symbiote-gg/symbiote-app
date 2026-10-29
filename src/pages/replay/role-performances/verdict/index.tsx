@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import { Chip } from "@/ui";
-import { type RoleComparison, verdictOf } from "../role-performances";
+import type { RoleComparison } from "../role-performances";
 
 interface VerdictProps {
     comparison: RoleComparison;
@@ -12,7 +12,7 @@ interface VerdictProps {
 export function Verdict({ comparison, icon }: VerdictProps) {
     const t = useTranslations("replay.rolePerformances");
 
-    const verdict = verdictOf(comparison);
+    const { verdict } = comparison.score;
     if (verdict === null) return null;
 
     if (verdict === "even") {

@@ -44,7 +44,9 @@ export function CardHeader({
                     {addon}
                 </div>
                 {subtitle && (
-                    <Typography variant="tertiary">{subtitle}</Typography>
+                    <Typography variant="tertiary" className={styles.subtitle}>
+                        {subtitle}
+                    </Typography>
                 )}
                 {meta}
             </div>

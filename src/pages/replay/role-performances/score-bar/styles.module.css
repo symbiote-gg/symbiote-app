@@ -1,0 +1,33 @@
+@reference "@/index.css";
+
+.root {
+    @apply grid grid-cols-[3rem_minmax(0,1fr)_3rem] items-center gap-3;
+}
+
+.value {
+    @apply text-side;
+}
+
+.value:first-child {
+    @apply text-right;
+}
+
+.track {
+    @apply flex h-2 gap-0.5 overflow-hidden rounded-full bg-fg/6;
+}
+
+.segment {
+    @apply h-full bg-side-strong;
+}
+
+.segment:first-child {
+    @apply rounded-l-full;
+}
+
+.segment + .segment {
+    @apply flex-1 rounded-r-full;
+}
+
+.segment.trailing {
+    @apply bg-side-soft;
+}

@@ -3,6 +3,7 @@ use sqlx::FromRow;
 
 use super::{AwardInfo, Replay};
 use crate::types::hero::HeroRole;
+use crate::types::role_performances::RolePerformance;
 use crate::types::timeline::{KillLog, Timeline};
 
 #[derive(Debug, FromRow, Serialize)]
@@ -18,6 +19,7 @@ pub struct TalentPick {
 }
 
 #[derive(Debug, FromRow, Serialize)]
+#[cfg_attr(test, derive(Default))]
 #[serde(rename_all = "camelCase")]
 pub struct ReplayPlayerDetail {
     pub player_id: i64,
@@ -25,6 +27,7 @@ pub struct ReplayPlayerDetail {
     pub slot: i64,
     pub team: i64,
     pub hero_id: i64,
+    pub hero_slug: String,
     pub hero_name: String,
     pub hero_role: Option<HeroRole>,
     pub hero_portrait: Option<String>,
@@ -37,9 +40,12 @@ pub struct ReplayPlayerDetail {
     pub healing: Option<i64>,
     pub self_healing: Option<i64>,
     pub damage_taken: Option<i64>,
+    pub teamfight_damage_taken: Option<i64>,
     pub xp: Option<i64>,
     /// Seconds of stuns, roots and silences on enemy heroes.
     pub hard_cc: Option<i64>,
+    /// Damage prevented on allies, by shields or damage reduction.
+    pub protection: Option<i64>,
     pub time_dead: Option<f64>,
     pub time_on_fire: Option<f64>,
     pub upvotes: i64,
@@ -69,6 +75,8 @@ pub struct ReplayDetail {
     pub teams: [TeamSummary; 2],
     #[sqlx(skip)]
     pub owner_kill_participation: Option<f64>,
+    #[sqlx(skip)]
+    pub role_performances: Vec<RolePerformance>,
     #[sqlx(skip)]
     pub flow: Option<GameFlow>,
     #[sqlx(skip)]

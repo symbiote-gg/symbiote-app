@@ -2,6 +2,8 @@
 
 .root {
     @apply @container self-stretch;
+    --role-columns: 13rem minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1.25fr)
+        1rem;
 }
 
 .roles {

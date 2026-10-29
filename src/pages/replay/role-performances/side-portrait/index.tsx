@@ -2,6 +2,7 @@ import classNames from "classnames";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
 import { HeroPortrait, type HeroPortraitProps } from "@/components";
+import { sideClasses } from "../../side";
 import type { TeamSide } from "../role-performances";
 
 import styles from "./styles.module.css";
@@ -19,10 +20,9 @@ export function SidePortrait({ player, side, owner, size }: SidePortraitProps) {
             name={player.heroName}
             portrait={player.heroPortrait}
             size={size}
-            className={classNames(
-                styles.portrait,
-                owner ? styles.owner : styles[side],
-            )}
+            className={classNames(styles.portrait, sideClasses(side), {
+                [styles.owner]: owner,
+            })}
         />
     );
 }

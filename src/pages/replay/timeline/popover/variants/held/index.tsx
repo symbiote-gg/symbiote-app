@@ -4,7 +4,7 @@ import { useTranslations } from "use-intl";
 import type { TimelineText } from "@/hooks/useTimelineText";
 import { Typography } from "@/ui";
 import type { Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../side";
+import { sideClasses } from "../../../../side";
 import { Footer } from "../../parts/footer";
 import { LifeBar } from "../../parts/life-bar";
 

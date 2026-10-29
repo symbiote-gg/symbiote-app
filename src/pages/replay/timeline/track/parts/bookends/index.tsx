@@ -7,8 +7,8 @@ import type { TimelineText } from "@/hooks/useTimelineText";
 import { Popover } from "@/ui";
 import { AXIS } from "@/utils/timeline/constants";
 import type { Side } from "@/utils/timeline/types";
+import { sideClass } from "../../../../side";
 import { HeaderText } from "../../../popover/header/header-text";
-import { sideClass } from "../../../side";
 
 import styles from "./styles.module.css";
 

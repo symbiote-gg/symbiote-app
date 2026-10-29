@@ -11,6 +11,7 @@ import {
     TalentTooltip,
 } from "@/components";
 import { Tooltip, Typography } from "@/ui";
+import { sideClasses } from "../../side";
 import { STATS, type Stat } from "../stats";
 
 import styles from "./styles.module.css";
@@ -47,9 +48,12 @@ export function PlayerRow({
 
     return (
         <div
-            className={classNames(className, styles.root, {
-                [styles.owner]: owner,
-            })}
+            className={classNames(
+                className,
+                styles.root,
+                sideClasses(ally ? "ally" : "enemy"),
+                { [styles.owner]: owner },
+            )}
         >
             <span className={styles.hero}>
                 <span className={styles.portraitWrap}>
@@ -57,10 +61,7 @@ export function PlayerRow({
                         name={player.heroName}
                         portrait={player.heroPortrait}
                         size="md"
-                        className={classNames(
-                            styles.portrait,
-                            ally ? styles.ally : styles.enemy,
-                        )}
+                        className={styles.portrait}
                     />
                     {player.party !== null && (
                         <Tooltip
@@ -157,8 +158,6 @@ export function PlayerRow({
                         key={stat}
                         className={classNames(styles.statCell, {
                             [styles.top]: top,
-                            [styles.allyBar]: ally,
-                            [styles.enemyBar]: !ally,
                             [styles.secondary]: secondary,
                         })}
                     >

@@ -29,7 +29,7 @@ export function Chip({
     children,
 }: ChipProps) {
     return (
-        <div
+        <span
             className={classNames(
                 className,
                 styles.root,
@@ -40,6 +40,7 @@ export function Chip({
         >
             {Icon && <Icon className={styles.icon} aria-hidden />}
             <Typography
+                as="span"
                 size={size === "sm" ? "xs" : "sm"}
                 weight="semibold"
                 uppercase={uppercase}
@@ -48,6 +49,6 @@ export function Chip({
             >
                 {children}
             </Typography>
-        </div>
+        </span>
     );
 }

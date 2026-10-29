@@ -2,8 +2,7 @@
 
 .root {
     --tone: var(--color-fg-muted);
-    @apply relative flex min-h-80 items-stretch self-stretch overflow-hidden rounded-xl border;
-    border-color: color-mix(in oklab, var(--tone) 40%, var(--color-line));
+    @apply relative flex flex-col self-stretch;
 }
 
 .win {
@@ -12,6 +11,15 @@
 
 .loss {
     --tone: var(--color-loss);
+}
+
+.hero {
+    @apply relative flex min-h-80 items-stretch overflow-hidden rounded-t-xl border border-b-0;
+    border-color: color-mix(in oklab, var(--tone) 40%, var(--color-line));
+}
+
+.tabs {
+    @apply relative overflow-hidden rounded-b-xl border border-line bg-surface;
 }
 
 .art {
@@ -151,16 +159,8 @@
     @apply col-span-full grid grid-cols-subgrid items-center gap-x-2 px-3 py-1.5 @3xl/identity:flex;
 }
 
-.moment.ally {
-    --team: var(--color-team-blue);
-}
-
-.moment.enemy {
-    --team: var(--color-team-red);
-}
-
 .moment .side {
-    color: var(--team);
+    @apply text-side;
 }
 
 .outcome {

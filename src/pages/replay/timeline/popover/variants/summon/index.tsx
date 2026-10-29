@@ -4,7 +4,7 @@ import { useTranslations } from "use-intl";
 import type { Summon as SummonData } from "@/api/replays";
 import type { TimelineText } from "@/hooks/useTimelineText";
 import type { Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../side";
+import { sideClasses } from "../../../../side";
 import { Footer, FooterImpact } from "../../parts/footer";
 import { LifeBar } from "../../parts/life-bar";
 import { Stat } from "../../parts/stat";

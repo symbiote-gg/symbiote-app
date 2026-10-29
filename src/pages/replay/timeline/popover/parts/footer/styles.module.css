@@ -5,5 +5,5 @@
 }
 
 .footer .strong {
-    color: var(--side);
+    @apply text-side;
 }

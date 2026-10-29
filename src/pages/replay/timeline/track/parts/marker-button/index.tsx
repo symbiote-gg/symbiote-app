@@ -6,8 +6,8 @@ import { fightGlyph, tickGlyph } from "@/utils/timeline/glyphs";
 import { fightSize, position } from "@/utils/timeline/layout";
 import { isBandMarker } from "@/utils/timeline/markers";
 import type { Entry, Marker } from "@/utils/timeline/types";
+import { sideClass } from "../../../../side";
 import { GlyphIcon } from "../../../glyphs";
-import { sideClass } from "../../../side";
 
 import styles from "./styles.module.css";
 

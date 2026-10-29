@@ -21,42 +21,19 @@
 }
 
 .heading .level {
-    @apply rounded-md border px-1.5 py-0.5 font-bold;
-    background: color-mix(in srgb, var(--team) 55%, black);
-    border-color: var(--team);
-    color: color-mix(in srgb, var(--team) 8%, white);
-}
-
-.ally .level {
-    --team: var(--color-team-blue);
-}
-
-.enemy .level {
-    --team: var(--color-team-red);
+    @apply rounded-md border border-side bg-side-soft px-1.5 py-0.5 font-bold text-fg;
 }
 
 .levelLabel {
     @apply font-medium opacity-80;
 }
 
-.ally .team {
-    @apply text-team-blue;
-}
-
-.enemy .team {
-    @apply text-team-red;
-}
-
-.count.ally {
-    @apply text-team-blue;
-}
-
-.count.enemy {
-    @apply text-team-red;
+.team {
+    @apply text-side;
 }
 
 .count {
-    @apply text-5xl leading-none tabular-nums;
+    @apply text-5xl leading-none text-side tabular-nums;
     text-box: trim-both cap alphabetic;
 }
 

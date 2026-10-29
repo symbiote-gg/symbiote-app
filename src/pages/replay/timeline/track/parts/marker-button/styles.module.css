@@ -31,10 +31,7 @@
 }
 
 .tickBadge {
-    @apply relative flex size-6 items-center justify-center rounded-full border;
-    border-color: var(--side);
-    background: color-mix(in srgb, var(--side) 18%, var(--color-surface));
-    color: var(--side);
+    @apply relative flex size-6 items-center justify-center rounded-full border border-side bg-side-soft text-side;
 }
 
 .tickBadge.merged {
@@ -47,8 +44,7 @@
 
 /* Camps sit a step below kills: smaller and untinted. */
 .tickBadge.minor {
-    @apply size-5;
-    background: var(--color-surface);
+    @apply size-5 bg-surface;
 }
 
 .tickBadge.minor.merged {
@@ -60,26 +56,23 @@
 }
 
 .tickCount {
-    @apply absolute -top-1.5 -right-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full border bg-surface-2 px-0.5 font-mono text-[9px] leading-none;
-    border-color: var(--side);
-    color: var(--side);
+    @apply absolute -top-1.5 -right-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full border bg-surface-2 px-0.5 font-mono text-[9px] leading-none border-side text-side;
 }
 
 .ring {
-    @apply rounded-full border-[1.5px];
+    @apply rounded-full border-[1.5px] border-side;
     width: 11px;
     height: 11px;
-    border-color: var(--side);
 }
 
 /* Stolen camps step back up to the kills' tint; the boss band is already
    tinted, so a stolen boss deepens it instead. */
 .tickBadge.stolen {
-    background: color-mix(in srgb, var(--side) 18%, var(--color-surface));
+    @apply bg-side-soft;
 }
 
 .mark.stolen {
-    background: color-mix(in srgb, var(--side) 40%, var(--color-surface));
+    @apply bg-side-strong;
 }
 
 .tickBadge.spawn {
@@ -87,13 +80,11 @@
 }
 
 .mark {
-    @apply absolute z-10 inline-flex -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center gap-1 border text-xs font-semibold whitespace-nowrap text-fg outline-none transition-opacity;
-    border-color: var(--side);
-    background: color-mix(in srgb, var(--side) 18%, var(--color-surface));
+    @apply absolute z-10 inline-flex -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center gap-1 border text-xs font-semibold whitespace-nowrap text-fg outline-none transition-opacity border-side bg-side-soft;
 }
 
 .mark .glyph {
-    color: var(--side);
+    @apply text-side;
 }
 
 .glyph {

@@ -6,7 +6,7 @@ import { Typography } from "@/ui";
 import type { Glyph } from "@/utils/timeline/map-events";
 import { sideOf } from "@/utils/timeline/markers";
 import type { Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../side";
+import { sideClasses } from "../../../../side";
 import { TeamBar } from "../../parts/team-bar";
 
 import styles from "./styles.module.css";

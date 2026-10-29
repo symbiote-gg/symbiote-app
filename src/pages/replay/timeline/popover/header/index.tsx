@@ -11,8 +11,8 @@ import {
 import { type Glyph, specLabel } from "@/utils/timeline/map-events";
 import type { MarkerView } from "@/utils/timeline/markers";
 import type { Marker } from "@/utils/timeline/types";
+import { sideClasses } from "../../../side";
 import { GlyphIcon } from "../../glyphs";
-import { sideClasses } from "../../side";
 import { HeaderText } from "./header-text";
 
 import styles from "./styles.module.css";

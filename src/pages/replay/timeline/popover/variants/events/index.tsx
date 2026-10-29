@@ -5,8 +5,8 @@ import type { TimelineText } from "@/hooks/useTimelineText";
 import { Typography } from "@/ui";
 import { entryGlyph } from "@/utils/timeline/glyphs";
 import type { Entry } from "@/utils/timeline/types";
+import { sideClasses } from "../../../../side";
 import { GlyphIcon } from "../../../glyphs";
-import { sideClasses } from "../../../side";
 
 import styles from "./styles.module.css";
 

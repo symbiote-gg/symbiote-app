@@ -5,7 +5,7 @@ import { useTranslations } from "use-intl";
 import { Typography } from "@/ui";
 import { sideOf } from "@/utils/timeline/markers";
 import type { Entry, Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../side";
+import { sideClasses } from "../../../../side";
 
 import styles from "./styles.module.css";
 

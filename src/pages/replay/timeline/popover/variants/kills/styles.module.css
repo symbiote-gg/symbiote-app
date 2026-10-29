@@ -13,8 +13,7 @@
 }
 
 .row {
-    @apply col-span-full grid grid-cols-subgrid items-center rounded-md py-1.5;
-    background: color-mix(in srgb, var(--side, transparent) 8%, transparent);
+    @apply col-span-full grid grid-cols-subgrid items-center rounded-md py-1.5 bg-side/8;
 }
 
 /* Inset with margins, not padding: WebKit leaves a subgrid's padding out of the

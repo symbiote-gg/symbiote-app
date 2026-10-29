@@ -1,14 +1,11 @@
 @reference "@/index.css";
 
 .altar {
-    @apply flex items-center justify-between rounded-md px-3 py-2.5;
-    background: color-mix(in srgb, var(--side, transparent) 8%, transparent);
+    @apply flex items-center justify-between rounded-md bg-side/8 px-3 py-2.5;
 }
 
 .team {
-    @apply flex size-8 shrink-0 items-center justify-center rounded-full border-2;
-    border-color: var(--side);
-    color: var(--side);
+    @apply flex size-8 shrink-0 items-center justify-center rounded-full border-2 border-side text-side;
 }
 
 .icon {
@@ -32,6 +29,5 @@
 }
 
 .townPipOn {
-    border-color: var(--side);
-    background: var(--side);
+    @apply border-side bg-side-strong;
 }

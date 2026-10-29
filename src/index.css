@@ -16,7 +16,7 @@
     --color-win: #1fb86a;
     --color-loss: #f46670;
     --color-team-blue: #3d8bff;
-    --color-team-red: #ff4d4d;
+    --color-team-red: #eb5350;
     --color-warn: #e8c547;
     --color-mvp: #ffd27a;
     --color-mythic: #5ee0f0;
@@ -35,6 +35,31 @@
         "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
 
     --shadow-glow: 0 0 12px rgb(119 51 255 / 0.45);
+}
+
+/* Team tints keyed off the nearest `--side`. Solid `side` is for ink only;
+   areas fill with `side-strong` (best, leading) or `side-soft` (the rest). */
+@theme inline {
+    --color-side: var(--side);
+    --color-side-strong: color-mix(
+        in srgb,
+        var(--side) 60%,
+        var(--color-surface)
+    );
+    --color-side-soft: color-mix(
+        in srgb,
+        var(--side) 18%,
+        var(--color-surface)
+    );
+}
+
+@utility row-marker {
+    position: relative;
+
+    &::before {
+        @apply pointer-events-none absolute inset-y-0 left-0 w-0.75 bg-primary;
+        content: "";
+    }
 }
 
 @layer base {

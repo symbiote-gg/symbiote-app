@@ -5,8 +5,8 @@ import { useTranslations } from "use-intl";
 import type { Altar as AltarData } from "@/api/replays";
 import { Tooltip, Typography } from "@/ui";
 import { sideOf } from "@/utils/timeline/markers";
+import { sideClasses } from "../../../../side";
 import { GlyphIcon } from "../../../glyphs";
-import { sideClasses } from "../../../side";
 import { Footer } from "../../parts/footer";
 
 import styles from "./styles.module.css";
