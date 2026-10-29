@@ -31,6 +31,9 @@ jobs:
       - name: lint
         run: pnpm lint
 
+      - name: fetch assets
+        run: pnpm assets
+
       - name: type check
         run: pnpm exec tsc --noEmit
 
