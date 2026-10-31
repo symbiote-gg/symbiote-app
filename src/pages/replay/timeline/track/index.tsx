@@ -29,7 +29,7 @@ import { sideClass } from "../../side";
 import { Popover } from "../popover";
 import { AxisTimes } from "./parts/axis-times";
 import { type Bookend, Bookends } from "./parts/bookends";
-import { Cursor } from "./parts/cursor";
+import { Cursor, type CursorHandle } from "./parts/cursor";
 import { Lead } from "./parts/lead";
 import { MarkerButton } from "./parts/marker-button";
 import { Tiers } from "./parts/tiers";
@@ -38,6 +38,7 @@ import styles from "./styles.module.css";
 
 const DRAG_PX = 8;
 const CLOSE_DELAY_MS = 200;
+const TRACK_STYLE = { height: TRACK_HEIGHT };
 
 function useElementWidth(ref: RefObject<HTMLElement | null>) {
     const [width, setWidth] = useState(0);
@@ -59,14 +60,11 @@ interface TrackProps {
     duration: number;
     players: ReplayPlayerDetail[];
     allyTeam: number;
-    /** Ring this player's markers and dim the rest; null leaves all as is. */
     highlightSlot: number | null;
     winner: Side;
     text: TimelineText;
-    hoverTime: number | null;
     selectedId: string | null;
     empty: boolean;
-    onHover: (time: number | null) => void;
     onSelect: (marker: Marker | null) => void;
 }
 
@@ -79,10 +77,8 @@ export function Track({
     highlightSlot,
     winner,
     text,
-    hoverTime,
     selectedId,
     empty,
-    onHover,
     onSelect,
 }: TrackProps) {
     const t = useTranslations("replay.timeline");
@@ -92,6 +88,7 @@ export function Track({
     const closeTimer = useRef<number | undefined>(undefined);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [bookend, setBookend] = useState<Bookend | null>(null);
+    const cursor = useRef<CursorHandle>(null);
 
     const placed = layout(markers, width, duration);
     const byId = new Map(placed.map((p) => [p.marker.id, p]));
@@ -140,10 +137,10 @@ export function Track({
         ) {
             pointer.current.dragged = true;
         }
-        onHover(timeAt(e.clientX));
+        cursor.current?.move(timeAt(e.clientX));
     };
 
-    const onPointerLeave = () => onHover(null);
+    const onPointerLeave = () => cursor.current?.move(null);
 
     const cancelClose = () => window.clearTimeout(closeTimer.current);
 
@@ -170,8 +167,6 @@ export function Track({
         setBookend(e.currentTarget.dataset.bookend as Bookend);
     };
 
-    // A mouse click lands on a marker hover already opened, so only keyboard
-    // (detail 0) clicks toggle.
     const onMarkerClick = (e: MouseEvent<HTMLButtonElement>) => {
         if (pointer.current.dragged) return;
         cancelClose();
@@ -204,7 +199,7 @@ export function Track({
             <div
                 ref={ref}
                 className={styles.track}
-                style={{ height: TRACK_HEIGHT }}
+                style={TRACK_STYLE}
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerLeave={onPointerLeave}
@@ -269,7 +264,7 @@ export function Track({
                         {t("empty.filtered")}
                     </Typography>
                 )}
-                <Cursor time={hoverTime} duration={duration} text={text} />
+                <Cursor ref={cursor} duration={duration} text={text} />
                 {selected && (
                     <Popover
                         key={selected.marker.id}

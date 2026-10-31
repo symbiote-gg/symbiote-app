@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { type Ref, useImperativeHandle, useState } from "react";
 
 import type { TimelineText } from "@/hooks/useTimelineText";
 import { Typography } from "@/ui";
@@ -6,13 +7,21 @@ import { position } from "@/utils/timeline/layout";
 
 import styles from "./styles.module.css";
 
+export interface CursorHandle {
+    move: (time: number | null) => void;
+}
+
 interface CursorProps {
-    time: number | null;
+    ref: Ref<CursorHandle>;
     duration: number;
     text: TimelineText;
 }
 
-export function Cursor({ time, duration, text }: CursorProps) {
+export function Cursor({ ref, duration, text }: CursorProps) {
+    const [time, setTime] = useState<number | null>(null);
+
+    useImperativeHandle(ref, () => ({ move: setTime }), []);
+
     if (time === null) return <div className={styles.overlay} />;
 
     const left = position(time, duration);

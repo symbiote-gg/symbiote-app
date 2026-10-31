@@ -40,7 +40,6 @@ export function Timeline({
     const text = useTimelineText(players);
     const [hidden, toggle] = useHiddenFilters();
     const [me, toggleMe] = useMeFilter();
-    const [hoverTime, setHoverTime] = useState<number | null>(null);
     const [selected, setSelected] = useState<Marker | null>(null);
 
     const markers = useMemo(
@@ -125,10 +124,8 @@ export function Timeline({
                                   : "enemy"
                         }
                         text={text}
-                        hoverTime={hoverTime}
                         selectedId={selected?.id ?? null}
                         empty={FILTERS.every((filter) => !shown(filter))}
-                        onHover={setHoverTime}
                         onSelect={setSelected}
                     />
                 </div>
