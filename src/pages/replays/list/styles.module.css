@@ -1,0 +1,18 @@
+@reference "@/index.css";
+
+.track {
+    @apply relative transition-opacity;
+}
+
+/* Delayed so a fast fetch swaps the rows without a dim flash. */
+.stale {
+    @apply opacity-50 delay-200;
+}
+
+.slot {
+    @apply absolute inset-x-0 top-0;
+}
+
+.skeleton {
+    @apply h-full border-b border-line/50 bg-surface-2/30;
+}

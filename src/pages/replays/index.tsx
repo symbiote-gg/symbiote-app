@@ -1,9 +1,6 @@
-import { useVirtualizer } from "@tanstack/react-virtual";
-import classNames from "classnames";
 import { Clapperboard } from "lucide-react";
 import {
     type UIEvent,
-    useEffect,
     useLayoutEffect,
     useMemo,
     useRef,
@@ -12,17 +9,10 @@ import {
 import { useTranslations } from "use-intl";
 
 import { DEFAULT_REPLAY_SORT, type ReplaySort } from "@/api/replays";
-import { Page, ReplayListHeader, ReplayRow } from "@/components";
+import { Page, ReplayListHeader } from "@/components";
 import { useIngesting } from "@/hooks/useIngestProgress";
 import { useReplays } from "@/hooks/useReplays";
-import {
-    Button,
-    Card,
-    CardBody,
-    CardHeader,
-    EmptyState,
-    ErrorMessage,
-} from "@/ui";
+import { Button, Card, CardHeader, EmptyState, ErrorMessage } from "@/ui";
 import { Filters } from "./filters";
 import {
     type FilterState,
@@ -30,11 +20,9 @@ import {
     isFiltered,
     toReplayFilters,
 } from "./filters/state";
+import { List } from "./list";
 
 import styles from "./styles.module.css";
-
-const ROW_HEIGHT = 64;
-const LOAD_AHEAD = 15;
 
 let savedOffset = 0;
 let savedFilters = NO_FILTERS;
@@ -70,31 +58,9 @@ export function Replays() {
         [dataUpdatedAt],
     );
 
-    const virtualizer = useVirtualizer({
-        count: hasNextPage ? total : replays.length,
-        getScrollElement: () => scroller.current,
-        estimateSize: () => ROW_HEIGHT,
-        overscan: 4,
-        initialOffset: () => savedOffset,
-        useFlushSync: false,
-        directDomUpdates: true,
-    });
-    const items = virtualizer.getVirtualItems();
-    const lastIndex = items[items.length - 1]?.index ?? 0;
-
     useLayoutEffect(() => {
         if (scroller.current) scroller.current.scrollTop = savedOffset;
     }, []);
-
-    useEffect(() => {
-        if (
-            lastIndex >= replays.length - LOAD_AHEAD &&
-            hasNextPage &&
-            !isFetchingNextPage
-        ) {
-            fetchNextPage();
-        }
-    }, [lastIndex, replays.length, hasNextPage, isFetchingNextPage]);
 
     const onRefresh = () => refetch();
 
@@ -153,7 +119,18 @@ export function Replays() {
                     sort={sort}
                     onSortChange={onSortChange}
                 />
-                <CardBody ref={scroller} onScroll={onScroll}>
+                <List
+                    ref={scroller}
+                    replays={replays}
+                    total={total}
+                    now={now}
+                    stale={isPlaceholderData}
+                    initialOffset={savedOffset}
+                    hasNextPage={hasNextPage}
+                    isFetchingNextPage={isFetchingNextPage}
+                    fetchNextPage={fetchNextPage}
+                    onScroll={onScroll}
+                >
                     {noMatches && (
                         <div className={styles.empty}>
                             <EmptyState>{t("filters.empty")}</EmptyState>
@@ -166,39 +143,7 @@ export function Replays() {
                             </Button>
                         </div>
                     )}
-                    <div
-                        ref={virtualizer.containerRef}
-                        className={classNames(styles.track, {
-                            [styles.stale]: isPlaceholderData,
-                        })}
-                    >
-                        {items.map((item) => {
-                            const replay = replays[item.index];
-                            return (
-                                <div
-                                    key={item.key}
-                                    ref={virtualizer.measureElement}
-                                    data-index={item.index}
-                                    className={styles.slot}
-                                    style={{ height: item.size }}
-                                >
-                                    {replay ? (
-                                        <ReplayRow
-                                            replay={replay}
-                                            now={now}
-                                            wide
-                                        />
-                                    ) : (
-                                        <div
-                                            className={styles.skeleton}
-                                            aria-hidden
-                                        />
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </CardBody>
+                </List>
             </Card>
         </Page>
     );
