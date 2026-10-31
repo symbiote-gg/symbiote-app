@@ -435,7 +435,10 @@ export type StandoutId =
     | "unansweredEngages"
     | "lanePressure"
     | "teamWipes"
+    | "multikill"
     | "shutdowns"
+    | "killStreak"
+    | "vengeances"
     | "longestLife";
 
 /** Colours the key figure: a cost, worth a look, or something done right. */

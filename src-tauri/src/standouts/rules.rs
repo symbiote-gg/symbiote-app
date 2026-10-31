@@ -22,13 +22,18 @@ const TIME_DEAD_SHARE: f64 = 0.15;
 const STAY_SECS: f64 = 8.0;
 /// How much worse than the usual a rate has to be to call it out.
 const WORSE: f64 = 1.25;
-/// How much longer than the usual a life has to be to call it out.
+/// How much better than the usual a high has to be to call it out.
 const BETTER: f64 = 1.25;
 /// Seconds of life worth calling out, whatever the usual.
 const LIFE_SECS: f64 = 720.0;
 /// Enemy run of takedowns without dying worth calling out once ended: assists
 /// count, so runs of 5-10 are routine.
 const SHUTDOWN_STREAK: usize = 15;
+/// The owner's own run of takedowns worth calling out, by the same measure.
+const KILL_STREAK: usize = 15;
+/// Takedowns in a chain worth calling out: a triple is an ordinary won fight.
+const MULTIKILL: usize = 4;
+const VENGEANCES: usize = 2;
 
 pub struct RuleContext<'a> {
     pub role: Option<HeroRole>,
@@ -59,6 +64,11 @@ fn worse_than_usual(rate: Option<f64>, usual: Option<f64>, absolute: bool) -> bo
         (Some(rate), Some(usual)) => rate >= usual * WORSE,
         _ => absolute,
     }
+}
+
+/// Whether a high beats the usual, when there is one to beat.
+fn beats_usual(value: f64, usual: Option<f64>) -> bool {
+    usual.is_none_or(|usual| value >= usual * BETTER)
 }
 
 fn count_figure(value: usize, total: Option<usize>) -> Figure {
@@ -336,6 +346,18 @@ impl Evaluation<'_> {
         }
     }
 
+    fn multikill(&mut self) {
+        let chain = self.m.multikill;
+
+        if chain >= MULTIKILL {
+            self.found.push(standout(
+                StandoutId::Multikill,
+                Tone::Good,
+                count_figure(chain, None),
+            ));
+        }
+    }
+
     fn shutdowns(&mut self) {
         let streak = self.m.ended_streak;
 
@@ -344,6 +366,32 @@ impl Evaluation<'_> {
                 StandoutId::Shutdowns,
                 Tone::Good,
                 count_figure(streak, None),
+            ));
+        }
+    }
+
+    fn kill_streak(&mut self) {
+        let streak = self.m.kill_streak;
+        let usual = self.ctx.usual(|b| b.kill_streak);
+
+        if streak >= KILL_STREAK && beats_usual(streak as f64, usual) {
+            self.found.push(standout(
+                StandoutId::KillStreak,
+                Tone::Good,
+                count_figure(streak, None),
+            ));
+        }
+    }
+
+    fn vengeances(&mut self) {
+        let count = self.m.vengeances;
+        let usual = self.ctx.usual(|b| b.vengeances_per_game);
+
+        if count >= VENGEANCES && beats_usual(count as f64, usual) {
+            self.found.push(standout(
+                StandoutId::Vengeances,
+                Tone::Good,
+                count_figure(count, None),
             ));
         }
     }
@@ -358,9 +406,8 @@ impl Evaluation<'_> {
         let life = self.m.longest_life;
         let deathless = self.m.owner_deaths == 0;
         let usual = self.ctx.usual(|b| b.longest_life);
-        let beats_usual = usual.is_none_or(|usual| life >= usual * BETTER);
 
-        if life >= LIFE_SECS && (deathless || beats_usual) {
+        if life >= LIFE_SECS && (deathless || beats_usual(life, usual)) {
             let mut alive = standout(
                 StandoutId::LongestLife,
                 Tone::Good,
@@ -433,7 +480,10 @@ pub fn evaluate(m: &GameMetrics, ctx: &RuleContext) -> Vec<Standout> {
     e.missed_fights();
     e.all_fights();
     e.team_wipes();
+    e.multikill();
     e.shutdowns();
+    e.kill_streak();
+    e.vengeances();
     e.longest_life();
     e.lane_pressure();
     e.stolen_camps();
@@ -471,6 +521,8 @@ mod tests {
             structures_per_game: 0.0,
             soak_per_min: None,
             longest_life: 0.0,
+            kill_streak: 0.0,
+            vengeances_per_game: 0.0,
         }
     }
 
@@ -773,5 +825,52 @@ mod tests {
         m.ended_streak = 15;
         let items = evaluate(&m, &ctx(None));
         assert_eq!(find(&items, StandoutId::Shutdowns).figure.value, 15.0);
+    }
+
+    #[test]
+    fn a_kill_streak_needs_the_floor_and_the_usual() {
+        let mut m = metrics::empty();
+        m.kill_streak = 14;
+        let items = evaluate(&m, &ctx(None));
+        assert!(ids(&items).is_empty());
+
+        m.kill_streak = 15;
+        let items = evaluate(&m, &ctx(None));
+        assert_eq!(find(&items, StandoutId::KillStreak).figure.value, 15.0);
+
+        // 15 against a usual of 13 is under 25% better.
+        let mut base = usual();
+        base.kill_streak = 13.0;
+        let items = evaluate(&m, &ctx(Some(&base)));
+        assert!(ids(&items).is_empty());
+    }
+
+    #[test]
+    fn multikills_start_at_four() {
+        let mut m = metrics::empty();
+        m.multikill = 3;
+        let items = evaluate(&m, &ctx(None));
+        assert!(ids(&items).is_empty());
+
+        m.multikill = 4;
+        let items = evaluate(&m, &ctx(None));
+        assert_eq!(find(&items, StandoutId::Multikill).figure.value, 4.0);
+    }
+
+    #[test]
+    fn vengeances_need_two_and_the_usual() {
+        let mut m = metrics::empty();
+        m.vengeances = 1;
+        let items = evaluate(&m, &ctx(None));
+        assert!(ids(&items).is_empty());
+
+        m.vengeances = 2;
+        let items = evaluate(&m, &ctx(None));
+        assert_eq!(find(&items, StandoutId::Vengeances).figure.value, 2.0);
+
+        let mut base = usual();
+        base.vengeances_per_game = 2.0;
+        let items = evaluate(&m, &ctx(Some(&base)));
+        assert!(ids(&items).is_empty());
     }
 }

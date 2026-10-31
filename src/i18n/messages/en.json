@@ -156,7 +156,10 @@
             "unansweredEngages": "where you died and no enemy fell in the next 5 seconds.",
             "lanePressure": "taken with your part in bringing them down.",
             "teamWipes": "where all five enemies went down, with you there.",
+            "multikill": "each within 10 seconds of the last.",
             "shutdowns": "the longest enemy streak you helped stop.",
+            "killStreak": "your longest run without dying.",
+            "vengeances": "killing blows on enemies.",
             "longestLife": "{variant, select, deathless {the whole game, without a single death.} other {your longest stretch between deaths, game start and end included.}}",
             "figure": "{count} of {total}",
             "seconds": "{value}s",
@@ -174,7 +177,10 @@
                 "unansweredEngages": "Unanswered deaths",
                 "lanePressure": "Lane pressure",
                 "teamWipes": "Team wipes",
+                "multikill": "Multikill",
                 "shutdowns": "Shutdown",
+                "killStreak": "Killstreak",
+                "vengeances": "Vengeance",
                 "longestLife": "Longest life"
             },
             "unit": {
@@ -191,7 +197,10 @@
                 "unansweredEngages": "deaths",
                 "lanePressure": "structures",
                 "teamWipes": "{count, plural, one {fight} other {fights}}",
+                "multikill": "takedowns",
                 "shutdowns": "killstreak",
+                "killStreak": "takedowns",
+                "vengeances": "vengeances",
                 "longestLife": "without dying"
             }
         },

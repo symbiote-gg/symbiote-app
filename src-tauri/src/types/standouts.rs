@@ -21,7 +21,10 @@ pub enum StandoutId {
     UnansweredEngages,
     LanePressure,
     TeamWipes,
+    Multikill,
     Shutdowns,
+    KillStreak,
+    Vengeances,
     LongestLife,
 }
 

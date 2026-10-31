@@ -24,6 +24,8 @@ pub struct HeroBaseline {
     pub soak_per_min: Option<f64>,
     /// Seconds, averaged over the games.
     pub longest_life: f64,
+    pub kill_streak: f64,
+    pub vengeances_per_game: f64,
 }
 
 /// Pools the games into rates, sums over sums, so a short game doesn't weigh
@@ -86,6 +88,8 @@ pub fn aggregate(games: &[(GameMetrics, f64)]) -> Option<HeroBaseline> {
         structures_per_game: sum(&|m| m.lane.structures as f64) / games.len() as f64,
         soak_per_min: rate(soak, soak_duration / 60.0),
         longest_life: sum(&|m| m.longest_life) / games.len() as f64,
+        kill_streak: sum(&|m| m.kill_streak as f64) / games.len() as f64,
+        vengeances_per_game: sum(&|m| m.vengeances as f64) / games.len() as f64,
     })
 }
 
@@ -127,6 +131,8 @@ mod tests {
 
         games[3].0.stolen_camps.count = 2;
         games[0].0.punished.count = 1;
+        games[0].0.kill_streak = 10;
+        games[1].0.vengeances = 3;
 
         let usual = aggregate(&games).unwrap();
         assert_eq!(usual.pick_rate, Some(0.1));
@@ -136,6 +142,8 @@ mod tests {
         assert_eq!(usual.structures_per_game, 0.2);
         assert_eq!(usual.stolen_per_game, 0.4);
         assert_eq!(usual.punished_rate, Some(0.1));
+        assert_eq!(usual.kill_streak, 2.0);
+        assert_eq!(usual.vengeances_per_game, 0.6);
     }
 
     #[test]

@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- Add multikill, killstreak and vengeance to standouts.
 - Add longest life, shutdowns and killstreaks to standouts.
 - Add tabs navigation to replay detail page.
 - Add deaths map with kill feed to replay detail page.

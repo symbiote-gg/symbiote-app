@@ -11,6 +11,8 @@ const PUNISH_SECS: f64 = 45.0;
 const OBJECTIVE_SECS: f64 = 30.0;
 /// Seconds the enemy has to answer an engage with a kill before it counts as unanswered.
 const ANSWER_SECS: f64 = 5.0;
+/// Most seconds between two takedowns of a multikill, the game's own window.
+const MULTIKILL_SECS: f64 = 10.0;
 /// Players on a team: a wipe takes them all down.
 const TEAM_SIZE: usize = 5;
 /// Deaths in a fight that take down a Lost Vikings player: one per Viking.
@@ -53,6 +55,12 @@ pub struct GameMetrics {
     pub ended_streak: usize,
     /// Fights that took down every enemy player, with the owner involved.
     pub wipes: Wipes,
+    /// The owner's longest run of takedowns between deaths.
+    pub kill_streak: usize,
+    /// The owner's most takedowns in a chain.
+    pub multikill: usize,
+    /// Killing blows on an enemy that had landed one on the owner, once per debt.
+    pub vengeances: usize,
 }
 
 #[derive(Debug)]
@@ -345,6 +353,9 @@ pub fn game_metrics(
 
     // Deaths come in time order, so each enemy's run is counted up to its death.
     let mut streaks: HashMap<u8, usize> = HashMap::new();
+    let credited = |death: &Death| {
+        death.killing_blow == Some(owner_slot) || death.killers.contains(&owner_slot)
+    };
     let mut ended_streak = 0;
     for death in &timeline.deaths {
         match death.team {
@@ -355,13 +366,44 @@ pub fn game_metrics(
             }
             Some(_) => {
                 let streak = streaks.remove(&death.victim).unwrap_or(0);
-                let credited =
-                    death.killing_blow == Some(owner_slot) || death.killers.contains(&owner_slot);
-                if credited {
+                if credited(death) {
                     ended_streak = ended_streak.max(streak);
                 }
             }
             None => {}
+        }
+    }
+
+    let mut run = 0;
+    let mut kill_streak = 0;
+    let mut chain = 0;
+    let mut multikill = 0;
+    let mut last_takedown = f64::NEG_INFINITY;
+    let mut owed: HashSet<u8> = HashSet::new();
+    let mut vengeances = 0;
+    for death in &timeline.deaths {
+        if death.victim == owner_slot {
+            run = 0;
+            owed.extend(death.killing_blow);
+            continue;
+        }
+        if !credited(death) {
+            continue;
+        }
+
+        run += 1;
+        kill_streak = kill_streak.max(run);
+
+        chain = if death.time - last_takedown <= MULTIKILL_SECS {
+            chain + 1
+        } else {
+            1
+        };
+        last_takedown = death.time;
+        multikill = multikill.max(chain);
+
+        if death.killing_blow == Some(owner_slot) && owed.remove(&death.victim) {
+            vengeances += 1;
         }
     }
 
@@ -437,6 +479,9 @@ pub fn game_metrics(
         longest_life,
         ended_streak,
         wipes: Wipes { count: wipes },
+        kill_streak,
+        multikill,
+        vengeances,
     }
 }
 
@@ -713,5 +758,67 @@ mod tests {
         assert_eq!(m.wipes.count, 2);
         let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[10]);
         assert_eq!(m.wipes.count, 1);
+    }
+
+    #[test]
+    fn runs_end_when_the_owner_dies() {
+        let timeline = Timeline {
+            deaths: vec![
+                death(10.0, 1, 6, &[1]),
+                death(100.0, 1, 7, &[2, 1]),
+                death(200.0, 1, 8, &[2]),
+                death(300.0, 1, 9, &[1]),
+                death(400.0, 0, 1, &[6]),
+                death(500.0, 1, 6, &[1]),
+            ],
+            ..Timeline::default()
+        };
+
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
+        assert_eq!(m.kill_streak, 3);
+    }
+
+    #[test]
+    fn chains_takedowns_ten_seconds_apart() {
+        let timeline = Timeline {
+            deaths: vec![
+                death(100.0, 1, 6, &[1]),
+                // Ten seconds from the last takedown, not from the first.
+                death(110.0, 1, 7, &[1]),
+                death(120.0, 1, 8, &[2, 1]),
+                // Someone else's kill doesn't extend the chain.
+                death(125.0, 1, 9, &[2]),
+                death(130.5, 1, 10, &[1]),
+            ],
+            ..Timeline::default()
+        };
+
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
+        assert_eq!(m.multikill, 3);
+    }
+
+    #[test]
+    fn a_vengeance_needs_the_killing_blow_and_settles_the_debt() {
+        let timeline = Timeline {
+            deaths: vec![
+                // Before the owner owes anything.
+                death(10.0, 1, 6, &[1]),
+                death(20.0, 0, 1, &[6, 7]),
+                death(30.0, 0, 1, &[8]),
+                // Enemy 7 only assisted on the owner's death.
+                death(40.0, 1, 7, &[1]),
+                // An assist on the enemy that landed the blow doesn't count.
+                death(50.0, 1, 6, &[2, 1]),
+                // A debt survives the owner's later deaths.
+                death(60.0, 1, 6, &[1]),
+                // Settled, so the same enemy doesn't count twice.
+                death(70.0, 1, 6, &[1]),
+                death(80.0, 1, 8, &[1]),
+            ],
+            ..Timeline::default()
+        };
+
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
+        assert_eq!(m.vengeances, 2);
     }
 }
