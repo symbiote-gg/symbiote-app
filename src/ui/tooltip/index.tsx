@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { type ReactNode, useId, useState } from "react";
+import { type ReactNode, type SyntheticEvent, useId, useState } from "react";
 
 import { Popover, type PopoverPlacement } from "../popover";
 import { Typography } from "../typography";
@@ -27,10 +27,10 @@ export function Tooltip({
 }: TooltipProps) {
     const id = useId();
     const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
-    const [open, setOpen] = useState(false);
 
-    const onOpen = () => setOpen(true);
-    const onClose = () => setOpen(false);
+    const onOpen = (e: SyntheticEvent<HTMLSpanElement>) =>
+        setAnchor(e.currentTarget);
+    const onClose = () => setAnchor(null);
 
     const body = description ? (
         <>
@@ -49,16 +49,15 @@ export function Tooltip({
 
     return (
         <span
-            ref={setAnchor}
             className={classNames(styles.trigger, className)}
-            aria-describedby={open ? id : undefined}
+            aria-describedby={anchor ? id : undefined}
             onPointerEnter={onOpen}
             onPointerLeave={onClose}
             onFocus={onOpen}
             onBlur={onClose}
         >
             {children}
-            {open && (
+            {anchor && (
                 <Popover
                     id={id}
                     role="tooltip"
