@@ -2,14 +2,15 @@ import classNames from "classnames";
 import { Crown } from "lucide-react";
 import { useTranslations } from "use-intl";
 
-import type { MostPlayedHeroes } from "@/api/stats";
 import { HeroPortrait } from "@/components";
+import { useMostPlayedHeroes } from "@/hooks/useMostPlayedHeroes";
 import {
     ButtonLink,
     Card,
     CardBody,
     CardHeader,
     EmptyState,
+    ErrorMessage,
     Meter,
     TableHead,
     Typography,
@@ -17,12 +18,11 @@ import {
 
 import styles from "./styles.module.css";
 
-export interface HeroesCardProps {
-    heroes: MostPlayedHeroes;
-}
+const TOP_HEROES = 20;
 
-export function HeroesCard({ heroes }: HeroesCardProps) {
+export function HeroesCard() {
     const t = useTranslations("home.heroes");
+    const { data, error } = useMostPlayedHeroes(TOP_HEROES);
 
     return (
         <Card className={styles.root}>
@@ -31,8 +31,8 @@ export function HeroesCard({ heroes }: HeroesCardProps) {
                 size="sm"
                 title={t("title")}
                 subtitle={t("played", {
-                    played: heroes.played,
-                    total: heroes.total,
+                    played: data?.played ?? 0,
+                    total: data?.total ?? 0,
                 })}
                 action={
                     <ButtonLink href="/heroes" variant="secondary">
@@ -40,7 +40,8 @@ export function HeroesCard({ heroes }: HeroesCardProps) {
                     </ButtonLink>
                 }
             />
-            {heroes.heroes.length === 0 ? (
+            {error && <ErrorMessage error={error} />}
+            {!data || data.heroes.length === 0 ? (
                 <EmptyState>{t("empty")}</EmptyState>
             ) : (
                 <>
@@ -63,7 +64,7 @@ export function HeroesCard({ heroes }: HeroesCardProps) {
                     />
                     <CardBody>
                         <ul className={styles.list}>
-                            {heroes.heroes.map((hero) => {
+                            {data.heroes.map((hero) => {
                                 const rate = hero.wins / hero.games;
                                 return (
                                     <li

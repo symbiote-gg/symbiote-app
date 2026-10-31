@@ -2,12 +2,14 @@ import {
     Ban,
     Castle,
     Crosshair,
+    Flame,
     HatGlasses,
     HeartPulse,
     Hourglass,
     type LucideIcon,
     ShieldAlert,
     Skull,
+    Sword,
     Swords,
     Timer,
     Tombstone,
@@ -15,6 +17,7 @@ import {
     UserRoundCheck,
     UserRoundMinus,
     UserRoundX,
+    Zap,
 } from "lucide-react";
 import { useTranslations } from "use-intl";
 
@@ -38,7 +41,10 @@ const ICONS: Record<StandoutId, LucideIcon> = {
     unansweredEngages: ShieldAlert,
     lanePressure: Castle,
     teamWipes: Trophy,
+    multikill: Zap,
     shutdowns: Ban,
+    killStreak: Flame,
+    vengeances: Sword,
     longestLife: HeartPulse,
 };
 

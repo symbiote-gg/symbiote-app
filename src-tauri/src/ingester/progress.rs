@@ -8,7 +8,7 @@ use super::{lock, Source};
 
 const EVENT: &str = "ingest-progress";
 /// Shortest gap between two progress events, so a bulk ingest doesn't flood the webview.
-const EMIT_EVERY: Duration = Duration::from_millis(100);
+const EMIT_EVERY: Duration = Duration::from_millis(1000);
 
 #[derive(Debug, Clone, Copy, Default, Serialize)]
 pub struct Counter {

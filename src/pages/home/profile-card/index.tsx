@@ -1,13 +1,15 @@
 import { UserRound } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslations } from "use-intl";
 
-import type { ProfileSummary } from "@/api/stats";
 import { WinStrip } from "@/components";
+import { useProfileSummary } from "@/hooks/useProfileSummary";
 import {
     ButtonLink,
     Card,
     CardHeader,
     EmptyState,
+    ErrorMessage,
     Eyebrow,
     StatTile,
     Typography,
@@ -18,17 +20,27 @@ import styles from "./styles.module.css";
 
 const RECENT_GAMES = 20;
 
-export interface ProfileCardProps {
-    profile: ProfileSummary;
-}
-
-export function ProfileCard({ profile }: ProfileCardProps) {
+export function ProfileCard() {
     const t = useTranslations("home.profile");
     const roles = useTranslations("roles");
-    const recent = [...profile.recent].reverse();
-    const recentWins = recent.filter((win) => win === true).length;
-    const recentLosses = recent.filter((win) => win === false).length;
-    const decided = profile.wins + profile.losses;
+    const { data, error } = useProfileSummary();
+
+    const profile = useMemo(() => {
+        if (!data) return null;
+
+        const recent = [...data.recent].reverse();
+
+        return {
+            recent,
+            recentWins: recent.filter((win) => win === true).length,
+            recentLosses: recent.filter((win) => win === false).length,
+            decided: data.wins + data.losses,
+            mainRole: data.mainRole,
+            mvps: data.mvps,
+            topDamageGames: data.topDamageGames,
+            games: data.games,
+        };
+    }, [data]);
 
     return (
         <Card className={styles.root}>
@@ -43,28 +55,32 @@ export function ProfileCard({ profile }: ProfileCardProps) {
                     </ButtonLink>
                 }
             />
-            {profile.games === 0 ? (
+            {error && <ErrorMessage error={error} />}
+            {!profile ? (
                 <EmptyState>{t("empty")}</EmptyState>
             ) : (
                 <div className={styles.body}>
                     <div className={styles.recent}>
                         <div className={styles.recentLabels}>
                             <Eyebrow>
-                                {t("last", { count: recent.length })}
+                                {t("last", { count: profile.recent.length })}
                             </Eyebrow>
                             <Typography size="xs" variant="tertiary" mono>
-                                {recentWins}-{recentLosses}
+                                {profile.recentWins}-{profile.recentLosses}
                             </Typography>
                         </div>
-                        <WinStrip results={recent} slots={RECENT_GAMES} />
+                        <WinStrip
+                            results={profile.recent}
+                            slots={RECENT_GAMES}
+                        />
                     </div>
                     <div className={styles.stats}>
                         <StatTile
                             label={t("winRate")}
                             value={
-                                decided === 0
+                                profile.decided === 0
                                     ? "-"
-                                    : `${Math.round((profile.wins / decided) * 100)}%`
+                                    : `${Math.round((profile.recentWins / profile.decided) * 100)}%`
                             }
                         />
                         <StatTile

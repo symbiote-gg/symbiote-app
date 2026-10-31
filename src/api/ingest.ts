@@ -18,3 +18,21 @@ export const onIngestProgress = (handler: (progress: IngestProgress) => void) =>
     listen<IngestProgress>("ingest-progress", (event) =>
         handler(event.payload),
     );
+
+export const watchIngestProgress = (
+    handler: (progress: IngestProgress) => void,
+) => {
+    let live = false;
+    const unlisten = onIngestProgress((next) => {
+        live = true;
+        handler(next);
+    });
+
+    getIngestProgress().then((snapshot) => {
+        if (!live) handler(snapshot);
+    });
+
+    return () => {
+        unlisten.then((fn) => fn());
+    };
+};

@@ -13,7 +13,7 @@ import { useTranslations } from "use-intl";
 
 import { DEFAULT_REPLAY_SORT, type ReplaySort } from "@/api/replays";
 import { Page, ReplayListHeader, ReplayRow } from "@/components";
-import { useIngestProgress } from "@/hooks/useIngestProgress";
+import { useIngesting } from "@/hooks/useIngestProgress";
 import { useReplays } from "@/hooks/useReplays";
 import {
     Button,
@@ -57,7 +57,7 @@ export function Replays() {
         dataUpdatedAt,
         isPlaceholderData,
     } = useReplays(query, sort);
-    const importing = useIngestProgress() !== null;
+    const ingesting = useIngesting();
 
     const replays = useMemo(
         () => data?.pages.flatMap((page) => page.replays) ?? [],
@@ -136,7 +136,7 @@ export function Replays() {
                             variant="secondary"
                             onClick={onRefresh}
                             disabled={
-                                importing || (isFetching && !isFetchingNextPage)
+                                ingesting || (isFetching && !isFetchingNextPage)
                             }
                         >
                             {t("refresh")}

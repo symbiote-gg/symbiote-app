@@ -7,7 +7,7 @@ import { useFormatter, useTranslations } from "use-intl";
 import { retentionPreviewQuery } from "@/api/queries";
 import { useDatabaseStats } from "@/hooks/useDatabaseStats";
 import { useFormatSize } from "@/hooks/useFormatSize";
-import { useIngestProgress } from "@/hooks/useIngestProgress";
+import { useIngesting } from "@/hooks/useIngestProgress";
 import { useRetentionPreviews } from "@/hooks/useRetentionPreviews";
 import { useSetEventRetention } from "@/hooks/useSetEventRetention";
 import {
@@ -46,7 +46,7 @@ export function StorageCard({ years }: StorageCardProps) {
     const queryClient = useQueryClient();
     const { data: stats } = useDatabaseStats();
     const retention = useSetEventRetention();
-    const importing = useIngestProgress() !== null;
+    const importing = useIngesting();
     const [pending, setPending] = useState<Retention | null>(null);
 
     useEffect(() => {

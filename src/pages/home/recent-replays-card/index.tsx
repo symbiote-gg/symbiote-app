@@ -1,22 +1,25 @@
 import { Clapperboard } from "lucide-react";
 import { useTranslations } from "use-intl";
 
-import type { Replay } from "@/api/replays";
 import { ReplayListHeader, ReplayRow } from "@/components";
-import { ButtonLink, Card, CardBody, CardHeader, EmptyState } from "@/ui";
+import { useRecentReplays } from "@/hooks/useRecentReplays";
+import {
+    ButtonLink,
+    Card,
+    CardBody,
+    CardHeader,
+    EmptyState,
+    ErrorMessage,
+} from "@/ui";
 
 import styles from "./styles.module.css";
 
-export interface RecentReplaysCardProps {
-    replays: Replay[];
-    loadedAt: Date;
-}
+const RECENT_REPLAYS_LIMIT = 50;
 
-export function RecentReplaysCard({
-    replays,
-    loadedAt,
-}: RecentReplaysCardProps) {
+export function RecentReplaysCard() {
     const t = useTranslations("home.replays");
+    const { data, error, dataUpdatedAt } =
+        useRecentReplays(RECENT_REPLAYS_LIMIT);
 
     return (
         <Card className={styles.root}>
@@ -24,21 +27,22 @@ export function RecentReplaysCard({
                 icon={Clapperboard}
                 size="sm"
                 title={t("title")}
-                subtitle={t("subtitle", { count: replays.length })}
+                subtitle={t("subtitle", { count: RECENT_REPLAYS_LIMIT })}
                 action={<ButtonLink href="/replays">{t("all")}</ButtonLink>}
                 divided
             />
-            {replays.length === 0 ? (
+            {error && <ErrorMessage error={error} />}
+            {data?.replays.length === 0 ? (
                 <EmptyState>{t("empty")}</EmptyState>
             ) : (
                 <>
                     <ReplayListHeader />
                     <CardBody>
-                        {replays.map((replay) => (
+                        {data?.replays.map((replay) => (
                             <ReplayRow
                                 key={replay.id}
                                 replay={replay}
-                                now={loadedAt}
+                                now={new Date(dataUpdatedAt)}
                             />
                         ))}
                     </CardBody>

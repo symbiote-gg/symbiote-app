@@ -16,7 +16,7 @@ import {
     subscribeIngest,
 } from "@/api/replays";
 
-const FLUSH_MS = 250;
+const FLUSH_MS = 1000;
 // Stats scan every stored replay, so refreshing them on each flush slows ingestion down.
 const STATS_MS = 5000;
 const STATS_KEY = ["stats"];
