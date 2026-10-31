@@ -20,6 +20,9 @@ pub enum StandoutId {
     StolenCamps,
     UnansweredEngages,
     LanePressure,
+    TeamWipes,
+    Shutdowns,
+    LongestLife,
 }
 
 /// Colours the key figure: a cost, worth a look, or something done right.
@@ -57,6 +60,7 @@ pub enum FigureUnit {
 #[serde(rename_all = "camelCase")]
 pub enum Variant {
     Tank,
+    Deathless,
 }
 
 #[derive(Debug, Serialize)]

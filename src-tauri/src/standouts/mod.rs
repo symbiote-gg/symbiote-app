@@ -9,13 +9,16 @@ use crate::types::hero::HeroRole;
 use crate::types::standouts::StandoutsResult;
 use crate::types::timeline::{Timeline, XpBreakdown};
 
+/// The Lost Vikings' slug: three heroes on one player.
+pub const LOST_VIKINGS: &str = "LostVikings";
+
 /// Heroes whose job is pushing lanes over joining fights: a hand-kept list, as
 /// the role data doesn't say.
 const PUSH_HEROES: [&str; 10] = [
     "Abathur",
     "Azmodan",
     "Dehaka",
-    "LostVikings",
+    LOST_VIKINGS,
     "Murky",
     "Necromancer",
     "Sylvanas",
@@ -26,7 +29,7 @@ const PUSH_HEROES: [&str; 10] = [
 
 /// Heroes whose deaths cost only seconds: Murky's respawn is a blink, and a lone
 /// Viking down leaves two still playing. Their time dead says nothing.
-const CHEAP_DEATH_HEROES: [&str; 2] = ["LostVikings", "Murky"];
+const CHEAP_DEATH_HEROES: [&str; 2] = [LOST_VIKINGS, "Murky"];
 
 /// One game's raw data, as the metrics read it.
 pub struct GameData {
@@ -36,6 +39,8 @@ pub struct GameData {
     pub ally_team: u8,
     pub owner_time_dead: Option<f64>,
     pub owner_xp: Option<XpBreakdown>,
+    /// Slots playing the Lost Vikings.
+    pub vikings: Vec<u8>,
     pub timeline: Timeline,
 }
 
@@ -56,6 +61,7 @@ pub fn compute(input: &StandoutsInput) -> StandoutsResult {
             g.ally_team,
             g.owner_time_dead,
             g.owner_xp.as_ref(),
+            &g.vikings,
         )
     };
     let games: Vec<_> = input

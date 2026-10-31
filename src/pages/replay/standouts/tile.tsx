@@ -1,7 +1,9 @@
 import {
+    Ban,
     Castle,
     Crosshair,
     HatGlasses,
+    HeartPulse,
     Hourglass,
     type LucideIcon,
     ShieldAlert,
@@ -9,6 +11,7 @@ import {
     Swords,
     Timer,
     Tombstone,
+    Trophy,
     UserRoundCheck,
     UserRoundMinus,
     UserRoundX,
@@ -34,6 +37,9 @@ const ICONS: Record<StandoutId, LucideIcon> = {
     stolenCamps: HatGlasses,
     unansweredEngages: ShieldAlert,
     lanePressure: Castle,
+    teamWipes: Trophy,
+    shutdowns: Ban,
+    longestLife: HeartPulse,
 };
 
 interface TileProps {

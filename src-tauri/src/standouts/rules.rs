@@ -22,6 +22,13 @@ const TIME_DEAD_SHARE: f64 = 0.15;
 const STAY_SECS: f64 = 8.0;
 /// How much worse than the usual a rate has to be to call it out.
 const WORSE: f64 = 1.25;
+/// How much longer than the usual a life has to be to call it out.
+const BETTER: f64 = 1.25;
+/// Seconds of life worth calling out, whatever the usual.
+const LIFE_SECS: f64 = 720.0;
+/// Enemy run of takedowns without dying worth calling out once ended: assists
+/// count, so runs of 5-10 are routine.
+const SHUTDOWN_STREAK: usize = 15;
 
 pub struct RuleContext<'a> {
     pub role: Option<HeroRole>,
@@ -319,6 +326,55 @@ impl Evaluation<'_> {
         }
     }
 
+    fn team_wipes(&mut self) {
+        let count = self.m.wipes.count;
+
+        if count >= 1 {
+            let mut wipes = standout(StandoutId::TeamWipes, Tone::Good, count_figure(count, None));
+            wipes.params.insert("count".to_owned(), count as i64);
+            self.found.push(wipes);
+        }
+    }
+
+    fn shutdowns(&mut self) {
+        let streak = self.m.ended_streak;
+
+        if streak >= SHUTDOWN_STREAK {
+            self.found.push(standout(
+                StandoutId::Shutdowns,
+                Tone::Good,
+                count_figure(streak, None),
+            ));
+        }
+    }
+
+    /// A long life: past the usual, unless it's the whole game.
+    /// Says nothing when a death costs only seconds.
+    fn longest_life(&mut self) {
+        if self.ctx.cheap_deaths {
+            return;
+        }
+
+        let life = self.m.longest_life;
+        let deathless = self.m.owner_deaths == 0;
+        let usual = self.ctx.usual(|b| b.longest_life);
+        let beats_usual = usual.is_none_or(|usual| life >= usual * BETTER);
+
+        if life >= LIFE_SECS && (deathless || beats_usual) {
+            let mut alive = standout(
+                StandoutId::LongestLife,
+                Tone::Good,
+                Figure {
+                    value: life.round(),
+                    total: None,
+                    unit: FigureUnit::Duration,
+                },
+            );
+            alive.variant = deathless.then_some(Variant::Deathless);
+            self.found.push(alive);
+        }
+    }
+
     /// Lane pressure, the push hero's "keep doing it".
     fn lane_pressure(&mut self) {
         if !self.ctx.push {
@@ -376,8 +432,20 @@ pub fn evaluate(m: &GameMetrics, ctx: &RuleContext) -> Vec<Standout> {
     e.fight_record();
     e.missed_fights();
     e.all_fights();
+    e.team_wipes();
+    e.shutdowns();
+    e.longest_life();
     e.lane_pressure();
     e.stolen_camps();
+
+    // Highs and lows both: the first good standout takes the last slot over a cost.
+    let good = |s: &Standout| s.tone == Tone::Good;
+    if e.found.len() > MAX_STANDOUTS && !e.found[..MAX_STANDOUTS].iter().any(good) {
+        if let Some(i) = e.found.iter().position(good) {
+            let best = e.found.remove(i);
+            e.found.insert(MAX_STANDOUTS - 1, best);
+        }
+    }
 
     e.found.truncate(MAX_STANDOUTS);
     e.found
@@ -402,6 +470,7 @@ mod tests {
             stolen_per_game: 0.0,
             structures_per_game: 0.0,
             soak_per_min: None,
+            longest_life: 0.0,
         }
     }
 
@@ -638,5 +707,71 @@ mod tests {
         let items = evaluate(&m, &ctx(None));
         assert_eq!(items.len(), 4);
         assert!(!ids(&items).contains(&StandoutId::DeathsPunished));
+    }
+
+    #[test]
+    fn keeps_the_last_slot_for_a_high() {
+        let mut m = metrics::empty();
+        m.owner_deaths = 4;
+        m.alone.count = 3;
+        m.alone.known = 4;
+        m.picks.count = 3;
+        m.first_dead.count = 3;
+        m.first_dead.multi_death_fights = 4;
+        m.stays.count = 2;
+        m.stays.avg_stay = 10.0;
+        m.wipes.count = 1;
+        m.ended_streak = 20;
+
+        let items = evaluate(&m, &ctx(None));
+        assert_eq!(
+            ids(&items),
+            [
+                StandoutId::AloneDeaths,
+                StandoutId::PickDeaths,
+                StandoutId::FirstDead,
+                StandoutId::TeamWipes
+            ]
+        );
+    }
+
+    #[test]
+    fn a_deathless_game_skips_the_usual() {
+        let mut m = metrics::empty();
+        m.longest_life = 900.0;
+        let mut base = usual();
+        base.longest_life = 1000.0;
+
+        let items = evaluate(&m, &ctx(Some(&base)));
+        let alive = find(&items, StandoutId::LongestLife);
+        assert_eq!(alive.variant, Some(Variant::Deathless));
+        assert_eq!(alive.figure.value, 900.0);
+
+        // With a death in it, the life has to beat the usual.
+        m.owner_deaths = 1;
+        base.longest_life = 800.0;
+        let items = evaluate(&m, &ctx(Some(&base)));
+        assert!(ids(&items).is_empty());
+
+        base.longest_life = 700.0;
+        let items = evaluate(&m, &ctx(Some(&base)));
+        assert_eq!(find(&items, StandoutId::LongestLife).variant, None);
+
+        let mut murky = ctx(Some(&base));
+        murky.cheap_deaths = true;
+        let items = evaluate(&m, &murky);
+        assert!(ids(&items).is_empty());
+    }
+
+    #[test]
+    fn shutdowns_need_a_long_run() {
+        let mut m = metrics::empty();
+        m.ended_streak = 14;
+        let items = evaluate(&m, &ctx(None));
+        assert!(ids(&items).is_empty());
+
+        m.ended_streak = 15;
+        let items = evaluate(&m, &ctx(None));
+        assert_eq!(find(&items, StandoutId::Shutdowns).figure.value, 15.0);
     }
 }

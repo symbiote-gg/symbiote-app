@@ -2,7 +2,7 @@ use sqlx::types::Json;
 use sqlx::{FromRow, SqliteConnection, SqlitePool};
 
 use super::detail::fetch_event_rows;
-use crate::standouts::{GameData, StandoutsInput};
+use crate::standouts::{GameData, StandoutsInput, LOST_VIKINGS};
 use crate::timeline;
 use crate::types::hero::HeroRole;
 use crate::types::timeline::XpBreakdown;
@@ -141,12 +141,26 @@ async fn game_data(
     owner_xp: Option<Json<XpBreakdown>>,
 ) -> sqlx::Result<GameData> {
     let events = fetch_event_rows(tx, id).await?;
+    let vikings: Vec<i64> = sqlx::query_scalar(
+        "SELECT rp.slot FROM replays_players rp
+         JOIN heroes h ON h.id = rp.hero_id
+         WHERE rp.replay_id = ? AND h.slug = ?",
+    )
+    .bind(id)
+    .bind(LOST_VIKINGS)
+    .fetch_all(&mut *tx)
+    .await?;
+
     Ok(GameData {
         duration: duration as f64,
         owner_slot: u8::try_from(owner_slot).unwrap_or_default(),
         ally_team: u8::try_from(ally_team).unwrap_or_default(),
         owner_time_dead,
         owner_xp: owner_xp.map(|Json(xp)| xp),
+        vikings: vikings
+            .into_iter()
+            .filter_map(|slot| u8::try_from(slot).ok())
+            .collect(),
         timeline: timeline::build(events, duration as f64),
     })
 }
@@ -205,6 +219,7 @@ mod tests {
         assert_eq!(input.current.owner_slot, 1);
         assert_eq!(input.current.ally_team, 0);
         assert_eq!(input.current.timeline.deaths.len(), 1);
+        assert!(input.current.vikings.is_empty());
 
         let durations: Vec<_> = input.baseline.iter().map(|g| g.duration).collect();
         assert_eq!(durations, [2000.0, 1000.0, 1000.0]);
@@ -237,6 +252,22 @@ mod tests {
         let input = ready(load(&pool, current, 150).await);
         let durations: Vec<_> = input.baseline.iter().map(|g| g.duration).collect();
         assert_eq!(durations, [2000.0]);
+    }
+
+    #[tokio::test]
+    async fn reads_the_vikings_slots() {
+        let pool = pool().await;
+        let mut vikings = game("vikings", 100, 16_000);
+        vikings.replay.owner_hero_slug = LOST_VIKINGS.to_owned();
+        vikings.replay_players[0].hero_slug = LOST_VIKINGS.to_owned();
+        vikings.heroes.push(Hero {
+            slug: LOST_VIKINGS.to_owned(),
+            name: "The Lost Vikings".to_owned(),
+        });
+        let id = insert(&pool, vikings).await;
+
+        let input = ready(load(&pool, id, 0).await);
+        assert_eq!(input.current.vikings, [1]);
     }
 
     #[tokio::test]

@@ -155,6 +155,9 @@
             "stolenCamps": "by the enemy on your side of the map.",
             "unansweredEngages": "where you died and no enemy fell in the next 5 seconds.",
             "lanePressure": "taken with your part in bringing them down.",
+            "teamWipes": "where all five enemies went down, with you there.",
+            "shutdowns": "the longest enemy streak you helped stop.",
+            "longestLife": "{variant, select, deathless {the whole game, without a single death.} other {your longest stretch between deaths, game start and end included.}}",
             "figure": "{count} of {total}",
             "seconds": "{value}s",
             "label": {
@@ -169,7 +172,10 @@
                 "allFights": "Every team fight",
                 "stolenCamps": "Stolen camps",
                 "unansweredEngages": "Unanswered deaths",
-                "lanePressure": "Lane pressure"
+                "lanePressure": "Lane pressure",
+                "teamWipes": "Team wipes",
+                "shutdowns": "Shutdown",
+                "longestLife": "Longest life"
             },
             "unit": {
                 "aloneDeaths": "flagged deaths",
@@ -183,7 +189,10 @@
                 "allFights": "team fights",
                 "stolenCamps": "camps stolen",
                 "unansweredEngages": "deaths",
-                "lanePressure": "structures"
+                "lanePressure": "structures",
+                "teamWipes": "{count, plural, one {fight} other {fights}}",
+                "shutdowns": "killstreak",
+                "longestLife": "without dying"
             }
         },
         "teamKills": {

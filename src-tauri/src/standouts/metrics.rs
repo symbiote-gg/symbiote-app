@@ -1,7 +1,7 @@
 //! Counting pass over one game: what each rule judges. Runs the same way on the
 //! open replay and on each game of the hero baseline.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use crate::types::timeline::{Death, Fight, FightKind, Timeline, XpBreakdown};
 
@@ -11,6 +11,10 @@ const PUNISH_SECS: f64 = 45.0;
 const OBJECTIVE_SECS: f64 = 30.0;
 /// Seconds the enemy has to answer an engage with a kill before it counts as unanswered.
 const ANSWER_SECS: f64 = 5.0;
+/// Players on a team: a wipe takes them all down.
+const TEAM_SIZE: usize = 5;
+/// Deaths in a fight that take down a Lost Vikings player: one per Viking.
+const VIKINGS: usize = 3;
 
 #[derive(Debug)]
 pub struct GameMetrics {
@@ -41,6 +45,14 @@ pub struct GameMetrics {
     pub stolen_camps: StolenCamps,
     /// Enemy structures the owner helped take, and lane XP soaked.
     pub lane: LanePressure,
+    /// Seconds of the owner's longest life, from the gates opening to the first
+    /// death, between two (respawn wait included) or from the last to the end.
+    pub longest_life: f64,
+    /// The longest enemy run of takedowns without dying, ended by a death
+    /// credited to the owner.
+    pub ended_streak: usize,
+    /// Fights that took down every enemy player, with the owner involved.
+    pub wipes: Wipes,
 }
 
 #[derive(Debug)]
@@ -103,6 +115,11 @@ pub struct StolenCamps {
 }
 
 #[derive(Debug)]
+pub struct Wipes {
+    pub count: usize,
+}
+
+#[derive(Debug)]
 pub struct LanePressure {
     pub structures: usize,
     /// Minion and creep XP earned, the soak proxy. `None` on games stored
@@ -114,7 +131,7 @@ pub struct LanePressure {
 /// A game where nothing happened, for rule tests to build on.
 #[cfg(test)]
 pub fn empty() -> GameMetrics {
-    game_metrics(&Timeline::default(), 600.0, 1, 0, None, None)
+    game_metrics(&Timeline::default(), 600.0, 1, 0, None, None, &[])
 }
 
 pub fn game_metrics(
@@ -124,6 +141,7 @@ pub fn game_metrics(
     ally_team: u8,
     owner_time_dead: Option<f64>,
     owner_xp: Option<&XpBreakdown>,
+    vikings: &[u8],
 ) -> GameMetrics {
     let owner_deaths: Vec<&Death> = timeline
         .deaths
@@ -314,6 +332,56 @@ pub fn game_metrics(
         .filter(|camp| camp.stolen && camp.team.is_some_and(|team| team != ally_team))
         .count();
 
+    let mut death_times: Vec<f64> = owner_deaths.iter().map(|d| d.time.max(0.0)).collect();
+    death_times.push(duration);
+    let longest_life = death_times
+        .iter()
+        .scan(0.0, |last, &time| {
+            let gap = time - *last;
+            *last = time;
+            Some(gap)
+        })
+        .fold(0.0, f64::max);
+
+    // Deaths come in time order, so each enemy's run is counted up to its death.
+    let mut streaks: HashMap<u8, usize> = HashMap::new();
+    let mut ended_streak = 0;
+    for death in &timeline.deaths {
+        match death.team {
+            Some(team) if team == ally_team => {
+                for &killer in &death.killers {
+                    *streaks.entry(killer).or_default() += 1;
+                }
+            }
+            Some(_) => {
+                let streak = streaks.remove(&death.victim).unwrap_or(0);
+                let credited =
+                    death.killing_blow == Some(owner_slot) || death.killers.contains(&owner_slot);
+                if credited {
+                    ended_streak = ended_streak.max(streak);
+                }
+            }
+            None => {}
+        }
+    }
+
+    let wiped = |fight: &Fight| {
+        let mut down: HashMap<u8, usize> = HashMap::new();
+        for &i in &fight.deaths {
+            let death = &timeline.deaths[i];
+            if death.team.is_some_and(|team| team != ally_team) {
+                *down.entry(death.victim).or_default() += 1;
+            }
+        }
+        let needed = |slot: &u8| if vikings.contains(slot) { VIKINGS } else { 1 };
+        down.iter().filter(|(slot, &n)| n >= needed(slot)).count() >= TEAM_SIZE
+    };
+    let wipes = timeline
+        .fights
+        .iter()
+        .filter(|fight| in_fight(fight) && wiped(fight))
+        .count();
+
     GameMetrics {
         owner_deaths: owner_deaths.len(),
         alone: Alone {
@@ -366,6 +434,9 @@ pub fn game_metrics(
                 .filter(|_| duration > 0.0)
                 .map(|xp| (xp.minion + xp.creep) / duration * 60.0),
         },
+        longest_life,
+        ended_streak,
+        wipes: Wipes { count: wipes },
     }
 }
 
@@ -435,7 +506,7 @@ mod tests {
             ..Timeline::default()
         };
 
-        let m = game_metrics(&timeline, 600.0, 1, 0, None, None);
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
         assert_eq!(m.unanswered.fight_deaths, 3);
         assert_eq!(m.unanswered.count, 2);
     }
@@ -460,7 +531,7 @@ mod tests {
             ..Timeline::default()
         };
 
-        let m = game_metrics(&timeline, 600.0, 1, 0, None, None);
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
         assert_eq!((m.fights.joined, m.fights.won), (2, 2));
         assert_eq!((m.fights.started.joined, m.fights.started.won), (1, 1));
     }
@@ -488,7 +559,7 @@ mod tests {
             ..Timeline::default()
         };
 
-        let m = game_metrics(&timeline, 600.0, 1, 0, None, None);
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
         assert_eq!((m.fights.joined, m.fights.won), (1, 1));
         assert_eq!(m.fights.missed, 1);
         // Present at the first death counts as being there for the open.
@@ -507,7 +578,7 @@ mod tests {
             ..Timeline::default()
         };
 
-        let m = game_metrics(&timeline, 600.0, 1, 0, None, None);
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
         assert_eq!((m.alone.count, m.alone.known), (2, 2));
         assert_eq!((m.alone_near.count, m.alone_near.known), (1, 1));
     }
@@ -533,7 +604,7 @@ mod tests {
             ..Timeline::default()
         };
 
-        let m = game_metrics(&timeline, 600.0, 1, 0, None, None);
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
         assert_eq!((m.alone.count, m.alone.known), (1, 2));
     }
 
@@ -563,12 +634,84 @@ mod tests {
             ..XpBreakdown::default()
         };
 
-        let m = game_metrics(&timeline, 600.0, 1, 0, None, Some(&xp));
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, Some(&xp), &[]);
         assert_eq!(m.lane.structures, 2);
         assert_eq!(m.lane.soak, Some(600.0));
         assert_eq!(m.lane.soak_per_min, Some(60.0));
 
-        let without = game_metrics(&timeline, 600.0, 1, 0, None, None);
+        let without = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
         assert_eq!(without.lane.soak_per_min, None);
+    }
+
+    #[test]
+    fn measures_the_longest_life_from_start_to_end() {
+        let timeline = Timeline {
+            deaths: vec![death(100.0, 0, 1, &[6]), death(250.0, 0, 1, &[6])],
+            ..Timeline::default()
+        };
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
+        assert_eq!(m.longest_life, 350.0);
+
+        let early = Timeline {
+            deaths: vec![death(500.0, 0, 1, &[6]), death(550.0, 0, 1, &[6])],
+            ..Timeline::default()
+        };
+        let m = game_metrics(&early, 600.0, 1, 0, None, None, &[]);
+        assert_eq!(m.longest_life, 500.0);
+
+        assert_eq!(empty().longest_life, 600.0);
+    }
+
+    #[test]
+    fn keeps_the_longest_enemy_run_the_owner_ended() {
+        let timeline = Timeline {
+            deaths: vec![
+                death(10.0, 0, 2, &[6]),
+                death(20.0, 0, 3, &[6, 7]),
+                death(30.0, 0, 4, &[6]),
+                // Enemy 7 on one takedown.
+                death(40.0, 1, 7, &[1]),
+                // Enemy 6 on three, ended with the owner's help.
+                death(50.0, 1, 6, &[2, 1]),
+                death(60.0, 0, 2, &[6]),
+                death(70.0, 0, 3, &[6]),
+                death(80.0, 0, 4, &[6]),
+                death(90.0, 0, 5, &[6]),
+                // A longer run, ended without the owner.
+                death(100.0, 1, 6, &[2]),
+            ],
+            ..Timeline::default()
+        };
+
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
+        assert_eq!(m.ended_streak, 3);
+    }
+
+    #[test]
+    fn needs_every_viking_down_for_a_wipe() {
+        let enemy = |time, victim| Death {
+            near_players: vec![1],
+            ..death(time, 1, victim, &[2])
+        };
+        let wipe = |start: f64, vikings: usize| {
+            let mut deaths: Vec<Death> = (6..=9).map(|slot| enemy(start, slot)).collect();
+            deaths.extend((0..vikings).map(|_| enemy(start + 1.0, 10)));
+            deaths
+        };
+        let mut deaths = wipe(100.0, 1);
+        deaths.extend(wipe(200.0, 3));
+        let timeline = Timeline {
+            deaths,
+            fights: vec![
+                fight(FightKind::TeamFight, (0..5).collect(), 100.0),
+                fight(FightKind::TeamFight, (5..12).collect(), 200.0),
+            ],
+            ..Timeline::default()
+        };
+
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
+        assert_eq!(m.wipes.count, 2);
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[10]);
+        assert_eq!(m.wipes.count, 1);
     }
 }

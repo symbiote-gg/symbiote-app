@@ -22,6 +22,8 @@ pub struct HeroBaseline {
     pub stolen_per_game: f64,
     pub structures_per_game: f64,
     pub soak_per_min: Option<f64>,
+    /// Seconds, averaged over the games.
+    pub longest_life: f64,
 }
 
 /// Pools the games into rates, sums over sums, so a short game doesn't weigh
@@ -83,6 +85,7 @@ pub fn aggregate(games: &[(GameMetrics, f64)]) -> Option<HeroBaseline> {
         stolen_per_game: sum(&|m| m.stolen_camps.count as f64) / games.len() as f64,
         structures_per_game: sum(&|m| m.lane.structures as f64) / games.len() as f64,
         soak_per_min: rate(soak, soak_duration / 60.0),
+        longest_life: sum(&|m| m.longest_life) / games.len() as f64,
     })
 }
 

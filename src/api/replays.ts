@@ -433,7 +433,10 @@ export type StandoutId =
     | "allFights"
     | "stolenCamps"
     | "unansweredEngages"
-    | "lanePressure";
+    | "lanePressure"
+    | "teamWipes"
+    | "shutdowns"
+    | "longestLife";
 
 /** Colours the key figure: a cost, worth a look, or something done right. */
 export type StandoutTone = "bad" | "watch" | "good";
@@ -450,7 +453,7 @@ export type StandoutFigure = {
  * Which sentence fits the hero, e.g. a tank's fight record counts only the fights
  * that opened with it there. Null is the default sentence.
  */
-export type StandoutVariant = "tank";
+export type StandoutVariant = "tank" | "deathless";
 
 export type Standout = {
     id: StandoutId;
