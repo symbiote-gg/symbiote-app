@@ -22,14 +22,12 @@ import { layerOf, minimapOf, project } from "@/utils/timeline/minimaps";
 import type { Roster } from "@/utils/timeline/roster";
 import { Controls } from "./controls";
 import { DeathList } from "./death-list";
-import { DeathPopover } from "./death-popover";
+import { DeathPopover, type DeathPopoverHandle } from "./death-popover";
 import { type DeathFilter, type PlacedDeath, matches } from "./deaths";
 import { Scrubber } from "./scrubber";
 import { Stage } from "./stage";
 
 import styles from "./styles.module.css";
-
-const CLOSE_DELAY_MS = 200;
 
 interface DeathMapProps {
     map: string;
@@ -54,8 +52,7 @@ export function DeathMap({
     const [layer, setLayer] = useState("0");
     const [filter, setFilter] = useState<DeathFilter>("all");
     const [selectedId, setSelectedId] = useState<number | null>(null);
-    const [hoveredId, setHoveredId] = useState<number | null>(null);
-    const closeTimer = useRef<number | undefined>(undefined);
+    const popoverRef = useRef<DeathPopoverHandle>(null);
     const pinsRef = useRef<HTMLDivElement>(null);
 
     const layers = minimapOf(map);
@@ -76,10 +73,6 @@ export function DeathMap({
             },
         );
     }, [layers, timeline, allyTeam]);
-
-    const cancelClose = () => window.clearTimeout(closeTimer.current);
-
-    useEffect(() => cancelClose, []);
 
     useEffect(() => {
         if (selectedId === null) return;
@@ -117,9 +110,6 @@ export function DeathMap({
     );
 
     const byId = new Map(placed.map((death) => [death.id, death]));
-    const popoverId = hoveredId ?? selectedId;
-    const popover = visible.find((death) => death.id === popoverId);
-    const popoverMarker = popover && markers.get(popover.id);
 
     const select = (id: number) => {
         const death = byId.get(id);
@@ -133,18 +123,10 @@ export function DeathMap({
         if (death.entry.time > time) setTime(death.entry.time);
     };
 
-    const scheduleClose = () => {
-        cancelClose();
-        closeTimer.current = window.setTimeout(
-            () => setHoveredId(null),
-            CLOSE_DELAY_MS,
-        );
-    };
+    const onPinEnter = (e: SyntheticEvent<HTMLButtonElement>) =>
+        popoverRef.current?.hover(Number(e.currentTarget.dataset.death));
 
-    const onPinEnter = (e: SyntheticEvent<HTMLButtonElement>) => {
-        cancelClose();
-        setHoveredId(Number(e.currentTarget.dataset.death));
-    };
+    const onPinLeave = () => popoverRef.current?.leave();
 
     const onPinClick = (e: MouseEvent<HTMLButtonElement>) =>
         select(Number(e.currentTarget.dataset.death));
@@ -205,23 +187,20 @@ export function DeathMap({
                     text={text}
                     pinsRef={pinsRef}
                     onPinEnter={onPinEnter}
-                    onPinLeave={scheduleClose}
+                    onPinLeave={onPinLeave}
                     onPinClick={onPinClick}
                 >
-                    {popover && popoverMarker && (
-                        <DeathPopover
-                            key={popover.id}
-                            id={popover.id}
-                            marker={popoverMarker}
-                            container={pinsRef}
-                            players={players}
-                            allyTeam={allyTeam}
-                            highlightSlot={ownerSlot}
-                            text={text}
-                            onPointerEnter={cancelClose}
-                            onPointerLeave={scheduleClose}
-                        />
-                    )}
+                    <DeathPopover
+                        ref={popoverRef}
+                        deaths={visible}
+                        markers={markers}
+                        selectedId={selectedId}
+                        container={pinsRef}
+                        players={players}
+                        allyTeam={allyTeam}
+                        highlightSlot={ownerSlot}
+                        text={text}
+                    />
                 </Stage>
 
                 <div className={styles.side}>
