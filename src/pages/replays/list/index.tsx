@@ -15,7 +15,6 @@ export interface ListProps {
     ref: RefObject<HTMLDivElement | null>;
     replays: Replay[];
     total: number;
-    now: Date;
     stale: boolean;
     initialOffset: number;
     hasNextPage: boolean;
@@ -29,7 +28,6 @@ export function List({
     ref,
     replays,
     total,
-    now,
     stale,
     initialOffset,
     hasNextPage,
@@ -80,7 +78,7 @@ export function List({
                             style={{ height: item.size }}
                         >
                             {replay ? (
-                                <ReplayRow replay={replay} now={now} wide />
+                                <ReplayRow replay={replay} wide />
                             ) : (
                                 <div className={styles.skeleton} aria-hidden />
                             )}

@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { useMemo } from "react";
 import {
     useFormatter,
@@ -6,44 +7,41 @@ import {
     useTranslations,
 } from "use-intl";
 
-function withYear<T extends object>(options: T, date: Date, now: Date) {
-    return date.getFullYear() === now.getFullYear()
-        ? options
-        : { ...options, year: "numeric" as const };
-}
-
 export function formatDuration(secs: number) {
     const minutes = Math.floor(secs / 60);
     const seconds = secs % 60;
     return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-export function startOfToday() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return today;
-}
+const RELATIVE_HOURS = 12;
 
 export function usePlayedAt() {
     const format = useFormatter();
     const t = useTranslations("dates");
 
-    return (timestamp: string, now = new Date()) => {
-        const date = new Date(timestamp);
-        if (now.getTime() - date.getTime() < DAY_MS / 2) {
-            return format.relativeTime(date, { now, style: "short" });
+    return (timestamp: string) => {
+        const now = dayjs();
+        const date = dayjs(timestamp);
+
+        if (now.diff(date, "hour", true) < RELATIVE_HOURS) {
+            return format.relativeTime(date.toDate(), {
+                now: now.toDate(),
+                style: "short",
+            });
         }
 
-        const today = startOfToday();
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
+        if (date.isSame(now, "day")) {
+            return format.dateTime(date.toDate(), TIME_FORMAT);
+        }
 
-        if (date >= today) return format.dateTime(date, TIME_FORMAT);
-        if (date >= yesterday) return t("yesterday");
+        if (date.isSame(now.subtract(1, "day"), "day")) {
+            return t("yesterday");
+        }
 
-        return format.dateTime(date, withYear(DATE_FORMAT, date, now));
+        return format.dateTime(
+            date.toDate(),
+            date.isSame(now, "year") ? DATE_FORMAT : FULL_DATE_FORMAT,
+        );
     };
 }
 

@@ -25,14 +25,12 @@ import styles from "./styles.module.css";
 
 export interface ReplayRowProps {
     replay: Replay;
-    now?: Date;
     wide?: boolean;
     className?: string;
 }
 
 export const ReplayRow = memo(function ReplayRow({
     replay,
-    now,
     wide,
     className,
 }: ReplayRowProps) {
@@ -157,7 +155,7 @@ export const ReplayRow = memo(function ReplayRow({
                     noWrap
                     className={columns.time}
                 >
-                    {playedAt(replay.timestamp, now)}
+                    {playedAt(replay.timestamp)}
                 </Typography>
                 <ResultChip win={replay.ownerWin} className={columns.result} />
             </span>

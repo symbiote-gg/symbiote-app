@@ -18,8 +18,7 @@ const RECENT_REPLAYS_LIMIT = 50;
 
 export function RecentReplaysCard() {
     const t = useTranslations("home.replays");
-    const { data, error, dataUpdatedAt } =
-        useRecentReplays(RECENT_REPLAYS_LIMIT);
+    const { data, error } = useRecentReplays(RECENT_REPLAYS_LIMIT);
 
     return (
         <Card className={styles.root}>
@@ -39,11 +38,7 @@ export function RecentReplaysCard() {
                     <ReplayListHeader />
                     <CardBody>
                         {data?.replays.map((replay) => (
-                            <ReplayRow
-                                key={replay.id}
-                                replay={replay}
-                                now={new Date(dataUpdatedAt)}
-                            />
+                            <ReplayRow key={replay.id} replay={replay} />
                         ))}
                     </CardBody>
                 </>

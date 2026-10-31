@@ -42,7 +42,6 @@ export function Replays() {
         isFetchingNextPage,
         fetchNextPage,
         refetch,
-        dataUpdatedAt,
         isPlaceholderData,
     } = useReplays(query, sort);
     const ingesting = useIngesting();
@@ -52,11 +51,6 @@ export function Replays() {
         [data],
     );
     const total = data?.pages[0]?.total ?? 0;
-    // Zero while the previous list stands in for one that hasn't loaded yet.
-    const now = useMemo(
-        () => new Date(dataUpdatedAt || Date.now()),
-        [dataUpdatedAt],
-    );
 
     useLayoutEffect(() => {
         if (scroller.current) scroller.current.scrollTop = savedOffset;
@@ -123,7 +117,6 @@ export function Replays() {
                     ref={scroller}
                     replays={replays}
                     total={total}
-                    now={now}
                     stale={isPlaceholderData}
                     initialOffset={savedOffset}
                     hasNextPage={hasNextPage}

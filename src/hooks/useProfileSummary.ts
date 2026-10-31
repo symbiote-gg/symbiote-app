@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
 
 import { getProfileSummary } from "@/api/stats";
-import { startOfToday } from "@/utils/dates";
 
-export function useProfileSummary(since = startOfToday()) {
+export function useProfileSummary(since = dayjs().startOf("day").toDate()) {
     return useQuery({
         queryKey: ["stats", "profile", since.getTime()],
         gcTime: Infinity,
