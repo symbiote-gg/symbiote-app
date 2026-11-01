@@ -336,7 +336,6 @@
         "rolePerformances": {
             "title": "Role performances",
             "subtitle": "Heroes score out of 100, measured stat by stat against the best in their role on either team, in this game only. Some stats weigh more than others, as indicated by their weight. Sides under 3 points apart are even.",
-            "hero": "{player} ({hero})",
             "averaged": "Averaged per hero",
             "averagedHint": "{ally} vs {enemy} in this role, so each side's score is the average of its heroes. Open the row to see every hero's own score.",
             "onlyOne": "{side, select, ally {Only your team had one} other {Only the enemy had one}}: <stats></stats>.",

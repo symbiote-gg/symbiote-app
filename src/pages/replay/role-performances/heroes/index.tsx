@@ -22,26 +22,18 @@ export function Heroes({ side, players, ownerId }: HeroesProps) {
         <span className={classNames(styles.root, styles[side])}>
             <span className={styles.portraits}>
                 {[...players].reverse().map((p) => (
-                    <Tooltip
-                        key={p.playerId}
-                        content={t("hero", {
-                            player: p.name,
-                            hero: p.heroName,
-                        })}
-                    >
-                        <SidePortrait
-                            player={p}
-                            side={side}
-                            owner={p.playerId === ownerId}
-                            size="md"
-                        />
-                    </Tooltip>
+                    <SidePortrait
+                        player={p}
+                        side={side}
+                        owner={p.playerId === ownerId}
+                        size="md"
+                    />
                 ))}
             </span>
             <span className={styles.text}>
                 <Typography as="span" weight="semibold" truncate>
                     {format.list(
-                        players.map((p) => p.heroName),
+                        players.reverse().map((p) => p.heroName),
                         { type: "unit" },
                     )}
                 </Typography>
