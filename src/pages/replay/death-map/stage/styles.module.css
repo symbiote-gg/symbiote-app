@@ -1,41 +1,22 @@
 @reference "@/index.css";
 
 .root {
-    @apply relative min-w-0;
+    @apply relative flex min-w-0 items-start;
+    container-type: inline-size;
     --map-height: min(100vh - 10.5rem, 47rem);
     --map-width: calc(var(--map-height) * var(--aspect));
 }
 
-.backdrop {
-    @apply pointer-events-none absolute inset-0;
-    --grid: 2rem;
-    --edge: calc(50% - min(100%, var(--map-width)) / 2);
-    background-image:
-        linear-gradient(to right, var(--color-line) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
-    background-size: var(--grid) var(--grid);
-    background-position: center;
-    mask-image:
-        linear-gradient(
-            to right,
-            transparent,
-            #000 var(--edge),
-            #000 calc(100% - var(--edge)),
-            transparent
-        ),
-        linear-gradient(
-            to bottom,
-            transparent,
-            #000 4rem,
-            #000 calc(100% - 4rem),
-            transparent
-        );
-    mask-composite: intersect;
-}
-
+/* Centred by hand, so the offsets can be rounded below. */
 .stage {
-    @apply relative mx-auto flex w-full flex-col;
-    max-width: var(--map-width);
+    @apply relative flex flex-col;
+    --width: min(100cqw, var(--map-width));
+    --height: calc(var(--width) / var(--aspect));
+    --left: calc((100cqw - var(--width)) / 2);
+    --top: calc(max(0px, var(--side-height, 0px) - var(--height)) / 2);
+    width: var(--width);
+    margin-left: var(--left);
+    margin-top: var(--top);
     --fade: 3.5rem;
 }
 
@@ -45,7 +26,7 @@
 }
 
 .render {
-    @apply absolute inset-0;
+    @apply absolute inset-0 bg-surface;
     mask-image:
         linear-gradient(
             to right,
@@ -67,8 +48,30 @@
 .image {
     @apply block size-full select-none;
     filter: brightness(0.55) saturate(0.6);
+    /* Over the surface, a render's black becomes the card's own colour. */
+    mix-blend-mode: screen;
 }
 
 .pins {
     @apply absolute inset-0;
+}
+
+.pins > * {
+    left: var(--x);
+    top: var(--y);
+}
+
+/* On whole pixels, map included: at a fractional spot WebKit resamples a pin's
+   portrait, blurring it. Behind @supports because `round()` with a percentage
+   doesn't always parse, and in a var() that would drop every pin at the corner. */
+@supports (left: round(1%, 1px)) {
+    .stage {
+        margin-left: round(var(--left), 1px);
+        margin-top: round(var(--top), 1px);
+    }
+
+    .pins > * {
+        left: round(var(--x), 1px);
+        top: round(var(--y), 1px);
+    }
 }

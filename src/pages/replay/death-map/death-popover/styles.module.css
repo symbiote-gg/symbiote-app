@@ -1,0 +1,45 @@
+@reference "@/index.css";
+
+.root {
+    @apply w-max max-w-[min(20rem,calc(100vw-16px))] min-w-52;
+}
+
+.killers {
+    @apply flex flex-col gap-4;
+}
+
+.group {
+    @apply flex flex-col gap-2.5;
+}
+
+.head {
+    @apply flex items-baseline gap-2.5;
+}
+
+.killer {
+    @apply flex items-center gap-3;
+}
+
+.killerText {
+    @apply flex min-w-0 flex-col;
+}
+
+.ai {
+    @apply flex size-8 shrink-0 items-center justify-center rounded-full bg-surface text-fg-muted ring-2 ring-fg-muted/60;
+}
+
+.aiIcon {
+    @apply size-4;
+}
+
+.assists {
+    @apply flex flex-col gap-2;
+}
+
+.assist {
+    @apply flex min-w-0 items-center gap-2.5;
+}
+
+.assistText {
+    @apply flex min-w-0 items-baseline gap-2.5;
+}

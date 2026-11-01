@@ -1,11 +1,10 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
-import { HeroPortrait } from "@/components";
 import { Roster } from "@/utils/timeline/roster";
-import { playerOf } from "@/utils/timeline/roster";
 import { DeathEntry } from "@/utils/timeline/types";
 import { sideClasses } from "../../../../side";
+import { FallenPortrait } from "./fallen-portrait";
 import { KillCells } from "./kill-cells";
 
 import styles from "./styles.module.css";
@@ -19,8 +18,6 @@ interface KillRowProps {
 export function KillRow({ death, offset, roster }: KillRowProps) {
     const t = useTranslations("replay.timeline");
 
-    const victim = playerOf(roster, death.victim);
-
     return (
         <div className={classNames(styles.row, sideClasses(death.side))}>
             {offset !== null && (
@@ -31,19 +28,10 @@ export function KillRow({ death, offset, roster }: KillRowProps) {
             <KillCells
                 killingBlow={death.killingBlow}
                 credited={death.killers}
-                noKiller={t("noKillingBlow")}
+                noKiller={t("aiCredit")}
                 roster={roster}
             />
-            <span className={styles.victim}>
-                <HeroPortrait
-                    size="sm"
-                    name={victim?.heroName ?? "?"}
-                    portrait={victim?.heroPortrait ?? null}
-                    className={classNames(styles.fallen, {
-                        [styles.mine]: death.victim === roster.highlightSlot,
-                    })}
-                />
-            </span>
+            <FallenPortrait slot={death.victim} roster={roster} />
         </div>
     );
 }

@@ -1,6 +1,5 @@
 import { MapPin } from "lucide-react";
 import {
-    type ChangeEvent,
     type MouseEvent,
     type SyntheticEvent,
     useEffect,
@@ -17,15 +16,23 @@ import type {
 import { useTimelineText } from "@/hooks/useTimelineText";
 import { Card, CardHeader } from "@/ui";
 import { coresOf } from "@/utils/timeline/cores";
-import { deathEntries, deathMarkers } from "@/utils/timeline/markers";
+import { deathEntries } from "@/utils/timeline/markers";
 import { layerOf, minimapOf, project } from "@/utils/timeline/minimaps";
 import type { Roster } from "@/utils/timeline/roster";
 import { Controls } from "./controls";
 import { DeathList } from "./death-list";
 import { DeathPopover, type DeathPopoverHandle } from "./death-popover";
-import { type DeathFilter, type PlacedDeath, matches } from "./deaths";
-import { Scrubber } from "./scrubber";
+import {
+    type DeathFilter,
+    type PlacedDeath,
+    deathKinds,
+    matches,
+    withPlayerKillers,
+} from "./deaths";
+import { Scrubber, type ScrubberHandle } from "./scrubber";
 import { Stage } from "./stage";
+import { rangeStats } from "./stats";
+import { Summary } from "./summary";
 
 import styles from "./styles.module.css";
 
@@ -48,18 +55,15 @@ export function DeathMap({
 }: DeathMapProps) {
     const t = useTranslations("replay.deathMap");
     const text = useTimelineText(players);
-    const [time, setTime] = useState(duration);
+    const [time, setTime] = useState(Math.ceil(duration));
     const [layer, setLayer] = useState("0");
     const [filter, setFilter] = useState<DeathFilter>("all");
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const popoverRef = useRef<DeathPopoverHandle>(null);
+    const scrubberRef = useRef<ScrubberHandle>(null);
     const pinsRef = useRef<HTMLDivElement>(null);
 
     const layers = minimapOf(map);
-    const markers = useMemo(
-        () => deathMarkers(timeline, allyTeam),
-        [timeline, allyTeam],
-    );
     const placed = useMemo(() => {
         if (!layers) return [];
 
@@ -69,10 +73,21 @@ export function DeathMap({
 
                 const layer = layerOf(layers, entry.x, entry.y);
                 const at = project(layers[layer], entry.x, entry.y);
-                return [{ id, entry, layer, at }];
+                return [
+                    {
+                        id,
+                        entry: withPlayerKillers(entry, players),
+                        layer,
+                        at,
+                    },
+                ];
             },
         );
-    }, [layers, timeline, allyTeam]);
+    }, [layers, timeline, allyTeam, players]);
+    const kinds = useMemo(
+        () => deathKinds(placed, timeline),
+        [placed, timeline],
+    );
 
     useEffect(() => {
         if (selectedId === null) return;
@@ -99,17 +114,18 @@ export function DeathMap({
         enemy: placed.filter(({ entry }) => entry.team !== allyTeam).length,
     };
 
+    const inStretch = ({ entry }: PlacedDeath) => entry.time <= time;
+
     const filtered = placed.filter(isShown);
-    const onLayer = (index: number) =>
-        filtered.filter(
-            (death) => death.layer === index && death.entry.time <= time,
-        );
-    const visible = onLayer(shown);
+    const listed = filtered.filter(inStretch);
+    const visible = filtered.filter((death) => death.layer === shown);
+    const stats = rangeStats(placed.filter(inStretch), allyTeam);
     const cores = coresOf(map).filter(
         ({ x, y }) => layerOf(layers, x, y) === shown,
     );
 
     const byId = new Map(placed.map((death) => [death.id, death]));
+    const selected = selectedId === null ? null : byId.get(selectedId);
 
     const select = (id: number) => {
         const death = byId.get(id);
@@ -118,9 +134,12 @@ export function DeathMap({
             return;
         }
 
+        const reached = Math.ceil(death.entry.time);
+
         setSelectedId(id);
         setLayer(String(death.layer));
-        if (death.entry.time > time) setTime(death.entry.time);
+        setTime((current) => Math.max(current, reached));
+        scrubberRef.current?.reach(reached);
     };
 
     const onPinEnter = (e: SyntheticEvent<HTMLButtonElement>) =>
@@ -134,7 +153,6 @@ export function DeathMap({
     const onFilter = (next: DeathFilter) => {
         setFilter(next);
 
-        const selected = selectedId === null ? null : byId.get(selectedId);
         if (selected && !matches(next, selected.entry, allyTeam, ownerSlot)) {
             setSelectedId(null);
         }
@@ -142,8 +160,16 @@ export function DeathMap({
 
     const onLayerChange = (index: number) => setLayer(String(index));
 
-    const onScrub = (e: ChangeEvent<HTMLInputElement>) =>
-        setTime(Number(e.target.value));
+    const onTime = (next: number) => {
+        const crossed = placed.some(
+            ({ entry }) => entry.time > time !== entry.time > next,
+        );
+        if (!crossed) return;
+
+        setTime(next);
+
+        if (selected && selected.entry.time > next) setSelectedId(null);
+    };
 
     return (
         <Card className={styles.root}>
@@ -152,6 +178,7 @@ export function DeathMap({
                 size="sm"
                 title={t("title")}
                 subtitle={t("subtitle")}
+                divided
                 action={
                     <Controls
                         layerCount={layers.length}
@@ -164,23 +191,11 @@ export function DeathMap({
                 }
             />
             <div className={styles.body}>
-                <Scrubber
-                    deaths={filtered}
-                    time={time}
-                    duration={duration}
-                    selectedId={selectedId}
-                    allyTeam={allyTeam}
-                    text={text}
-                    onTickClick={onPinClick}
-                    onScrub={onScrub}
-                />
-
                 <Stage
                     render={render}
                     cores={cores}
                     deaths={visible}
                     time={time}
-                    duration={duration}
                     selectedId={selectedId}
                     allyTeam={allyTeam}
                     roster={roster}
@@ -193,21 +208,18 @@ export function DeathMap({
                     <DeathPopover
                         ref={popoverRef}
                         deaths={visible}
-                        markers={markers}
-                        selectedId={selectedId}
                         container={pinsRef}
-                        players={players}
-                        allyTeam={allyTeam}
-                        highlightSlot={ownerSlot}
+                        roster={roster}
                         text={text}
                     />
                 </Stage>
 
                 <div className={styles.side}>
                     <div className={styles.sideInner}>
+                        <Summary stats={stats} roster={roster} />
                         <DeathList
-                            deaths={filtered}
-                            time={time}
+                            deaths={listed}
+                            kinds={kinds}
                             selectedId={selectedId}
                             roster={roster}
                             text={text}
@@ -215,6 +227,19 @@ export function DeathMap({
                         />
                     </div>
                 </div>
+
+                <Scrubber
+                    ref={scrubberRef}
+                    deaths={filtered}
+                    reached={time}
+                    duration={duration}
+                    selectedId={selectedId}
+                    allyTeam={allyTeam}
+                    ownerSlot={ownerSlot}
+                    text={text}
+                    onTickClick={onPinClick}
+                    onTime={onTime}
+                />
             </div>
         </Card>
     );

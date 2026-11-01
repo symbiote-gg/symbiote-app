@@ -66,8 +66,10 @@
     @apply ring-2 ring-primary;
 }
 
+/* No transition: an animated filter composites the portrait, and WebKit repaints
+   the layers around it, which flickers. */
 .fallen {
-    @apply grayscale-100 transition-[filter];
+    @apply grayscale-100;
 }
 
 .victim:hover .fallen,

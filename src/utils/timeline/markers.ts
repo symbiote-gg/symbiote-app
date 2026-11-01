@@ -6,7 +6,6 @@ import type {
     CampEntry,
     DeathEntry,
     Entry,
-    KillMarker,
     Marker,
     ObjectiveMarker,
     Side,
@@ -115,34 +114,6 @@ export function buildMarkers(timeline: Timeline, allyTeam: number): Marker[] {
 
 export const killerOf = (death: DeathEntry) =>
     death.killingBlow ?? death.killers[0] ?? null;
-
-/**
- * Each death on its own, as the timeline shows a lone kill, with the kind of the
- * fight it was in. By death index.
- */
-export function deathMarkers(timeline: Timeline, allyTeam: number) {
-    const deaths = deathEntries(timeline, allyTeam);
-
-    return new Map(
-        timeline.fights.flatMap((fight) =>
-            fight.deaths.map((index): [number, KillMarker] => {
-                const entry = deaths[index];
-                return [
-                    index,
-                    {
-                        id: `death-${index}`,
-                        time: entry.time,
-                        side: entry.side,
-                        filter: "fights",
-                        shape: "kill",
-                        kind: fight.kind,
-                        entries: [entry],
-                    },
-                ];
-            }),
-        ),
-    );
-}
 
 function fightMarkers(fights: TimelineFight[], deaths: DeathEntry[]) {
     return fights.map((fight): Marker => {

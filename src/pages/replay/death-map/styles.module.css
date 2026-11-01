@@ -5,15 +5,15 @@
 }
 
 .body {
-    @apply grid grid-cols-1 gap-x-6 gap-y-4 px-gutter pb-6 @5xl:grid-cols-[minmax(0,1fr)_22rem];
+    @apply grid grid-cols-1 @5xl:grid-cols-[minmax(0,1fr)_35rem] @5xl:[--side-height:33rem];
 }
 
-/* Side: at full width the stage alone sets the row's height */
+/* Side: the map sets the row's height, down to what the side needs on wide renders */
 
 .side {
-    @apply relative min-w-0;
+    @apply relative min-h-(--side-height) min-w-0 border-t border-line @5xl:border-t-0 @5xl:border-l;
 }
 
 .sideInner {
-    @apply flex flex-col gap-4 @5xl:absolute @5xl:inset-0;
+    @apply flex flex-col @5xl:absolute @5xl:inset-0;
 }

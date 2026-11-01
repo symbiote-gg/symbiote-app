@@ -46,7 +46,7 @@ export function Pin({
             onBlur={onLeave}
             onClick={onClick}
         >
-            <TeamPortrait slot={entry.victim} size="md" roster={roster} />
+            <TeamPortrait slot={entry.victim} size="sm" roster={roster} />
         </button>
     );
 }

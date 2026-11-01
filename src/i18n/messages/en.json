@@ -160,7 +160,7 @@
             "shutdowns": "the longest enemy streak you helped stop.",
             "killStreak": "your longest run without dying.",
             "vengeances": "killing blows on enemies.",
-            "longestLife": "{variant, select, deathless {the whole game, without a single death.} other {your longest stretch between deaths, game start and end included.}}",
+            "longestLife": "{variant, select, deathless {the whole game, without a single death.} other {your longest time alive.}}",
             "figure": "{count} of {total}",
             "seconds": "{value}s",
             "label": {
@@ -295,7 +295,6 @@
             "fightRange": "{start}-{end} ({seconds}s)",
             "offset": "+{seconds}s",
             "assists": "Assists: {heroes}",
-            "noKillingBlow": "No hero landed the killing blow",
             "aiCredit": "AI",
             "gatesOpen": "Gates open",
             "gameEnded": "{side, select, ally {Your team won} enemy {Enemy team won} other {Game ended}}",
@@ -382,7 +381,7 @@
         },
         "deathMap": {
             "title": "Deaths on the map",
-            "subtitle": "Where heroes went down. Drag through the game, pick a side, or hover a death to see who got them.",
+            "subtitle": "Where heroes died in this game, on both teams. Drag the slider under the map to focus on the game up to that point.",
             "layer": "Map level",
             "surface": "Surface",
             "mines": "Mines",
@@ -390,15 +389,21 @@
             "filterLabel": "Show deaths",
             "filter": {
                 "all": "All",
-                "team": "Allies",
-                "you": "Me",
-                "enemy": "Enemies"
+                "team": "Your team",
+                "enemy": "Enemy",
+                "you": "Me"
             },
             "base": {
                 "ally": "Your core",
                 "enemy": "Enemy core"
             },
-            "killFeed": "Kill feed"
+            "stats": {
+                "deaths": "Deaths",
+                "score": "<ally>{allyDeaths}</ally> <versus>v</versus> <enemy>{enemyDeaths}</enemy>",
+                "teamTopKiller": "Team top killer",
+                "enemyTopKiller": "Enemy top killer"
+            },
+            "assists": "Assists"
         },
         "killLog": {
             "title": "{count, plural, one {You killed <n>#</n> hero} other {You killed <n>#</n> heroes}}",

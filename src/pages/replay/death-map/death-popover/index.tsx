@@ -9,33 +9,29 @@ import {
     useState,
 } from "react";
 
-import type { ReplayPlayerDetail } from "@/api/replays";
 import type { TimelineText } from "@/hooks/useTimelineText";
-import type { KillMarker } from "@/utils/timeline/types";
-import { Popover } from "../timeline/popover";
-import type { PlacedDeath } from "./deaths";
+import { Popover } from "@/ui";
+import type { Roster } from "@/utils/timeline/roster";
+import type { PlacedDeath } from "../deaths";
+import { Killers } from "./killers";
+
+import styles from "./styles.module.css";
 
 const CLOSE_DELAY_MS = 200;
 
 interface AnchoredPopoverProps {
-    id: number;
-    marker: KillMarker;
+    death: PlacedDeath;
     container: RefObject<HTMLElement | null>;
-    players: ReplayPlayerDetail[];
-    allyTeam: number;
-    highlightSlot: number;
+    roster: Roster;
     text: TimelineText;
     onPointerEnter: () => void;
     onPointerLeave: (e: PointerEvent<HTMLElement>) => void;
 }
 
 function AnchoredPopover({
-    id,
-    marker,
+    death: { id, entry },
     container,
-    players,
-    allyTeam,
-    highlightSlot,
+    roster,
     text,
     onPointerEnter,
     onPointerLeave,
@@ -52,18 +48,16 @@ function AnchoredPopover({
 
     return (
         <Popover
-            marker={marker}
-            players={players}
-            allyTeam={allyTeam}
-            highlightSlot={highlightSlot}
-            text={text}
-            track={null}
             anchor={anchor}
-            side={marker.side}
-            result={false}
+            placement={entry.side === "ally" ? "top" : "bottom"}
+            role="dialog"
+            aria-label={text.entryLabel(entry)}
+            className={styles.root}
             onPointerEnter={onPointerEnter}
             onPointerLeave={onPointerLeave}
-        />
+        >
+            <Killers death={entry} roster={roster} text={text} />
+        </Popover>
     );
 }
 
@@ -75,24 +69,16 @@ export interface DeathPopoverHandle {
 interface DeathPopoverProps {
     ref: Ref<DeathPopoverHandle>;
     deaths: PlacedDeath[];
-    markers: Map<number, KillMarker>;
-    selectedId: number | null;
     container: RefObject<HTMLElement | null>;
-    players: ReplayPlayerDetail[];
-    allyTeam: number;
-    highlightSlot: number;
+    roster: Roster;
     text: TimelineText;
 }
 
 export function DeathPopover({
     ref,
     deaths,
-    markers,
-    selectedId,
     container,
-    players,
-    allyTeam,
-    highlightSlot,
+    roster,
     text,
 }: DeathPopoverProps) {
     const [hoveredId, setHoveredId] = useState<number | null>(null);
@@ -122,21 +108,16 @@ export function DeathPopover({
         [],
     );
 
-    const shownId = hoveredId ?? selectedId;
-    const death = deaths.find(({ id }) => id === shownId);
-    const marker = death && markers.get(death.id);
+    const death = deaths.find(({ id }) => id === hoveredId);
 
-    if (!death || !marker) return null;
+    if (!death) return null;
 
     return (
         <AnchoredPopover
             key={death.id}
-            id={death.id}
-            marker={marker}
+            death={death}
             container={container}
-            players={players}
-            allyTeam={allyTeam}
-            highlightSlot={highlightSlot}
+            roster={roster}
             text={text}
             onPointerEnter={cancelClose}
             onPointerLeave={scheduleClose}

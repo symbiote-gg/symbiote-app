@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .root {
-    @apply relative flex min-w-0 flex-col gap-1 @5xl:col-span-2;
+    @apply flex min-w-0 flex-col gap-1 border-t border-line px-gutter py-3 @5xl:col-span-2;
 }
 
 /* Inset by the range thumb's radius, so times line up with it. */
@@ -9,51 +9,96 @@
     @apply mx-1.5;
 }
 
-.ticks {
-    @apply relative h-3.5;
+.handles {
+    @apply relative h-4;
 }
 
+.handle {
+    @apply absolute top-0 -translate-x-1/2;
+    left: var(--at);
+}
+
+.bar {
+    @apply relative h-10;
+}
+
+.track {
+    @apply absolute inset-x-1.5 inset-y-0;
+}
+
+.hit {
+    @apply absolute inset-0 cursor-pointer;
+}
+
+.band,
+.fill {
+    @apply pointer-events-none absolute left-0;
+    right: calc(100% - var(--at));
+}
+
+.band {
+    @apply inset-y-0 rounded-sm bg-fg/5;
+}
+
+.line,
+.fill {
+    @apply pointer-events-none absolute top-1/2 h-0.5 -translate-y-1/2 rounded-full;
+}
+
+.line {
+    @apply inset-x-0 bg-line;
+}
+
+.fill {
+    @apply bg-fg/50;
+}
+
+/* As on the timeline: your team above the axis, the enemy below. */
 .tick {
-    @apply absolute top-0 -translate-x-1/2 cursor-pointer opacity-70 transition-[opacity,scale];
+    @apply absolute h-4.5 w-2 -translate-x-1/2 cursor-pointer;
+}
+
+.tick.outside:not(:hover, .selected) {
+    @apply opacity-40;
 }
 
 .tick:hover,
 .tick.selected {
-    @apply z-10 scale-125 opacity-100;
+    @apply z-10;
 }
 
 .tick.ally {
-    @apply text-team-blue;
+    @apply bottom-1/2 text-team-blue;
 }
 
 .tick.enemy {
-    @apply text-team-red;
+    @apply top-1/2 text-team-red;
 }
 
-.skull {
-    @apply block size-3.5;
+.mark {
+    @apply mx-auto block h-full w-0.5 rounded-full bg-current;
 }
 
+.tick.mine .mark {
+    @apply w-1 ring-1 ring-primary;
+}
+
+.tick:hover .mark,
+.tick.selected .mark {
+    @apply w-1.5;
+}
+
+/* Only the thumb takes the pointer, so the ticks and bar below stay clickable. */
 .range {
-    @apply h-3 w-full cursor-pointer appearance-none bg-transparent outline-none;
+    @apply pointer-events-none absolute inset-x-0 top-1/2 z-20 h-3 w-full -translate-y-1/2 appearance-none bg-transparent outline-none;
 }
 
 .range::-webkit-slider-runnable-track {
-    @apply h-0.5 rounded-full;
-    background: linear-gradient(
-        to right,
-        var(--color-primary) var(--progress),
-        var(--color-line) var(--progress)
-    );
+    @apply h-3;
 }
 
 .range::-webkit-slider-thumb {
-    @apply -mt-[5px] size-3 appearance-none rounded-full bg-fg-muted transition-colors;
-}
-
-.range:hover::-webkit-slider-thumb,
-.range:focus-visible::-webkit-slider-thumb {
-    @apply bg-fg;
+    @apply pointer-events-auto box-border size-3 cursor-pointer appearance-none rounded-full border-[3px] border-fg bg-surface transition-colors;
 }
 
 .range:focus-visible::-webkit-slider-thumb {

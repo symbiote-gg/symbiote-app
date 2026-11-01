@@ -9,7 +9,7 @@ import {
 import { useTranslations } from "use-intl";
 
 import type { DeathKind } from "@/api/replays";
-import { Chip } from "@/ui";
+import { Chip, type ChipSize } from "@/ui";
 
 import styles from "./styles.module.css";
 
@@ -22,11 +22,16 @@ const ICONS: Record<DeathKind, LucideIcon> = {
     ai: CpuAi,
 };
 
-export function KindChip({ kind }: { kind: DeathKind }) {
+interface KindChipProps {
+    kind: DeathKind;
+    size?: ChipSize;
+}
+
+export function KindChip({ kind, size }: KindChipProps) {
     const t = useTranslations("replay.killLog");
 
     return (
-        <Chip icon={ICONS[kind]} className={styles.kind}>
+        <Chip icon={ICONS[kind]} size={size} className={styles.kind}>
             {t("kind", { kind })}
         </Chip>
     );

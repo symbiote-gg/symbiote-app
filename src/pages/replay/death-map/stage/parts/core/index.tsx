@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { Castle } from "lucide-react";
+import type { CSSProperties } from "react";
 import { useTranslations } from "use-intl";
 
 import { Tooltip } from "@/ui";
@@ -9,8 +10,8 @@ import styles from "./styles.module.css";
 interface CoreProps {
     team: number;
     allyTeam: number;
-    /** On the layer's render, as CSS percentages. */
-    at: { left: string; top: string };
+    /** From `project`. */
+    at: CSSProperties;
 }
 
 export function Core({ team, allyTeam, at }: CoreProps) {

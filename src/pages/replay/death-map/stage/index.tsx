@@ -15,17 +15,11 @@ import { Pin } from "./parts/pin";
 
 import styles from "./styles.module.css";
 
-/** Deaths this recent, in game seconds, stay lit as the scrubber moves on. */
-const RECENT_SECS = 30;
-
 interface StageProps {
     render: MinimapLayer;
-    /** In map units, only those on the shown layer. */
     cores: { team: number; x: number; y: number }[];
-    /** Those on the shown layer, up to `time`. */
     deaths: PlacedDeath[];
     time: number;
-    duration: number;
     selectedId: number | null;
     allyTeam: number;
     roster: Roster;
@@ -34,7 +28,6 @@ interface StageProps {
     onPinEnter: (e: SyntheticEvent<HTMLButtonElement>) => void;
     onPinLeave: () => void;
     onPinClick: (e: MouseEvent<HTMLButtonElement>) => void;
-    /** Over the map, positioned against it: the popover. */
     children?: ReactNode;
 }
 
@@ -43,7 +36,6 @@ export function Stage({
     cores,
     deaths,
     time,
-    duration,
     selectedId,
     allyTeam,
     roster,
@@ -54,9 +46,6 @@ export function Stage({
     onPinClick,
     children,
 }: StageProps) {
-    // at the end the map is the whole game's deaths, none older than the rest
-    const atEnd = time >= duration;
-
     return (
         <div
             className={styles.root}
@@ -64,8 +53,6 @@ export function Stage({
                 { "--aspect": render.width / render.height } as CSSProperties
             }
         >
-            <div className={styles.backdrop} aria-hidden />
-
             <div className={styles.stage}>
                 <div className={styles.map}>
                     <div className={styles.render}>
@@ -90,10 +77,7 @@ export function Stage({
                             <Pin
                                 key={death.id}
                                 death={death}
-                                faded={
-                                    !atEnd &&
-                                    time - death.entry.time > RECENT_SECS
-                                }
+                                faded={death.entry.time > time}
                                 selected={death.id === selectedId}
                                 roster={roster}
                                 text={text}

@@ -1,80 +1,130 @@
-import classNames from "classnames";
-import { Skull } from "lucide-react";
-import type { CSSProperties, ChangeEvent, MouseEvent } from "react";
+import {
+    type CSSProperties,
+    type ChangeEvent,
+    type MouseEvent,
+    type Ref,
+    useImperativeHandle,
+    useState,
+} from "react";
 import { useTranslations } from "use-intl";
 
 import type { TimelineText } from "@/hooks/useTimelineText";
+import { Typography } from "@/ui";
 import { position } from "@/utils/timeline/layout";
 import { AxisTimes } from "../../timeline/track/parts/axis-times";
 import type { PlacedDeath } from "../deaths";
+import { Ticks } from "./ticks";
 
 import styles from "./styles.module.css";
 
+export interface ScrubberHandle {
+    reach: (time: number) => void;
+}
+
 interface ScrubberProps {
+    ref: Ref<ScrubberHandle>;
     deaths: PlacedDeath[];
-    time: number;
+    reached: number;
     duration: number;
     selectedId: number | null;
     allyTeam: number;
+    ownerSlot: number;
     text: TimelineText;
     onTickClick: (e: MouseEvent<HTMLButtonElement>) => void;
-    onScrub: (e: ChangeEvent<HTMLInputElement>) => void;
+    onTime: (time: number) => void;
 }
 
 export function Scrubber({
+    ref,
     deaths,
-    time,
+    reached,
     duration,
     selectedId,
     allyTeam,
+    ownerSlot,
     text,
     onTickClick,
-    onScrub,
+    onTime,
 }: ScrubberProps) {
     const t = useTranslations("replay.deathMap");
 
+    const end = Math.ceil(duration);
+    const [time, setTime] = useState(end);
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            reach: (next) => setTime((current) => Math.max(current, next)),
+        }),
+        [],
+    );
+
+    const move = (next: number) => {
+        setTime(next);
+        onTime(next);
+    };
+
+    const onChange = (e: ChangeEvent<HTMLInputElement>) =>
+        move(Number(e.target.value));
+
+    const onBarClick = (e: MouseEvent<HTMLDivElement>) => {
+        const box = e.currentTarget.getBoundingClientRect();
+
+        move(Math.round(((e.clientX - box.left) / box.width) * end));
+    };
+
     return (
-        <div className={styles.root}>
+        <div
+            className={styles.root}
+            style={{ "--at": position(time, duration) } as CSSProperties}
+        >
             <div className={styles.axis}>
-                <div className={styles.ticks}>
-                    {deaths.map(({ id, entry }) => (
-                        <button
-                            key={id}
-                            type="button"
-                            tabIndex={-1}
-                            data-death={id}
-                            aria-label={text.entryLabel(entry)}
-                            className={classNames(
-                                styles.tick,
-                                entry.team === allyTeam
-                                    ? styles.ally
-                                    : styles.enemy,
-                                { [styles.selected]: id === selectedId },
-                            )}
-                            style={{ left: position(entry.time, duration) }}
-                            onClick={onTickClick}
+                <div className={styles.handles}>
+                    {time < end && (
+                        <Typography
+                            as="span"
+                            size="xs"
+                            mono
+                            className={styles.handle}
                         >
-                            <Skull className={styles.skull} aria-hidden />
-                        </button>
-                    ))}
+                            {text.at(time)}
+                        </Typography>
+                    )}
                 </div>
             </div>
-            <input
-                type="range"
-                min={0}
-                max={Math.ceil(duration)}
-                step={1}
-                value={time}
-                aria-label={t("scrub")}
-                aria-valuetext={text.at(time)}
-                className={styles.range}
-                style={
-                    {
-                        "--progress": position(time, duration),
-                    } as CSSProperties
-                }
-                onChange={onScrub}
-            />
+            <div className={styles.bar}>
+                <div className={styles.track}>
+                    <div
+                        className={styles.hit}
+                        aria-hidden
+                        onClick={onBarClick}
+                    />
+                    <div className={styles.band} />
+                    <div className={styles.line} />
+                    <div className={styles.fill} />
+                    <Ticks
+                        deaths={deaths}
+                        reached={reached}
+                        duration={duration}
+                        selectedId={selectedId}
+                        allyTeam={allyTeam}
+                        ownerSlot={ownerSlot}
+                        text={text}
+                        onTickClick={onTickClick}
+                    />
+                </div>
+                <input
+                    type="range"
+                    min={0}
+                    max={end}
+                    step={1}
+                    value={time}
+                    aria-label={t("scrub")}
+                    aria-valuetext={text.at(time)}
+                    className={styles.range}
+                    onChange={onChange}
+                />
+            </div>
             <div className={styles.axis}>
                 <AxisTimes duration={duration} text={text} />
             </div>

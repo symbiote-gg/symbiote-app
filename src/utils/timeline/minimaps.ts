@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import index from "@/generated/minimaps.json";
 
 export interface MinimapLayer {
@@ -29,12 +31,12 @@ export function layerOf(layers: MinimapLayer[], x: number, y: number) {
     return Math.max(found, 0);
 }
 
-/** Where a point falls on the layer's render, as CSS percentages. */
+/** Where a point falls on the layer's render, as the percentages the stage reads. */
 export function project({ view }: MinimapLayer, x: number, y: number) {
     const [left, top, right, bottom] = view;
 
     return {
-        left: `${((x - left) / (right - left)) * 100}%`,
-        top: `${((y - top) / (bottom - top)) * 100}%`,
-    };
+        "--x": `${((x - left) / (right - left)) * 100}%`,
+        "--y": `${((y - top) / (bottom - top)) * 100}%`,
+    } as CSSProperties;
 }

@@ -18,11 +18,7 @@ interface PopoverProps {
     highlightSlot: number | null;
     text: TimelineText;
     track: HTMLElement | null;
-    /** Overrides the marker found in `track`, e.g. one of several sharing its id. */
-    anchor?: HTMLElement | null;
     side: Side;
-    /** Off for one death out of a fight, whose score isn't the fight's. */
-    result?: boolean;
     onPointerEnter: () => void;
     onPointerLeave: (e: PointerEvent<HTMLElement>) => void;
 }
@@ -34,9 +30,7 @@ export function Popover({
     highlightSlot,
     text,
     track,
-    anchor: anchorOverride,
     side,
-    result,
     onPointerEnter,
     onPointerLeave,
 }: PopoverProps) {
@@ -44,13 +38,11 @@ export function Popover({
 
     useLayoutEffect(() => {
         setAnchor(
-            anchorOverride ??
-                track?.querySelector<HTMLElement>(
-                    `[data-id="${CSS.escape(marker.id)}"]`,
-                ) ??
-                null,
+            track?.querySelector<HTMLElement>(
+                `[data-id="${CSS.escape(marker.id)}"]`,
+            ) ?? null,
         );
-    }, [track, marker.id, anchorOverride]);
+    }, [track, marker.id]);
 
     const view = markerView(marker);
     const roster = { players, allyTeam, highlightSlot };
@@ -74,7 +66,7 @@ export function Popover({
             onPointerEnter={onPointerEnter}
             onPointerLeave={onPointerLeave}
         >
-            <Header marker={marker} view={view} text={text} result={result} />
+            <Header marker={marker} view={view} text={text} />
             <Body marker={marker} view={view} roster={roster} text={text} />
         </PopoverSurface>
     );

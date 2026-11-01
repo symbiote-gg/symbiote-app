@@ -1,17 +1,17 @@
 import {
-    Crosshair,
     type LucideIcon,
     Mountain,
     Pickaxe,
-    Shield,
+    Swords,
     Tombstone,
     UserRound,
+    UsersRound,
 } from "lucide-react";
 import type { MouseEvent } from "react";
 import { useTranslations } from "use-intl";
 
 import { ChipButton, ChipDivider, ChipGroup } from "@/ui";
-import type { DeathFilter } from "../deaths";
+import { DEATH_FILTERS, type DeathFilter } from "../deaths";
 
 import styles from "./styles.module.css";
 
@@ -20,11 +20,12 @@ const LAYERS = [
     { label: "mines", icon: Pickaxe },
 ] as const;
 
-const TEAM_FILTERS: { filter: DeathFilter; icon: LucideIcon }[] = [
-    { filter: "all", icon: Tombstone },
-    { filter: "team", icon: Shield },
-    { filter: "enemy", icon: Crosshair },
-];
+const FILTER_ICONS: Record<DeathFilter, LucideIcon> = {
+    all: Tombstone,
+    team: UsersRound,
+    enemy: Swords,
+    you: UserRound,
+};
 
 interface ControlsProps {
     /** How many layers the map has: the switch shows for more than one. */
@@ -49,11 +50,28 @@ export function Controls({
     const onLayerClick = (e: MouseEvent<HTMLButtonElement>) =>
         onLayer(Number(e.currentTarget.value));
 
-    // pressing the shown filter again goes back to every death, as "Me" does on the timeline
-    const onFilterClick = (e: MouseEvent<HTMLButtonElement>) => {
-        const next = e.currentTarget.value as DeathFilter;
-        onFilter(next === filter ? "all" : next);
+    const onFilterClick = (e: MouseEvent<HTMLButtonElement>) =>
+        onFilter(e.currentTarget.value as DeathFilter);
+
+    const chip = (value: DeathFilter) => {
+        const Icon = FILTER_ICONS[value];
+
+        return (
+            <ChipButton
+                key={value}
+                icon={<Icon />}
+                count={counts[value]}
+                pressed={value === filter}
+                accent={value === "you" ? "primary" : undefined}
+                value={value}
+                onClick={onFilterClick}
+            >
+                {t(`filter.${value}`)}
+            </ChipButton>
+        );
     };
+
+    const [me, ...sides] = DEATH_FILTERS;
 
     return (
         <div className={styles.root}>
@@ -76,29 +94,9 @@ export function Controls({
             )}
 
             <ChipGroup label={t("filterLabel")}>
-                <ChipButton
-                    icon={<UserRound />}
-                    count={counts.you}
-                    pressed={filter === "you"}
-                    accent="primary"
-                    value="you"
-                    onClick={onFilterClick}
-                >
-                    {t("filter.you")}
-                </ChipButton>
+                {chip(me)}
                 <ChipDivider />
-                {TEAM_FILTERS.map(({ filter: value, icon: Icon }) => (
-                    <ChipButton
-                        key={value}
-                        icon={<Icon />}
-                        count={counts[value]}
-                        pressed={filter === value}
-                        value={value}
-                        onClick={onFilterClick}
-                    >
-                        {t(`filter.${value}`)}
-                    </ChipButton>
-                ))}
+                {sides.map(chip)}
             </ChipGroup>
         </div>
     );

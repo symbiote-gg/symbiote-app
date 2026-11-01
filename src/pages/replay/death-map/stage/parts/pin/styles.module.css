@@ -1,11 +1,11 @@
 @reference "@/index.css";
 
 .root {
-    @apply absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full transition-opacity;
+    @apply absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full;
 }
 
 .faded {
-    @apply opacity-40;
+    @apply z-0 opacity-30;
 }
 
 .root:hover,
@@ -15,5 +15,5 @@
 }
 
 .root.selected {
-    @apply outline-2 outline-offset-2 outline-fg/60;
+    @apply outline-2 outline-offset-2 outline-fg;
 }

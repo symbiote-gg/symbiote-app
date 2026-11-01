@@ -1,0 +1,25 @@
+@reference "@/index.css";
+
+.root {
+    @apply shrink-0 border-b border-line bg-surface-2/40;
+}
+
+.root > div {
+    @apply px-gutter;
+}
+
+.topKiller {
+    @apply flex min-h-7 min-w-0 items-center justify-end gap-2 p-0.5;
+}
+
+.names {
+    @apply flex min-w-0 items-baseline gap-2 whitespace-nowrap;
+}
+
+.ally {
+    @apply text-team-blue;
+}
+
+.enemy {
+    @apply text-team-red;
+}
