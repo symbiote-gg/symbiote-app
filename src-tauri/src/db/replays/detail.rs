@@ -1,10 +1,11 @@
 use hots_replay_parser::summary::LOOPS_PER_SECOND;
+use sqlx::types::Json;
 use sqlx::{FromRow, SqlitePool};
 
 use crate::role_performances;
 use crate::timeline;
 use crate::types::replay::{AwardInfo, ReplayDetail, ReplayPlayerDetail, TalentPick, TeamSummary};
-use crate::types::timeline::{RawEvent, Timeline};
+use crate::types::timeline::{RawEvent, Timeline, XpBreakdown};
 
 #[derive(FromRow)]
 struct PlayerTalentRow {
@@ -18,6 +19,12 @@ struct PlayerAwardRow {
     player_id: i64,
     #[sqlx(flatten)]
     award: AwardInfo,
+}
+
+#[derive(FromRow)]
+struct TeamXpRow {
+    team: i64,
+    xp: Json<XpBreakdown>,
 }
 
 /// Returns the full detail of a replay, or `None` if it doesn't exist.
@@ -111,6 +118,17 @@ pub async fn get_detail(
     .fetch_all(&mut *tx)
     .await?;
 
+    // Every teammate stores the same team-wide breakdown, so any row per team does.
+    let team_xp = sqlx::query_as::<_, TeamXpRow>(
+        "SELECT team, json(xp) AS xp
+         FROM replays_players
+         WHERE replay_id = ? AND xp IS NOT NULL
+         GROUP BY team",
+    )
+    .bind(id)
+    .fetch_all(&mut *tx)
+    .await?;
+
     detail.events_expired = detail.replay.timestamp.timestamp() < events_cutoff;
     if !detail.events_expired {
         let events = fetch_event_rows(&mut tx, id).await?;
@@ -140,7 +158,17 @@ pub async fn get_detail(
         }
     }
 
-    detail.teams = team_summaries(&detail.players, &detail.timeline);
+    let mut xp: [Option<XpBreakdown>; 2] = Default::default();
+    for row in team_xp {
+        if let Some(slot) = usize::try_from(row.team)
+            .ok()
+            .and_then(|team| xp.get_mut(team))
+        {
+            *slot = Some(row.xp.0);
+        }
+    }
+
+    detail.teams = team_summaries(&detail.players, &detail.timeline, xp);
     detail.kill_log =
         timeline::kill_log::build(&detail.timeline, &detail.players, detail.replay.owner_slot);
     detail.owner_kill_participation = kill_participation(&detail);
@@ -170,7 +198,11 @@ pub(crate) async fn fetch_event_rows(
     .await
 }
 
-fn team_summaries(players: &[ReplayPlayerDetail], timeline: &Timeline) -> [TeamSummary; 2] {
+fn team_summaries(
+    players: &[ReplayPlayerDetail],
+    timeline: &Timeline,
+    mut xp: [Option<XpBreakdown>; 2],
+) -> [TeamSummary; 2] {
     let sum = |team: i64, pick: fn(&ReplayPlayerDetail) -> Option<i64>| -> i64 {
         players
             .iter()
@@ -179,6 +211,7 @@ fn team_summaries(players: &[ReplayPlayerDetail], timeline: &Timeline) -> [TeamS
             .sum()
     };
     [0, 1].map(|team| {
+        let index = usize::try_from(team).unwrap_or_default();
         let kills = sum(team, |p| p.kills);
         TeamSummary {
             kills,
@@ -187,9 +220,10 @@ fn team_summaries(players: &[ReplayPlayerDetail], timeline: &Timeline) -> [TeamS
             ai_kills: (sum(1 - team, |p| p.deaths) - kills).max(0),
             level: timeline
                 .levels
-                .get(usize::try_from(team).unwrap_or_default())
+                .get(index)
                 .and_then(|curve| curve.last())
                 .map(|&(_, level)| level),
+            xp: xp[index].take(),
         }
     })
 }
@@ -326,5 +360,45 @@ mod tests {
         assert!(expired.events_expired);
         assert!(expired.timeline.deaths.is_empty());
         assert_eq!(expired.teams[0].level, None);
+    }
+
+    #[tokio::test]
+    async fn detail_reads_each_teams_xp_even_once_expired() {
+        let pool = pool().await;
+        let mut game = game_with_events("xp", 100);
+        game.replay_players[0].xp =
+            Some(serde_json::json!({ "hero": 38100.0, "trickle": 24000.0 }));
+        game.players.push(Player {
+            toon: "enemy".to_owned(),
+            name: "Enemy".to_owned(),
+            account_level: None,
+        });
+        game.replay_players.push(NewReplayPlayer {
+            toon: "enemy".to_owned(),
+            slot: 6,
+            team: 1,
+            hero_slug: "Wizard".to_owned(),
+            time_dead_secs: None,
+            time_on_fire_secs: None,
+            upvotes: 0,
+            party: None,
+            xp: Some(serde_json::json!({ "hero": 41700.0, "minion": 7600.0 })),
+            score: serde_json::json!({}),
+            talents: vec![],
+            awards: vec![],
+        });
+        let InsertOutcome::Inserted(id) = insert_bundle(&pool, game).await.unwrap() else {
+            panic!("the replay should be inserted");
+        };
+
+        let detail = get_detail(&pool, id, 200).await.unwrap().unwrap();
+        assert!(detail.events_expired);
+
+        let [ally, enemy] = detail.teams.map(|team| team.xp.unwrap());
+        assert_eq!(
+            (ally.hero, ally.trickle, ally.minion),
+            (38100.0, 24000.0, 0.0)
+        );
+        assert_eq!((enemy.hero, enemy.minion), (41700.0, 7600.0));
     }
 }

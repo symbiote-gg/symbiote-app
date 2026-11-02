@@ -4,7 +4,7 @@ use sqlx::FromRow;
 use super::{AwardInfo, Replay};
 use crate::types::hero::HeroRole;
 use crate::types::role_performances::RolePerformance;
-use crate::types::timeline::{KillLog, Timeline};
+use crate::types::timeline::{KillLog, Timeline, XpBreakdown};
 
 #[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -108,4 +108,5 @@ pub struct TeamSummary {
     pub deaths: i64,
     pub ai_kills: i64,
     pub level: Option<u32>,
+    pub xp: Option<XpBreakdown>,
 }

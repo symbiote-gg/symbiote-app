@@ -1,0 +1,33 @@
+@reference "@/index.css";
+
+.root {
+    @apply col-span-full grid grid-cols-subgrid items-center border-t border-line px-gutter py-3;
+}
+
+.label {
+    @apply flex flex-col;
+}
+
+.value {
+    @apply text-side tabular-nums;
+}
+
+.allyValue {
+    @apply text-right;
+}
+
+.track {
+    @apply flex h-2.5 overflow-hidden rounded-sm bg-fg/6;
+}
+
+.allyTrack {
+    @apply justify-end;
+}
+
+.fill {
+    @apply h-full rounded-sm bg-side-strong;
+}
+
+.fill.trailing {
+    @apply bg-side-soft;
+}

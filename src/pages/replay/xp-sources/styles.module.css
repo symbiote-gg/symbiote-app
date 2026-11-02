@@ -1,0 +1,33 @@
+@reference "@/index.css";
+
+.root {
+    @apply self-stretch;
+}
+
+.table {
+    @apply grid grid-cols-[minmax(9rem,max-content)_max-content_minmax(0,1fr)_minmax(0,1fr)_max-content_max-content] gap-x-4;
+}
+
+.row {
+    @apply col-span-full grid grid-cols-subgrid items-center px-gutter;
+}
+
+.headerRow {
+    @apply border-t border-line bg-surface-2/40 py-2;
+}
+
+.totalRow {
+    @apply border-t border-line bg-surface-2/50 py-3;
+}
+
+.value {
+    @apply text-side tabular-nums;
+}
+
+.allyValue {
+    @apply text-right;
+}
+
+.difference {
+    @apply justify-self-end text-right;
+}

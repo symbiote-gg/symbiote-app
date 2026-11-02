@@ -16,7 +16,7 @@ pub struct RawEvent {
 
 /// A team's or player's XP split by where it came from. Stored rows may miss keys,
 /// which read back as 0.
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 #[serde(default)]
 pub struct XpBreakdown {
     pub minion: f64,

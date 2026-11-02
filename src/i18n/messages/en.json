@@ -209,6 +209,34 @@
             "breakdown": "{ai, plural, =0 {All by heroes} other {{heroes} by heroes, # by AI}}",
             "level": "<label>LV</label> {level}"
         },
+        "xpSources": {
+            "title": "XP by source",
+            "subtitle": "Where each team earned its experience, leaving out the passive gain every team gets over time.",
+            "earnedXp": "Earned XP",
+            "source": "Source",
+            "ally": "Your team",
+            "enemy": "Enemy",
+            "difference": "Difference",
+            "even": "Even",
+            "sources": {
+                "hero": {
+                    "label": "Heroes",
+                    "detail": "kills and assists"
+                },
+                "structure": {
+                    "label": "Structures",
+                    "detail": "forts, keeps, towers"
+                },
+                "creep": {
+                    "label": "Camps",
+                    "detail": "mercenaries"
+                },
+                "minion": {
+                    "label": "Minions",
+                    "detail": "lane soak"
+                }
+            }
+        },
         "teamTotal": "Team total",
         "player": "Player",
         "kad": "K/A/D",

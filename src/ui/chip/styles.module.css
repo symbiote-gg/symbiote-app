@@ -36,6 +36,10 @@
     @apply border-warn/40 bg-warn/15 text-warn;
 }
 
+.side {
+    @apply border-side/40 bg-side/15 text-side;
+}
+
 .uppercase {
     @apply tracking-wider;
 }

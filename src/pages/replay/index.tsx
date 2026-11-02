@@ -15,6 +15,7 @@ import { RolePerformances } from "./role-performances";
 import { Scoreboard, ScoreboardTeam } from "./scoreboard";
 import { Standouts } from "./standouts";
 import { Timeline } from "./timeline";
+import { XpSources } from "./xp-sources";
 
 import styles from "./styles.module.css";
 
@@ -116,6 +117,10 @@ export function ReplayDetail() {
                                         scoreboardTeam(replay, 1 - allyTeam),
                                     ]}
                                     duration={replay.duration}
+                                />
+                                <XpSources
+                                    ally={replay.teams[allyTeam]}
+                                    enemy={replay.teams[1 - allyTeam]}
                                 />
                             </Activity>
                         )}

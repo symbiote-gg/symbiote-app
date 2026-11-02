@@ -323,12 +323,21 @@ export type KillLog = {
     unplaced: UnplacedKills | null;
 };
 
+export type XpBreakdown = {
+    minion: number;
+    creep: number;
+    structure: number;
+    hero: number;
+    trickle: number;
+};
+
 export type TeamSummary = {
     kills: number;
     assists: number;
     deaths: number;
     aiKills: number;
     level: number | null;
+    xp: XpBreakdown | null;
 };
 
 export type RoleStat =
