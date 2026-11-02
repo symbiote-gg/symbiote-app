@@ -13,7 +13,7 @@
 }
 
 .icon {
-    @apply size-5 shrink-0 text-primary-text;
+    @apply size-5 shrink-0 text-fg-muted;
 }
 
 .pathText {

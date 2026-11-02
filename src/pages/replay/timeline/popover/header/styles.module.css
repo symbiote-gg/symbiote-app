@@ -12,3 +12,7 @@
     @apply size-5 shrink-0;
     color: var(--side, var(--color-fg-muted));
 }
+
+.levels {
+    @apply flex items-center gap-1;
+}

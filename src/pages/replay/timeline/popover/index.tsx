@@ -4,6 +4,7 @@ import { type PointerEvent, useLayoutEffect, useState } from "react";
 import type { ReplayPlayerDetail } from "@/api/replays";
 import type { TimelineText } from "@/hooks/useTimelineText";
 import { Popover as PopoverSurface } from "@/ui";
+import type { LevelCurve } from "@/utils/timeline/levels";
 import { markerView } from "@/utils/timeline/markers";
 import type { Marker, Side } from "@/utils/timeline/types";
 import { Body } from "./body";
@@ -16,6 +17,7 @@ interface PopoverProps {
     players: ReplayPlayerDetail[];
     allyTeam: number;
     highlightSlot: number | null;
+    curves: [LevelCurve, LevelCurve];
     text: TimelineText;
     track: HTMLElement | null;
     side: Side;
@@ -28,6 +30,7 @@ export function Popover({
     players,
     allyTeam,
     highlightSlot,
+    curves,
     text,
     track,
     side,
@@ -66,7 +69,7 @@ export function Popover({
             onPointerEnter={onPointerEnter}
             onPointerLeave={onPointerLeave}
         >
-            <Header marker={marker} view={view} text={text} />
+            <Header marker={marker} view={view} curves={curves} text={text} />
             <Body marker={marker} view={view} roster={roster} text={text} />
         </PopoverSurface>
     );

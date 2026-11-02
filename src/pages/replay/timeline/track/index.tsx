@@ -272,6 +272,7 @@ export function Track({
                         players={players}
                         allyTeam={allyTeam}
                         highlightSlot={highlightSlot}
+                        curves={curves}
                         text={text}
                         track={ref.current}
                         side={selected.marker.side}

@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- Add team levels to fight popovers.
 - Add xp by source on replay detail overview.
 - Add multikill, killstreak and vengeance to standouts.
 - Add longest life, shutdowns and killstreaks to standouts.

@@ -2,12 +2,14 @@ import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
 import type { TimelineText } from "@/hooks/useTimelineText";
+import { Chip } from "@/ui";
 import {
     campGlyph,
     entryGlyph,
     fightGlyph,
     tickGlyph,
 } from "@/utils/timeline/glyphs";
+import { type LevelCurve, levelAt } from "@/utils/timeline/levels";
 import { type Glyph, specLabel } from "@/utils/timeline/map-events";
 import type { MarkerView } from "@/utils/timeline/markers";
 import type { Marker } from "@/utils/timeline/types";
@@ -34,10 +36,11 @@ function headerGlyph(marker: Marker, view: MarkerView): Glyph | null {
 interface HeaderProps {
     marker: Marker;
     view: MarkerView;
+    curves: [LevelCurve, LevelCurve];
     text: TimelineText;
 }
 
-function Title({ marker, view, text }: HeaderProps) {
+function Title({ marker, view, curves, text }: HeaderProps) {
     const t = useTranslations("replay.timeline");
 
     const { fight, score, end, structure, camp, map, race } = view;
@@ -54,6 +57,25 @@ function Title({ marker, view, text }: HeaderProps) {
     if (fight) {
         const winner =
             score[0] > score[1] ? "ally" : score[0] < score[1] ? "enemy" : null;
+        const levels = (
+            <span className={styles.levels}>
+                {(["ally", "enemy"] as const).map((side, team) => (
+                    <Chip
+                        key={side}
+                        size="sm"
+                        tone="side"
+                        className={classNames(sideClasses(side))}
+                    >
+                        {t("fightLevel", {
+                            level: Math.floor(
+                                levelAt(curves[team], marker.time),
+                            ),
+                        })}
+                    </Chip>
+                ))}
+            </span>
+        );
+
         return (
             <HeaderText
                 title={t("fightKind", { kind: fight })}
@@ -64,6 +86,7 @@ function Title({ marker, view, text }: HeaderProps) {
                 })}
                 tagClassName={classNames(sideClasses(winner))}
                 meta={timeRange}
+                metaEnd={levels}
             />
         );
     }
@@ -177,7 +200,7 @@ function Title({ marker, view, text }: HeaderProps) {
     );
 }
 
-export function Header({ marker, view, text }: HeaderProps) {
+export function Header({ marker, view, curves, text }: HeaderProps) {
     const glyph = headerGlyph(marker, view);
 
     return (
@@ -191,7 +214,7 @@ export function Header({ marker, view, text }: HeaderProps) {
                     )}
                 />
             )}
-            <Title marker={marker} view={view} text={text} />
+            <Title marker={marker} view={view} curves={curves} text={text} />
         </header>
     );
 }

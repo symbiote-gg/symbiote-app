@@ -334,6 +334,7 @@
             "lane": "{lane, select, top {Top lane} middle {Middle lane} bottom {Bottom lane} other {Lane}}",
             "fightKind": "{kind, select, pick {Pick} gank {Gank} skirmish {Skirmish} teamFight {Team fight} other {Fight}}",
             "fightResult": "{result, select, ally {Won} enemy {Lost} other {Traded}} {ally}-{enemy}",
+            "fightLevel": "Lvl {level}",
             "raceResult": "{kind, select, golem {{side, select, ally {Stronger} enemy {Enemy stronger} other {Even}}} wave {{side, select, ally {Yours stronger} enemy {Enemy stronger} other {Even}}} capture {{side, select, ally {Captured} other {Lost}}} curse {{side, select, ally {Cursed enemy} other {Cursed by enemy}}} ship {{side, select, ally {Bought} other {Enemy bought}}} gems {{side, select, ally {Summoned} other {Enemy summoned}}} temple {{side, select, ally {Siege damage} other {Enemy siege damage}}} other {{side, select, ally {Won} other {Lost}}}}",
             "summonTitle": "{label, select, punisher {Punisher} other {{name} punisher}}",
             "summonSpawn": "spawn {time}",
