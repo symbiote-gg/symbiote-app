@@ -111,7 +111,6 @@
     },
     "replayRow": {
         "new": "New",
-        "topDamage": "Top 10% of your {hero} games",
         "teamsPlayer": "{player} ({hero})",
         "columns": {
             "game": "Game",

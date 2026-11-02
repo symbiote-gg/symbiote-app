@@ -36,10 +36,6 @@
     @apply ml-2 text-fg-muted;
 }
 
-.topDamage {
-    @apply underline decoration-primary decoration-2 underline-offset-4;
-}
-
 .modeIcon {
     @apply mr-1.5 inline-block align-[-2px] text-fg-muted;
 }

@@ -11,7 +11,7 @@ import {
     replayQuery,
 } from "@/api/queries";
 import { type Replay, markReplayAsSeen } from "@/api/replays";
-import { Tooltip, Typography } from "@/ui";
+import { Typography } from "@/ui";
 import { formatDuration, usePlayedAt } from "@/utils/dates";
 import { AwardPills } from "../award-pill";
 import { HeroPortrait } from "../hero-portrait";
@@ -122,22 +122,9 @@ export const ReplayRow = memo(function ReplayRow({
                     size="sm"
                     mono
                     noWrap
-                    weight={replay.ownerHeroDamageTop ? "semibold" : "regular"}
                     className={classNames(columns.col, columns.damage)}
                 >
-                    {replay.ownerHeroDamageTop ? (
-                        <Tooltip
-                            content={t("replayRow.topDamage", {
-                                hero: replay.heroName,
-                            })}
-                        >
-                            <span className={styles.topDamage}>
-                                {heroDamage}
-                            </span>
-                        </Tooltip>
-                    ) : (
-                        heroDamage
-                    )}
+                    {heroDamage}
                 </Typography>
                 <Typography
                     size="sm"

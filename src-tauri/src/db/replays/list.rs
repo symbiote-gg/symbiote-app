@@ -125,19 +125,11 @@ fn push_after(query: &mut QueryBuilder<'_, Sqlite>, sort: ReplaySort, cursor: Re
     }
 }
 
-/// Games the owner needs on a hero before any of them counts as a top damage game.
-const TOP_DAMAGE_MIN_GAMES: i64 = 10;
-/// Percent rank among the owner's games on a hero from which hero damage counts as top.
-const TOP_DAMAGE_RANK: f64 = 0.9;
-
 /// Builds the query listing each replay picked by the subquery over `replays` that
 /// `push_source` appends, with its owner's hero and stats, in `sort` order.
 ///
 /// `push_source` continues a `SELECT ... WHERE 1 = 1` that also selects the replay's
 /// sort key as `sort_key`.
-///
-/// Hero damage is ranked against all of the owner's games on the same hero, not only
-/// the listed ones.
 fn list_rows_query<'args>(
     sort: ReplaySort,
     push_source: impl FnOnce(&mut QueryBuilder<'args, Sqlite>),
@@ -152,9 +144,7 @@ fn list_rows_query<'args>(
              json_extract(orp.score, '$.Deaths') AS owner_deaths,
              json_extract(orp.score, '$.Assists') AS owner_assists,
              json_extract(orp.score, '$.Takedowns') AS owner_takedowns,
-             json_extract(orp.score, '$.HeroDamage') AS owner_hero_damage,
-             COALESCE(dr.hero_games >= {TOP_DAMAGE_MIN_GAMES}
-                 AND dr.damage_rank >= {TOP_DAMAGE_RANK}, 0) AS owner_hero_damage_top
+             json_extract(orp.score, '$.HeroDamage') AS owner_hero_damage
          FROM (SELECT *, {key} AS sort_key FROM replays WHERE 1 = 1",
         key = sort_key(sort.column),
     ));
@@ -164,17 +154,7 @@ fn list_rows_query<'args>(
          JOIN heroes h ON h.id = r.owner_hero_id
          LEFT JOIN maps m ON m.id = r.map
          JOIN replays_players orp
-             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
-         LEFT JOIN (
-             SELECT hr.id,
-                 PERCENT_RANK() OVER (PARTITION BY hr.owner_hero_id
-                     ORDER BY json_extract(hrp.score, '$.HeroDamage')) AS damage_rank,
-                 COUNT(*) OVER (PARTITION BY hr.owner_hero_id) AS hero_games
-             FROM replays hr
-             JOIN replays_players hrp
-                 ON hrp.replay_id = hr.id AND hrp.player_id = hr.owner_player_id
-             WHERE json_extract(hrp.score, '$.HeroDamage') IS NOT NULL
-         ) dr ON dr.id = r.id",
+             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id",
     );
     query.push(order_by(sort, "r.sort_key", "r.id"));
     query
@@ -594,28 +574,17 @@ mod tests {
         }
     }
 
-    async fn insert_damage_game(pool: &SqlitePool, game_id: &str, hero_damage: i64) {
+    async fn insert_awarded_game(pool: &SqlitePool, game_id: &str) {
         let mut game = bundle(game_id, 1000);
         game.replay.game_id = hex(game_id);
-        game.replay_players[0].score = serde_json::json!({ "HeroDamage": hero_damage });
         game.replay_players[0].awards = vec!["mvp".to_owned(), "escape_artist".to_owned()];
         insert_bundle(pool, game).await.unwrap();
     }
 
-    fn top_damage_hashes(page: &ReplayPage) -> Vec<&str> {
-        page.replays
-            .iter()
-            .filter(|r| r.owner_stats.owner_hero_damage_top)
-            .map(|r| r.replay.hash.as_str())
-            .collect()
-    }
-
     #[tokio::test]
-    async fn lists_owner_awards_and_top_damage_games() {
+    async fn lists_owner_awards() {
         let pool = pool().await;
-        for game in 1..TOP_DAMAGE_MIN_GAMES {
-            insert_damage_game(&pool, &format!("g{game}"), game * 1000).await;
-        }
+        insert_awarded_game(&pool, "a").await;
 
         let page = list_page(
             &pool,
@@ -626,24 +595,11 @@ mod tests {
         )
         .await
         .unwrap();
-        assert!(top_damage_hashes(&page).is_empty(), "too few games to rank");
         let awards: Vec<&str> = page.replays[0]
             .owner_awards
             .iter()
             .map(|a| a.award.as_str())
             .collect();
         assert_eq!(awards, ["mvp", "escape_artist"]);
-
-        insert_damage_game(&pool, "best", 100_000).await;
-        let page = list_page(
-            &pool,
-            &ReplayFilters::default(),
-            ReplaySort::default(),
-            None,
-            50,
-        )
-        .await
-        .unwrap();
-        assert_eq!(top_damage_hashes(&page), [hex("best")]);
     }
 }

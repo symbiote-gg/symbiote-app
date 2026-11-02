@@ -25,8 +25,6 @@ pub struct OwnerStats {
     pub owner_assists: Option<i64>,
     pub owner_takedowns: Option<i64>,
     pub owner_hero_damage: Option<i64>,
-    /// Whether the owner's hero damage is in the top 10% of their games on that hero.
-    pub owner_hero_damage_top: bool,
 }
 
 #[derive(Debug, FromRow, Serialize)]
