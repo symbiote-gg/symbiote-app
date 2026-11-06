@@ -193,7 +193,6 @@ pub struct WinStreak {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HeroBests {
-    pub kills: Option<HeroBest>,
     pub hero_damage: Option<HeroBest>,
     pub siege_damage: Option<HeroBest>,
     pub takedowns: Option<HeroBest>,

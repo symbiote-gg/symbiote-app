@@ -8,8 +8,7 @@ import { formatDuration, usePlayedDay } from "@/utils/dates";
 
 import styles from "./styles.module.css";
 
-type GameBest =
-    "kills" | "heroDamage" | "siegeDamage" | "fastestWin" | "takedowns";
+type GameBest = "heroDamage" | "siegeDamage" | "fastestWin" | "takedowns";
 
 type Tile = {
     key: string;
@@ -63,7 +62,6 @@ export function Bests({ hero, bests }: BestsProps) {
     };
 
     const tiles = [
-        fromGame("kills", bests.kills, count),
         fromGame("heroDamage", bests.heroDamage, amount),
         fromGame("siegeDamage", bests.siegeDamage, amount),
         streak,

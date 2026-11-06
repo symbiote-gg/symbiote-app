@@ -79,7 +79,6 @@
         },
         "card": {
             "games": "{count, plural, one {# game} other {# games}}",
-            "winRate": "Win rate",
             "kda": "KDA",
             "heroDamage": "Hero damage",
             "healing": "Healing",
@@ -151,7 +150,6 @@
         "bests": {
             "title": "Personal bests",
             "subtitle": "Your records on {hero}",
-            "kills": "Most kills",
             "heroDamage": "Most hero damage",
             "siegeDamage": "Most siege damage",
             "winStreak": "Longest win streak",

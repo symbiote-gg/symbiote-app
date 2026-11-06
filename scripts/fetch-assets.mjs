@@ -36,9 +36,9 @@ const IMAGES = [
         key: "portrait",
         size: [128, 128],
         lossless: true,
-        // WebKit blurs large downscales, so the small sizes HeroPortrait shows
-        // are made here instead. Keep in sync with its VARIANTS.
-        variants: [24, 32, 40, 48],
+        // WebKit blurs large downscales, so the sizes HeroPortrait shows are
+        // made here instead. Keep in sync with VARIANTS in src/utils/portraits.ts.
+        variants: [24, 32, 40, 48, 96],
     },
     {
         kind: "heroes",

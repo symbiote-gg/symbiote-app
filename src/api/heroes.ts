@@ -111,7 +111,6 @@ export type WinStreak = {
 };
 
 export type HeroBests = {
-    kills: HeroBest | null;
     heroDamage: HeroBest | null;
     siegeDamage: HeroBest | null;
     takedowns: HeroBest | null;

@@ -4,6 +4,7 @@ import {
     keepPreviousData,
 } from "@tanstack/react-query";
 
+import { portraitSrc } from "@/utils/portraits";
 import {
     DEFAULT_REPLAY_SORT,
     NO_REPLAY_FILTERS,
@@ -46,8 +47,12 @@ const SORT_VALUE: Record<ReplaySortColumn, (replay: Replay) => number | null> =
 const pagePortraits = (page: ReplayPage) =>
     new Set(
         page.replays.flatMap((replay) => [
-            replay.heroPortrait,
-            ...replay.players.map((player) => player.heroPortrait),
+            replay.heroPortrait && portraitSrc(replay.heroPortrait, "md"),
+            ...replay.players.map(
+                (player) =>
+                    player.heroPortrait &&
+                    portraitSrc(player.heroPortrait, "xs"),
+            ),
         ]),
     );
 
@@ -66,10 +71,8 @@ export const replaysQuery = (
         queryFn: async ({ pageParam }) => {
             const page = await listReplays(filters, sort, pageParam, PAGE_SIZE);
             await Promise.all(
-                Array.from(pagePortraits(page), (portrait) =>
-                    portrait
-                        ? preloadImage(`/game/heroportraits/${portrait}`)
-                        : undefined,
+                Array.from(pagePortraits(page), (src) =>
+                    src ? preloadImage(src) : undefined,
                 ),
             );
             return page;

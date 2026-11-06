@@ -1,12 +1,10 @@
 use chrono::{DateTime, Utc};
 use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
 
-use crate::db::filters::push_filters;
 use crate::types::hero_stats::{
     AllyHero, AwardCount, BestGame, GameLength, HeroBest, HeroBests, HeroDetail, HeroInfo,
     HeroTotals, HeroTrend, MapRecord, TalentRecord, TrendBucket, TrendPoint, WinStreak,
 };
-use crate::types::replay::ReplayFilters;
 
 /// Games spread over less than this many seconds are bucketed by week, not month.
 const WEEKLY_SPAN: i64 = 13 * 7 * 24 * 60 * 60;
@@ -17,13 +15,8 @@ const MIN_WIN_STREAK: i64 = 2;
 /// Where [`lengths`] splits games, in seconds.
 const LENGTH_CUTS: [i64; 3] = [15 * 60, 20 * 60, 25 * 60];
 
-/// Returns the owner's stats on a hero over the games matching `filters`, or `None`
-/// if the hero doesn't exist. All of them are read from the same snapshot.
-pub async fn hero_detail(
-    pool: &SqlitePool,
-    hero_id: i64,
-    filters: &ReplayFilters,
-) -> sqlx::Result<Option<HeroDetail>> {
+/// Returns the owner's stats on a hero, or `None` if the hero doesn't exist. All of them are read from the same snapshot.
+pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option<HeroDetail>> {
     let mut tx = pool.begin().await?;
     let Some(hero) = sqlx::query_as::<_, HeroInfo>(
         "SELECT id AS hero_id, name, role, portrait, banner, accent
@@ -36,15 +29,15 @@ pub async fn hero_detail(
         return Ok(None);
     };
 
-    let totals = totals(&mut tx, hero_id, filters).await?;
-    let awards = awards(&mut tx, hero_id, filters).await?;
-    let maps = maps(&mut tx, hero_id, filters).await?;
-    let talents = talents(&mut tx, hero_id, filters).await?;
-    let trend = trend(&mut tx, hero_id, filters).await?;
-    let bests = bests(&mut tx, hero_id, filters).await?;
-    let best_game = best_game(&mut tx, hero_id, filters).await?;
-    let lengths = lengths(&mut tx, hero_id, filters).await?;
-    let ally = ally(&mut tx, hero_id, filters).await?;
+    let totals = totals(&mut tx, hero_id).await?;
+    let awards = awards(&mut tx, hero_id).await?;
+    let maps = maps(&mut tx, hero_id).await?;
+    let talents = talents(&mut tx, hero_id).await?;
+    let trend = trend(&mut tx, hero_id).await?;
+    let bests = bests(&mut tx, hero_id).await?;
+    let best_game = best_game(&mut tx, hero_id).await?;
+    let lengths = lengths(&mut tx, hero_id).await?;
+    let ally = ally(&mut tx, hero_id).await?;
     tx.commit().await?;
 
     Ok(Some(HeroDetail {
@@ -61,27 +54,18 @@ pub async fn hero_detail(
     }))
 }
 
-/// Starts a query whose `FROM` is the owner's games on `hero_id` matching `filters`,
-/// as `r`, after `select`.
-fn hero_games<'args>(
-    select: &str,
-    hero_id: i64,
-    filters: &ReplayFilters,
-) -> QueryBuilder<'args, Sqlite> {
+/// Starts a query whose `FROM` is the owner's games on `hero_id`, as `r`, after
+/// `select`.
+fn hero_games<'args>(select: &str, hero_id: i64) -> QueryBuilder<'args, Sqlite> {
     let mut query = QueryBuilder::new(select);
     query
         .push(" FROM (SELECT * FROM replays WHERE owner_hero_id = ")
-        .push_bind(hero_id);
-    push_filters(&mut query, filters);
-    query.push(") r");
+        .push_bind(hero_id)
+        .push(") r");
     query
 }
 
-async fn totals(
-    conn: &mut SqliteConnection,
-    hero_id: i64,
-    filters: &ReplayFilters,
-) -> sqlx::Result<HeroTotals> {
+async fn totals(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroTotals> {
     let mut query = hero_games(
         "SELECT COUNT(*) AS games,
              COALESCE(SUM(r.owner_win = 1), 0) AS wins,
@@ -103,7 +87,6 @@ async fn totals(
              COALESCE(SUM(r.duration), 0) AS total_duration,
              MAX(r.timestamp) AS last_played",
         hero_id,
-        filters,
     );
     query.push(
         " JOIN replays_players orp
@@ -112,15 +95,10 @@ async fn totals(
     query.build_query_as().fetch_one(conn).await
 }
 
-async fn awards(
-    conn: &mut SqliteConnection,
-    hero_id: i64,
-    filters: &ReplayFilters,
-) -> sqlx::Result<Vec<AwardCount>> {
+async fn awards(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<AwardCount>> {
     let mut query = hero_games(
         "SELECT rpa.award, a.name, a.description, a.icon, COUNT(*) AS count",
         hero_id,
-        filters,
     );
     query.push(
         " JOIN replays_players_awards rpa
@@ -132,18 +110,13 @@ async fn awards(
     query.build_query_as().fetch_all(conn).await
 }
 
-async fn maps(
-    conn: &mut SqliteConnection,
-    hero_id: i64,
-    filters: &ReplayFilters,
-) -> sqlx::Result<Vec<MapRecord>> {
+async fn maps(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<MapRecord>> {
     let mut query = hero_games(
         "SELECT r.map AS id, COALESCE(m.name, r.map) AS name, m.loading_screen,
              COUNT(*) AS games,
              COALESCE(SUM(r.owner_win = 1), 0) AS wins,
              COALESCE(SUM(r.owner_win = 0), 0) AS losses",
         hero_id,
-        filters,
     );
     query.push(
         " LEFT JOIN maps m ON m.id = r.map
@@ -153,15 +126,10 @@ async fn maps(
     query.build_query_as().fetch_all(conn).await
 }
 
-async fn talents(
-    conn: &mut SqliteConnection,
-    hero_id: i64,
-    filters: &ReplayFilters,
-) -> sqlx::Result<Vec<TalentRecord>> {
+async fn talents(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<TalentRecord>> {
     let mut query = hero_games(
         "WITH picks AS (SELECT rpt.tier, rpt.talent_id, r.owner_win",
         hero_id,
-        filters,
     );
     query
         .push(
@@ -188,19 +156,12 @@ async fn talents(
     query.build_query_as().fetch_all(conn).await
 }
 
-async fn trend(
-    conn: &mut SqliteConnection,
-    hero_id: i64,
-    filters: &ReplayFilters,
-) -> sqlx::Result<HeroTrend> {
-    let (first, last): (Option<i64>, Option<i64>) = hero_games(
-        "SELECT MIN(r.timestamp), MAX(r.timestamp)",
-        hero_id,
-        filters,
-    )
-    .build_query_as()
-    .fetch_one(&mut *conn)
-    .await?;
+async fn trend(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroTrend> {
+    let (first, last): (Option<i64>, Option<i64>) =
+        hero_games("SELECT MIN(r.timestamp), MAX(r.timestamp)", hero_id)
+            .build_query_as()
+            .fetch_one(&mut *conn)
+            .await?;
     let bucket = match first.zip(last) {
         Some((first, last)) if last - first < WEEKLY_SPAN => TrendBucket::Week,
         _ => TrendBucket::Month,
@@ -218,7 +179,6 @@ async fn trend(
                  COALESCE(SUM(r.owner_win = 0), 0) AS losses"
         ),
         hero_id,
-        filters,
     );
     query.push(" GROUP BY start ORDER BY start");
     let points: Vec<TrendPoint> = query.build_query_as().fetch_all(conn).await?;
@@ -241,7 +201,6 @@ const fn highest(value: &'static str) -> BestBy {
     }
 }
 
-const MOST_KILLS: BestBy = highest("json_extract(orp.score, '$.SoloKill')");
 const MOST_HERO_DAMAGE: BestBy = highest("json_extract(orp.score, '$.HeroDamage')");
 const MOST_SIEGE_DAMAGE: BestBy = highest("json_extract(orp.score, '$.SiegeDamage')");
 const MOST_TAKEDOWNS: BestBy = highest("json_extract(orp.score, '$.Takedowns')");
@@ -251,27 +210,21 @@ const FASTEST_WIN: BestBy = BestBy {
     lowest: true,
 };
 
-async fn bests(
-    conn: &mut SqliteConnection,
-    hero_id: i64,
-    filters: &ReplayFilters,
-) -> sqlx::Result<HeroBests> {
+async fn bests(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroBests> {
     Ok(HeroBests {
-        kills: best(conn, hero_id, filters, &MOST_KILLS).await?,
-        hero_damage: best(conn, hero_id, filters, &MOST_HERO_DAMAGE).await?,
-        siege_damage: best(conn, hero_id, filters, &MOST_SIEGE_DAMAGE).await?,
-        takedowns: best(conn, hero_id, filters, &MOST_TAKEDOWNS).await?,
-        fastest_win: best(conn, hero_id, filters, &FASTEST_WIN).await?,
-        win_streak: win_streak(conn, hero_id, filters).await?,
+        hero_damage: best(conn, hero_id, &MOST_HERO_DAMAGE).await?,
+        siege_damage: best(conn, hero_id, &MOST_SIEGE_DAMAGE).await?,
+        takedowns: best(conn, hero_id, &MOST_TAKEDOWNS).await?,
+        fastest_win: best(conn, hero_id, &FASTEST_WIN).await?,
+        win_streak: win_streak(conn, hero_id).await?,
     })
 }
 
-/// Returns the owner's game on `hero_id` matching `filters` with the best positive value.
+/// Returns the owner's game on `hero_id` with the best positive value.
 /// Ties go to the latest game.
 async fn best(
     conn: &mut SqliteConnection,
     hero_id: i64,
-    filters: &ReplayFilters,
     by: &BestBy,
 ) -> sqlx::Result<Option<HeroBest>> {
     let BestBy {
@@ -285,7 +238,6 @@ async fn best(
                  COALESCE(m.name, r.map) AS map, m.loading_screen, r.timestamp"
         ),
         hero_id,
-        filters,
     );
     query.push(format!(
         " JOIN replays_players orp
@@ -299,13 +251,10 @@ async fn best(
     query.build_query_as().fetch_optional(conn).await
 }
 
-/// Returns the game [`MOST_KILLS`] picks, with its line.
-async fn best_game(
-    conn: &mut SqliteConnection,
-    hero_id: i64,
-    filters: &ReplayFilters,
-) -> sqlx::Result<Option<BestGame>> {
-    let value = MOST_KILLS.value;
+/// Returns the owner's game on `hero_id` with the most kills, with its line. Ties go
+/// to the latest game.
+async fn best_game(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Option<BestGame>> {
+    let value = "json_extract(orp.score, '$.SoloKill')";
     let mut query = hero_games(
         "SELECT r.id AS replay_id, COALESCE(m.name, r.map) AS map, m.loading_screen,
              r.timestamp, r.duration, r.owner_win,
@@ -315,7 +264,6 @@ async fn best_game(
              CAST(COALESCE(json_extract(orp.score, '$.HeroDamage'), 0) AS INTEGER)
                  AS hero_damage",
         hero_id,
-        filters,
     );
     query.push(format!(
         " JOIN replays_players orp
@@ -329,11 +277,7 @@ async fn best_game(
 }
 
 /// Returns the owner's results per game length, split at [`LENGTH_CUTS`].
-async fn lengths(
-    conn: &mut SqliteConnection,
-    hero_id: i64,
-    filters: &ReplayFilters,
-) -> sqlx::Result<Vec<GameLength>> {
+async fn lengths(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<GameLength>> {
     let cases: String = LENGTH_CUTS
         .iter()
         .enumerate()
@@ -348,7 +292,6 @@ async fn lengths(
             LENGTH_CUTS.len(),
         ),
         hero_id,
-        filters,
     );
     query.push(" GROUP BY bucket");
     let rows: Vec<(i64, i64, i64, i64)> = query.build_query_as().fetch_all(conn).await?;
@@ -371,16 +314,8 @@ async fn lengths(
 }
 
 /// Returns the hero most often on the owner's team, ties going to the latest game.
-async fn ally(
-    conn: &mut SqliteConnection,
-    hero_id: i64,
-    filters: &ReplayFilters,
-) -> sqlx::Result<Option<AllyHero>> {
-    let mut query = hero_games(
-        "SELECT h.id AS hero_id, h.name, COUNT(*) AS games",
-        hero_id,
-        filters,
-    );
+async fn ally(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Option<AllyHero>> {
+    let mut query = hero_games("SELECT h.id AS hero_id, h.name, COUNT(*) AS games", hero_id);
     query.push(
         " JOIN replays_players orp
              ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
@@ -395,12 +330,8 @@ async fn ally(
     query.build_query_as().fetch_optional(conn).await
 }
 
-async fn win_streak(
-    conn: &mut SqliteConnection,
-    hero_id: i64,
-    filters: &ReplayFilters,
-) -> sqlx::Result<Option<WinStreak>> {
-    let mut query = hero_games("SELECT r.owner_win, r.timestamp", hero_id, filters);
+async fn win_streak(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Option<WinStreak>> {
+    let mut query = hero_games("SELECT r.owner_win, r.timestamp", hero_id);
     query.push(" ORDER BY r.timestamp, r.id");
     let results: Vec<(Option<bool>, DateTime<Utc>)> =
         query.build_query_as().fetch_all(conn).await?;
@@ -509,10 +440,7 @@ mod tests {
         let pool = pool().await;
         let wizard = insert_games(&pool).await;
 
-        let detail = hero_detail(&pool, wizard, &ReplayFilters::default())
-            .await
-            .unwrap()
-            .unwrap();
+        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
         assert_eq!(detail.hero.name, "Wizard");
 
         let totals = &detail.totals;
@@ -579,12 +507,8 @@ mod tests {
         let a = replay_id(&pool, "a").await;
         let b = replay_id(&pool, "b").await;
 
-        let detail = hero_detail(&pool, wizard, &ReplayFilters::default())
-            .await
-            .unwrap()
-            .unwrap();
+        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
         let bests = &detail.bests;
-        assert_eq!(best(&bests.kills), Some((a, 4.0, "braxis_holdout")));
         assert_eq!(best(&bests.hero_damage), Some((b, 3000.0, "cursed_hollow")));
         assert_eq!(best(&bests.takedowns), Some((a, 10.0, "braxis_holdout")));
         assert_eq!(best(&bests.siege_damage), None);
@@ -598,10 +522,7 @@ mod tests {
         let wizard = insert_games(&pool).await;
         let a = replay_id(&pool, "a").await;
 
-        let detail = hero_detail(&pool, wizard, &ReplayFilters::default())
-            .await
-            .unwrap()
-            .unwrap();
+        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
         let game = detail.best_game.unwrap();
         assert_eq!(game.replay_id, a);
         assert_eq!((game.map.as_str(), game.duration), ("braxis_holdout", 62));
@@ -642,10 +563,7 @@ mod tests {
         }
         let wizard = wizard_id(&pool).await;
 
-        let detail = hero_detail(&pool, wizard, &ReplayFilters::default())
-            .await
-            .unwrap()
-            .unwrap();
+        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
         let lengths: Vec<_> = detail
             .lengths
             .iter()
@@ -705,10 +623,7 @@ mod tests {
         }
         let wizard = wizard_id(&pool).await;
 
-        let detail = hero_detail(&pool, wizard, &ReplayFilters::default())
-            .await
-            .unwrap()
-            .unwrap();
+        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
         let ally = detail.ally.unwrap();
         assert_eq!((ally.name.as_str(), ally.games), ("Uther", 2));
     }
@@ -746,10 +661,7 @@ mod tests {
         let pool = pool().await;
         let wizard = insert_games(&pool).await;
 
-        let detail = hero_detail(&pool, wizard, &ReplayFilters::default())
-            .await
-            .unwrap()
-            .unwrap();
+        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
         assert_eq!(detail.trend.bucket, TrendBucket::Week);
         assert_eq!(detail.trend.points.len(), 1);
         assert_eq!(
@@ -783,10 +695,7 @@ mod tests {
             .await
             .unwrap();
 
-        let detail = hero_detail(&pool, wizard, &ReplayFilters::default())
-            .await
-            .unwrap()
-            .unwrap();
+        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
         assert_eq!(detail.trend.bucket, TrendBucket::Month);
         assert_eq!(
             trend_rows(&detail),
@@ -795,53 +704,25 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn sums_up_only_the_games_matching_the_filters() {
-        let pool = pool().await;
-        let wizard = insert_games(&pool).await;
-
-        let filters = ReplayFilters {
-            modes: vec![Mode::QuickMatch],
-            to: DateTime::from_timestamp(300, 0),
-            ..Default::default()
-        };
-        let detail = hero_detail(&pool, wizard, &filters).await.unwrap().unwrap();
-        assert_eq!(detail.totals.games, 1);
-        assert_eq!(detail.awards.len(), 1);
-        assert_eq!(detail.maps.len(), 1);
-        assert_eq!(
-            talent_rows(&detail),
-            [
-                (1, "spark", 1, 0, 0),
-                (2, "spark_moved", 1, 0, 0),
-                (2, "blink", 0, 0, 0),
-                (2, "flare", 0, 0, 0),
-                (3, "spark_moved", 0, 0, 0),
-                (3, "nova", 0, 0, 0),
-            ]
-        );
-    }
-
-    #[tokio::test]
     async fn returns_empty_stats_for_a_hero_without_games() {
         let pool = pool().await;
         let wizard = insert_games(&pool).await;
+        let nova: i64 = sqlx::query_scalar(
+            "INSERT INTO heroes (slug, name) VALUES ('Nova', 'Nova') RETURNING id",
+        )
+        .fetch_one(&pool)
+        .await
+        .unwrap();
 
-        let filters = ReplayFilters {
-            modes: vec![Mode::StormLeague],
-            ..Default::default()
-        };
-        let detail = hero_detail(&pool, wizard, &filters).await.unwrap().unwrap();
+        let detail = hero_detail(&pool, nova).await.unwrap().unwrap();
         assert_eq!(detail.totals.games, 0);
         assert_eq!(detail.totals.avg_kills, None);
         assert!(detail.maps.is_empty());
         assert!(detail.trend.points.is_empty());
-        assert!(detail.bests.kills.is_none() && detail.bests.fastest_win.is_none());
+        assert!(detail.bests.hero_damage.is_none() && detail.bests.fastest_win.is_none());
         assert!(detail.best_game.is_none() && detail.ally.is_none());
         assert!(detail.lengths.iter().all(|length| length.games == 0));
 
-        assert!(hero_detail(&pool, wizard + 100, &ReplayFilters::default())
-            .await
-            .unwrap()
-            .is_none());
+        assert!(hero_detail(&pool, wizard + 100).await.unwrap().is_none());
     }
 }

@@ -21,7 +21,7 @@
 }
 
 .xl {
-    @apply size-23 text-2xl;
+    @apply size-24 text-2xl;
 }
 
 .fallback {
