@@ -77,15 +77,7 @@
 }
 
 .statCell .track {
-    @apply flex h-1 w-full justify-end overflow-hidden rounded-full bg-fg/6;
-}
-
-.statCell .bar {
-    @apply h-full rounded-full bg-side-soft;
-}
-
-.statCell.top .bar {
-    @apply bg-side-strong;
+    @apply w-full;
 }
 
 .secondary {

@@ -1,0 +1,9 @@
+@reference "@/index.css";
+
+.stacked {
+    @apply flex min-w-0 flex-col;
+}
+
+.inline {
+    @apply flex min-w-0 items-baseline gap-2 whitespace-nowrap;
+}

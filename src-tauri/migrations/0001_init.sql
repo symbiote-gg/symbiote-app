@@ -4,6 +4,8 @@ CREATE TABLE "heroes" (
 	"name" TEXT NOT NULL CHECK (length("name") BETWEEN 1 AND 32),
 	"role" TEXT CHECK ("role" IN ('tank', 'bruiser', 'healer', 'support', 'melee_assassin', 'ranged_assassin')),
 	"portrait" TEXT CHECK (length("portrait") BETWEEN 1 AND 128),
+	"banner" TEXT CHECK (length("banner") BETWEEN 1 AND 128),
+	"accent" TEXT CHECK ("accent" GLOB '#[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
 	PRIMARY KEY("id")
 ) STRICT;
 

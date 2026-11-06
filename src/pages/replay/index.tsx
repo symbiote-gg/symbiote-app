@@ -4,7 +4,7 @@ import { useTranslations } from "use-intl";
 import { useParams } from "wouter";
 
 import type { ReplayDetail as ReplayDetailData } from "@/api/replays";
-import { BackToReplays, Page } from "@/components";
+import { BackLink, Page } from "@/components";
 import { useReplay } from "@/hooks/useReplay";
 import { useStandouts } from "@/hooks/useStandouts";
 import { ErrorMessage, type TabItem, Tabs } from "@/ui";
@@ -46,6 +46,7 @@ const scoreboardTeam = (
 
 export function ReplayDetail() {
     const t = useTranslations("replay.tabs");
+    const tReplay = useTranslations("replay");
     const { replayId, tab: tabParam } = useParams<{
         replayId: string;
         tab?: string;
@@ -89,7 +90,7 @@ export function ReplayDetail() {
             <div className={styles.main}>
                 {error && (
                     <>
-                        <BackToReplays />
+                        <BackLink href="/replays" label={tReplay("replays")} />
                         <ErrorMessage error={error} />
                     </>
                 )}

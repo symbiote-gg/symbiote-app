@@ -1,6 +1,6 @@
 import { useTranslations } from "use-intl";
 
-import { ROLE_ICONS } from "../role-icons";
+import { ROLE_ICONS } from "@/utils/role-icons";
 import type { RoleComparison } from "../role-performances";
 import { Verdict } from "../verdict";
 

@@ -2,6 +2,7 @@ import classNames from "classnames";
 import type { MouseEvent } from "react";
 
 import type { TimelineText } from "@/hooks/useTimelineText";
+import { sideClasses } from "@/ui";
 import { position } from "@/utils/timeline/layout";
 import type { PlacedDeath } from "../deaths";
 
@@ -37,6 +38,7 @@ function Tick({
             className={classNames(
                 styles.tick,
                 ally ? styles.ally : styles.enemy,
+                sideClasses(ally ? "ally" : "enemy"),
                 {
                     [styles.mine]: mine,
                     [styles.selected]: selected,

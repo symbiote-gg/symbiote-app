@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .root {
-    @apply transition-colors hover:bg-surface-2/50;
+    @apply transition-colors hover:bg-row-hover;
 }
 
 .new {
@@ -13,7 +13,7 @@
 }
 
 .root .portrait {
-    @apply size-9 ring-2 ring-team-blue;
+    @apply ring-2 ring-primary;
 }
 
 .text {

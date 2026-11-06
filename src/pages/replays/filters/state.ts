@@ -19,6 +19,15 @@ export const NO_FILTERS: FilterState = {
     heroes: [],
 };
 
+/** What the replays page opens on, kept from the last visit. */
+export const saved = { filters: NO_FILTERS, offset: 0 };
+
+/** Makes the replays page open on `filters`, scrolled to the top. */
+export function openReplaysOn(filters: FilterState) {
+    saved.filters = filters;
+    saved.offset = 0;
+}
+
 export const activeFilters = (filters: FilterState) =>
     [
         filters.modes.length > 0,

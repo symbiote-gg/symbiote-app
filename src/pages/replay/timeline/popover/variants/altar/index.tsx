@@ -3,11 +3,11 @@ import { Crosshair, Hexagon } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { Altar as AltarData } from "@/api/replays";
-import { Tooltip, Typography } from "@/ui";
+import { Tooltip, Typography, sideClasses } from "@/ui";
 import { sideOf } from "@/utils/timeline/markers";
-import { sideClasses } from "../../../../side";
 import { GlyphIcon } from "../../../glyphs";
 import { Footer } from "../../parts/footer";
+import { Panel } from "../../parts/panel";
 
 import styles from "./styles.module.css";
 
@@ -25,7 +25,7 @@ export function Altar({ altar: { winner, towns }, allyTeam }: AltarProps) {
 
     return (
         <>
-            <div className={classNames(styles.altar, sideClasses(side))}>
+            <Panel side={side} className={styles.altar}>
                 <span className={styles.team}>
                     <GlyphIcon glyph="temple" className={styles.icon} />
                 </span>
@@ -41,7 +41,7 @@ export function Altar({ altar: { winner, towns }, allyTeam }: AltarProps) {
                         <Hexagon className={styles.icon} aria-hidden />
                     </span>
                 </Tooltip>
-            </div>
+            </Panel>
             <Footer side={side}>
                 <span className={styles.towns}>
                     <Typography size="xs" variant="tertiary">

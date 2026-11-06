@@ -4,10 +4,14 @@ import { useImageFallback } from "@/hooks/useImageFallback";
 
 import styles from "./styles.module.css";
 
+// The pixel sizes fetch-assets makes of each portrait, as WebKit blurs large
+// downscales. The largest size shows the stored file unscaled.
+const VARIANTS = { xs: 24, sm: 32, md: 40, lg: 48 } as const;
+
 export interface HeroPortraitProps {
     name: string;
     portrait: string | null;
-    size?: "xs" | "sm" | "md" | "lg";
+    size?: "xs" | "sm" | "md" | "lg" | "xl";
     className?: string;
     decoding?: "sync" | "async";
 }
@@ -33,7 +37,7 @@ export function HeroPortrait({
 
     return (
         <img
-            src={`/game/heroportraits/${portrait}`}
+            src={`/game/heroportraits/${size === "xl" ? portrait : portrait.replace(/\.webp$/, `@${VARIANTS[size]}.webp`)}`}
             alt={name}
             decoding={decoding}
             className={classes}

@@ -128,7 +128,7 @@ export function KillLog({
                             tone="win"
                             title={t("immortal")}
                             description={t("immortalHint", {
-                                duration: formatDuration(Math.round(duration)),
+                                duration: formatDuration(duration),
                             })}
                         />
                     }

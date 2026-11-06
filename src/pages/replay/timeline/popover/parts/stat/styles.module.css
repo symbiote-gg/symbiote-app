@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .stat {
-    @apply flex flex-col gap-0.5 rounded-md bg-surface px-2.5 py-1.5;
+    @apply gap-0.5 rounded-md bg-surface px-2.5 py-1.5;
 }
 
 .muted {

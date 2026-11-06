@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .altar {
-    @apply flex items-center justify-between rounded-md bg-side/8 px-3 py-2.5;
+    @apply flex flex-row items-center justify-between;
 }
 
 .team {

@@ -1,0 +1,111 @@
+@reference "@/index.css";
+
+.body {
+    @apply grid grid-cols-[2.5rem_minmax(0,1fr)] grid-rows-[13rem_3.5rem_auto] gap-x-3 px-gutter pt-4 pb-6;
+}
+
+.ticks {
+    @apply relative col-start-1 row-start-1;
+}
+
+.tick {
+    @apply absolute right-0 -translate-y-1/2 leading-none;
+}
+
+.rate {
+    @apply relative col-start-2 row-start-1;
+}
+
+.grid,
+.guide {
+    @apply absolute inset-x-0 border-t border-line;
+}
+
+.guide {
+    @apply border-dashed border-fg-muted/50;
+}
+
+.line {
+    @apply absolute inset-0 size-full overflow-visible;
+}
+
+.fillTop {
+    stop-color: --theme(--color-accent);
+    stop-opacity: 0.28;
+}
+
+.fillBottom {
+    stop-color: --theme(--color-accent);
+    stop-opacity: 0;
+}
+
+.line .stroke {
+    fill: none;
+    @apply stroke-accent;
+    stroke-width: 2px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.empty {
+    @apply absolute inset-0 flex items-center justify-center text-center;
+}
+
+.dot {
+    @apply absolute size-2 -translate-1/2 rounded-full bg-accent ring-2 ring-surface;
+}
+
+.best {
+    @apply pointer-events-none absolute leading-none text-accent;
+    transform: translate(-50%, calc(-100% - 0.625rem));
+}
+
+.last {
+    @apply pointer-events-none absolute rounded-md border border-line bg-surface-2 px-2 py-1 leading-none text-fg;
+    transform: translate(calc(-100% + 0.5rem), calc(-100% - 0.625rem));
+}
+
+.games {
+    @apply col-start-2 row-start-2 mt-3 flex items-end border-b border-line;
+}
+
+.slot {
+    @apply flex h-full min-w-0 flex-1 items-end justify-center;
+}
+
+.bar {
+    @apply block min-h-0.5 w-full max-w-10 rounded-t bg-fg-muted/25;
+    margin-inline: 1px;
+}
+
+.labels {
+    @apply col-start-2 row-start-3 mt-2 flex;
+}
+
+.label {
+    @apply flex min-w-0 flex-1 justify-center overflow-visible;
+}
+
+.hits {
+    @apply relative col-start-2 row-span-2 row-start-1 flex;
+}
+
+.hit {
+    @apply flex h-full min-w-0 flex-1;
+}
+
+.crosshair {
+    @apply relative block h-full w-full outline-none;
+}
+
+/* No opacity transition: WebKitGTK hides the page's overlay scrollbar while one runs, so
+   sweeping across columns made it flicker. */
+.crosshair::after {
+    @apply absolute inset-y-0 left-1/2 w-px bg-fg/30 opacity-0 content-[''];
+}
+
+.hit:hover .crosshair::after,
+.crosshair:focus-visible::after {
+    @apply opacity-100;
+}

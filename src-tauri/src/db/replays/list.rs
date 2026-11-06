@@ -1,5 +1,6 @@
 use sqlx::{FromRow, QueryBuilder, Sqlite, SqliteConnection, SqliteExecutor, SqlitePool};
 
+use crate::db::filters::push_filters;
 use crate::types::replay::{
     AwardInfo, ReplayCursor, ReplayFilters, ReplayPage, ReplayPlayerInfo, ReplaySort,
     ReplaySortColumn, ReplayWithPlayers,
@@ -29,49 +30,6 @@ async fn count_filtered(
     let mut query = QueryBuilder::<Sqlite>::new("SELECT COUNT(*) FROM replays WHERE 1 = 1");
     push_filters(&mut query, filters);
     query.build_query_scalar().fetch_one(executor).await
-}
-
-/// Appends a condition per set field of `filters` to a `WHERE` clause over `replays`.
-fn push_filters(query: &mut QueryBuilder<'_, Sqlite>, filters: &ReplayFilters) {
-    push_in(query, " AND mode IN (", &filters.modes, ")");
-    push_in(query, " AND map IN (", &filters.maps, ")");
-    push_in(query, " AND owner_hero_id IN (", &filters.heroes, ")");
-    push_in(
-        query,
-        " AND owner_hero_id IN (SELECT id FROM heroes WHERE role IN (",
-        &filters.roles,
-        "))",
-    );
-    if let Some(win) = filters.win {
-        query.push(" AND owner_win = ").push_bind(win);
-    }
-    if let Some(from) = filters.from {
-        query.push(" AND timestamp >= ").push_bind(from.timestamp());
-    }
-    if let Some(to) = filters.to {
-        query.push(" AND timestamp < ").push_bind(to.timestamp());
-    }
-}
-
-/// Appends `values` as a comma separated list between `prefix` and `suffix`, unless there
-/// are no values.
-fn push_in<'args, T>(
-    query: &mut QueryBuilder<'args, Sqlite>,
-    prefix: &str,
-    values: &[T],
-    suffix: &str,
-) where
-    T: 'args + Clone + sqlx::Encode<'args, Sqlite> + sqlx::Type<Sqlite>,
-{
-    if values.is_empty() {
-        return;
-    }
-    query.push(prefix);
-    let mut list = query.separated(", ");
-    for value in values {
-        list.push_bind(value.clone());
-    }
-    list.push_unseparated(suffix);
 }
 
 /// The owner's hero damage, over a row of `replays`. The only sort key that can be null.
@@ -292,8 +250,8 @@ mod tests {
     use super::*;
     use crate::db::replays::test_utils::*;
     use crate::db::test_utils::pool;
-    use crate::types::hero::{Hero, HeroRole};
-    use crate::types::replay::{Mode, NewReplayBundle};
+    use crate::types::hero::HeroRole;
+    use crate::types::replay::Mode;
 
     fn cursor(replay: &ReplayWithPlayers) -> ReplayCursor {
         ReplayCursor {
@@ -341,29 +299,6 @@ mod tests {
         .unwrap();
         assert_eq!(hashes(&second), [hex("b"), hex("d")]);
         assert_eq!(second.total, 5);
-    }
-
-    fn hero_game(
-        name: &str,
-        timestamp: i64,
-        mode: Mode,
-        map: &str,
-        hero: &str,
-        win: bool,
-    ) -> NewReplayBundle {
-        let mut game = bundle(name, 1000);
-        game.replay.game_id = hex(name);
-        game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
-        game.replay.mode = mode;
-        game.replay.map = map.to_owned();
-        game.replay.owner_hero_slug = hero.to_owned();
-        game.replay.owner_win = Some(win);
-        game.heroes = vec![Hero {
-            slug: hero.to_owned(),
-            name: hero.to_owned(),
-        }];
-        game.replay_players[0].hero_slug = hero.to_owned();
-        game
     }
 
     async fn insert_hero_games(pool: &SqlitePool) {

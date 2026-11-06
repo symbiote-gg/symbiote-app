@@ -9,7 +9,7 @@
 }
 
 .item {
-    @apply border-b border-line/60 last:border-b-0;
+    @apply border-b border-divider last:border-b-0;
     content-visibility: auto;
     contain-intrinsic-block-size: auto 2.75rem;
 }
@@ -27,11 +27,7 @@
 }
 
 .row:hover {
-    background-color: color-mix(
-        in oklab,
-        var(--color-surface-2) 50%,
-        var(--color-surface)
-    );
+    @apply bg-row-hover;
 }
 
 .row.selected {

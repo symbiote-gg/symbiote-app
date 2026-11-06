@@ -8,8 +8,9 @@ import {
 } from "use-intl";
 
 export function formatDuration(secs: number) {
-    const minutes = Math.floor(secs / 60);
-    const seconds = secs % 60;
+    const rounded = Math.round(secs);
+    const minutes = Math.floor(rounded / 60);
+    const seconds = rounded % 60;
     return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
@@ -41,6 +42,29 @@ export function usePlayedAt() {
         return format.dateTime(
             date.toDate(),
             date.isSame(now, "year") ? DATE_FORMAT : FULL_DATE_FORMAT,
+        );
+    };
+}
+
+export function usePlayedDay() {
+    const format = useFormatter();
+    const t = useTranslations("dates");
+
+    return (timestamp: string) => {
+        const now = dayjs();
+        const date = dayjs(timestamp);
+
+        if (date.isSame(now, "day")) {
+            return t("today");
+        }
+
+        if (date.isSame(now.subtract(1, "day"), "day")) {
+            return t("yesterday");
+        }
+
+        return format.dateTime(
+            date.toDate(),
+            date.isSame(now, "year") ? DATE_FORMAT : MONTH_FORMAT,
         );
     };
 }
@@ -86,3 +110,5 @@ const TIME_FORMAT = {
 const DATE_FORMAT = { month: "short", day: "numeric" } as const;
 
 const FULL_DATE_FORMAT = { ...DATE_FORMAT, year: "numeric" } as const;
+
+const MONTH_FORMAT = { month: "short", year: "numeric" } as const;

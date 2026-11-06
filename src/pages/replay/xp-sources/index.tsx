@@ -3,8 +3,14 @@ import { Star } from "lucide-react";
 import { useFormatter, useTranslations } from "use-intl";
 
 import type { TeamSummary, XpBreakdown } from "@/api/replays";
-import { Card, CardHeader, Eyebrow, TableHead, Typography } from "@/ui";
-import { sideClasses } from "../side";
+import {
+    Card,
+    CardHeader,
+    Eyebrow,
+    TableHead,
+    Typography,
+    sideClasses,
+} from "@/ui";
 import { Difference } from "./difference";
 import { SourceRow } from "./source-row";
 import { SOURCES, lead } from "./xp-sources";

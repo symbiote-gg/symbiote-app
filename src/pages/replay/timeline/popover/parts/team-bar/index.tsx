@@ -1,9 +1,9 @@
 import classNames from "classnames";
 import type { ReactNode } from "react";
 
+import { sideClasses } from "@/ui";
 import type { Glyph } from "@/utils/timeline/map-events";
 import type { Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../../side";
 import { GlyphIcon } from "../../../glyphs";
 import { Gauge, GaugeBadge, GaugeValue } from "../gauge";
 

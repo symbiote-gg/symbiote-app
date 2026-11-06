@@ -27,6 +27,8 @@ pub struct HeroFact {
     pub name: String,
     pub role: Option<HeroRole>,
     pub portrait: Option<String>,
+    pub banner: Option<String>,
+    pub accent: Option<String>,
 }
 
 impl HeroFact {

@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
 import { Chip } from "@/ui";
+import { matchResult } from "@/utils/result";
 
 import styles from "./styles.module.css";
 
@@ -12,7 +13,7 @@ export interface ResultChipProps {
 
 export function ResultChip({ win, className }: ResultChipProps) {
     const t = useTranslations("result");
-    const result = win === null ? "unknown" : win ? "win" : "loss";
+    const result = matchResult(win);
 
     return (
         <Chip

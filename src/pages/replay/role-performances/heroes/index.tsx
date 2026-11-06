@@ -1,8 +1,8 @@
 import classNames from "classnames";
-import { useFormatter, useTranslations } from "use-intl";
+import { useFormatter } from "use-intl";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
-import { Tooltip, Typography } from "@/ui";
+import { Typography } from "@/ui";
 import type { TeamSide } from "../role-performances";
 import { SidePortrait } from "../side-portrait";
 
@@ -15,7 +15,6 @@ interface HeroesProps {
 }
 
 export function Heroes({ side, players, ownerId }: HeroesProps) {
-    const t = useTranslations("replay.rolePerformances");
     const format = useFormatter();
 
     return (

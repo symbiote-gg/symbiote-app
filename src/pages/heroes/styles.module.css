@@ -1,0 +1,21 @@
+@reference "@/index.css";
+
+.card {
+    @apply lg:h-full;
+}
+
+.error {
+    @apply px-gutter py-4;
+}
+
+.grid {
+    @apply grid grid-cols-[repeat(auto-fill,minmax(22rem,1fr))] gap-4 px-gutter py-5 transition-opacity;
+}
+
+.grid[aria-busy="true"] {
+    @apply stale;
+}
+
+.grid > li > a {
+    @apply h-full;
+}

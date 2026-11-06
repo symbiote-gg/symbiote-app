@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .dimmed {
-    @apply opacity-35;
+    @apply dimmed;
 }
 
 .dimmed:hover,
@@ -76,7 +76,7 @@
 }
 
 .tickBadge.spawn {
-    --side: #6e6582;
+    --side: var(--color-fg-faint);
 }
 
 .mark {

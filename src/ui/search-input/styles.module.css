@@ -1,0 +1,37 @@
+@reference "@/index.css";
+
+:where(.root) {
+    @apply w-52;
+}
+
+.root {
+    @apply inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-line bg-bg px-2.5 text-sm transition-colors focus-within:border-primary hover:border-fg-muted/40 focus-within:hover:border-primary;
+}
+
+.active {
+    @apply border-primary/70 bg-primary/15;
+}
+
+.icon {
+    @apply size-4 shrink-0 text-fg-muted;
+}
+
+.input {
+    @apply min-w-0 flex-1 bg-transparent text-fg outline-none placeholder:text-fg-muted;
+}
+
+.input:focus-visible {
+    @apply shadow-none outline-none;
+}
+
+.input::-webkit-search-cancel-button {
+    @apply appearance-none;
+}
+
+.clear {
+    @apply -mr-1 inline-flex size-6 shrink-0 items-center justify-center rounded text-fg-muted transition-colors hover:text-fg;
+}
+
+.clear svg {
+    @apply size-3.5;
+}

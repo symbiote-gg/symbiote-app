@@ -1,11 +1,10 @@
-import { CpuAi } from "lucide-react";
 import { useTranslations } from "use-intl";
 
-import { TeamPortrait } from "@/components";
+import { AiPortrait, HeroPlayerName, TeamPortrait } from "@/components";
 import type { TimelineText } from "@/hooks/useTimelineText";
 import { Eyebrow, Typography } from "@/ui";
 import { killerOf } from "@/utils/timeline/markers";
-import { type Roster, heroName, playerOf } from "@/utils/timeline/roster";
+import type { Roster } from "@/utils/timeline/roster";
 import type { DeathEntry } from "@/utils/timeline/types";
 
 import styles from "./styles.module.css";
@@ -35,25 +34,11 @@ export function Killers({ death, roster, text }: KillersProps) {
                 {killer !== null ? (
                     <div className={styles.killer}>
                         <TeamPortrait slot={killer} size="sm" roster={roster} />
-                        <span className={styles.killerText}>
-                            <Typography as="span" weight="semibold" truncate>
-                                {heroName(roster, killer)}
-                            </Typography>
-                            <Typography
-                                as="span"
-                                size="sm"
-                                variant="tertiary"
-                                truncate
-                            >
-                                {playerOf(roster, killer)?.name}
-                            </Typography>
-                        </span>
+                        <HeroPlayerName slot={killer} roster={roster} />
                     </div>
                 ) : (
                     <div className={styles.killer}>
-                        <span className={styles.ai}>
-                            <CpuAi className={styles.aiIcon} aria-hidden />
-                        </span>
+                        <AiPortrait />
                         <Typography as="span" weight="semibold">
                             {t("timeline.aiCredit")}
                         </Typography>
@@ -72,24 +57,11 @@ export function Killers({ death, roster, text }: KillersProps) {
                                     size="xs"
                                     roster={roster}
                                 />
-                                <span className={styles.assistText}>
-                                    <Typography
-                                        as="span"
-                                        size="sm"
-                                        weight="semibold"
-                                        noWrap
-                                    >
-                                        {heroName(roster, slot)}
-                                    </Typography>
-                                    <Typography
-                                        as="span"
-                                        size="sm"
-                                        variant="tertiary"
-                                        truncate
-                                    >
-                                        {playerOf(roster, slot)?.name}
-                                    </Typography>
-                                </span>
+                                <HeroPlayerName
+                                    slot={slot}
+                                    roster={roster}
+                                    inline
+                                />
                             </li>
                         ))}
                     </ul>

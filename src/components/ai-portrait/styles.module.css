@@ -1,0 +1,13 @@
+@reference "@/index.css";
+
+.root {
+    @apply inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-fg-muted ring-2;
+}
+
+:where(.root) {
+    @apply ring-fg-muted/60;
+}
+
+.icon {
+    @apply size-4;
+}

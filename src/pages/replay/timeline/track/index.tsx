@@ -13,7 +13,7 @@ import { useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
 import type { TimelineText } from "@/hooks/useTimelineText";
-import { Typography } from "@/ui";
+import { Typography, sideClass } from "@/ui";
 import {
     AXIS,
     AXIS_GAP,
@@ -25,7 +25,6 @@ import type { LevelCurve } from "@/utils/timeline/levels";
 import { LONG_GAME } from "@/utils/timeline/markers";
 import { involves, isBandMarker } from "@/utils/timeline/markers";
 import type { Marker, Side } from "@/utils/timeline/types";
-import { sideClass } from "../../side";
 import { Popover } from "../popover";
 import { AxisTimes } from "./parts/axis-times";
 import { type Bookend, Bookends } from "./parts/bookends";

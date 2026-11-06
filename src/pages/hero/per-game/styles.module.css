@@ -1,0 +1,9 @@
+@reference "@/index.css";
+
+.stats {
+    @apply grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-3 px-gutter pt-4 pb-6;
+}
+
+.stat {
+    @apply rounded-lg bg-surface-2/60 px-3 py-3;
+}

@@ -2,15 +2,22 @@ import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import classNames from "classnames";
 import { Folder, History, MonitorPlay } from "lucide-react";
 import type { ReactNode } from "react";
-import { useFormatter, useTranslations } from "use-intl";
+import { useTranslations } from "use-intl";
 
 import type { HeroRole, ReplayDetail, ReplayPlayerDetail } from "@/api/replays";
-import { BackToReplays, HeroPortrait, Kad, modeIcon } from "@/components";
+import {
+    BackLink,
+    HeroPortrait,
+    Kad,
+    ResultChip,
+    modeIcon,
+} from "@/components";
+import { useFormatStat } from "@/hooks/useFormatStat";
 import { useImageFallback } from "@/hooks/useImageFallback";
 import { useWatchReplay } from "@/hooks/useWatchReplay";
-import { Button, Chip, Eyebrow, Tooltip, Typography } from "@/ui";
+import { Button, Chip, Stat, Tooltip, Typography, sideClasses } from "@/ui";
 import { formatDuration, usePlayedOn } from "@/utils/dates";
-import { sideClasses } from "../side";
+import { matchResult } from "@/utils/result";
 import { FlowChip } from "./flow-chip";
 
 import styles from "./styles.module.css";
@@ -40,7 +47,7 @@ interface HeaderStat {
 
 export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
     const t = useTranslations();
-    const format = useFormatter();
+    const { compact, percent } = useFormatStat();
     const playedOn = usePlayedOn();
     const [failed, onError] = useImageFallback();
 
@@ -49,16 +56,7 @@ export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
     const onReveal = () => revealItemInDir(replay.path);
     const onWatch = () => watch.mutate(replay.id);
 
-    const result =
-        replay.ownerWin === null ? "unknown" : replay.ownerWin ? "win" : "loss";
-
-    const formatStat = (value: number | null | undefined) =>
-        value
-            ? format.number(value, {
-                  notation: "compact",
-                  maximumFractionDigits: 1,
-              })
-            : "-";
+    const result = matchResult(replay.ownerWin);
 
     const kad = owner ? (
         <Kad
@@ -70,22 +68,13 @@ export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
         "-"
     );
 
-    const killParticipation =
-        replay.ownerKillParticipation === null
-            ? "-"
-            : format.number(replay.ownerKillParticipation, {
-                  style: "percent",
-              });
+    const killParticipation = percent(replay.ownerKillParticipation);
 
     const timeDead =
-        owner?.timeDead != null
-            ? formatDuration(Math.round(owner.timeDead))
-            : "-";
+        owner?.timeDead != null ? formatDuration(owner.timeDead) : "-";
 
     const timeOnFire =
-        owner?.timeOnFire != null
-            ? formatDuration(Math.round(owner.timeOnFire))
-            : "-";
+        owner?.timeOnFire != null ? formatDuration(owner.timeOnFire) : "-";
 
     const played = playedOn(replay.timestamp);
 
@@ -98,11 +87,11 @@ export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
         { label: t("replay.killParticipation"), value: killParticipation },
         {
             label: t("replay.heroDamage"),
-            value: formatStat(owner?.heroDamage),
+            value: compact(owner?.heroDamage),
         },
         {
             label: t(`replay.${roleStat}`),
-            value: formatStat(owner?.[roleStat]),
+            value: compact(owner?.[roleStat]),
         },
         { label: t("replay.timeDead"), value: timeDead },
         { label: t("replay.timeOnFire"), value: timeOnFire },
@@ -124,7 +113,11 @@ export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
                 <div className={styles.glow} />
                 <div className={styles.content}>
                     <div className={styles.toolbar}>
-                        <BackToReplays className={styles.tool} />
+                        <BackLink
+                            href="/replays"
+                            label={t("replay.replays")}
+                            className={styles.tool}
+                        />
                         <div className={styles.actions}>
                             {replay.eventsExpired && (
                                 <Typography size="sm" className={styles.notice}>
@@ -177,24 +170,20 @@ export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
                                 <HeroPortrait
                                     name={replay.heroName}
                                     portrait={replay.heroPortrait}
-                                    size="lg"
+                                    size="xl"
                                     className={styles.portraitImage}
                                 />
                             </span>
                             <div className={styles.text}>
                                 <div className={styles.facts}>
                                     {result !== "unknown" && (
-                                        <Chip
-                                            size="sm"
-                                            tone={result}
-                                            uppercase
+                                        <ResultChip
+                                            win={replay.ownerWin}
                                             className={classNames(
                                                 styles.tag,
                                                 styles.resultTag,
                                             )}
-                                        >
-                                            {t("replay.result", { result })}
-                                        </Chip>
+                                        />
                                     )}
                                     <Chip
                                         size="sm"
@@ -264,9 +253,7 @@ export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
                                                     mono
                                                     noWrap
                                                 >
-                                                    {formatDuration(
-                                                        Math.round(time),
-                                                    )}
+                                                    {formatDuration(time)}
                                                 </Typography>
                                                 <Typography
                                                     size="xs"
@@ -294,7 +281,7 @@ export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
                                     noWrap
                                     className={styles.result}
                                 >
-                                    {t("replay.result", { result })}
+                                    {t(`result.${result}`)}
                                 </Typography>
                                 {replay.flow && replay.ownerWin !== null && (
                                     <FlowChip
@@ -304,21 +291,17 @@ export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
                                     />
                                 )}
                             </div>
-                            <div className={styles.panel}>
+                            <dl className={styles.panel}>
                                 {stats.map(({ label, value }) => (
-                                    <div key={label} className={styles.stat}>
-                                        <Eyebrow noWrap>{label}</Eyebrow>
-                                        <Typography
-                                            weight="semibold"
-                                            mono
-                                            noWrap
-                                            className={styles.statValue}
-                                        >
-                                            {value}
-                                        </Typography>
-                                    </div>
+                                    <Stat
+                                        key={label}
+                                        label={label}
+                                        className={styles.stat}
+                                    >
+                                        {value}
+                                    </Stat>
                                 ))}
-                            </div>
+                            </dl>
                         </div>
                     </div>
                 </div>

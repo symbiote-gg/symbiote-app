@@ -1,6 +1,6 @@
-import { CpuAi, Sword } from "lucide-react";
+import { Sword } from "lucide-react";
 
-import { AssistPortraits, TeamPortrait } from "@/components";
+import { AiPortrait, AssistPortraits, TeamPortrait } from "@/components";
 import { Tooltip } from "@/ui";
 import { Roster } from "@/utils/timeline/roster";
 
@@ -32,9 +32,10 @@ export function KillCells({
                     />
                 ) : (
                     <Tooltip content={noKiller}>
-                        <span className={styles.noKiller} aria-label={noKiller}>
-                            <CpuAi className={styles.tileIcon} aria-hidden />
-                        </span>
+                        <AiPortrait
+                            label={noKiller}
+                            className={styles.noKiller}
+                        />
                     </Tooltip>
                 )}
                 {assists.length > 0 && (

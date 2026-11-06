@@ -1,5 +1,6 @@
 import classNames from "classnames";
 
+import { sideClasses } from "@/ui";
 import { type Roster, playerOf } from "@/utils/timeline/roster";
 import { HeroPortrait } from "../hero-portrait";
 
@@ -24,9 +25,9 @@ export function TeamPortrait({ slot, size, roster, thin }: TeamPortraitProps) {
                 styles.portrait,
                 slot === roster.highlightSlot
                     ? styles.mine
-                    : player?.team === roster.allyTeam
-                      ? styles.ally
-                      : styles.enemy,
+                    : sideClasses(
+                          player?.team === roster.allyTeam ? "ally" : "enemy",
+                      ),
                 { [styles.thin]: thin },
             )}
         />

@@ -1,21 +1,74 @@
 @reference "@/index.css";
 
 .root {
-    @apply block h-1 w-20 overflow-hidden rounded-full bg-surface-2;
+    @apply flex overflow-hidden rounded-full bg-fg/6;
+}
+
+:where(.root) {
+    @apply w-20;
+}
+
+.sm {
+    @apply h-1;
+}
+
+.md {
+    @apply h-1.5;
+}
+
+.fromEnd {
+    @apply justify-end;
 }
 
 .fill {
     @apply block h-full rounded-full;
 }
 
-.high {
-    @apply bg-win;
+.great {
+    @apply bg-rate-great;
 }
 
-.mid {
+.good {
+    @apply bg-rate-good;
+}
+
+/* Dimmed so a near-white bar doesn't outshine the graded ones. */
+.even {
+    @apply bg-rate-even/70;
+}
+
+.poor {
+    @apply bg-rate-poor;
+}
+
+.bad {
+    @apply bg-rate-bad;
+}
+
+.unjudged {
+    @apply bg-rate-unjudged/50;
+}
+
+.primary {
+    @apply bg-primary-text;
+}
+
+.mvp {
+    @apply bg-mvp;
+}
+
+.accent {
+    @apply bg-accent;
+}
+
+.muted {
     @apply bg-fg-muted;
 }
 
-.low {
-    @apply bg-warn;
+.side {
+    @apply bg-side-strong;
+}
+
+.sideSoft {
+    @apply bg-side-soft;
 }

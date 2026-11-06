@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .row {
-    @apply @container block h-16 border-b border-line/50;
+    @apply @container block h-16 border-b border-divider;
 }
 
 .inner {

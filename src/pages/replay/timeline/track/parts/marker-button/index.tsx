@@ -2,11 +2,11 @@ import classNames from "classnames";
 import type { FocusEvent, MouseEvent, PointerEvent } from "react";
 
 import type { TimelineText } from "@/hooks/useTimelineText";
+import { sideClass } from "@/ui";
 import { fightGlyph, tickGlyph } from "@/utils/timeline/glyphs";
 import { fightSize, position } from "@/utils/timeline/layout";
 import { isBandMarker } from "@/utils/timeline/markers";
 import type { Entry, Marker } from "@/utils/timeline/types";
-import { sideClass } from "../../../../side";
 import { GlyphIcon } from "../../../glyphs";
 
 import styles from "./styles.module.css";

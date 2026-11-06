@@ -1,11 +1,10 @@
-import classNames from "classnames";
 import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
 import { Typography } from "@/ui";
 import { sideOf } from "@/utils/timeline/markers";
 import type { Entry, Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../../side";
+import { Panel } from "../../parts/panel";
 
 import styles from "./styles.module.css";
 
@@ -79,7 +78,7 @@ interface DetailsProps {
 
 export function Details({ items, side }: DetailsProps) {
     return (
-        <div className={classNames(styles.details, sideClasses(side))}>
+        <Panel side={side} className={styles.details}>
             {items.map((item) => (
                 <DetailRow
                     key={item.key}
@@ -87,6 +86,6 @@ export function Details({ items, side }: DetailsProps) {
                     value={item.value}
                 />
             ))}
-        </div>
+        </Panel>
     );
 }

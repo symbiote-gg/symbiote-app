@@ -5,6 +5,7 @@ import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import process from "node:process";
 
+import { ACCENT_OVERRIDES } from "./assets/accents.mjs";
 import {
     ASSETS_DIR,
     DATA_DIR,
@@ -14,19 +15,37 @@ import {
     PINS,
     SOURCES,
 } from "./assets/config.mjs";
-import { downloadImages, webp } from "./assets/images.mjs";
+import {
+    accentColor,
+    downloadImages,
+    webp,
+    writeVariants,
+} from "./assets/images.mjs";
 import { exists, hashTree, readJson, writeJson } from "./assets/io.mjs";
 import { MINIMAPS_DIR, fetchMinimaps } from "./assets/minimaps.mjs";
 import { loadFacts } from "./assets/sources/index.mjs";
 
 // The heroes-images category, fact field and maximum size of each kind of
-// image. Map loading screens are banner art, so they keep a much larger size.
+// image. Map loading screens and hero banners are art shown large, so they keep
+// a much larger size. Portraits and banners are shown up to or above their
+// native size, so they're never downscaled and are stored losslessly.
 const IMAGES = [
     {
         kind: "heroes",
         category: "heroportraits",
         key: "portrait",
-        size: [64, 64],
+        size: [128, 128],
+        lossless: true,
+        // WebKit blurs large downscales, so the small sizes HeroPortrait shows
+        // are made here instead. Keep in sync with its VARIANTS.
+        variants: [24, 32, 40, 48],
+    },
+    {
+        kind: "heroes",
+        category: "heroportraits",
+        key: "banner",
+        size: [680, 248],
+        lossless: true,
     },
     {
         kind: "talents",
@@ -40,6 +59,8 @@ const IMAGES = [
         category: "loadingscreens",
         key: "loading_screen",
         size: [1920, 1080],
+        // The hero page's map thumbnails. Keep in sync with its Maps card.
+        variants: [[48, 32]],
     },
 ];
 
@@ -82,7 +103,10 @@ async function main() {
         image: {
             ...IMAGE,
             sizes: Object.fromEntries(
-                IMAGES.map(({ category, size }) => [category, size]),
+                IMAGES.map(({ category, key, size, lossless, variants }) => [
+                    `${category}/${key}`,
+                    lossless || variants ? { size, lossless, variants } : size,
+                ]),
             ),
         },
     };
@@ -97,13 +121,13 @@ async function main() {
 
     const files = {};
     const summary = [];
-    for (const { kind, category, key, size } of IMAGES) {
+    for (const { kind, category, key, size, lossless, variants } of IMAGES) {
         const [width, height] = size;
         const { hashes, missing } = await downloadImages(
             PINS.heroesImages,
             category,
             facts[kind].map((fact) => fact[key]),
-            { width, height },
+            { width, height, lossless },
         );
         Object.assign(files, hashes);
 
@@ -111,6 +135,17 @@ async function main() {
         for (const fact of facts[kind]) {
             if (fact[key] === null) continue;
             fact[key] = missing.includes(fact[key]) ? null : webp(fact[key]);
+        }
+
+        if (variants) {
+            Object.assign(
+                files,
+                await writeVariants(
+                    category,
+                    facts[kind].map((fact) => fact[key]),
+                    variants,
+                ),
+            );
         }
 
         summary.push(
@@ -121,11 +156,29 @@ async function main() {
         }
     }
 
+    for (const hero of facts.heroes) {
+        hero.accent =
+            ACCENT_OVERRIDES[hero.id] ??
+            (hero.banner
+                ? await accentColor(
+                      join(ASSETS_DIR, "heroportraits", hero.banner),
+                  )
+                : null);
+    }
+
+    const heroIds = new Set(facts.heroes.map((hero) => hero.id));
+    const unknown = Object.keys(ACCENT_OVERRIDES).filter(
+        (id) => !heroIds.has(id),
+    );
+    if (unknown.length) {
+        throw new Error(`accent overrides for unknown heroes: ${unknown}`);
+    }
+
     const minimaps = await fetchMinimaps(PINS.minimaps);
     Object.assign(files, minimaps.hashes);
     summary.push(`${minimaps.count} minimaps`);
 
-    for (const { kind } of IMAGES) {
+    for (const kind of new Set(IMAGES.map(({ kind }) => kind))) {
         await writeJson(join(DATA_DIR, `${kind}.json`), facts[kind]);
     }
     await writeJson(MANIFEST, {

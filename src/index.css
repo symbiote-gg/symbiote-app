@@ -5,8 +5,10 @@
     --color-surface: #15111d;
     --color-surface-2: #201a2b;
     --color-line: #2a2338;
+    --color-line-strong: #4a4060;
     --color-fg: #ede9f5;
     --color-fg-muted: #9a90ad;
+    --color-fg-faint: #6e6582;
 
     --color-primary: #7733ff;
     --color-primary-ink: #ffffff;
@@ -42,15 +44,69 @@
 @theme inline {
     --color-side: var(--side);
     --color-side-strong: color-mix(
-        in srgb,
+        in oklab,
         var(--side) 60%,
         var(--color-surface)
     );
     --color-side-soft: color-mix(
-        in srgb,
+        in oklab,
         var(--side) 18%,
         var(--color-surface)
     );
+}
+
+@theme inline {
+    --color-rate-great: var(--color-win);
+    --color-rate-good: #7fd9a4;
+    --color-rate-even: var(--color-fg);
+    --color-rate-poor: #f0b45a;
+    --color-rate-bad: var(--color-loss);
+    --color-rate-unjudged: var(--color-fg-muted);
+}
+
+/* A page sets `--accent` to tint its accents; purple when it doesn't. */
+@theme inline {
+    --color-accent: var(--accent, var(--color-primary-text));
+}
+
+/* `selected` marks the picked item in a list, `selected-soft` a wide picked
+   area. `scrim` backs text over art, `scrim-soft` buttons over art.
+   `row-hover` is the hover of a row on a card, opaque because a translucent
+   fade snaps in WebKitGTK. */
+@theme inline {
+    --color-selected: color-mix(
+        in oklab,
+        var(--color-primary) 20%,
+        transparent
+    );
+    --color-selected-soft: color-mix(
+        in oklab,
+        var(--color-primary) 10%,
+        transparent
+    );
+    --color-divider: color-mix(in oklab, var(--color-line) 60%, transparent);
+    --color-scrim: color-mix(in oklab, var(--color-bg) 80%, transparent);
+    --color-scrim-soft: color-mix(in oklab, var(--color-bg) 60%, transparent);
+    --color-row-hover: color-mix(
+        in oklab,
+        var(--color-surface-2) 50%,
+        var(--color-surface)
+    );
+}
+
+/* Out of focus in a chart or map. */
+@utility dimmed {
+    opacity: 35%;
+}
+
+/* Too few games to read much into. */
+@utility sparse {
+    opacity: 50%;
+}
+
+/* Old results showing while new ones load. */
+@utility stale {
+    opacity: 60%;
 }
 
 @utility row-marker {
@@ -76,7 +132,7 @@
     }
 
     body {
-        @apply bg-bg font-sans text-fg antialiased;
+        @apply bg-bg font-sans text-fg tabular-nums antialiased;
     }
 
     *,

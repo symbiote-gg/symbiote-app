@@ -65,11 +65,7 @@
 }
 
 .row {
-    @apply min-h-16 border-b border-line/60 px-gutter py-2.5;
-}
-
-.row:last-child {
-    @apply border-b-0;
+    @apply min-h-16 border-b border-divider px-gutter py-2.5 last:border-b-0;
 }
 
 .unplaced {
@@ -77,7 +73,7 @@
 }
 
 ul + .unplaced {
-    @apply border-t border-line/60;
+    @apply border-t border-divider;
 }
 
 .victims {
@@ -100,20 +96,8 @@ ul + .unplaced {
     @apply flex min-w-0 items-center gap-3;
 }
 
-.heroText {
-    @apply flex min-w-0 flex-col;
-}
-
 .victim {
     @apply flex shrink-0 rounded-full ring-2 ring-win;
-}
-
-.ai {
-    @apply flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-fg-muted ring-2 ring-fg-muted/60;
-}
-
-.aiIcon {
-    @apply size-4;
 }
 
 .kind {

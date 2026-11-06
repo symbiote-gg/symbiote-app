@@ -1,7 +1,7 @@
 import classNames from "classnames";
-import { useFormatter } from "use-intl";
 
-import { Eyebrow, Typography } from "@/ui";
+import { useFormatStat } from "@/hooks/useFormatStat";
+import { Stat as BaseStat } from "@/ui";
 
 import styles from "./styles.module.css";
 
@@ -12,22 +12,16 @@ interface StatProps {
 }
 
 export function Stat({ label, value, muted = false }: StatProps) {
-    const format = useFormatter();
+    const { compact } = useFormatStat();
 
     return (
-        <div className={styles.stat}>
-            <Eyebrow>{label}</Eyebrow>
-            <Typography
-                size="sm"
-                weight="semibold"
-                mono
-                className={classNames({ [styles.muted]: muted })}
-            >
-                {format.number(value, {
-                    notation: "compact",
-                    maximumFractionDigits: 1,
-                })}
-            </Typography>
-        </div>
+        <BaseStat
+            label={label}
+            size="sm"
+            className={styles.stat}
+            valueClassName={classNames({ [styles.muted]: muted })}
+        >
+            {compact(value)}
+        </BaseStat>
     );
 }

@@ -1,0 +1,110 @@
+@reference "@/index.css";
+
+.root {
+    @apply @container/header relative isolate flex flex-col overflow-hidden rounded-2xl border bg-surface;
+    border-color: color-mix(in oklab, var(--accent) 35%, var(--color-line));
+    /* The art covers only the top right, so an accent glow fills the rest. */
+    background-image:
+        radial-gradient(
+            ellipse 50% 90% at 0% 100%,
+            color-mix(in oklab, var(--accent) 22%, transparent),
+            transparent
+        ),
+        radial-gradient(
+            ellipse 45% 100% at 100% 0%,
+            color-mix(in oklab, var(--accent) 16%, transparent),
+            transparent
+        );
+}
+
+/* Banners are small, so the art stays in the top right at about 1.5 times its
+   size and fades into the backdrop, where the softness doesn't show. */
+.art {
+    @apply absolute top-0 right-0 -z-10 h-48 w-auto max-w-[70%] object-cover object-top-right opacity-60;
+    /* Eased stops, so the art dissolves instead of ending on a visible edge. */
+    mask-image:
+        linear-gradient(
+            to right,
+            transparent,
+            rgb(0 0 0 / 0.1) 15%,
+            rgb(0 0 0 / 0.35) 30%,
+            rgb(0 0 0 / 0.7) 45%,
+            black 60%
+        ),
+        linear-gradient(
+            to top,
+            transparent,
+            rgb(0 0 0 / 0.1) 15%,
+            rgb(0 0 0 / 0.35) 35%,
+            rgb(0 0 0 / 0.7) 60%,
+            black 85%
+        );
+    mask-composite: intersect;
+}
+
+.top {
+    @apply flex items-center justify-between gap-3 px-gutter pt-5;
+}
+
+.top .tool {
+    @apply bg-scrim-soft;
+}
+
+.body {
+    @apply flex min-w-0 items-center gap-6 px-gutter pt-6 pb-7;
+}
+
+.body .portrait {
+    @apply shrink-0 ring-2 ring-(--accent) ring-offset-4 ring-offset-bg;
+}
+
+.titles {
+    @apply flex min-w-0 flex-col gap-3;
+}
+
+.titles .role {
+    @apply self-start;
+}
+
+.titles .name {
+    @apply text-5xl leading-none font-extrabold uppercase;
+    font-stretch: 75%;
+}
+
+.facts {
+    @apply flex flex-wrap self-start rounded-lg border border-line bg-scrim;
+}
+
+.fact {
+    @apply flex items-baseline gap-2 border-l border-line px-3 py-1.5 first:border-l-0;
+}
+
+.stats {
+    @apply grid grid-cols-3 gap-px border-t border-line bg-line @min-[64rem]/header:grid-flow-col @min-[64rem]/header:grid-cols-none @min-[64rem]/header:auto-cols-fr;
+}
+
+.stats > div {
+    @apply flex min-w-0 flex-col gap-1.5 px-gutter py-3;
+    background: color-mix(in oklab, var(--color-bg) 55%, var(--color-surface));
+}
+
+.stats .value,
+.stats .rate {
+    @apply flex h-8 items-end leading-none;
+}
+
+.stats .rateLine {
+    @apply flex items-baseline gap-3;
+}
+
+.stats .rate {
+    @apply text-3xl font-extrabold;
+}
+
+.stats .meter {
+    @apply min-w-0 flex-1;
+}
+
+.stats .mvp {
+    @apply text-mvp;
+}

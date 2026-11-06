@@ -3,7 +3,7 @@ import { Castle } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useTranslations } from "use-intl";
 
-import { Tooltip } from "@/ui";
+import { Tooltip, sideClasses } from "@/ui";
 
 import styles from "./styles.module.css";
 
@@ -28,7 +28,7 @@ export function Core({ team, allyTeam, at }: CoreProps) {
                     aria-label={label}
                     className={classNames(
                         styles.badge,
-                        ally ? styles.ally : styles.enemy,
+                        sideClasses(ally ? "ally" : "enemy"),
                     )}
                 >
                     <Castle className={styles.icon} aria-hidden />

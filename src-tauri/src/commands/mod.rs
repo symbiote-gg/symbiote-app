@@ -1,5 +1,6 @@
 //! The commands the frontend invokes, grouped by the page area they serve.
 
+pub mod heroes;
 pub mod ingest;
 pub mod replays;
 pub mod settings;

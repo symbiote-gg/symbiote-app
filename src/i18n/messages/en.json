@@ -54,6 +54,137 @@
             "empty": "No replays match these filters."
         }
     },
+    "heroes": {
+        "title": "Heroes",
+        "played": "{played} of {total} played",
+        "empty": "No heroes played yet.",
+        "noMatches": "No heroes match these filters.",
+        "clearFilters": "Clear filters",
+        "filters": {
+            "label": "Filters",
+            "clear": "Clear {count} filters",
+            "search": {
+                "label": "Hero name",
+                "placeholder": "Search heroes",
+                "clear": "Clear search"
+            },
+            "sort": {
+                "label": "Sort",
+                "clear": "Reset sort",
+                "games": "Games",
+                "winRate": "Win rate",
+                "kda": "KDA",
+                "played": "Last played"
+            }
+        },
+        "card": {
+            "games": "{count, plural, one {# game} other {# games}}",
+            "winRate": "Win rate",
+            "kda": "KDA",
+            "heroDamage": "Hero damage",
+            "healing": "Healing",
+            "damageTaken": "Damage taken",
+            "lastPlayed": "Last played"
+        }
+    },
+    "hero": {
+        "back": "Heroes",
+        "notFound": "This hero does not exist.",
+        "noGames": "No games on {hero} yet.",
+        "replays": "{hero} replays",
+        "facts": {
+            "bestMap": "Best map",
+            "lastPlayed": "Last played",
+            "mostPlayedWith": "Most played with",
+            "allyGames": "{count, plural, one {# game} other {# games}}"
+        },
+        "totals": {
+            "winRate": "Win rate",
+            "games": "Games",
+            "playTime": "Play time",
+            "hours": "{hours}h {minutes}m",
+            "kda": "KDA",
+            "mvps": "MVPs",
+            "gameTime": "Average game duration"
+        },
+        "trend": {
+            "title": "Win rate over time",
+            "byMonth": "Monthly win rate on {hero}, bars are games played",
+            "byWeek": "Weekly win rate on {hero}, bars are games played",
+            "week": "Week of {date}",
+            "games": "{count, plural, one {# game} other {# games}}",
+            "noGames": "No games",
+            "record": "{wins}-{losses}",
+            "winRate": "{rate} win rate",
+            "best": "Best {bucket} {rate}",
+            "noLine": "Not enough games in a month to draw a line yet."
+        },
+        "perGame": {
+            "title": "Per game",
+            "subtitle": "Your averages per game on {hero}",
+            "kills": "Kills",
+            "deaths": "Deaths",
+            "assists": "Assists",
+            "heroDamage": "Hero damage",
+            "siegeDamage": "Siege damage",
+            "healing": "Healing",
+            "selfHealing": "Self healing",
+            "damageTaken": "Damage taken",
+            "xp": "Experience",
+            "timeDead": "Time dead",
+            "takedowns": "Takedowns"
+        },
+        "awards": {
+            "title": "Awards",
+            "mvpEvery": "{count, plural, one {Every game ends with MVP} other {1 in # games ends with MVP}}",
+            "empty": "No awards in these games.",
+            "more": "{count, plural, one {# more award} other {# more awards}}",
+            "fewer": "Show fewer"
+        },
+        "talents": {
+            "title": "Talents",
+            "subtitle": "Pick rate per level, win rate on the right. The bright bar is your most picked talent, win rates from 10 picks.",
+            "level": "LV {level}"
+        },
+        "bests": {
+            "title": "Personal bests",
+            "subtitle": "Your records on {hero}",
+            "kills": "Most kills",
+            "heroDamage": "Most hero damage",
+            "siegeDamage": "Most siege damage",
+            "winStreak": "Longest win streak",
+            "inARow": "games in a row",
+            "fastestWin": "Fastest win",
+            "takedowns": "Most takedowns",
+            "replay": "Replay"
+        },
+        "maps": {
+            "title": "Maps",
+            "subtitle": "Win rate and games, maps with 10+ games first"
+        },
+        "bestGame": {
+            "title": "Best game on {hero}",
+            "kills": "{count, plural, one {# kill} other {# kills}}",
+            "meta": "{map}, {date}, {duration}",
+            "kad": "K/A/D",
+            "heroDamage": "Hero damage",
+            "replay": "Replay"
+        },
+        "gameLength": {
+            "title": "Game length",
+            "subtitle": "Win rate by length",
+            "label": {
+                "under": "Under {to} min",
+                "between": "{from} to {to}",
+                "over": "Over {from}"
+            },
+            "best": {
+                "under": "You win <b>{rate}</b> of games under {to} minutes.",
+                "between": "You win <b>{rate}</b> of games from {from} to {to} minutes.",
+                "over": "You win <b>{rate}</b> of games over {from} minutes."
+            }
+        }
+    },
     "filters": {
         "mode": {
             "label": "Mode",
@@ -136,7 +267,6 @@
         "watchInGameDescription": "Opens the replay in Heroes of the Storm. The game only plays replays from the current patch.",
         "eventsExpired": "Older than your timeline retention - the timeline and team levels are no longer kept",
         "team": "{side, select, ally {Your team} other {Enemy team}}",
-        "result": "{result, select, win {Victory} loss {Defeat} other {-}}",
         "flow": "{flow, select, stomp {Stomp} stomped {Stomped} comeback {Comeback} leadLost {Lead lost} controlled {Controlled} outpaced {Outpaced} other {Close game}}",
         "flowDescription": "{flow, select, stomp {Your team never fell behind on XP and won by a wide margin} stomped {The enemy never fell behind on XP and won by a wide margin} comeback {Your team trailed on XP or lost several forts, and turned it around} leadLost {Your team led on XP or took several forts, but the enemy turned it around} controlled {Your team held the XP lead for most of the game} outpaced {The enemy held the XP lead for most of the game} other {XP, kills and forts stayed even, or the XP lead kept changing hands}}",
         "standouts": {
@@ -505,7 +635,11 @@
         "licenses": {
             "title": "Built with open source",
             "app": "SymbioteGG is free software under the <link>{license}</link>. It stands on {count, plural, one {# package} other {# packages}}, each under its own license.",
-            "search": "Search packages",
+            "search": {
+                "label": "Package or license",
+                "placeholder": "Search packages",
+                "clear": "Clear search"
+            },
             "columns": {
                 "package": "Package",
                 "version": "Version",
@@ -555,6 +689,7 @@
         }
     },
     "dates": {
+        "today": "Today",
         "yesterday": "Yesterday",
         "dateAtTime": "{date} at {time}"
     },

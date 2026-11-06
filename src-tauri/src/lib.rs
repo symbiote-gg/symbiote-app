@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use commands::heroes::{get_hero_detail, get_hero_list};
 use commands::ingest::{get_ingest_progress, subscribe_ingest, unsubscribe_ingest};
 use commands::replays::{
     count_replays, get_replay, get_standouts, list_replays, mark_replay_as_seen, watch_replay,
@@ -116,6 +117,8 @@ pub fn run() {
             get_most_played_heroes,
             get_played_maps,
             get_played_modes,
+            get_hero_list,
+            get_hero_detail,
             subscribe_ingest,
             unsubscribe_ingest,
             get_ingest_progress,

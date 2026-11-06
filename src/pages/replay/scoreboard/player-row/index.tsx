@@ -10,14 +10,14 @@ import {
     Kad,
     TalentTooltip,
 } from "@/components";
-import { Tooltip, Typography } from "@/ui";
-import { sideClasses } from "../../side";
+import { useFormatStat } from "@/hooks/useFormatStat";
+import { Meter, Tooltip, Typography, sideClasses } from "@/ui";
+import { TIER_LEVELS } from "@/utils/talents";
 import { STATS, type Stat } from "../stats";
 
 import styles from "./styles.module.css";
 
 const TIERS = [1, 2, 3, 4, 5, 6, 7];
-const TIER_LEVELS = [1, 4, 7, 10, 13, 16, 20];
 const PARTY_COLORS = [
     styles.party1,
     styles.party2,
@@ -31,7 +31,6 @@ export interface PlayerRowProps {
     ally: boolean;
     owner: boolean;
     maxByStat: Record<Stat, number>;
-    formatStat: (value: number | null) => string;
     className?: string;
 }
 
@@ -40,11 +39,11 @@ export function PlayerRow({
     ally,
     owner,
     maxByStat,
-    formatStat,
     className,
     partyMembers,
 }: PlayerRowProps) {
     const t = useTranslations("replay");
+    const { compact } = useFormatStat();
 
     return (
         <div
@@ -168,15 +167,15 @@ export function PlayerRow({
                             weight={top ? "semibold" : "regular"}
                             variant={top ? "primary" : "tertiary"}
                         >
-                            {formatStat(player[stat])}
+                            {compact(player[stat])}
                         </Typography>
                         {value > 0 && (
-                            <span className={styles.track}>
-                                <span
-                                    className={styles.bar}
-                                    style={{ width: `${(value / max) * 100}%` }}
-                                />
-                            </span>
+                            <Meter
+                                value={value / max}
+                                color={top ? "side" : "sideSoft"}
+                                fromEnd
+                                className={styles.track}
+                            />
                         )}
                     </span>
                 );

@@ -1,10 +1,10 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
+import { sideClasses } from "@/ui";
 import { AXIS, AXIS_GAP } from "@/utils/timeline/constants";
 import { position } from "@/utils/timeline/layout";
 import { type LevelCurve, tiersReached } from "@/utils/timeline/levels";
-import { sideClasses } from "../../../../side";
 
 import styles from "./styles.module.css";
 

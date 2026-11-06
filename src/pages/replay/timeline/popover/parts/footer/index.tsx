@@ -1,9 +1,8 @@
 import classNames from "classnames";
 import type { ReactNode } from "react";
 
-import { Typography } from "@/ui";
+import { Typography, sideClasses } from "@/ui";
 import type { Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../../side";
 
 import styles from "./styles.module.css";
 

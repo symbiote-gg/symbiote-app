@@ -1,9 +1,5 @@
 @reference "@/index.css";
 
-.knight {
-    @apply flex flex-col gap-2.5 rounded-md px-3 py-2.5 bg-side/8;
-}
-
 .stats {
     @apply grid grid-cols-2 gap-2;
 }

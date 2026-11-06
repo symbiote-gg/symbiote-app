@@ -16,7 +16,7 @@ export const SOURCES = [
     join(ROOT, "scripts/assets"),
 ];
 
-export const IMAGE = { format: "webp", quality: 85 };
+export const IMAGE = { format: "webp", quality: 85, variantSharpen: 0.5 };
 // Tolerate a few missing upstream files per category, but not a broken pin.
 export const MAX_MISSING = 3;
 export const CONCURRENCY = 16;

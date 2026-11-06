@@ -1,0 +1,47 @@
+@reference "@/index.css";
+
+.root {
+    --accent: var(--hero-accent, var(--color-primary-text));
+    @apply flex flex-col gap-4 overflow-hidden rounded-xl border border-line bg-surface px-4 pt-4 transition-colors hover:bg-row-hover;
+    background-image: radial-gradient(
+        ellipse 40% 60% at 0% 0%,
+        color-mix(in oklab, var(--accent) 14%, transparent),
+        transparent
+    );
+}
+
+.head {
+    @apply flex items-center gap-4;
+}
+
+.head .portrait {
+    @apply ring-2 ring-accent ring-offset-2 ring-offset-bg;
+}
+
+.titles {
+    @apply flex min-w-0 flex-1 flex-col;
+}
+
+.result {
+    @apply flex shrink-0 flex-col items-end;
+}
+
+.result .pct {
+    @apply text-2xl leading-tight;
+}
+
+.root .meter {
+    @apply w-auto;
+}
+
+.stats {
+    @apply grid grid-cols-[minmax(max-content,3fr)_minmax(max-content,5fr)_minmax(max-content,4.5fr)] -mx-4 border-t border-line;
+}
+
+.stats > div {
+    @apply px-4 py-3;
+}
+
+.stats > div + div {
+    @apply border-l border-line;
+}

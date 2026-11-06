@@ -1,7 +1,7 @@
 import { noop, useQueryClient } from "@tanstack/react-query";
 import classNames from "classnames";
 import { memo } from "react";
-import { useFormatter, useTranslations } from "use-intl";
+import { useTranslations } from "use-intl";
 import { Link } from "wouter";
 
 import {
@@ -11,6 +11,7 @@ import {
     replayQuery,
 } from "@/api/queries";
 import { type Replay, markReplayAsSeen } from "@/api/replays";
+import { useFormatStat } from "@/hooks/useFormatStat";
 import { Typography } from "@/ui";
 import { formatDuration, usePlayedAt } from "@/utils/dates";
 import { AwardPills } from "../award-pill";
@@ -35,7 +36,7 @@ export const ReplayRow = memo(function ReplayRow({
     className,
 }: ReplayRowProps) {
     const t = useTranslations();
-    const format = useFormatter();
+    const { compact } = useFormatStat();
     const playedAt = usePlayedAt();
     const queryClient = useQueryClient();
 
@@ -51,13 +52,7 @@ export const ReplayRow = memo(function ReplayRow({
         markReplayAsSeen(replay.id).catch(noop);
     };
 
-    const heroDamage =
-        replay.ownerHeroDamage === null
-            ? "-"
-            : format.number(replay.ownerHeroDamage, {
-                  notation: "compact",
-                  maximumFractionDigits: 1,
-              });
+    const heroDamage = compact(replay.ownerHeroDamage);
 
     return (
         <Link

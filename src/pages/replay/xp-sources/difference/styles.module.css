@@ -1,5 +1,5 @@
 @reference "@/index.css";
 
 .root {
-    @apply justify-self-end text-right;
+    @apply flex justify-self-end;
 }

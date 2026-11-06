@@ -1,14 +1,11 @@
-import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
 import type { TimelineText } from "@/hooks/useTimelineText";
 import { Typography } from "@/ui";
 import type { Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../../side";
-import { Footer } from "../../parts/footer";
-import { LifeBar } from "../../parts/life-bar";
-
-import styles from "./styles.module.css";
+import { Footer } from "../parts/footer";
+import { LifeBar } from "../parts/life-bar";
+import { Panel } from "../parts/panel";
 
 interface HeldProps {
     range: [number, number];
@@ -23,13 +20,13 @@ export function Held({ range: [start, end], side, text }: HeldProps) {
 
     return (
         <>
-            <div className={classNames(styles.held, sideClasses(side))}>
+            <Panel side={side}>
                 <LifeBar
                     seconds={seconds}
                     start={t("heldTook", { time: text.at(start) })}
                     end={t("heldLost", { time: text.at(end) })}
                 />
-            </div>
+            </Panel>
             <Footer side={side}>
                 <Typography size="xs" variant="tertiary">
                     {t("heldFor", { seconds })}

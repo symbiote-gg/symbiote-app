@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
 import type { Knight as KnightData } from "@/api/replays";
@@ -7,9 +6,9 @@ import type { TimelineText } from "@/hooks/useTimelineText";
 import { Typography } from "@/ui";
 import { type Roster, heroName } from "@/utils/timeline/roster";
 import type { Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../../side";
 import { Footer } from "../../parts/footer";
 import { LifeBar } from "../../parts/life-bar";
+import { Panel } from "../../parts/panel";
 import { Stat } from "../../parts/stat";
 
 import styles from "./styles.module.css";
@@ -36,7 +35,7 @@ export function Knight({
 
     return (
         <>
-            <div className={classNames(styles.knight, sideClasses(side))}>
+            <Panel side={side}>
                 {end !== null && (
                     <LifeBar
                         seconds={Math.round(end - start)}
@@ -44,7 +43,7 @@ export function Knight({
                         end={t("summonDied", { time: text.at(end) })}
                     />
                 )}
-                <div className={styles.stats}>
+                <dl className={styles.stats}>
                     <Stat
                         label={t("knightTakedowns")}
                         value={takedowns}
@@ -55,8 +54,8 @@ export function Knight({
                         value={structures}
                         muted={structures === 0}
                     />
-                </div>
-            </div>
+                </dl>
+            </Panel>
             <Footer side={side}>
                 <span className={styles.pilot}>
                     <TeamPortrait slot={pilot} size="xs" roster={roster} />

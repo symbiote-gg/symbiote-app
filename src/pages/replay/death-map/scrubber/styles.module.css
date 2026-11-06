@@ -55,11 +55,11 @@
 
 /* As on the timeline: your team above the axis, the enemy below. */
 .tick {
-    @apply absolute h-4.5 w-2 -translate-x-1/2 cursor-pointer;
+    @apply absolute h-4.5 w-2 -translate-x-1/2 cursor-pointer text-side;
 }
 
 .tick.outside:not(:hover, .selected) {
-    @apply opacity-40;
+    @apply dimmed;
 }
 
 .tick:hover,
@@ -68,11 +68,11 @@
 }
 
 .tick.ally {
-    @apply bottom-1/2 text-team-blue;
+    @apply bottom-1/2;
 }
 
 .tick.enemy {
-    @apply top-1/2 text-team-red;
+    @apply top-1/2;
 }
 
 .mark {

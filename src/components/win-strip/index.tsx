@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
 import { Tooltip } from "@/ui";
+import { matchResult } from "@/utils/result";
 
 import styles from "./styles.module.css";
 
@@ -18,7 +19,7 @@ export function WinStrip({ results, slots = 0, className }: WinStripProps) {
     return (
         <div className={classNames(className, styles.root)}>
             {results.map((win, i) => {
-                const result = win === null ? "unknown" : win ? "win" : "loss";
+                const result = matchResult(win);
                 return (
                     <Tooltip
                         key={i}

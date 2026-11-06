@@ -9,16 +9,7 @@
 }
 
 .track {
-    @apply h-1.5 w-44 overflow-hidden rounded-full bg-fg/6;
-}
-
-.fill {
-    @apply block h-full rounded-full bg-side-strong;
-}
-
-/* The trailing team reads as the weaker one at a glance. */
-.faded {
-    @apply bg-side-soft;
+    @apply w-44;
 }
 
 .value {

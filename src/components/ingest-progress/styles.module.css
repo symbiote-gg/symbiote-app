@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .pill {
-    @apply flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full border border-primary/40 bg-primary/10 px-3.5 py-2 text-sm font-medium text-fg cursor-pointer;
+    @apply flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full border border-primary/40 bg-selected-soft px-3.5 py-2 text-sm font-medium text-fg cursor-pointer;
 }
 
 .label {
@@ -22,7 +22,7 @@
 }
 
 .percent {
-    @apply font-semibold text-primary-text tabular-nums;
+    @apply font-semibold text-primary-text;
 }
 
 .panel {
@@ -38,7 +38,7 @@
 }
 
 .count {
-    @apply -mt-1 tabular-nums;
+    @apply -mt-1;
 }
 
 .done {

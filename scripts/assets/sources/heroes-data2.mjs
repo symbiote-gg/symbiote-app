@@ -62,6 +62,7 @@ export async function load({ repo, version, locale, sha256: expected }) {
             name: strings.hero.name[id] ?? id,
             role: role(id, strings.hero.expandedRole[id]),
             portrait: hero.portraits?.target ?? null,
+            banner: hero.portraits?.loading ?? null,
         })),
         talents: talentFacts(heroes, (talent) => ({
             id: talent.talentId,

@@ -8,7 +8,7 @@ mod list;
 mod retention;
 mod standouts;
 #[cfg(test)]
-mod test_utils;
+pub(crate) mod test_utils;
 
 use chrono::{DateTime, Utc};
 use sqlx::{SqliteExecutor, SqlitePool};

@@ -17,7 +17,11 @@
 }
 
 .lg {
-    @apply size-24 text-2xl;
+    @apply size-12 text-base;
+}
+
+.xl {
+    @apply size-23 text-2xl;
 }
 
 .fallback {

@@ -39,6 +39,7 @@ export async function load({ repo, commit, version, locale }) {
             name: strings.unit.name[id] ?? id,
             role: role(id, strings.unit.expandedrole[id]),
             portrait: hero.portraits?.target ?? null,
+            banner: hero.portraits?.loading ?? null,
         })),
         talents: talentFacts(heroes, (talent) => ({
             id: talent.nameId,

@@ -1,25 +1,24 @@
 import { ChevronLeft } from "lucide-react";
-import { useTranslations } from "use-intl";
 
 import { ButtonLink } from "@/ui";
 
-export interface BackToReplaysProps {
+export interface BackLinkProps {
+    href: string;
+    label: string;
     className?: string;
 }
 
-export function BackToReplays({ className }: BackToReplaysProps) {
-    const t = useTranslations("replay");
-
+export function BackLink({ href, label, className }: BackLinkProps) {
     return (
         <ButtonLink
-            href="/replays"
+            href={href}
             variant="secondary"
             size="sm"
             arrow={false}
             className={className}
         >
             <ChevronLeft />
-            {t("replays")}
+            {label}
         </ButtonLink>
     );
 }

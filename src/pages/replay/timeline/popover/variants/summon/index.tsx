@@ -1,12 +1,11 @@
-import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
 import type { Summon as SummonData } from "@/api/replays";
 import type { TimelineText } from "@/hooks/useTimelineText";
 import type { Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../../side";
 import { Footer, FooterImpact } from "../../parts/footer";
 import { LifeBar } from "../../parts/life-bar";
+import { Panel } from "../../parts/panel";
 import { Stat } from "../../parts/stat";
 
 import styles from "./styles.module.css";
@@ -38,21 +37,21 @@ export function Summon({
 
     return (
         <>
-            <div className={classNames(styles.summon, sideClasses(side))}>
+            <Panel side={side}>
                 <LifeBar
                     seconds={seconds}
                     start={t("summonSpawn", { time: text.at(spawn) })}
                     end={t("summonDied", { time: text.at(death) })}
                 />
-                <div className={styles.stats}>
+                <dl className={styles.stats}>
                     <Stat label={t("summonSiege")} value={siege} />
                     <Stat
                         label={t("summonHeroes")}
                         value={heroes}
                         muted={heroes < LOW_HERO_DAMAGE}
                     />
-                </div>
-            </div>
+                </dl>
+            </Panel>
             <Footer side={side}>
                 <FooterImpact strong={impact === "big"}>
                     {t("summonImpact", { impact })}

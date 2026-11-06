@@ -1,9 +1,9 @@
-import { Trash } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { HeroRole, Mode } from "@/api/replays";
 import {
     DateFilter,
+    FilterBar,
     HeroFilter,
     MapFilter,
     ModeFilter,
@@ -11,11 +11,8 @@ import {
     RoleFilter,
 } from "@/components";
 import { ALL_HEROES, useMostPlayedHeroes } from "@/hooks/useMostPlayedHeroes";
-import { Button } from "@/ui";
 import type { DateRange } from "@/utils/date-range";
 import { type FilterState, NO_FILTERS, activeFilters } from "./state";
-
-import styles from "./styles.module.css";
 
 export interface FiltersProps {
     value: FilterState;
@@ -52,30 +49,22 @@ export function Filters({ value, onChange }: FiltersProps) {
     const active = activeFilters(value);
 
     return (
-        <div role="group" aria-label={t("label")} className={styles.root}>
-            <div className={styles.filters}>
-                <ModeFilter value={value.modes} onChange={onModes} />
-                <MapFilter value={value.maps} onChange={onMaps} />
-                <ResultFilter value={value.win} onChange={onWin} />
-                <DateFilter value={value.date} onChange={onDate} />
-                <RoleFilter value={value.roles} onChange={onRoles} />
-                <HeroFilter
-                    value={value.heroes}
-                    roles={value.roles}
-                    onChange={onHeroes}
-                />
-            </div>
-            {active >= 2 && (
-                <Button
-                    variant="secondary"
-                    size="sm"
-                    className={styles.reset}
-                    onClick={onReset}
-                >
-                    <Trash aria-hidden />
-                    {t("clear", { count: active })}
-                </Button>
-            )}
-        </div>
+        <FilterBar
+            label={t("label")}
+            active={active}
+            resetLabel={t("clear", { count: active })}
+            onReset={onReset}
+        >
+            <ModeFilter value={value.modes} onChange={onModes} />
+            <MapFilter value={value.maps} onChange={onMaps} />
+            <ResultFilter value={value.win} onChange={onWin} />
+            <DateFilter value={value.date} onChange={onDate} />
+            <RoleFilter value={value.roles} onChange={onRoles} />
+            <HeroFilter
+                value={value.heroes}
+                roles={value.roles}
+                onChange={onHeroes}
+            />
+        </FilterBar>
     );
 }

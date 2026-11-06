@@ -16,6 +16,8 @@ use crate::types::talent::TalentFact;
 
 pub mod awards;
 pub mod event_kinds;
+pub(crate) mod filters;
+pub mod hero_stats;
 pub mod heroes;
 pub mod maps;
 pub mod parties;

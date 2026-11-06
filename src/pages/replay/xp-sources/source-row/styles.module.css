@@ -9,7 +9,7 @@
 }
 
 .value {
-    @apply text-side tabular-nums;
+    @apply text-side;
 }
 
 .allyValue {

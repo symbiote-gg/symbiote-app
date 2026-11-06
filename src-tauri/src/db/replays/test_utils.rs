@@ -75,6 +75,30 @@ pub fn bundle(name: &str, game_loops: i64) -> NewReplayBundle {
     }
 }
 
+/// A replay of a `hero` game by "owner" alone, with its own game id.
+pub fn hero_game(
+    name: &str,
+    timestamp: i64,
+    mode: Mode,
+    map: &str,
+    hero: &str,
+    win: bool,
+) -> NewReplayBundle {
+    let mut game = bundle(name, 1000);
+    game.replay.game_id = hex(name);
+    game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
+    game.replay.mode = mode;
+    game.replay.map = map.to_owned();
+    game.replay.owner_hero_slug = hero.to_owned();
+    game.replay.owner_win = Some(win);
+    game.heroes = vec![Hero {
+        slug: hero.to_owned(),
+        name: hero.to_owned(),
+    }];
+    game.replay_players[0].hero_slug = hero.to_owned();
+    game
+}
+
 pub async fn insert_game(pool: &SqlitePool, game_id: &str, timestamp: i64) {
     let mut game = bundle(game_id, 1000);
     game.replay.game_id = hex(game_id);

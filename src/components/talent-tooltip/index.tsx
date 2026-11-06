@@ -18,8 +18,13 @@ type Group =
     | { type: "paragraph"; nodes: GameTextNode[] }
     | { type: "steps"; steps: GameTextStep[] };
 
+export type TooltipTalent = Pick<
+    TalentPick,
+    "slug" | "name" | "description" | "icon"
+>;
+
 export interface TalentTooltipProps {
-    talent: TalentPick;
+    talent: TooltipTalent;
     level: number;
     children: ReactNode;
 }

@@ -16,7 +16,7 @@ export function useTimelineText(players: ReplayPlayerDetail[]) {
     const heroOf = (slot: number) =>
         players.find((p) => p.slot === slot)?.heroName ?? "?";
 
-    const at = (time: number) => formatDuration(Math.round(time));
+    const at = (time: number) => formatDuration(time);
 
     const mapLabel = ({ spec, objective }: MapEntry) =>
         spec

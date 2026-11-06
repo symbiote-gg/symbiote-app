@@ -1,7 +1,7 @@
 import { useTranslations } from "use-intl";
 
-import type { TalentPick } from "@/api/replays";
 import { Chip, Typography } from "@/ui";
+import type { TooltipTalent } from "..";
 import { GameIcon } from "../../game-icon";
 
 import styles from "./styles.module.css";
@@ -9,7 +9,7 @@ import styles from "./styles.module.css";
 const STORM_LEVEL = 20;
 
 export interface HeaderProps {
-    talent: TalentPick;
+    talent: TooltipTalent;
     level: number;
     quest: boolean;
 }

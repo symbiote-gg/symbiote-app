@@ -14,7 +14,9 @@ import {
     Meter,
     TableHead,
     Typography,
+    WinRate,
 } from "@/ui";
+import { isJudged } from "@/utils/hero-stats";
 
 import styles from "./styles.module.css";
 
@@ -66,6 +68,11 @@ export function HeroesCard() {
                         <ul className={styles.list}>
                             {data.heroes.map((hero) => {
                                 const rate = hero.wins / hero.games;
+                                const judged = isJudged(
+                                    hero.wins,
+                                    hero.games - hero.wins,
+                                );
+
                                 return (
                                     <li
                                         key={hero.heroId}
@@ -79,14 +86,19 @@ export function HeroesCard() {
                                             {hero.name}
                                         </Typography>
                                         <span className={styles.rate}>
-                                            <Meter value={rate} />
+                                            <Meter
+                                                value={rate}
+                                                neutral={!judged}
+                                            />
                                             <Typography
                                                 size="xs"
-                                                variant="tertiary"
                                                 mono
                                                 className={styles.pct}
                                             >
-                                                {Math.round(rate * 100)}%
+                                                <WinRate
+                                                    rate={rate}
+                                                    judged={judged}
+                                                />
                                             </Typography>
                                         </span>
                                         <Typography

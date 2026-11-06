@@ -1,11 +1,29 @@
+import type { ReactNode } from "react";
+
 import { Typography } from "../typography";
 
 import styles from "./styles.module.css";
 
-export function EmptyState({ children }: { children: string }) {
+export interface EmptyStateProps {
+    children: string;
+    action?: ReactNode;
+}
+
+export function EmptyState({ children, action }: EmptyStateProps) {
+    if (!action) {
+        return (
+            <Typography size="sm" variant="tertiary" className={styles.root}>
+                {children}
+            </Typography>
+        );
+    }
+
     return (
-        <Typography size="sm" variant="tertiary" className={styles.root}>
-            {children}
-        </Typography>
+        <div className={styles.withAction}>
+            <Typography size="sm" variant="tertiary">
+                {children}
+            </Typography>
+            {action}
+        </div>
     );
 }

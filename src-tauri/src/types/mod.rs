@@ -1,5 +1,6 @@
 pub mod award;
 pub mod hero;
+pub mod hero_stats;
 pub mod map;
 pub mod player;
 pub mod replay;

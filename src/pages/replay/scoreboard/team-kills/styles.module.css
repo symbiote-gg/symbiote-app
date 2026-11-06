@@ -33,7 +33,7 @@
 }
 
 .count {
-    @apply text-5xl leading-none text-side tabular-nums;
+    @apply text-5xl leading-none text-side;
     text-box: trim-both cap alphabetic;
 }
 

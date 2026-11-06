@@ -34,6 +34,11 @@
     @apply text-5xl;
 }
 
+.icon {
+    @apply shrink-0;
+    color: var(--card-icon, currentColor);
+}
+
 .sm .icon {
     @apply size-6.5;
 }

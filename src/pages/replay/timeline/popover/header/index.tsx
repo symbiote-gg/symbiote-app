@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
 import type { TimelineText } from "@/hooks/useTimelineText";
-import { Chip } from "@/ui";
+import { Chip, sideClasses } from "@/ui";
 import {
     campGlyph,
     entryGlyph,
@@ -13,7 +13,6 @@ import { type LevelCurve, levelAt } from "@/utils/timeline/levels";
 import { type Glyph, specLabel } from "@/utils/timeline/map-events";
 import type { MarkerView } from "@/utils/timeline/markers";
 import type { Marker } from "@/utils/timeline/types";
-import { sideClasses } from "../../../side";
 import { GlyphIcon } from "../../glyphs";
 import { HeaderText } from "./header-text";
 

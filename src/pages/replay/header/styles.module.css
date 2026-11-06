@@ -65,7 +65,7 @@
 }
 
 .toolbar .tool {
-    @apply bg-bg/60;
+    @apply bg-scrim-soft;
 }
 
 .toolLabel {
@@ -77,7 +77,7 @@
 }
 
 .notice {
-    @apply inline-flex items-center gap-2 rounded-lg border border-line bg-bg/60 px-3 py-1.5 text-fg/80;
+    @apply inline-flex items-center gap-2 rounded-lg border border-line bg-scrim-soft px-3 py-1.5 text-fg/80;
 }
 
 .notice svg {
@@ -109,7 +109,7 @@
 }
 
 .portrait .portraitImage {
-    @apply ring-2 ring-team-blue;
+    @apply ring-2 ring-primary;
 }
 
 .text {
@@ -130,7 +130,7 @@
 }
 
 .facts .tag::before {
-    @apply absolute inset-0 -z-10 rounded-md bg-bg/80 content-[''];
+    @apply absolute inset-0 -z-10 rounded-md bg-scrim content-[''];
 }
 
 .facts .resultTag,
@@ -151,7 +151,7 @@
 }
 
 .moments {
-    @apply mt-4 grid grid-cols-[repeat(3,auto)] divide-y divide-line justify-self-start overflow-hidden rounded-md border border-line bg-bg/80 @6xl/header:mt-3 @3xl/identity:flex @3xl/identity:divide-x @3xl/identity:divide-y-0;
+    @apply mt-4 grid grid-cols-[repeat(3,auto)] divide-y divide-line justify-self-start overflow-hidden rounded-md border border-line bg-scrim @6xl/header:mt-3 @3xl/identity:flex @3xl/identity:divide-x @3xl/identity:divide-y-0;
     grid-area: moments;
 }
 
@@ -177,11 +177,11 @@
 }
 
 .panel {
-    @apply grid grid-cols-3 rounded-md border border-line bg-bg/80 @6xl/header:flex @6xl/header:flex-wrap @6xl/header:justify-end;
+    @apply grid grid-cols-3 rounded-md border border-line bg-scrim @6xl/header:flex @6xl/header:flex-wrap @6xl/header:justify-end;
 }
 
 .stat {
-    @apply flex flex-col items-start gap-1.5 border-line px-5 py-3 text-left @6xl/header:px-4 @6xl/header:py-2.5;
+    @apply items-start border-line px-5 py-3 text-left @6xl/header:px-4 @6xl/header:py-2.5;
 }
 
 .stat:nth-child(n + 4) {
@@ -194,8 +194,4 @@
 
 .stat + .stat {
     @apply @6xl/header:border-l;
-}
-
-.stat .statValue {
-    @apply text-xl leading-none;
 }

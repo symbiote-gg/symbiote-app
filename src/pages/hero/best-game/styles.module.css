@@ -1,0 +1,63 @@
+@reference "@/index.css";
+
+.root {
+    @apply relative isolate justify-end gap-4;
+}
+
+.art {
+    @apply absolute inset-0 -z-10 size-full object-cover opacity-75;
+}
+
+.shade {
+    @apply absolute inset-0 -z-10;
+    background:
+        linear-gradient(
+            to top,
+            var(--color-surface),
+            color-mix(in oklab, var(--color-surface) 60%, transparent) 40%,
+            transparent 80%
+        ),
+        linear-gradient(
+            to right,
+            color-mix(in oklab, var(--color-surface) 55%, transparent),
+            transparent 60%
+        );
+}
+
+.body {
+    @apply flex flex-col gap-2 px-gutter pt-16;
+    text-shadow: 0 1px 8px color-mix(in oklab, var(--color-bg) 80%, transparent);
+}
+
+.body .eyebrow {
+    @apply inline-flex items-center gap-1.5 text-accent;
+}
+
+.eyebrow svg {
+    @apply size-3.5;
+}
+
+.body .kills {
+    @apply text-6xl leading-none font-extrabold uppercase;
+    font-stretch: 75%;
+}
+
+.footer {
+    @apply flex flex-wrap items-end justify-between gap-4 px-gutter pb-6;
+}
+
+.stats {
+    @apply flex overflow-hidden rounded-lg border border-line bg-scrim;
+}
+
+.stats > div {
+    @apply border-l border-line px-4 py-3 first:border-l-0;
+}
+
+.actions {
+    @apply flex flex-col items-end gap-3;
+}
+
+.actions .replay {
+    @apply bg-scrim-soft;
+}

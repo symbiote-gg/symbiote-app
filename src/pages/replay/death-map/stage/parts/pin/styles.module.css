@@ -5,7 +5,7 @@
 }
 
 .faded {
-    @apply z-0 opacity-30;
+    @apply z-0 dimmed;
 }
 
 .root:hover,

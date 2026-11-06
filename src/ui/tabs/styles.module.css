@@ -13,7 +13,7 @@
 }
 
 .active {
-    @apply bg-primary/10 text-fg hover:bg-primary/10;
+    @apply bg-selected-soft text-fg hover:bg-selected-soft;
 }
 
 .icon {

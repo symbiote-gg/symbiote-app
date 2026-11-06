@@ -1,15 +1,12 @@
-import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
 import type { Duel as DuelData } from "@/api/replays";
 import { Typography } from "@/ui";
 import { sideOf } from "@/utils/timeline/markers";
 import type { Side } from "@/utils/timeline/types";
-import { sideClasses } from "../../../../side";
-import { Footer, FooterImpact } from "../../parts/footer";
-import { TeamBar } from "../../parts/team-bar";
-
-import styles from "./styles.module.css";
+import { Footer, FooterImpact } from "../parts/footer";
+import { Panel } from "../parts/panel";
+import { TeamBar } from "../parts/team-bar";
 
 const SOLID_PUSH_POWER = 40;
 const STRONG_PUSH_POWER = 70;
@@ -32,7 +29,7 @@ export function Duel({ duel: { winner, power }, side, allyTeam }: DuelProps) {
 
     return (
         <>
-            <div className={classNames(styles.duel, sideClasses(side))}>
+            <Panel side={side}>
                 {[winner, 1 - winner].map((team, index) => (
                     <TeamBar
                         key={team}
@@ -54,7 +51,7 @@ export function Duel({ duel: { winner, power }, side, allyTeam }: DuelProps) {
                         }
                     />
                 ))}
-            </div>
+            </Panel>
             <Footer side={side}>
                 <FooterImpact strong={push === "strong"}>
                     {t("duelPush", { push })}

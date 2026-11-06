@@ -2,7 +2,7 @@ import classNames from "classnames";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
 import { HeroPortrait, type HeroPortraitProps } from "@/components";
-import { sideClasses } from "../../side";
+import { sideClasses } from "@/ui";
 import type { TeamSide } from "../role-performances";
 
 import styles from "./styles.module.css";

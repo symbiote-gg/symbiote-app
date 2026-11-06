@@ -31,7 +31,6 @@
 }
 
 .noKiller {
-    @apply flex size-8 shrink-0 items-center justify-center rounded-full bg-surface text-fg-muted ring-2;
     --tw-ring-color: var(--side, var(--color-fg-muted));
 }
 

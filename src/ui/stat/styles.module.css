@@ -1,0 +1,18 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex min-w-0 flex-col;
+}
+
+/* Zero specificity, so a caller's class sets the spacing. */
+:where(.root) {
+    @apply gap-1.5;
+}
+
+.value {
+    @apply leading-none;
+}
+
+.value.lg {
+    @apply text-xl;
+}

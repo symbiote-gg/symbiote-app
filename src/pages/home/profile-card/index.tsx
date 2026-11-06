@@ -13,8 +13,10 @@ import {
     Eyebrow,
     StatTile,
     Typography,
+    WinRate,
     richStrong,
 } from "@/ui";
+import { isJudged, winRate } from "@/utils/hero-stats";
 
 import styles from "./styles.module.css";
 
@@ -34,7 +36,8 @@ export function ProfileCard() {
             recent,
             recentWins: recent.filter((win) => win === true).length,
             recentLosses: recent.filter((win) => win === false).length,
-            decided: data.wins + data.losses,
+            rate: winRate(data.wins, data.losses),
+            judged: isJudged(data.wins, data.losses),
             mainRole: data.mainRole,
             mvps: data.mvps,
             topDamageGames: data.topDamageGames,
@@ -78,9 +81,10 @@ export function ProfileCard() {
                         <StatTile
                             label={t("winRate")}
                             value={
-                                profile.decided === 0
-                                    ? "-"
-                                    : `${Math.round((profile.recentWins / profile.decided) * 100)}%`
+                                <WinRate
+                                    rate={profile.rate}
+                                    judged={profile.judged}
+                                />
                             }
                         />
                         <StatTile

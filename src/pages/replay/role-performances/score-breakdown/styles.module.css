@@ -68,5 +68,5 @@
 }
 
 .track {
-    @apply relative h-1.5 w-48 shrink-0 overflow-hidden rounded-full bg-fg/6;
+    @apply w-48 shrink-0;
 }

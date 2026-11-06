@@ -1,8 +1,7 @@
 import classNames from "classnames";
 
 import type { RoleScore } from "@/api/replays";
-import { Typography } from "@/ui";
-import { sideClasses } from "../../side";
+import { Typography, sideClasses } from "@/ui";
 import { formatScore } from "../role-performances";
 
 import styles from "./styles.module.css";

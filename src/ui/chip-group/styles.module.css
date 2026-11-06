@@ -41,7 +41,7 @@
 }
 
 .primary.on {
-    @apply bg-primary/20 text-primary-text;
+    @apply bg-selected text-primary-text;
 }
 
 .primary.on .count {

@@ -1,8 +1,7 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
-import { Chip } from "@/ui";
-import { sideClasses } from "../../side";
+import { Chip, sideClasses } from "@/ui";
 import type { FormatXp, Leader } from "../xp-sources";
 
 import styles from "./styles.module.css";

@@ -1,6 +1,6 @@
 import { Scale } from "lucide-react";
 import { useMemo } from "react";
-import { useFormatter, useTranslations } from "use-intl";
+import { useTranslations } from "use-intl";
 
 import type {
     HeroRole,
@@ -8,6 +8,7 @@ import type {
     RolePerformance,
     RoleStat,
 } from "@/api/replays";
+import { useFormatStat } from "@/hooks/useFormatStat";
 import { Card, CardHeader } from "@/ui";
 import { formatDuration } from "@/utils/dates";
 import { KitsDifferRow } from "./kits-differ-row";
@@ -42,7 +43,7 @@ export function RolePerformances({
     ownerRole,
 }: RolePerformancesProps) {
     const t = useTranslations("replay.rolePerformances");
-    const format = useFormatter();
+    const { compact, percent } = useFormatStat();
 
     const roles = useMemo(
         () => resolveRoles(performances, players),
@@ -51,17 +52,10 @@ export function RolePerformances({
 
     const formatValue = (stat: RoleStat, value: number | null) => {
         if (value === null) return "-";
-        if (stat === "hardCc") return formatDuration(Math.round(value));
-        if (PERCENT_STATS.includes(stat))
-            return format.number(value / 100, {
-                style: "percent",
-                maximumFractionDigits: 0,
-            });
+        if (stat === "hardCc") return formatDuration(value);
+        if (PERCENT_STATS.includes(stat)) return percent(value / 100);
 
-        return format.number(value, {
-            notation: "compact",
-            maximumFractionDigits: 1,
-        });
+        return compact(value);
     };
 
     const renderRow = (comparison: RoleComparison) => {

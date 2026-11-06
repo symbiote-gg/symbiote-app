@@ -18,20 +18,19 @@ import {
     type FilterState,
     NO_FILTERS,
     isFiltered,
+    saved,
     toReplayFilters,
 } from "./filters/state";
 import { List } from "./list";
 
 import styles from "./styles.module.css";
 
-let savedOffset = 0;
-let savedFilters = NO_FILTERS;
 let savedSort = DEFAULT_REPLAY_SORT;
 
 export function Replays() {
     const t = useTranslations("replays");
     const scroller = useRef<HTMLDivElement>(null);
-    const [filters, setFilters] = useState(savedFilters);
+    const [filters, setFilters] = useState(saved.filters);
     const [sort, setSort] = useState(savedSort);
     const query = useMemo(() => toReplayFilters(filters), [filters]);
     const {
@@ -53,22 +52,22 @@ export function Replays() {
     const total = data?.pages[0]?.total ?? 0;
 
     useLayoutEffect(() => {
-        if (scroller.current) scroller.current.scrollTop = savedOffset;
+        if (scroller.current) scroller.current.scrollTop = saved.offset;
     }, []);
 
     const onRefresh = () => refetch();
 
     const onScroll = (e: UIEvent<HTMLDivElement>) => {
-        savedOffset = e.currentTarget.scrollTop;
+        saved.offset = e.currentTarget.scrollTop;
     };
 
     const scrollToTop = () => {
-        savedOffset = 0;
+        saved.offset = 0;
         if (scroller.current) scroller.current.scrollTop = 0;
     };
 
     const onFiltersChange = (next: FilterState) => {
-        savedFilters = next;
+        saved.filters = next;
         scrollToTop();
         setFilters(next);
     };
@@ -118,23 +117,26 @@ export function Replays() {
                     replays={replays}
                     total={total}
                     stale={isPlaceholderData}
-                    initialOffset={savedOffset}
+                    initialOffset={saved.offset}
                     hasNextPage={hasNextPage}
                     isFetchingNextPage={isFetchingNextPage}
                     fetchNextPage={fetchNextPage}
                     onScroll={onScroll}
                 >
                     {noMatches && (
-                        <div className={styles.empty}>
-                            <EmptyState>{t("filters.empty")}</EmptyState>
-                            <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={onClearFilters}
-                            >
-                                {t("filters.clear")}
-                            </Button>
-                        </div>
+                        <EmptyState
+                            action={
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={onClearFilters}
+                                >
+                                    {t("filters.clear")}
+                                </Button>
+                            }
+                        >
+                            {t("filters.empty")}
+                        </EmptyState>
                     )}
                 </List>
             </Card>

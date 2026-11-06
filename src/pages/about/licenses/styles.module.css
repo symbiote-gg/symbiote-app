@@ -9,15 +9,7 @@
 }
 
 .search {
-    @apply flex w-full max-w-md items-center gap-2 rounded-lg border border-line bg-bg px-3;
-}
-
-.searchIcon {
-    @apply shrink-0 text-fg-muted;
-}
-
-.input {
-    @apply w-full bg-transparent py-2 text-sm text-fg shadow-none outline-none placeholder:text-fg-muted;
+    @apply w-full max-w-md;
 }
 
 .table {

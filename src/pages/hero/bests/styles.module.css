@@ -1,0 +1,44 @@
+@reference "@/index.css";
+
+.tiles {
+    @apply grid flex-1 auto-rows-fr grid-cols-2 gap-3 px-gutter pt-4 pb-6 md:grid-cols-3;
+}
+
+.tile {
+    @apply relative isolate flex h-full min-h-44 min-w-0 flex-col gap-1.5 overflow-hidden rounded-lg border border-line bg-surface-2/40 px-4 pt-3.5 pb-3;
+    text-shadow: 0 1px 8px color-mix(in oklab, var(--color-bg) 80%, transparent);
+}
+
+/* A best without a map, like the win streak, has no art: an accent wash fills
+   in for it. */
+.tile.plain {
+    @apply bg-linear-150 from-accent/18 to-transparent to-70%;
+}
+
+.art {
+    @apply absolute inset-0 -z-10 size-full object-cover opacity-70;
+}
+
+.shade {
+    @apply absolute inset-0 -z-10;
+    background: linear-gradient(
+        to top,
+        var(--color-surface-2),
+        color-mix(in oklab, var(--color-surface-2) 60%, transparent) 50%,
+        color-mix(in oklab, var(--color-surface-2) 30%, transparent)
+    );
+}
+
+.tile .value {
+    @apply mt-1 text-4xl leading-none font-extrabold;
+    font-stretch: 75%;
+}
+
+.footer {
+    @apply mt-auto flex items-center justify-between gap-3 pt-5;
+}
+
+.footer .replay {
+    @apply bg-scrim-soft;
+    text-shadow: none;
+}

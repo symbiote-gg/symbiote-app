@@ -1,9 +1,9 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
+import { sideClasses } from "@/ui";
 import { type Roster } from "@/utils/timeline/roster";
 import type { DeathEntry, StructureEntry } from "@/utils/timeline/types";
-import { sideClasses } from "../../../../side";
 import { GlyphIcon } from "../../../glyphs";
 import { KillCells } from "./kill-cells";
 import { KillRow } from "./kill-row";

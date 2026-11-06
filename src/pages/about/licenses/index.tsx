@@ -1,17 +1,17 @@
-import { Search } from "lucide-react";
-import {
-    type ChangeEvent,
-    useDeferredValue,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import type { ThirdPartyPackage } from "@/api/licenses";
 import { useThirdPartyLicenses } from "@/hooks/useThirdPartyLicenses";
 import { APP_LICENSE, APP_LICENSE_URL } from "@/legal";
-import { Card, CardHeader, TableHead, Typography, linkClassName } from "@/ui";
+import {
+    Card,
+    CardHeader,
+    SearchInput,
+    TableHead,
+    Typography,
+    linkClassName,
+} from "@/ui";
 import { ExternalLink } from "../external-link";
 import { PackageEntry } from "../package-entry";
 
@@ -38,10 +38,6 @@ export function Licenses() {
     useEffect(() => {
         list.current?.scrollTo({ top: 0 });
     }, [deferredQuery]);
-
-    const onQueryChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setQuery(event.target.value);
-    };
 
     const onShowAll = () => {
         setExpanded(true);
@@ -70,16 +66,14 @@ export function Licenses() {
                         </Typography>
                     )}
                     {data && (
-                        <label className={styles.search}>
-                            <Search size={16} className={styles.searchIcon} />
-                            <input
-                                type="search"
-                                value={query}
-                                placeholder={t("search")}
-                                className={styles.input}
-                                onChange={onQueryChange}
-                            />
-                        </label>
+                        <SearchInput
+                            value={query}
+                            label={t("search.label")}
+                            placeholder={t("search.placeholder")}
+                            clearLabel={t("search.clear")}
+                            className={styles.search}
+                            onChange={setQuery}
+                        />
                     )}
                 </div>
             )}

@@ -1,5 +1,7 @@
+import classNames from "classnames";
 import { useId } from "react";
 
+import { sideClasses } from "@/ui";
 import { AXIS, TRACK_HEIGHT } from "@/utils/timeline/constants";
 import { type LevelCurve, leadPoints } from "@/utils/timeline/levels";
 
@@ -40,12 +42,12 @@ export function Lead({ curves, duration }: LeadProps) {
             </defs>
             <path
                 d={leadArea}
-                className={styles.leadAlly}
+                className={classNames(styles.leadArea, sideClasses("ally"))}
                 clipPath={`url(#${clipId}-above)`}
             />
             <path
                 d={leadArea}
-                className={styles.leadEnemy}
+                className={classNames(styles.leadArea, sideClasses("enemy"))}
                 clipPath={`url(#${clipId}-below)`}
             />
             <path d={leadLine} className={styles.leadLine} />

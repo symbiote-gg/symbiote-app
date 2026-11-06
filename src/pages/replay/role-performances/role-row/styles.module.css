@@ -1,11 +1,7 @@
 @reference "@/index.css";
 
 .role {
-    @apply border-b border-line/60;
-}
-
-.role:last-child {
-    @apply border-b-0;
+    @apply border-b border-divider last:border-b-0;
 }
 
 .own {
@@ -13,7 +9,7 @@
 }
 
 .summary {
-    @apply grid w-full cursor-pointer items-center text-left gap-x-6 gap-y-4 px-gutter py-4 transition-colors hover:bg-surface-2/50;
+    @apply grid w-full cursor-pointer items-center text-left gap-x-6 gap-y-4 px-gutter py-4 transition-colors hover:bg-row-hover;
     grid-template-areas:
         "label label chevron"
         "ally enemy enemy"

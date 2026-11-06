@@ -1,8 +1,7 @@
 import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
-import { Typography } from "@/ui";
-import { sideClasses } from "../../side";
+import { Typography, sideClasses } from "@/ui";
 import { Difference } from "../difference";
 import { type FormatXp, type Source, lead } from "../xp-sources";
 

@@ -17,7 +17,7 @@
 }
 
 .nav {
-    @apply inline-flex size-7 cursor-pointer items-center justify-center rounded-md border border-line bg-surface-2 text-fg transition-colors hover:border-fg-muted/40 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line;
+    @apply inline-flex size-7 cursor-pointer items-center justify-center rounded-md border border-line bg-surface-2 text-fg transition-colors hover:border-fg-muted/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-line;
 }
 
 .nav svg {
@@ -53,7 +53,7 @@
 }
 
 .inside {
-    @apply w-full rounded-none bg-primary/15;
+    @apply w-full rounded-none bg-selected-soft;
 }
 
 .edge {

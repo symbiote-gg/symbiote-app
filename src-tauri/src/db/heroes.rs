@@ -55,22 +55,27 @@ pub async fn upsert_many(
 /// Inserts the bundled hero facts, overwriting the stored ones, in a single transaction.
 pub async fn seed(pool: &SqlitePool, facts: &[HeroFact]) -> sqlx::Result<()> {
     let mut tx = pool.begin().await?;
-    for chunk in facts.chunks(chunk_rows(4)) {
-        QueryBuilder::<Sqlite>::new("INSERT INTO heroes (slug, name, role, portrait) ")
-            .push_values(chunk, |mut row, fact| {
-                row.push_bind(&fact.slug)
-                    .push_bind(&fact.name)
-                    .push_bind(fact.role)
-                    .push_bind(&fact.portrait);
-            })
-            .push(
-                " ON CONFLICT (slug) DO UPDATE SET
-                     name = excluded.name, role = excluded.role, portrait = excluded.portrait",
-            )
-            .build()
-            .persistent(false)
-            .execute(&mut *tx)
-            .await?;
+    for chunk in facts.chunks(chunk_rows(6)) {
+        QueryBuilder::<Sqlite>::new(
+            "INSERT INTO heroes (slug, name, role, portrait, banner, accent) ",
+        )
+        .push_values(chunk, |mut row, fact| {
+            row.push_bind(&fact.slug)
+                .push_bind(&fact.name)
+                .push_bind(fact.role)
+                .push_bind(&fact.portrait)
+                .push_bind(&fact.banner)
+                .push_bind(&fact.accent);
+        })
+        .push(
+            " ON CONFLICT (slug) DO UPDATE SET
+                 name = excluded.name, role = excluded.role, portrait = excluded.portrait,
+                 banner = excluded.banner, accent = excluded.accent",
+        )
+        .build()
+        .persistent(false)
+        .execute(&mut *tx)
+        .await?;
     }
     tx.commit().await
 }

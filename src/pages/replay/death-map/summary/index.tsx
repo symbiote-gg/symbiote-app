@@ -1,20 +1,25 @@
+import classNames from "classnames";
 import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
-import { TeamPortrait } from "@/components";
-import { StatTile, Typography } from "@/ui";
-import { type Roster, heroName, playerOf } from "@/utils/timeline/roster";
+import { HeroPlayerName, TeamPortrait } from "@/components";
+import { StatTile, Typography, sideClasses } from "@/ui";
+import type { Roster } from "@/utils/timeline/roster";
 import type { TopSlot } from "../../kill-log/kill-log";
 import type { RangeStats } from "../stats";
 
 import styles from "./styles.module.css";
 
 const ally = (chunks: ReactNode) => (
-    <span className={styles.ally}>{chunks}</span>
+    <span className={classNames(styles.team, sideClasses("ally"))}>
+        {chunks}
+    </span>
 );
 
 const enemy = (chunks: ReactNode) => (
-    <span className={styles.enemy}>{chunks}</span>
+    <span className={classNames(styles.team, sideClasses("enemy"))}>
+        {chunks}
+    </span>
 );
 
 const versus = (chunks: ReactNode) => (
@@ -38,24 +43,7 @@ function TopKiller({ killer, roster }: TopKillerProps) {
                         size="xs"
                         roster={roster}
                     />
-                    <span className={styles.names}>
-                        <Typography
-                            as="span"
-                            size="sm"
-                            weight="semibold"
-                            noWrap
-                        >
-                            {heroName(roster, killer.slot)}
-                        </Typography>
-                        <Typography
-                            as="span"
-                            size="sm"
-                            variant="tertiary"
-                            truncate
-                        >
-                            {playerOf(roster, killer.slot)?.name}
-                        </Typography>
-                    </span>
+                    <HeroPlayerName slot={killer.slot} roster={roster} inline />
                 </>
             ) : (
                 "-"

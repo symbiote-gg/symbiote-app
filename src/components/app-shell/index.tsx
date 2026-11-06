@@ -20,8 +20,8 @@ import styles from "./styles.module.css";
 const NAV = [
     { key: "home", href: "/", Icon: House },
     { key: "replays", href: "/replays", Icon: Clapperboard },
-    { key: "profile", href: "/profile", Icon: UserRound },
     { key: "heroes", href: "/heroes", Icon: Crown },
+    { key: "profile", href: "/profile", Icon: UserRound },
 ] as const;
 
 const UTILITY = [

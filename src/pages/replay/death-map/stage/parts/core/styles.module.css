@@ -6,15 +6,7 @@
 }
 
 .badge {
-    @apply flex size-12 items-center justify-center rounded-full bg-surface-2 ring-[3px];
-}
-
-.badge.ally {
-    @apply text-team-blue ring-team-blue;
-}
-
-.badge.enemy {
-    @apply text-team-red ring-team-red;
+    @apply flex size-12 items-center justify-center rounded-full bg-surface-2 text-side ring-[3px] ring-side;
 }
 
 .icon {

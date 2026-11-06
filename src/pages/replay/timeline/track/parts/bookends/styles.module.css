@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .axis {
-    @apply pointer-events-none absolute inset-x-0 h-px bg-[#4a4060];
+    @apply pointer-events-none absolute inset-x-0 h-px bg-line-strong;
 }
 
 .bookend {

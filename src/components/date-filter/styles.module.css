@@ -13,7 +13,7 @@
 }
 
 .selected {
-    @apply bg-primary/25 font-semibold text-primary-text hover:bg-primary/25 hover:text-primary-text;
+    @apply bg-selected font-semibold text-primary-text hover:bg-selected hover:text-primary-text;
 }
 
 .main {

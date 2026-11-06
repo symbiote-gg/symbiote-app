@@ -1,9 +1,10 @@
 import classNames from "classnames";
 import { Fragment } from "react";
-import { useFormatter, useTranslations } from "use-intl";
+import { useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail, TeamSummary } from "@/api/replays";
 import { Kad } from "@/components";
+import { useFormatStat } from "@/hooks/useFormatStat";
 import { Card, Eyebrow, TableHead, Typography } from "@/ui";
 import { PlayerRow } from "./player-row";
 import { STATS, type Stat } from "./stats";
@@ -31,7 +32,6 @@ const sum = (
 
 export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
     const t = useTranslations("replay");
-    const format = useFormatter();
 
     const allPlayers = teams.flatMap((team) => team.players);
     const maxByStat = Object.fromEntries(
@@ -41,13 +41,7 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
         ]),
     ) as Record<Stat, number>;
 
-    const formatStat = (value: number | null) =>
-        value === null
-            ? "-"
-            : format.number(value, {
-                  notation: "compact",
-                  maximumFractionDigits: 1,
-              });
+    const { compact } = useFormatStat();
 
     return (
         <div className={styles.root}>
@@ -108,7 +102,6 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                             ally={ally}
                                             owner={player.playerId === ownerId}
                                             maxByStat={maxByStat}
-                                            formatStat={formatStat}
                                         />
                                     );
                                 })}
@@ -149,7 +142,7 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                                 },
                                             )}
                                         >
-                                            {formatStat(
+                                            {compact(
                                                 sum(players, (p) => p[stat]),
                                             )}
                                         </Typography>

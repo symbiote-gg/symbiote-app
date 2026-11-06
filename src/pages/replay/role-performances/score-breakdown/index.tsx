@@ -9,8 +9,7 @@ import type {
     RoleStatColumn,
     RoleUnscoredStat,
 } from "@/api/replays";
-import { Chip, Eyebrow, Tooltip, Typography } from "@/ui";
-import { sideClasses } from "../../side";
+import { Chip, Eyebrow, Meter, Tooltip, Typography, sideClasses } from "@/ui";
 import {
     type HeroScore,
     type TeamSide,
@@ -204,16 +203,12 @@ function ExtraStats({
                             </Typography>
                             <WeightTag weight={part.weight} />
                         </span>
-                        <span
-                            className={classNames(styles.track, {
-                                [styles.best]: best,
-                            })}
-                        >
-                            <span
-                                className={styles.fill}
-                                style={{ width: `${part.share * 100}%` }}
-                            />
-                        </span>
+                        <Meter
+                            value={part.share}
+                            color={best ? "side" : "sideSoft"}
+                            size="md"
+                            className={styles.track}
+                        />
                         <Typography size="xs" mono weight="semibold" noWrap>
                             {formatValue(part.stat, part.value)}
                         </Typography>

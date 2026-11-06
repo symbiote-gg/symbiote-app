@@ -22,8 +22,7 @@
 }
 
 .iconBox {
-    @apply flex shrink-0 items-center justify-center rounded-lg p-2.5;
-    background: color-mix(in srgb, var(--tone) 14%, transparent);
+    @apply flex shrink-0 items-center justify-center rounded-lg bg-(--tone)/15 p-2.5;
 }
 
 .icon {

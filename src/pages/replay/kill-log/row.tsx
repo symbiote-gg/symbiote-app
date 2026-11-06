@@ -1,12 +1,17 @@
 import classNames from "classnames";
-import { CpuAi } from "lucide-react";
 import { useTranslations } from "use-intl";
 
-import { AssistPortraits, HeroPortrait, TeamPortrait } from "@/components";
+import {
+    AiPortrait,
+    AssistPortraits,
+    HeroPlayerName,
+    HeroPortrait,
+    TeamPortrait,
+} from "@/components";
 import { Typography } from "@/ui";
 import { formatDuration } from "@/utils/dates";
 import { killerOf } from "@/utils/timeline/markers";
-import { type Roster, heroName, playerOf } from "@/utils/timeline/roster";
+import { type Roster, playerOf } from "@/utils/timeline/roster";
 import type { OwnerDeath } from "./kill-log";
 import { KindChip } from "./kind-chip";
 
@@ -29,7 +34,7 @@ export function Row({ entry: { death, kind, role }, roster }: RowProps) {
     return (
         <li className={classNames(styles.columns, styles.row)}>
             <Typography mono weight="semibold">
-                {formatDuration(Math.round(death.time))}
+                {formatDuration(death.time)}
             </Typography>
             <div className={styles.hero}>
                 {role !== "death" ? (
@@ -41,24 +46,17 @@ export function Row({ entry: { death, kind, role }, roster }: RowProps) {
                         />
                     </span>
                 ) : hero === null ? (
-                    <span className={styles.ai}>
-                        <CpuAi className={styles.aiIcon} aria-hidden />
-                    </span>
+                    <AiPortrait />
                 ) : (
                     <TeamPortrait slot={hero} size="sm" roster={roster} />
                 )}
-                <span className={styles.heroText}>
+                {hero === null ? (
                     <Typography weight="semibold" truncate>
-                        {hero === null
-                            ? t("timeline.aiCredit")
-                            : heroName(roster, hero)}
+                        {t("timeline.aiCredit")}
                     </Typography>
-                    {hero !== null && (
-                        <Typography size="sm" variant="tertiary" truncate>
-                            {playerOf(roster, hero)?.name}
-                        </Typography>
-                    )}
-                </span>
+                ) : (
+                    <HeroPlayerName slot={hero} roster={roster} />
+                )}
             </div>
             {others.length > 0 ? (
                 <AssistPortraits slots={others} roster={roster} />

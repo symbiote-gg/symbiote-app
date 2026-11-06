@@ -37,7 +37,7 @@
 }
 
 .active {
-    @apply bg-primary/25 text-primary-text hover:text-primary-text;
+    @apply bg-selected text-primary-text hover:text-primary-text;
 }
 
 .end {

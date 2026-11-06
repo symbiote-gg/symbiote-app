@@ -1,0 +1,30 @@
+@reference "@/index.css";
+
+.body {
+    @apply flex flex-1 flex-col gap-5 px-gutter pt-4 pb-6;
+}
+
+.rows {
+    @apply flex flex-col gap-3.5;
+}
+
+.row {
+    @apply grid grid-cols-[6rem_minmax(0,1fr)_2.5rem_2.5rem] items-center gap-3;
+}
+
+.row .meter {
+    @apply w-full;
+}
+
+.rate,
+.games {
+    @apply text-right;
+}
+
+.note {
+    @apply rounded-lg bg-surface-2/60 px-3.5 py-2.5;
+}
+
+.note strong {
+    @apply font-semibold text-fg;
+}

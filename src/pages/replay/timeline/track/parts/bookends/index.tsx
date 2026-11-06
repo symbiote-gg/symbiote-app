@@ -4,10 +4,9 @@ import { type PointerEvent, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import type { TimelineText } from "@/hooks/useTimelineText";
-import { Popover } from "@/ui";
+import { Popover, sideClass } from "@/ui";
 import { AXIS } from "@/utils/timeline/constants";
 import type { Side } from "@/utils/timeline/types";
-import { sideClass } from "../../../../side";
 import { HeaderText } from "../../../popover/header/header-text";
 
 import styles from "./styles.module.css";

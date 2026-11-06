@@ -1,0 +1,25 @@
+@reference "@/index.css";
+
+.great {
+    @apply text-rate-great;
+}
+
+.good {
+    @apply text-rate-good;
+}
+
+.even {
+    @apply text-rate-even;
+}
+
+.poor {
+    @apply text-rate-poor;
+}
+
+.bad {
+    @apply text-rate-bad;
+}
+
+.unjudged {
+    @apply text-rate-unjudged;
+}

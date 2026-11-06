@@ -3,7 +3,7 @@ import { Swords } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { Replay, ReplayPlayer } from "@/api/replays";
-import { Tooltip } from "@/ui";
+import { Tooltip, sideClasses } from "@/ui";
 import { HeroPortrait } from "../../hero-portrait";
 
 import styles from "./styles.module.css";
@@ -34,7 +34,7 @@ export function Teams({ replay, className }: TeamsProps) {
                 decoding="sync"
                 className={classNames(
                     styles.portrait,
-                    player.team === allyTeam ? styles.ally : styles.enemy,
+                    sideClasses(player.team === allyTeam ? "ally" : "enemy"),
                 )}
             />
         </Tooltip>

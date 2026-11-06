@@ -2,9 +2,8 @@ import classNames from "classnames";
 import { useTranslations } from "use-intl";
 
 import type { TeamSummary } from "@/api/replays";
-import { Eyebrow, Typography } from "@/ui";
+import { Eyebrow, Typography, sideClasses } from "@/ui";
 import { formatDuration } from "@/utils/dates";
-import { sideClasses } from "../../side";
 
 import styles from "./styles.module.css";
 

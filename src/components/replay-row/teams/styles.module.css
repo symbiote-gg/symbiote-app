@@ -21,13 +21,5 @@
 }
 
 .portrait {
-    @apply ring-1;
-}
-
-.ally {
-    @apply ring-team-blue;
-}
-
-.enemy {
-    @apply ring-team-red;
+    @apply ring-1 ring-side;
 }

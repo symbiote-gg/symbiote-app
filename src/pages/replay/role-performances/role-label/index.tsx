@@ -3,7 +3,7 @@ import type { MouseEvent } from "react";
 import { useTranslations } from "use-intl";
 
 import { Eyebrow, Tooltip } from "@/ui";
-import { ROLE_ICONS } from "../role-icons";
+import { ROLE_ICONS } from "@/utils/role-icons";
 import type { RoleComparison } from "../role-performances";
 
 import styles from "./styles.module.css";
