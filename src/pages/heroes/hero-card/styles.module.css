@@ -2,9 +2,9 @@
 
 .root {
     --accent: var(--hero-accent, var(--color-primary-text));
-    @apply flex flex-col gap-4 overflow-hidden rounded-xl border border-line bg-surface px-4 pt-4 transition-colors hover:bg-row-hover;
+    @apply flex flex-col gap-4 overflow-hidden rounded-lg border border-line bg-surface-2 px-4 pt-4 transition-colors hover:bg-tile-hover;
     background-image: radial-gradient(
-        ellipse 40% 60% at 0% 0%,
+        ellipse 80% 70% at 50% 0%,
         color-mix(in oklab, var(--accent) 14%, transparent),
         transparent
     );

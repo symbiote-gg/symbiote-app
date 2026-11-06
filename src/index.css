@@ -78,8 +78,8 @@
 
 /* `selected` marks the picked item in a list, `selected-soft` a wide picked
    area. `scrim` backs text over art, `scrim-soft` buttons over art.
-   `row-hover` is the hover of a row on a card, opaque because a translucent
-   fade snaps in WebKitGTK. */
+   `row-hover` is the hover of a row on a card, `tile-hover` of a raised tile
+   on a card, both opaque because a translucent fade snaps in WebKitGTK. */
 @theme inline {
     --color-selected: color-mix(
         in oklab,
@@ -98,6 +98,11 @@
         in oklab,
         var(--color-surface-2) 50%,
         var(--color-surface)
+    );
+    --color-tile-hover: color-mix(
+        in oklab,
+        var(--color-line) 50%,
+        var(--color-surface-2)
     );
 }
 
