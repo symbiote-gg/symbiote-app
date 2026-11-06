@@ -62,7 +62,7 @@ export function Heroes() {
                 {error && (
                     <ErrorMessage error={error} className={styles.error} />
                 )}
-                <CardBody>
+                <CardBody className={styles.body}>
                     {empty && isFiltered(filters) ? (
                         <EmptyState
                             action={

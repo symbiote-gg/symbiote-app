@@ -4,6 +4,10 @@
     @apply lg:h-full;
 }
 
+.body {
+    scrollbar-gutter: auto;
+}
+
 .error {
     @apply px-gutter py-4;
 }

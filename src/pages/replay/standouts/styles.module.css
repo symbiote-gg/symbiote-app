@@ -9,7 +9,7 @@
 }
 
 .tile {
-    @apply flex min-w-sm shrink-0 items-start gap-3 rounded-lg border border-line bg-surface-2 p-3 pr-4;
+    @apply flex min-w-sm shrink-0 items-start gap-3 rounded-lg border border-tile-line bg-surface-2 p-3 pr-4;
     --tone: var(--color-loss);
 }
 
