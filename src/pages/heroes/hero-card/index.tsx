@@ -5,7 +5,7 @@ import { Link } from "wouter";
 import type { HeroSummary } from "@/api/heroes";
 import { HeroPortrait } from "@/components";
 import { useFormatStat } from "@/hooks/useFormatStat";
-import { Meter, Stat, Typography, WinRate } from "@/ui";
+import { Stat, Typography, WinRate } from "@/ui";
 import { usePlayedDay } from "@/utils/dates";
 import { isJudged, isRated, kda, winRate } from "@/utils/hero-stats";
 
@@ -73,12 +73,6 @@ export function HeroCard({ hero }: HeroCardProps) {
                     </Typography>
                 </div>
             </div>
-            <Meter
-                value={rate ?? 0}
-                neutral={neutral}
-                size="md"
-                className={styles.meter}
-            />
             <dl className={styles.stats}>
                 <Stat label={t("kda")} size="sm" truncate>
                     {formatKda(kda(hero.takedowns, hero.deaths))}

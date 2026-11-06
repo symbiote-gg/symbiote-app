@@ -30,10 +30,6 @@
     @apply text-2xl leading-tight;
 }
 
-.root .meter {
-    @apply w-auto;
-}
-
 .stats {
     @apply grid grid-cols-[minmax(max-content,3fr)_minmax(max-content,5fr)_minmax(max-content,4.5fr)] -mx-4 border-t border-line;
 }
