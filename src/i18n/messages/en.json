@@ -136,7 +136,9 @@
         },
         "awards": {
             "title": "Awards",
-            "mvpEvery": "{count, plural, one {Every game ends with MVP} other {1 in # games ends with MVP}}",
+            "mvpAll": "Every game ends with MVP",
+            "mvpEvery": "1 in {count} games ends with MVP",
+            "mvpShare": "MVP in {mvps} of {games} games",
             "empty": "No awards in these games.",
             "more": "{count, plural, one {# more award} other {# more awards}}",
             "fewer": "Show fewer"

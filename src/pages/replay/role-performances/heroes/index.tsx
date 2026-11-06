@@ -16,12 +16,14 @@ interface HeroesProps {
 
 export function Heroes({ side, players, ownerId }: HeroesProps) {
     const format = useFormatter();
+    const ordered = [...players].reverse();
 
     return (
         <span className={classNames(styles.root, styles[side])}>
             <span className={styles.portraits}>
-                {[...players].reverse().map((p) => (
+                {ordered.map((p) => (
                     <SidePortrait
+                        key={p.playerId}
                         player={p}
                         side={side}
                         owner={p.playerId === ownerId}
@@ -32,13 +34,13 @@ export function Heroes({ side, players, ownerId }: HeroesProps) {
             <span className={styles.text}>
                 <Typography as="span" weight="semibold" truncate>
                     {format.list(
-                        players.reverse().map((p) => p.heroName),
+                        ordered.map((p) => p.heroName),
                         { type: "unit" },
                     )}
                 </Typography>
                 <Typography as="span" size="sm" variant="tertiary" truncate>
                     {format.list(
-                        players.map((p) => p.name),
+                        ordered.map((p) => p.name),
                         { type: "unit" },
                     )}
                 </Typography>

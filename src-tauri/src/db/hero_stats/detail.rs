@@ -181,7 +181,8 @@ async fn talents(
         )
         .push_bind(hero_id)
         .push(
-            " AND t.id NOT IN (SELECT talent_id FROM picks)
+            " AND NOT EXISTS (
+                 SELECT 1 FROM picks p WHERE p.talent_id = t.id AND p.tier = t.tier)
              ORDER BY tier, picks DESC, name, slug",
         );
     query.build_query_as().fetch_all(conn).await
@@ -552,6 +553,7 @@ mod tests {
                 (2, "blink", 1, 0, 1),
                 (2, "flare", 1, 1, 0),
                 (2, "spark_moved", 1, 0, 0),
+                (3, "spark_moved", 0, 0, 0),
                 (3, "nova", 0, 0, 0),
             ]
         );
@@ -813,6 +815,7 @@ mod tests {
                 (2, "spark_moved", 1, 0, 0),
                 (2, "blink", 0, 0, 0),
                 (2, "flare", 0, 0, 0),
+                (3, "spark_moved", 0, 0, 0),
                 (3, "nova", 0, 0, 0),
             ]
         );

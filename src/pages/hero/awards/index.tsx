@@ -21,6 +21,12 @@ export function Awards({ awards, games }: AwardsProps) {
     const [expanded, setExpanded] = useState(false);
 
     const mvps = awards.find((award) => award.type === "mvp")?.count ?? 0;
+    const mvpEvery = mvps > 0 ? Math.round(games / mvps) : 0;
+    let mvpLine: string | undefined;
+    if (mvps > 0 && mvps === games) mvpLine = t("mvpAll");
+    else if (mvpEvery >= 2) mvpLine = t("mvpEvery", { count: mvpEvery });
+    else if (mvps > 0) mvpLine = t("mvpShare", { mvps, games });
+
     const most = Math.max(1, ...awards.map((award) => award.count));
     const shown = expanded ? awards : awards.slice(0, SHOWN_AWARDS);
     const hidden = awards.length - shown.length;
@@ -33,11 +39,7 @@ export function Awards({ awards, games }: AwardsProps) {
                 size="sm"
                 icon={AwardIcon}
                 title={t("title")}
-                subtitle={
-                    mvps > 0
-                        ? t("mvpEvery", { count: Math.round(games / mvps) })
-                        : undefined
-                }
+                subtitle={mvpLine}
             />
             {awards.length === 0 ? (
                 <EmptyState>{t("empty")}</EmptyState>
