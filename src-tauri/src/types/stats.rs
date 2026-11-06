@@ -24,6 +24,7 @@ pub struct HeroStat {
     pub portrait: Option<String>,
     pub games: i64,
     pub wins: i64,
+    pub losses: i64,
 }
 
 #[derive(Debug, FromRow, Serialize)]

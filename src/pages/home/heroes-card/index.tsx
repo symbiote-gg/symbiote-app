@@ -16,7 +16,7 @@ import {
     Typography,
     WinRate,
 } from "@/ui";
-import { isJudged } from "@/utils/hero-stats";
+import { isJudged, winRate } from "@/utils/hero-stats";
 
 import styles from "./styles.module.css";
 
@@ -67,11 +67,8 @@ export function HeroesCard() {
                     <CardBody>
                         <ul className={styles.list}>
                             {data.heroes.map((hero) => {
-                                const rate = hero.wins / hero.games;
-                                const judged = isJudged(
-                                    hero.wins,
-                                    hero.games - hero.wins,
-                                );
+                                const rate = winRate(hero.wins, hero.losses);
+                                const judged = isJudged(hero.wins, hero.losses);
 
                                 return (
                                     <li
@@ -87,7 +84,7 @@ export function HeroesCard() {
                                         </Typography>
                                         <span className={styles.rate}>
                                             <Meter
-                                                value={rate}
+                                                value={rate ?? 0}
                                                 neutral={!judged}
                                             />
                                             <Typography

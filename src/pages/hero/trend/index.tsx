@@ -54,6 +54,15 @@ export function Trend({ hero, trend }: TrendProps) {
     });
     const lines = segments.filter((segment) => segment.length > 1);
 
+    // A rated bucket between unrated ones has no line to sit on, so it gets a dot.
+    const isolated = rates.flatMap((rate, index) =>
+        rate !== null &&
+        (rates[index - 1] ?? null) === null &&
+        (rates[index + 1] ?? null) === null
+            ? [index]
+            : [],
+    );
+
     const lastIndex = rates.reduce<number>(
         (last, rate, index) => (rate === null ? last : index),
         -1,
@@ -66,6 +75,7 @@ export function Trend({ hero, trend }: TrendProps) {
         return best < 0 || rate > (rates[best] ?? 0) ? index : best;
     }, -1);
     const bestRate = bestIndex >= 0 ? rates[bestIndex] : null;
+    const dots = [...new Set([bestIndex, lastIndex, ...isolated])];
 
     const bucketName = (bucket: Bucket) =>
         trend.bucket === "week"
@@ -184,7 +194,7 @@ export function Trend({ hero, trend }: TrendProps) {
                             />
                         ))}
                     </svg>
-                    {[...new Set([bestIndex, lastIndex])].map((index) => {
+                    {dots.map((index) => {
                         const rate = index >= 0 ? rates[index] : null;
                         return (
                             rate !== null && (
@@ -225,7 +235,7 @@ export function Trend({ hero, trend }: TrendProps) {
                             variant="tertiary"
                             className={styles.empty}
                         >
-                            {t("noLine")}
+                            {t("noLine", { bucket: trend.bucket })}
                         </Typography>
                     )}
                     {lastRate !== null && (

@@ -117,7 +117,7 @@
             "record": "{wins}-{losses}",
             "winRate": "{rate} win rate",
             "best": "Best {bucket} {rate}",
-            "noLine": "Not enough games in a month to draw a line yet."
+            "noLine": "Not enough games in a {bucket, select, week {week} other {month}} to draw a line yet."
         },
         "perGame": {
             "title": "Per game",

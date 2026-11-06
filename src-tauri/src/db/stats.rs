@@ -96,7 +96,8 @@ pub async fn most_played_heroes(pool: &SqlitePool, limit: i64) -> sqlx::Result<M
     let heroes = sqlx::query_as::<_, HeroStat>(
         "SELECT h.id AS hero_id, h.name, h.role, h.portrait,
              COUNT(*) AS games,
-             COALESCE(SUM(r.owner_win = 1), 0) AS wins
+             COALESCE(SUM(r.owner_win = 1), 0) AS wins,
+             COALESCE(SUM(r.owner_win = 0), 0) AS losses
          FROM replays r
          JOIN heroes h ON h.id = r.owner_hero_id
          GROUP BY h.id

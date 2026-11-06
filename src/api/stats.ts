@@ -19,6 +19,7 @@ export type HeroStat = {
     portrait: string | null;
     games: number;
     wins: number;
+    losses: number;
 };
 
 export type MapStat = {
