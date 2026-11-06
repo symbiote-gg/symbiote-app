@@ -104,7 +104,7 @@
             "hours": "{hours}h {minutes}m",
             "kda": "KDA",
             "mvps": "MVPs",
-            "gameTime": "Average game duration"
+            "gameTime": "Avg game time"
         },
         "trend": {
             "title": "Win rate over time",

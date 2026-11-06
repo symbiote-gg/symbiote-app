@@ -51,7 +51,11 @@
 }
 
 .body {
-    @apply flex min-w-0 items-center gap-6 px-gutter pt-6 pb-7;
+    @apply flex min-w-0 flex-col items-stretch gap-6 px-gutter pt-6 pb-7 @6xl/header:flex-row @6xl/header:flex-wrap @6xl/header:items-end @6xl/header:justify-between;
+}
+
+.identity {
+    @apply flex min-w-0 flex-1 items-center gap-6;
 }
 
 .body .portrait {
@@ -79,32 +83,18 @@
     @apply flex items-baseline gap-2 border-l border-line px-3 py-1.5 first:border-l-0;
 }
 
-.stats {
-    @apply grid grid-cols-3 gap-px border-t border-line bg-line @min-[64rem]/header:grid-flow-col @min-[64rem]/header:grid-cols-none @min-[64rem]/header:auto-cols-fr;
+.panel {
+    @apply grid auto-cols-fr grid-flow-col rounded-md border border-line bg-scrim @6xl/header:flex @6xl/header:flex-wrap @6xl/header:justify-end;
 }
 
-.stats > div {
-    @apply flex min-w-0 flex-col gap-1.5 px-gutter py-3;
-    background: color-mix(in oklab, var(--color-bg) 55%, var(--color-surface));
+.stat {
+    @apply items-start border-line px-5 py-3 text-left @6xl/header:px-4 @6xl/header:py-2.5;
 }
 
-.stats .value,
-.stats .rate {
-    @apply flex h-8 items-end leading-none;
+.stat + .stat {
+    @apply border-l;
 }
 
-.stats .rateLine {
-    @apply flex items-baseline gap-3;
-}
-
-.stats .rate {
-    @apply text-3xl font-extrabold;
-}
-
-.stats .meter {
-    @apply min-w-0 flex-1;
-}
-
-.stats .mvp {
+.mvp {
     @apply text-mvp;
 }

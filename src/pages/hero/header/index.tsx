@@ -59,31 +59,33 @@ export function Header({ hero }: HeaderProps) {
                 </Button>
             </div>
             <div className={styles.body}>
-                <HeroPortrait
-                    name={hero.name}
-                    portrait={hero.portrait}
-                    size="xl"
-                    decoding="sync"
-                    className={styles.portrait}
-                />
-                <div className={styles.titles}>
-                    {hero.role && (
-                        <Chip
-                            size="sm"
-                            icon={ROLE_ICONS[hero.role]}
-                            uppercase
-                            className={styles.role}
-                        >
-                            {roles(hero.role)}
-                        </Chip>
-                    )}
-                    <Typography size="xl2" display className={styles.name}>
-                        {hero.name}
-                    </Typography>
-                    <Facts hero={hero} />
+                <div className={styles.identity}>
+                    <HeroPortrait
+                        name={hero.name}
+                        portrait={hero.portrait}
+                        size="xl"
+                        decoding="sync"
+                        className={styles.portrait}
+                    />
+                    <div className={styles.titles}>
+                        {hero.role && (
+                            <Chip
+                                size="sm"
+                                icon={ROLE_ICONS[hero.role]}
+                                uppercase
+                                className={styles.role}
+                            >
+                                {roles(hero.role)}
+                            </Chip>
+                        )}
+                        <Typography size="xl2" display className={styles.name}>
+                            {hero.name}
+                        </Typography>
+                        <Facts hero={hero} />
+                    </div>
                 </div>
+                {hero.games > 0 && <Totals hero={hero} />}
             </div>
-            {hero.games > 0 && <Totals hero={hero} />}
         </header>
     );
 }
