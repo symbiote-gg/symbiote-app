@@ -44,7 +44,7 @@
 }
 
 .fill {
-    @apply absolute inset-y-0 left-0 rounded-md bg-side-soft;
+    @apply absolute inset-y-0 left-0 rounded-md bg-side-muted;
 }
 
 .best .fill {

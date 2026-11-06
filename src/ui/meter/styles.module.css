@@ -70,5 +70,5 @@
 }
 
 .sideSoft {
-    @apply bg-side-soft;
+    @apply bg-side-muted;
 }

@@ -40,7 +40,9 @@
 }
 
 /* Team tints keyed off the nearest `--side`. Solid `side` is for ink only;
-   areas fill with `side-strong` (best, leading) or `side-soft` (the rest). */
+   areas fill with `side-strong` (best, leading) or `side-soft` (the rest).
+   Bars fill trailing segments with `side-muted`, since `side-soft` fades
+   into the track on a thin bar. */
 @theme inline {
     --color-side: var(--side);
     --color-side-strong: color-mix(
@@ -51,6 +53,11 @@
     --color-side-soft: color-mix(
         in oklab,
         var(--side) 18%,
+        var(--color-surface)
+    );
+    --color-side-muted: color-mix(
+        in oklab,
+        var(--side) 32%,
         var(--color-surface)
     );
 }

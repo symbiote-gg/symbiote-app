@@ -29,5 +29,5 @@
 }
 
 .fill.trailing {
-    @apply bg-side-soft;
+    @apply bg-side-muted;
 }
