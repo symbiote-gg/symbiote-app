@@ -171,7 +171,6 @@ export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
                                     name={replay.heroName}
                                     portrait={replay.heroPortrait}
                                     size="xl"
-                                    className={styles.portraitImage}
                                 />
                             </span>
                             <div className={styles.text}>
