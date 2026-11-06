@@ -108,6 +108,10 @@
     grid-area: portrait;
 }
 
+.portrait .portraitImage {
+    @apply ring-2 ring-fg-muted/60;
+}
+
 .text {
     @apply flex min-w-0 flex-col gap-2;
     grid-area: text;

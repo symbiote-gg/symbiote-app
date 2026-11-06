@@ -12,6 +12,10 @@
     @apply inline-block shrink-0 rounded-full bg-primary/20 px-1.5 text-[0.625rem] font-semibold tracking-wider text-primary-text uppercase;
 }
 
+.root .portrait {
+    @apply ring-2 ring-fg-muted/60;
+}
+
 .text {
     @apply flex min-w-0 flex-1 items-center gap-2;
 }
