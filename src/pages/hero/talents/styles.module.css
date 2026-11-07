@@ -1,45 +1,91 @@
 @reference "@/index.css";
 
-.tiers {
-    @apply flex flex-col px-gutter pt-2 pb-6;
+.body {
+    @apply grid overflow-x-auto px-gutter pt-2 pb-6;
+}
+
+.track {
+    --badge: calc(var(--spacing) * 14);
+    --gap: calc(var(--spacing) * 3);
+    @apply relative isolate grid min-w-min gap-x-(--gap);
+    grid-template-columns: repeat(var(--tiers), minmax(--spacing(46), 1fr));
+}
+
+.track::before {
+    @apply pointer-events-none absolute -z-10 h-0.5 bg-linear-to-r from-mvp/70 to-mvp/30;
+    inset-inline: calc(
+        (100% - (var(--tiers) - 1) * var(--gap)) / var(--tiers) / 2
+    );
+    top: calc(var(--badge) / 2 - 1px);
+    content: "";
 }
 
 .tier {
-    @apply grid grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-4 border-t border-line py-2.5 first:border-t-0;
+    @apply flex min-w-0 flex-col gap-4;
+}
+
+.head {
+    @apply flex flex-col items-center gap-2;
+}
+
+.badge {
+    @apply relative isolate grid size-(--badge) shrink-0 place-items-center;
+}
+
+.badge .level {
+    @apply text-mvp;
+}
+
+/* The ring cuts the line short of the diamond. */
+.badge::before {
+    @apply absolute inset-2 -z-10 rotate-45 rounded-md border-2 border-mvp/70 bg-surface ring-6 ring-surface;
+    content: "";
 }
 
 .talents {
-    @apply grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:grid-cols-4;
+    @apply flex flex-col gap-2;
 }
 
 .talent {
-    @apply flex min-w-0 items-center gap-3 rounded-lg bg-surface-2/60 px-2;
+    @apply grid;
 }
 
 .rare {
     @apply sparse;
 }
 
-.talent .icon {
-    @apply size-9 shrink-0 rounded-md;
+.tile {
+    @apply flex w-full min-w-0 items-center gap-3 rounded-lg border border-tile-line bg-surface-2 p-3;
 }
 
-.body {
-    @apply flex min-w-0 flex-1 flex-col gap-1.5 py-2;
+.tile.top {
+    @apply border-mvp/40;
+    background-image: linear-gradient(
+        color-mix(in oklab, var(--color-mvp) 5%, transparent),
+        color-mix(in oklab, var(--color-mvp) 5%, transparent)
+    );
 }
 
-.pick {
-    @apply flex min-w-0 items-center gap-3;
+.tile .icon {
+    @apply size-11 shrink-0 rounded-full;
 }
 
-.pick .meter {
-    @apply w-auto flex-1;
+.tile.top .icon {
+    @apply ring-2 ring-mvp;
 }
 
-.pct {
-    @apply shrink-0 text-right;
+.info {
+    @apply flex min-w-0 flex-1 flex-col gap-1.5;
 }
 
-.talent .win {
-    @apply w-10 shrink-0 text-right;
+.name {
+    @apply flex min-w-0 items-baseline justify-between gap-2;
+}
+
+.info .meter {
+    @apply w-full;
+}
+
+.figures {
+    @apply flex items-baseline justify-between gap-2;
 }

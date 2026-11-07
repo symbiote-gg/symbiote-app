@@ -22,6 +22,7 @@ export * from "./replay-row";
 export * from "./result-chip";
 export * from "./result-filter";
 export * from "./role-filter";
+export * from "./talent-description";
 export * from "./talent-tooltip";
 export * from "./team-portrait";
 export * from "./win-strip";

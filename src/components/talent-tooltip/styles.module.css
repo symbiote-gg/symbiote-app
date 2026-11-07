@@ -3,7 +3,3 @@
 .panel {
     @apply max-h-none w-80;
 }
-
-.body {
-    @apply flex flex-col gap-3;
-}

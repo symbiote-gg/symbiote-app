@@ -17,13 +17,13 @@
     "home": {
         "replays": {
             "title": "Recent replays",
-            "subtitle": "{count, plural, one {Last # game} other {Last # games}}",
+            "subtitle": "{count, plural, one {Last # game} other {Last # games}}.",
             "all": "All replays",
             "empty": "No replays yet. Play a game and it shows up here."
         },
         "profile": {
             "title": "Profile",
-            "subtitle": "You across all heroes",
+            "subtitle": "You across all heroes.",
             "last": "Last {count} games",
             "winRate": "Win rate",
             "mainRole": "Main role",
@@ -34,7 +34,7 @@
         },
         "heroes": {
             "title": "Heroes",
-            "played": "{played} of {total} played",
+            "played": "{played} of {total} played.",
             "empty": "No heroes played yet.",
             "columns": {
                 "hero": "Hero",
@@ -47,7 +47,7 @@
     "replays": {
         "title": "Replays",
         "refresh": "Refresh",
-        "count": "{count, plural, one {# game} other {# games}}",
+        "count": "{count, plural, one {# game} other {# games}}.",
         "filters": {
             "label": "Filters",
             "clear": "Clear {count} filters",
@@ -56,7 +56,7 @@
     },
     "heroes": {
         "title": "Heroes",
-        "played": "{played} of {total} played",
+        "played": "{played} of {total} played.",
         "empty": "No heroes played yet.",
         "noMatches": "No heroes match these filters.",
         "clearFilters": "Clear filters",
@@ -108,8 +108,8 @@
         },
         "trend": {
             "title": "Win rate over time",
-            "byMonth": "Monthly win rate on {hero}, bars are games played",
-            "byWeek": "Weekly win rate on {hero}, bars are games played",
+            "byMonth": "Monthly win rate on {hero}, bars are games played.",
+            "byWeek": "Weekly win rate on {hero}, bars are games played.",
             "week": "Week of {date}",
             "games": "{count, plural, one {# game} other {# games}}",
             "noGames": "No games",
@@ -120,7 +120,7 @@
         },
         "perGame": {
             "title": "Per game",
-            "subtitle": "Your averages per game on {hero}",
+            "subtitle": "Your averages per game on {hero}.",
             "kills": "Kills",
             "deaths": "Deaths",
             "assists": "Assists",
@@ -135,21 +135,24 @@
         },
         "awards": {
             "title": "Awards",
-            "mvpAll": "Every game ends with MVP",
-            "mvpEvery": "1 in {count} games ends with MVP",
-            "mvpShare": "MVP in {mvps} of {games} games",
+            "mvpAll": "Every game ends with MVP.",
+            "mvpEvery": "1 in {count} games ends with MVP.",
+            "mvpShare": "MVP in {mvps} of {games} games.",
             "empty": "No awards in these games.",
             "more": "{count, plural, one {# more award} other {# more awards}}",
             "fewer": "Show fewer"
         },
         "talents": {
             "title": "Talents",
-            "subtitle": "Pick rate per level, win rate on the right. The bright bar is your most picked talent, win rates from 10 picks.",
-            "level": "LV {level}"
+            "subtitle": "Gold marks your most picked talent at each level. Win rates show from {games} games.",
+            "level": "Level {level}",
+            "pick": "pick",
+            "win": "win",
+            "games": "{games, plural, one {# game} other {# games}}"
         },
         "bests": {
             "title": "Personal bests",
-            "subtitle": "Your records on {hero}",
+            "subtitle": "Your records on {hero}.",
             "heroDamage": "Most hero damage",
             "siegeDamage": "Most siege damage",
             "winStreak": "Longest win streak",
@@ -160,7 +163,7 @@
         },
         "maps": {
             "title": "Maps",
-            "subtitle": "Win rate and games, maps with 10+ games first"
+            "subtitle": "Win rate and games, maps with 10+ games first."
         },
         "bestGame": {
             "title": "Best game on {hero}",
@@ -172,7 +175,7 @@
         },
         "gameLength": {
             "title": "Game length",
-            "subtitle": "Win rate by length",
+            "subtitle": "Win rate by length.",
             "label": {
                 "under": "Under {to} min",
                 "between": "{from} to {to}",
@@ -701,5 +704,5 @@
         "quest": "Quest",
         "storm": "Storm talent"
     },
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon."
 }
