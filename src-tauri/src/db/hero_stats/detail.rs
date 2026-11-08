@@ -92,6 +92,16 @@ async fn totals(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroT
              COALESCE(SUM(owner_win = 0), 0) AS losses,
              COALESCE(SUM(json_extract(score, '$.Takedowns')), 0) AS takedowns,
              COALESCE(SUM(json_extract(score, '$.Deaths')), 0) AS deaths,
+             COALESCE(SUM(json_extract(score, '$.SoloKill')), 0) AS kills,
+             COALESCE(SUM(json_extract(score, '$.Assists')), 0) AS assists,
+             COALESCE(SUM(json_extract(score, '$.HeroDamage')), 0) AS hero_damage,
+             COALESCE(SUM(json_extract(score, '$.SiegeDamage')), 0) AS siege_damage,
+             COALESCE(SUM(json_extract(score, '$.Healing')), 0) AS healing,
+             COALESCE(SUM(json_extract(score, '$.SelfHealing')), 0) AS self_healing,
+             COALESCE(SUM(json_extract(score, '$.DamageTaken')), 0) AS damage_taken,
+             COALESCE(SUM(json_extract(score, '$.ExperienceContribution')), 0) AS xp,
+             SUM(json_extract(score, '$.RegenGlobes')) AS globes,
+             SUM(json_extract(score, '$.MercCampCaptures')) AS camps,
              AVG(json_extract(score, '$.SoloKill')) AS avg_kills,
              AVG(json_extract(score, '$.Deaths')) AS avg_deaths,
              AVG(json_extract(score, '$.Assists')) AS avg_assists,
@@ -116,6 +126,7 @@ async fn totals(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroT
                  AS share_xp,
              AVG(duration) AS avg_duration,
              COALESCE(SUM(duration), 0) AS total_duration,
+             COALESCE(SUM(time_dead_secs), 0.0) AS total_time_dead_secs,
              MAX(timestamp) AS last_played
          FROM games",
     );
@@ -449,8 +460,7 @@ mod tests {
 
     async fn insert_games(pool: &SqlitePool) -> i64 {
         let mut a = hero_game("a", 400, Mode::Aram, "braxis_holdout", "Wizard", true);
-        a.replay_players[0].score =
-            json!({"SoloKill": 4, "Takedowns": 10, "Deaths": 2, "HeroDamage": 1000});
+        a.replay_players[0].score = json!({"SoloKill": 4, "Takedowns": 10, "Deaths": 2, "HeroDamage": 1000, "RegenGlobes": 5});
         a.replay_players[0].time_dead_secs = Some(30.0);
         a.replay_players[0].talents = vec![talent(1, "spark"), talent(2, "flare")];
         let mut b = hero_game("b", 300, Mode::QuickMatch, "cursed_hollow", "Wizard", false);
@@ -510,6 +520,12 @@ mod tests {
         assert_eq!(totals.avg_hero_damage, Some(2000.0));
         assert_eq!(totals.avg_healing, None);
         assert_eq!(totals.avg_time_dead_secs, Some(30.0));
+        assert_eq!(
+            (totals.kills, totals.hero_damage, totals.healing),
+            (6, 4000, 0)
+        );
+        assert_eq!((totals.globes, totals.camps), (Some(5), None));
+        assert_eq!(totals.total_time_dead_secs, 30.0);
         assert_eq!(
             Some(totals.total_duration as f64),
             totals.avg_duration.map(|avg| avg * 3.0)

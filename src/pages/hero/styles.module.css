@@ -26,7 +26,7 @@
     @apply xl:col-span-4;
 }
 
-.perGame {
+.teamShare {
     @apply xl:col-span-5;
 }
 

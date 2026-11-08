@@ -91,20 +91,30 @@
         "notFound": "This hero does not exist.",
         "noGames": "No games on {hero} yet.",
         "replays": "{hero} replays",
-        "facts": {
-            "bestMap": "Best map",
-            "lastPlayed": "Last played",
-            "mostPlayedWith": "Most played with",
-            "allyGames": "{count, plural, one {# game} other {# games}}"
-        },
-        "totals": {
-            "winRate": "Win rate",
-            "games": "Games",
-            "playTime": "Play time",
+        "career": {
+            "winsLabel": "wins",
+            "record": "{wins}<win>W</win> {losses}<loss>L</loss>",
+            "timePlayed": "Time played",
+            "playTime": "{hours}<unit>h</unit> {minutes}<unit>m</unit>",
             "hours": "{hours}h {minutes}m",
+            "alive": "<b>{time}</b> alive",
+            "dead": "<b>{time}</b> dead",
+            "games": "Games",
+            "avgGame": "Avg game",
             "kda": "KDA",
             "mvps": "MVPs",
-            "gameTime": "Avg game time"
+            "camps": "Camps",
+            "perGameDetail": "{value} per game",
+            "kills": "Kills",
+            "assists": "Assists",
+            "deaths": "Deaths",
+            "heroDamage": "Hero damage",
+            "siegeDamage": "Siege damage",
+            "healing": "Healing",
+            "selfHealing": "Self healing",
+            "damageTaken": "Damage taken",
+            "xp": "Experience",
+            "globes": "Regen globes"
         },
         "trend": {
             "title": "Win rate over time",
@@ -120,16 +130,12 @@
             "lossLetter": "D",
             "noLine": "No games with a result to draw a line yet."
         },
-        "perGame": {
-            "title": "Per game",
-            "subtitle": "Your averages per game on {hero}, and your share of your team's total.",
-            "kills": "Kills",
-            "deaths": "Deaths",
-            "assists": "Assists",
+        "teamShare": {
+            "title": "Team share",
+            "subtitle": "Your average share of your team's totals on {hero}.",
             "heroDamage": "Hero damage",
             "siegeDamage": "Siege damage",
             "healing": "Healing",
-            "selfHealing": "Self healing",
             "damageTaken": "Damage taken",
             "xp": "Experience",
             "timeDead": "Time dead",
@@ -145,6 +151,7 @@
                 "damageTaken": "{share} of your team's damage taken",
                 "healing": "{share} of your team's healing",
                 "xp": "{share} of your team's experience",
+                "killParticipation": "{share} of your team's takedowns",
                 "timeDead": "{share} of an average {duration} game"
             }
         },

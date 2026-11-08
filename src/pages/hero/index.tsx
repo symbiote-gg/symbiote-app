@@ -8,12 +8,12 @@ import { useHeroDetail } from "@/hooks/useHeroDetail";
 import { EmptyState, ErrorMessage } from "@/ui";
 import { Awards } from "./awards";
 import { Bests } from "./bests";
+import { Career } from "./career";
 import { GameLength } from "./game-length";
 import { Games } from "./games";
-import { Header } from "./header";
 import { Maps } from "./maps";
-import { PerGame } from "./per-game";
 import { Talents } from "./talents";
+import { TeamShare } from "./team-share";
 import { Trend } from "./trend";
 
 import styles from "./styles.module.css";
@@ -37,7 +37,7 @@ export function HeroDetail() {
                 )}
                 {error && <ErrorMessage error={error} />}
                 {hero === null && <EmptyState>{t("notFound")}</EmptyState>}
-                {hero && <Header hero={hero} />}
+                {hero && <Career hero={hero} />}
                 {hero?.games === 0 && (
                     <EmptyState>{t("noGames", { hero: hero.name })}</EmptyState>
                 )}
@@ -58,8 +58,8 @@ export function HeroDetail() {
                         <div className={styles.talents}>
                             <Talents talents={hero.talents} />
                         </div>
-                        <div className={styles.perGame}>
-                            <PerGame hero={hero} />
+                        <div className={styles.teamShare}>
+                            <TeamShare hero={hero} />
                         </div>
                         <div className={styles.maps}>
                             <Maps maps={hero.maps} />

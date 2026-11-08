@@ -1,0 +1,56 @@
+@reference "@/index.css";
+
+.root {
+    @apply @container/time flex min-w-0 flex-col gap-4 rounded-lg border px-5 pt-4.5 pb-5;
+    border-color: color-mix(in oklab, var(--accent) 45%, var(--color-line));
+    background: linear-gradient(
+        160deg,
+        color-mix(in oklab, var(--accent) 14%, var(--color-surface)),
+        var(--color-surface) 70%
+    );
+}
+
+.root .title {
+    @apply text-accent;
+}
+
+.root .total {
+    @apply -mt-2 text-6xl leading-none font-extrabold text-accent;
+    font-stretch: 75%;
+}
+
+.unit {
+    @apply ml-0.5 text-3xl;
+}
+
+.stats {
+    @apply grid grid-cols-2 gap-4 @sm/time:grid-cols-4;
+}
+
+.mvp {
+    @apply text-mvp;
+}
+
+.none {
+    @apply text-fg-muted;
+}
+
+.life {
+    @apply mt-auto flex flex-col gap-2;
+}
+
+.life .meter {
+    @apply w-full;
+}
+
+.lifeLabels {
+    @apply flex justify-between gap-3;
+}
+
+.alive {
+    @apply font-semibold text-fg;
+}
+
+.dead {
+    @apply font-semibold text-loss;
+}

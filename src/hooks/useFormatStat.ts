@@ -19,6 +19,18 @@ export function useFormatStat() {
                   maximumFractionDigits: 1,
               });
 
+    // Three digits, so 2.45M and 39.1M carry the same precision.
+    const total = (value: Value) => {
+        if (value == null) return "-";
+        if (Math.abs(value) < 1000) return format.number(value);
+
+        return format.number(value, {
+            notation: "compact",
+            minimumSignificantDigits: 3,
+            maximumSignificantDigits: 3,
+        });
+    };
+
     const percent = (value: Value) =>
         value == null
             ? "-"
@@ -44,5 +56,5 @@ export function useFormatStat() {
                   maximumFractionDigits: 1,
               });
 
-    return { compact, percent, winPercent, kda };
+    return { compact, total, percent, winPercent, kda };
 }

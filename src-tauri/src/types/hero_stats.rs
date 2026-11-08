@@ -53,6 +53,16 @@ pub struct HeroTotals {
     pub losses: i64,
     pub takedowns: i64,
     pub deaths: i64,
+    pub kills: i64,
+    pub assists: i64,
+    pub hero_damage: i64,
+    pub siege_damage: i64,
+    pub healing: i64,
+    pub self_healing: i64,
+    pub damage_taken: i64,
+    pub xp: i64,
+    pub globes: Option<i64>,
+    pub camps: Option<i64>,
     pub avg_kills: Option<f64>,
     pub avg_deaths: Option<f64>,
     pub avg_assists: Option<f64>,
@@ -74,6 +84,7 @@ pub struct HeroTotals {
     pub avg_duration: Option<f64>,
     /// Seconds across every game.
     pub total_duration: i64,
+    pub total_time_dead_secs: f64,
     pub last_played: Option<DateTime<Utc>>,
 }
 

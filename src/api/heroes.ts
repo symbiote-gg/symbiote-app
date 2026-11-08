@@ -127,6 +127,16 @@ export type HeroDetail = {
     losses: number;
     takedowns: number;
     deaths: number;
+    kills: number;
+    assists: number;
+    heroDamage: number;
+    siegeDamage: number;
+    healing: number;
+    selfHealing: number;
+    damageTaken: number;
+    xp: number;
+    globes: number | null;
+    camps: number | null;
     avgKills: number | null;
     avgDeaths: number | null;
     avgAssists: number | null;
@@ -148,6 +158,7 @@ export type HeroDetail = {
     avgDuration: number | null;
     /** Seconds across every game. */
     totalDuration: number;
+    totalTimeDeadSecs: number;
     lastPlayed: string | null;
     awards: AwardCount[];
     maps: MapRecord[];

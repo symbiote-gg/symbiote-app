@@ -1,17 +1,64 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex min-w-0 items-center justify-between gap-4 border-b border-divider px-4 py-3 last:border-b-0;
+    @apply flex min-w-0;
+}
+
+.row {
+    @apply items-center justify-between gap-4 border-b border-divider px-4 py-3 last:border-b-0;
+}
+
+.panel {
+    @apply flex-col gap-2 rounded-lg border border-line bg-surface-2/40 px-3.5 py-3;
+}
+
+.head {
+    @apply flex min-w-0 shrink-0 items-center gap-2.5;
+}
+
+.badge {
+    @apply flex size-6 shrink-0 items-center justify-center rounded-md border;
+    border-color: color-mix(
+        in oklab,
+        var(--card-icon, currentColor) 40%,
+        transparent
+    );
+    background: color-mix(
+        in oklab,
+        var(--card-icon, currentColor) 12%,
+        transparent
+    );
+    color: var(--card-icon, currentColor);
+}
+
+.badge svg {
+    @apply size-3.5;
 }
 
 .label {
-    @apply shrink-0;
+    @apply truncate;
 }
 
 .root .value {
-    @apply text-xl leading-none font-bold;
+    @apply leading-none font-bold;
+}
+
+.row .value {
+    @apply text-xl;
+}
+
+.panel .value {
+    @apply mt-auto text-2xl font-semibold;
+}
+
+.panel .detail {
+    @apply -mt-0.5;
 }
 
 .root .mvp {
     @apply text-mvp;
+}
+
+.root .loss {
+    @apply text-loss;
 }

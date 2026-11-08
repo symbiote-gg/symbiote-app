@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import type { ReactNode } from "react";
 
 import { useFormatStat } from "@/hooks/useFormatStat";
 
@@ -25,11 +26,18 @@ export interface WinRateProps {
     rate: number | null;
     /** False greys the rate out, for samples too small to grade. */
     judged?: boolean;
+    /** Follows the rate in its color, like a "wins" label. */
+    suffix?: ReactNode;
     className?: string;
 }
 
 /** Colors a win rate by grade and inherits everything else from its parent. */
-export function WinRate({ rate, judged = true, className }: WinRateProps) {
+export function WinRate({
+    rate,
+    judged = true,
+    suffix,
+    className,
+}: WinRateProps) {
     const { winPercent } = useFormatStat();
 
     const grade = rate === null ? "unjudged" : winRateGrade(rate, judged);
@@ -37,6 +45,7 @@ export function WinRate({ rate, judged = true, className }: WinRateProps) {
     return (
         <span className={classNames(className, styles[grade])}>
             {winPercent(rate)}
+            {suffix}
         </span>
     );
 }

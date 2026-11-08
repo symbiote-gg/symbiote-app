@@ -17,7 +17,7 @@ use crate::types::replay::{
 };
 
 /// Score screen stats kept per player; the parser emits ~130, mostly unused or zero.
-const SCORE_KEYS: [&str; 15] = [
+const SCORE_KEYS: [&str; 17] = [
     "SoloKill",
     "Deaths",
     "Assists",
@@ -33,6 +33,8 @@ const SCORE_KEYS: [&str; 15] = [
     "TimeRootingEnemyHeroes",
     "TimeSilencingEnemyHeroes",
     "ProtectionGivenToAllies",
+    "RegenGlobes",
+    "MercCampCaptures",
 ];
 
 /// Talent tiers in a game. The parser numbers picks in order, so any extra pick would

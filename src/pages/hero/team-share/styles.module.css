@@ -1,0 +1,29 @@
+@reference "@/index.css";
+
+.body {
+    @apply @container flex flex-1 flex-col px-gutter pb-6;
+}
+
+.groups {
+    @apply grid gap-5 @3xl:grid-cols-2;
+}
+
+.group {
+    @apply flex flex-col gap-2;
+}
+
+.rows {
+    @apply flex flex-col gap-3;
+}
+
+.row {
+    @apply grid grid-cols-[minmax(7rem,1fr)_minmax(0,16rem)_2.5rem] items-center gap-3;
+}
+
+.row .meter {
+    @apply w-full;
+}
+
+.share {
+    @apply justify-self-end;
+}

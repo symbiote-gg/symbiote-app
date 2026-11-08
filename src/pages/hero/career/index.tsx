@@ -1,4 +1,5 @@
 import { Clapperboard } from "lucide-react";
+import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
 import { useLocation } from "wouter";
 
@@ -9,22 +10,31 @@ import {
     NO_FILTERS as NO_REPLAY_FILTERS,
     openReplaysOn,
 } from "@/pages/replays/filters/state";
-import { Button, Chip, Typography } from "@/ui";
+import { Button, Chip, Typography, WinRate } from "@/ui";
+import { isJudged, winRate } from "@/utils/hero-stats";
 import { ROLE_ICONS } from "@/utils/role-icons";
-import { Facts } from "./facts";
-import { Totals } from "./totals";
+import { Tiles } from "./tiles";
+import { TimePanel } from "./time-panel";
 
 import styles from "./styles.module.css";
 
-export interface HeaderProps {
+const win = (chunks: ReactNode) => <span className={styles.win}>{chunks}</span>;
+
+const loss = (chunks: ReactNode) => (
+    <span className={styles.loss}>{chunks}</span>
+);
+
+export interface CareerProps {
     hero: HeroDetail;
 }
 
-export function Header({ hero }: HeaderProps) {
+export function Career({ hero }: CareerProps) {
     const t = useTranslations("hero");
     const roles = useTranslations("roles");
     const [, navigate] = useLocation();
     const [failed, onError] = useImageFallback();
+
+    const rate = winRate(hero.wins, hero.losses);
 
     const onReplays = () => {
         openReplaysOn({ ...NO_REPLAY_FILTERS, heroes: [hero.heroId] });
@@ -58,8 +68,8 @@ export function Header({ hero }: HeaderProps) {
                     {t("replays", { hero: hero.name })}
                 </Button>
             </div>
-            <div className={styles.body}>
-                <div className={styles.identity}>
+            <div className={styles.identity}>
+                <div className={styles.hero}>
                     <HeroPortrait
                         name={hero.name}
                         portrait={hero.portrait}
@@ -81,11 +91,34 @@ export function Header({ hero }: HeaderProps) {
                         <Typography size="xl2" display className={styles.name}>
                             {hero.name}
                         </Typography>
-                        <Facts hero={hero} />
                     </div>
                 </div>
-                {hero.games > 0 && <Totals hero={hero} />}
+                {rate !== null && (
+                    <div className={styles.result}>
+                        <Typography as="p" display className={styles.rate}>
+                            <WinRate
+                                rate={rate}
+                                judged={isJudged(hero.wins, hero.losses)}
+                                suffix={` ${t("career.winsLabel")}`}
+                            />
+                        </Typography>
+                        <Typography as="p" mono className={styles.record}>
+                            {t.rich("career.record", {
+                                wins: hero.wins,
+                                losses: hero.losses,
+                                win,
+                                loss,
+                            })}
+                        </Typography>
+                    </div>
+                )}
             </div>
+            {hero.games > 0 && (
+                <div className={styles.body}>
+                    <TimePanel hero={hero} />
+                    <Tiles hero={hero} className={styles.tiles} />
+                </div>
+            )}
         </header>
     );
 }
