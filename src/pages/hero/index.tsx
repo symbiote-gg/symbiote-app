@@ -7,9 +7,9 @@ import { BackLink, Page } from "@/components";
 import { useHeroDetail } from "@/hooks/useHeroDetail";
 import { EmptyState, ErrorMessage } from "@/ui";
 import { Awards } from "./awards";
-import { BestGame } from "./best-game";
 import { Bests } from "./bests";
 import { GameLength } from "./game-length";
+import { Games } from "./games";
 import { Header } from "./header";
 import { Maps } from "./maps";
 import { PerGame } from "./per-game";
@@ -27,6 +27,8 @@ export function HeroDetail() {
         ? ({ "--hero-accent": hero.accent } as CSSProperties)
         : undefined;
 
+    const games = hero?.bestGame || hero?.lastGame;
+
     return (
         <Page>
             <div className={styles.main} style={accent}>
@@ -43,17 +45,14 @@ export function HeroDetail() {
                     <div className={styles.grid}>
                         <div
                             className={classNames(styles.trend, {
-                                [styles.beside]: hero.bestGame,
+                                [styles.beside]: games,
                             })}
                         >
                             <Trend hero={hero.name} trend={hero.trend} />
                         </div>
-                        {hero.bestGame && (
-                            <div className={styles.bestGame}>
-                                <BestGame
-                                    hero={hero.name}
-                                    game={hero.bestGame}
-                                />
+                        {games && (
+                            <div className={styles.games}>
+                                <Games hero={hero} />
                             </div>
                         )}
                         <div className={styles.perGame}>

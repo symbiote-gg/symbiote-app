@@ -165,13 +165,16 @@
             "title": "Maps",
             "subtitle": "Win rate and games, maps with 10+ games first."
         },
-        "bestGame": {
-            "title": "Best game on {hero}",
-            "kills": "{count, plural, one {# kill} other {# kills}}",
-            "meta": "{map}, {date}, {duration}",
-            "kad": "K/A/D",
-            "heroDamage": "Hero damage",
-            "replay": "Replay"
+        "games": {
+            "bestGame": "Best game",
+            "lastGame": "Last game",
+            "noResult": "No result",
+            "noBestGame": {
+                "headline": "No game yet",
+                "description": "Your game with the most kills on {hero} shows up here"
+            },
+            "meta": "{map}, {date}",
+            "kad": "K/A/D"
         },
         "gameLength": {
             "title": "Game length",

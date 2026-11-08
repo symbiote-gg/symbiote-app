@@ -22,7 +22,7 @@
     @apply xl:col-span-8;
 }
 
-.bestGame {
+.games {
     @apply xl:col-span-4;
 }
 

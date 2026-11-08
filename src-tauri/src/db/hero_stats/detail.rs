@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
 
 use crate::types::hero_stats::{
-    AllyHero, AwardCount, BestGame, GameLength, HeroBest, HeroBests, HeroDetail, HeroInfo,
+    AllyHero, AwardCount, GameLength, HeroBest, HeroBests, HeroDetail, HeroGame, HeroInfo,
     HeroTotals, HeroTrend, MapRecord, TalentRecord, TrendBucket, TrendPoint, WinStreak,
 };
 
@@ -36,6 +36,7 @@ pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option
     let trend = trend(&mut tx, hero_id).await?;
     let bests = bests(&mut tx, hero_id).await?;
     let best_game = best_game(&mut tx, hero_id).await?;
+    let last_game = last_game(&mut tx, hero_id).await?;
     let lengths = lengths(&mut tx, hero_id).await?;
     let ally = ally(&mut tx, hero_id).await?;
     tx.commit().await?;
@@ -49,6 +50,7 @@ pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option
         trend,
         bests,
         best_game,
+        last_game,
         lengths,
         ally,
     }))
@@ -253,8 +255,34 @@ async fn best(
 
 /// Returns the owner's game on `hero_id` with the most kills, with its line. Ties go
 /// to the latest game.
-async fn best_game(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Option<BestGame>> {
+async fn best_game(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Option<HeroGame>> {
     let value = "json_extract(orp.score, '$.SoloKill')";
+    let tail = format!(
+        " WHERE {value} > 0
+         ORDER BY {value} DESC, r.timestamp DESC, r.id DESC
+         LIMIT 1",
+    );
+    hero_game(conn, hero_id, &tail).await
+}
+
+/// Returns the owner's latest game on `hero_id`, with its line.
+async fn last_game(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Option<HeroGame>> {
+    hero_game(
+        conn,
+        hero_id,
+        " ORDER BY r.timestamp DESC, r.id DESC
+         LIMIT 1",
+    )
+    .await
+}
+
+/// Returns the first of the owner's games on `hero_id` picked by `tail`, a `WHERE`
+/// and `ORDER BY` over `r`, `orp` and `m`.
+async fn hero_game(
+    conn: &mut SqliteConnection,
+    hero_id: i64,
+    tail: &str,
+) -> sqlx::Result<Option<HeroGame>> {
     let mut query = hero_games(
         "SELECT r.id AS replay_id, COALESCE(m.name, r.map) AS map, m.loading_screen,
              r.timestamp, r.duration, r.owner_win,
@@ -265,14 +293,13 @@ async fn best_game(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Op
                  AS hero_damage",
         hero_id,
     );
-    query.push(format!(
-        " JOIN replays_players orp
-             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
-         LEFT JOIN maps m ON m.id = r.map
-         WHERE {value} > 0
-         ORDER BY {value} DESC, r.timestamp DESC, r.id DESC
-         LIMIT 1",
-    ));
+    query
+        .push(
+            " JOIN replays_players orp
+                 ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
+             LEFT JOIN maps m ON m.id = r.map",
+        )
+        .push(tail);
     query.build_query_as().fetch_optional(conn).await
 }
 
@@ -533,6 +560,24 @@ mod tests {
         );
     }
 
+    #[tokio::test]
+    async fn finds_the_last_game_line() {
+        let pool = pool().await;
+        let wizard = insert_games(&pool).await;
+        let mut e = hero_game("e", 500, Mode::QuickMatch, "cursed_hollow", "Wizard", false);
+        e.replay_players[0].score = json!({"SoloKill": 1, "Deaths": 5, "Assists": 3});
+        insert_bundle(&pool, e).await.unwrap();
+        let e = replay_id(&pool, "e").await;
+
+        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
+        let game = detail.last_game.unwrap();
+        assert_eq!(game.replay_id, e);
+        assert_eq!(game.map, "cursed_hollow");
+        assert_eq!(game.owner_win, Some(false));
+        assert_eq!((game.kills, game.deaths, game.assists), (1, 5, 3));
+        assert_ne!(detail.best_game.unwrap().replay_id, e);
+    }
+
     async fn wizard_id(pool: &SqlitePool) -> i64 {
         sqlx::query_scalar("SELECT id FROM heroes WHERE slug = 'Wizard'")
             .fetch_one(pool)
@@ -720,7 +765,8 @@ mod tests {
         assert!(detail.maps.is_empty());
         assert!(detail.trend.points.is_empty());
         assert!(detail.bests.hero_damage.is_none() && detail.bests.fastest_win.is_none());
-        assert!(detail.best_game.is_none() && detail.ally.is_none());
+        assert!(detail.best_game.is_none() && detail.last_game.is_none());
+        assert!(detail.ally.is_none());
         assert!(detail.lengths.iter().all(|length| length.games == 0));
 
         assert!(hero_detail(&pool, wizard + 100).await.unwrap().is_none());

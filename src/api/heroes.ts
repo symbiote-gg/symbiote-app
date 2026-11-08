@@ -75,7 +75,7 @@ export type HeroBest = {
     timestamp: string;
 };
 
-export type BestGame = {
+export type HeroGame = {
     replayId: number;
     map: string;
     loadingScreen: string | null;
@@ -151,7 +151,8 @@ export type HeroDetail = {
     talents: TalentRecord[];
     trend: HeroTrend;
     bests: HeroBests;
-    bestGame: BestGame | null;
+    bestGame: HeroGame | null;
+    lastGame: HeroGame | null;
     lengths: GameLength[];
     ally: AllyHero | null;
 };

@@ -69,23 +69,40 @@ export function usePlayedDay() {
     };
 }
 
+export function usePlayedDayTime() {
+    const dayAtTime = useDayAtTime();
+
+    return (timestamp: string) =>
+        dayAtTime(timestamp, !dayjs(timestamp).isSame(dayjs(), "year"));
+}
+
 export function usePlayedOn() {
+    const dayAtTime = useDayAtTime();
+
+    return (timestamp: string) => dayAtTime(timestamp, true);
+}
+
+function useDayAtTime() {
     const format = useFormatter();
     const t = useTranslations("dates");
     const locale = useLocale();
     const timeZone = useTimeZone();
-    const dayFormat = useMemo(
-        () =>
-            new Intl.DateTimeFormat(locale, {
+    const formats = useMemo(
+        () => ({
+            day: new Intl.DateTimeFormat(locale, { ...DATE_FORMAT, timeZone }),
+            year: new Intl.DateTimeFormat(locale, {
                 ...FULL_DATE_FORMAT,
                 timeZone,
             }),
+        }),
         [locale, timeZone],
     );
 
-    return (timestamp: string) => {
+    return (timestamp: string, withYear: boolean) => {
         const date = new Date(timestamp);
-        const day = dayFormat
+
+        // Intl puts a comma before the year, which reads oddly before "at".
+        const day = (withYear ? formats.year : formats.day)
             .formatToParts(date)
             .map((part) =>
                 part.type === "literal"

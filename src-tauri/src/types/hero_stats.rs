@@ -144,10 +144,10 @@ pub struct HeroBest {
     pub timestamp: DateTime<Utc>,
 }
 
-/// The owner's game on a hero with the most kills.
+/// One of the owner's games on a hero, with its line.
 #[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BestGame {
+pub struct HeroGame {
     pub replay_id: i64,
     /// The map's name.
     pub map: String,
@@ -213,7 +213,8 @@ pub struct HeroDetail {
     pub talents: Vec<TalentRecord>,
     pub trend: HeroTrend,
     pub bests: HeroBests,
-    pub best_game: Option<BestGame>,
+    pub best_game: Option<HeroGame>,
+    pub last_game: Option<HeroGame>,
     /// Shortest first, every length whether played or not.
     pub lengths: Vec<GameLength>,
     pub ally: Option<AllyHero>,

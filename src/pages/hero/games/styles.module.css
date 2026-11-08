@@ -1,0 +1,96 @@
+@reference "@/index.css";
+
+.games {
+    @apply flex flex-col gap-6 *:flex-1;
+}
+
+@property --game-bg {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+}
+
+.link,
+.placeholder {
+    --game-bg: var(--color-surface);
+    @apply flex flex-col *:flex-1;
+}
+
+.link {
+    transition-property: --game-bg;
+    transition-duration: var(--default-transition-duration);
+    transition-timing-function: var(--default-transition-timing-function);
+}
+
+.link:hover {
+    --game-bg: var(--color-row-hover);
+}
+
+.link .root,
+.placeholder .root {
+    @apply relative isolate justify-between gap-6 py-6;
+    background-color: var(--game-bg);
+}
+
+.art {
+    @apply absolute inset-0 -z-10 size-full object-cover opacity-75;
+}
+
+.shade {
+    @apply absolute inset-0 -z-10;
+    background:
+        linear-gradient(
+            to top,
+            var(--game-bg),
+            color-mix(in oklab, var(--game-bg) 60%, transparent) 40%,
+            transparent 80%
+        ),
+        linear-gradient(
+            to right,
+            color-mix(in oklab, var(--game-bg) 55%, transparent),
+            transparent 60%
+        );
+}
+
+.top {
+    @apply flex min-w-0 items-center gap-2 px-gutter;
+    text-shadow: 0 1px 8px color-mix(in oklab, var(--color-bg) 80%, transparent);
+}
+
+.top .eyebrow {
+    @apply inline-flex items-center gap-1.5 text-sm tracking-[0.12em] text-accent;
+}
+
+.eyebrow svg {
+    @apply size-4;
+}
+
+.bottom {
+    @apply flex flex-wrap items-end justify-between gap-4 px-gutter;
+}
+
+.body {
+    @apply flex flex-col gap-2;
+    text-shadow: 0 1px 8px color-mix(in oklab, var(--color-bg) 80%, transparent);
+}
+
+.body .headline {
+    @apply text-6xl leading-none font-extrabold uppercase;
+    font-stretch: 75%;
+}
+
+.body .win {
+    @apply text-win;
+}
+
+.body .loss {
+    @apply text-loss;
+}
+
+.stats {
+    @apply flex overflow-hidden rounded-lg border border-line bg-scrim;
+}
+
+.stats > div {
+    @apply px-4 py-3;
+}
