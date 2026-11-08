@@ -61,6 +61,9 @@ export function HeroDetail() {
                         <div className={styles.perGame}>
                             <PerGame hero={hero} />
                         </div>
+                        <div className={styles.maps}>
+                            <Maps maps={hero.maps} />
+                        </div>
                         <div className={styles.gameLength}>
                             <GameLength lengths={hero.lengths} />
                         </div>
@@ -69,9 +72,6 @@ export function HeroDetail() {
                         </div>
                         <div className={styles.bests}>
                             <Bests hero={hero.name} bests={hero.bests} />
-                        </div>
-                        <div className={styles.maps}>
-                            <Maps maps={hero.maps} />
                         </div>
                     </div>
                 )}

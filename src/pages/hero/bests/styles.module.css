@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .tiles {
-    @apply grid flex-1 auto-rows-fr grid-cols-2 gap-3 px-gutter pt-4 pb-6 md:grid-cols-3;
+    @apply grid flex-1 auto-rows-fr grid-cols-2 gap-3 px-gutter pb-6 md:grid-cols-3 xl:auto-cols-fr xl:grid-flow-col xl:grid-cols-none;
 }
 
 .tile {

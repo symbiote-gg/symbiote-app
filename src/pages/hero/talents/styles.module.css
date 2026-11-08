@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .body {
-    @apply grid overflow-x-auto px-gutter pt-2 pb-6;
+    @apply grid overflow-x-auto px-gutter pb-6;
 }
 
 .track {

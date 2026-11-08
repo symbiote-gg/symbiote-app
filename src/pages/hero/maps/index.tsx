@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { Map as MapIcon } from "lucide-react";
+import type { CSSProperties } from "react";
 import { useTranslations } from "use-intl";
 
 import type { MapRecord } from "@/api/heroes";
@@ -31,6 +32,13 @@ export function Maps({ maps }: MapsProps) {
         .filter((map) => !map.judged)
         .sort((a, b) => b.games - a.games);
 
+    const rows = [...judged, ...rest];
+
+    // Fills the two wide columns top to bottom, so the order reads down each one.
+    const columns = {
+        "--rows": Math.ceil(rows.length / 2),
+    } as CSSProperties;
+
     return (
         <Card>
             <CardHeader
@@ -39,16 +47,18 @@ export function Maps({ maps }: MapsProps) {
                 title={t("title")}
                 subtitle={t("subtitle")}
             />
-            <ul className={styles.list}>
-                {[...judged, ...rest].map((map) => (
-                    <MapRow
-                        key={map.id}
-                        map={map}
-                        rate={map.rate}
-                        judged={map.judged}
-                    />
-                ))}
-            </ul>
+            <div className={styles.body}>
+                <ul className={styles.list} style={columns}>
+                    {rows.map((map) => (
+                        <MapRow
+                            key={map.id}
+                            map={map}
+                            rate={map.rate}
+                            judged={map.judged}
+                        />
+                    ))}
+                </ul>
+            </div>
         </Card>
     );
 }

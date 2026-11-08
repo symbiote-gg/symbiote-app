@@ -56,7 +56,6 @@ pub struct HeroTotals {
     pub avg_kills: Option<f64>,
     pub avg_deaths: Option<f64>,
     pub avg_assists: Option<f64>,
-    pub avg_takedowns: Option<f64>,
     pub avg_hero_damage: Option<f64>,
     pub avg_siege_damage: Option<f64>,
     pub avg_healing: Option<f64>,
@@ -64,6 +63,14 @@ pub struct HeroTotals {
     pub avg_damage_taken: Option<f64>,
     pub avg_xp: Option<f64>,
     pub avg_time_dead_secs: Option<f64>,
+    /// The owner's average share of their team's kills, from 0 to 1.
+    pub kill_participation: Option<f64>,
+    /// The owner's average share of their team's total, from 0 to 1, for each stat.
+    pub share_hero_damage: Option<f64>,
+    pub share_siege_damage: Option<f64>,
+    pub share_damage_taken: Option<f64>,
+    pub share_healing: Option<f64>,
+    pub share_xp: Option<f64>,
     pub avg_duration: Option<f64>,
     /// Seconds across every game.
     pub total_duration: i64,

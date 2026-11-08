@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .body {
-    @apply flex flex-1 flex-col gap-5 px-gutter pt-4 pb-6;
+    @apply flex flex-1 flex-col gap-5 px-gutter pb-6;
 }
 
 .rows {

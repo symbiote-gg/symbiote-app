@@ -69,30 +69,55 @@ fn hero_games<'args>(select: &str, hero_id: i64) -> QueryBuilder<'args, Sqlite> 
 
 async fn totals(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroTotals> {
     let mut query = hero_games(
-        "SELECT COUNT(*) AS games,
-             COALESCE(SUM(r.owner_win = 1), 0) AS wins,
-             COALESCE(SUM(r.owner_win = 0), 0) AS losses,
-             COALESCE(SUM(json_extract(orp.score, '$.Takedowns')), 0) AS takedowns,
-             COALESCE(SUM(json_extract(orp.score, '$.Deaths')), 0) AS deaths,
-             AVG(json_extract(orp.score, '$.SoloKill')) AS avg_kills,
-             AVG(json_extract(orp.score, '$.Deaths')) AS avg_deaths,
-             AVG(json_extract(orp.score, '$.Assists')) AS avg_assists,
-             AVG(json_extract(orp.score, '$.Takedowns')) AS avg_takedowns,
-             AVG(json_extract(orp.score, '$.HeroDamage')) AS avg_hero_damage,
-             AVG(json_extract(orp.score, '$.SiegeDamage')) AS avg_siege_damage,
-             AVG(json_extract(orp.score, '$.Healing')) AS avg_healing,
-             AVG(json_extract(orp.score, '$.SelfHealing')) AS avg_self_healing,
-             AVG(json_extract(orp.score, '$.DamageTaken')) AS avg_damage_taken,
-             AVG(json_extract(orp.score, '$.ExperienceContribution')) AS avg_xp,
-             AVG(orp.time_dead_secs) AS avg_time_dead_secs,
-             AVG(r.duration) AS avg_duration,
-             COALESCE(SUM(r.duration), 0) AS total_duration,
-             MAX(r.timestamp) AS last_played",
+        "WITH games AS (
+             SELECT r.owner_win, r.duration, r.timestamp, orp.score, orp.time_dead_secs,
+                 SUM(json_extract(tp.score, '$.SoloKill')) AS team_kills,
+                 SUM(json_extract(tp.score, '$.HeroDamage')) AS team_hero_damage,
+                 SUM(json_extract(tp.score, '$.SiegeDamage')) AS team_siege_damage,
+                 SUM(json_extract(tp.score, '$.DamageTaken')) AS team_damage_taken,
+                 SUM(json_extract(tp.score, '$.Healing')) AS team_healing,
+                 SUM(json_extract(tp.score, '$.ExperienceContribution')) AS team_xp",
         hero_id,
     );
+    // Shares average each game's share, so a zero team total drops that game out. Team
+    // kills sum the scoreboard's SoloKill: tracker kills miss Leoric's killer and enemy
+    // Deaths only counts full wipes.
     query.push(
         " JOIN replays_players orp
-             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id",
+             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
+         JOIN replays_players tp ON tp.replay_id = r.id AND tp.team = orp.team
+         GROUP BY r.id)
+         SELECT COUNT(*) AS games,
+             COALESCE(SUM(owner_win = 1), 0) AS wins,
+             COALESCE(SUM(owner_win = 0), 0) AS losses,
+             COALESCE(SUM(json_extract(score, '$.Takedowns')), 0) AS takedowns,
+             COALESCE(SUM(json_extract(score, '$.Deaths')), 0) AS deaths,
+             AVG(json_extract(score, '$.SoloKill')) AS avg_kills,
+             AVG(json_extract(score, '$.Deaths')) AS avg_deaths,
+             AVG(json_extract(score, '$.Assists')) AS avg_assists,
+             AVG(json_extract(score, '$.HeroDamage')) AS avg_hero_damage,
+             AVG(json_extract(score, '$.SiegeDamage')) AS avg_siege_damage,
+             AVG(json_extract(score, '$.Healing')) AS avg_healing,
+             AVG(json_extract(score, '$.SelfHealing')) AS avg_self_healing,
+             AVG(json_extract(score, '$.DamageTaken')) AS avg_damage_taken,
+             AVG(json_extract(score, '$.ExperienceContribution')) AS avg_xp,
+             AVG(time_dead_secs) AS avg_time_dead_secs,
+             AVG(MIN(1.0, json_extract(score, '$.Takedowns') * 1.0 / NULLIF(team_kills, 0)))
+                 AS kill_participation,
+             AVG(json_extract(score, '$.HeroDamage') * 1.0 / NULLIF(team_hero_damage, 0))
+                 AS share_hero_damage,
+             AVG(json_extract(score, '$.SiegeDamage') * 1.0 / NULLIF(team_siege_damage, 0))
+                 AS share_siege_damage,
+             AVG(json_extract(score, '$.DamageTaken') * 1.0 / NULLIF(team_damage_taken, 0))
+                 AS share_damage_taken,
+             AVG(json_extract(score, '$.Healing') * 1.0 / NULLIF(team_healing, 0))
+                 AS share_healing,
+             AVG(json_extract(score, '$.ExperienceContribution') * 1.0 / NULLIF(team_xp, 0))
+                 AS share_xp,
+             AVG(duration) AS avg_duration,
+             COALESCE(SUM(duration), 0) AS total_duration,
+             MAX(timestamp) AS last_played
+         FROM games",
     );
     query.build_query_as().fetch_one(conn).await
 }
@@ -520,6 +545,47 @@ mod tests {
                 (3, "nova", 0, 0, 0),
             ]
         );
+    }
+
+    #[tokio::test]
+    async fn shares_the_owners_team_totals() {
+        let pool = pool().await;
+
+        let mut a = hero_game("a", 200, Mode::QuickMatch, "cursed_hollow", "Wizard", true);
+        a.replay_players[0].score = json!({
+            "SoloKill": 2, "Takedowns": 6, "HeroDamage": 1000, "Healing": 0,
+            "ExperienceContribution": 500,
+        });
+        with_player(&mut a, "ally", 0, "Knight");
+        a.replay_players[1].score = json!({
+            "SoloKill": 2, "HeroDamage": 3000, "Healing": 0, "ExperienceContribution": 1500,
+        });
+        with_player(&mut a, "enemy", 1, "Rogue");
+        a.replay_players[2].score = json!({
+            "SoloKill": 10, "HeroDamage": 9000, "Healing": 5000, "ExperienceContribution": 9000,
+        });
+
+        let mut b = hero_game("b", 100, Mode::QuickMatch, "cursed_hollow", "Wizard", false);
+        b.replay_players[0].score = json!({"SoloKill": 1, "Takedowns": 2, "HeroDamage": 1000});
+        with_player(&mut b, "ally", 0, "Knight");
+        b.replay_players[1].score = json!({"SoloKill": 3, "HeroDamage": 1000});
+
+        for game in [a, b] {
+            insert_bundle(&pool, game).await.unwrap();
+        }
+        let wizard = sqlx::query_scalar("SELECT id FROM heroes WHERE slug = 'Wizard'")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+
+        let totals = hero_detail(&pool, wizard).await.unwrap().unwrap().totals;
+
+        // Game a's 6 takedowns over 4 team kills cap at 1, game b's are 2 of 4.
+        assert_eq!(totals.kill_participation, Some(0.75));
+        assert_eq!(totals.share_hero_damage, Some(0.375));
+        assert_eq!(totals.share_xp, Some(0.25));
+        assert_eq!(totals.share_healing, None);
+        assert_eq!(totals.share_siege_damage, None);
     }
 
     async fn replay_id(pool: &SqlitePool, name: &str) -> i64 {

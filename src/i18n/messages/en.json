@@ -122,7 +122,7 @@
         },
         "perGame": {
             "title": "Per game",
-            "subtitle": "Your averages per game on {hero}.",
+            "subtitle": "Your averages per game on {hero}, and your share of your team's total.",
             "kills": "Kills",
             "deaths": "Deaths",
             "assists": "Assists",
@@ -133,7 +133,20 @@
             "damageTaken": "Damage taken",
             "xp": "Experience",
             "timeDead": "Time dead",
-            "takedowns": "Takedowns"
+            "killParticipation": "Kill participation",
+            "group": {
+                "damage": "Damage",
+                "sustain": "Sustain",
+                "team": "Team"
+            },
+            "shareHint": {
+                "heroDamage": "{share} of your team's hero damage",
+                "siegeDamage": "{share} of your team's siege damage",
+                "damageTaken": "{share} of your team's damage taken",
+                "healing": "{share} of your team's healing",
+                "xp": "{share} of your team's experience",
+                "timeDead": "{share} of an average {duration} game"
+            }
         },
         "awards": {
             "title": "Awards",

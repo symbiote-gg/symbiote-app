@@ -130,7 +130,6 @@ export type HeroDetail = {
     avgKills: number | null;
     avgDeaths: number | null;
     avgAssists: number | null;
-    avgTakedowns: number | null;
     avgHeroDamage: number | null;
     avgSiegeDamage: number | null;
     avgHealing: number | null;
@@ -138,6 +137,14 @@ export type HeroDetail = {
     avgDamageTaken: number | null;
     avgXp: number | null;
     avgTimeDeadSecs: number | null;
+    /** The owner's average share of their team's kills, from 0 to 1. */
+    killParticipation: number | null;
+    /** The owner's average share of their team's total, from 0 to 1, for each stat. */
+    shareHeroDamage: number | null;
+    shareSiegeDamage: number | null;
+    shareDamageTaken: number | null;
+    shareHealing: number | null;
+    shareXp: number | null;
     avgDuration: number | null;
     /** Seconds across every game. */
     totalDuration: number;
