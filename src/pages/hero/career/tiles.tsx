@@ -104,24 +104,20 @@ export function Tiles({ hero, className }: TilesProps) {
                 value={total(hero.xp)}
                 detail={perGame(hero.avgXp)}
             />
-            {hero.globes !== null && (
-                <StatTile
-                    variant="panel"
-                    icon={CircleDot}
-                    label={t("globes")}
-                    value={format.number(hero.globes)}
-                    detail={perGame(hero.globes / hero.games)}
-                />
-            )}
-            {hero.camps !== null && (
-                <StatTile
-                    variant="panel"
-                    icon={Tent}
-                    label={t("camps")}
-                    value={format.number(hero.camps)}
-                    detail={perGame(hero.camps / hero.games)}
-                />
-            )}
+            <StatTile
+                variant="panel"
+                icon={CircleDot}
+                label={t("globes")}
+                value={format.number(hero.globes)}
+                detail={perGame(hero.globes / hero.games)}
+            />
+            <StatTile
+                variant="panel"
+                icon={Tent}
+                label={t("camps")}
+                value={format.number(hero.camps)}
+                detail={perGame(hero.camps / hero.games)}
+            />
         </div>
     );
 }

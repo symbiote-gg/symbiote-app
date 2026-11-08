@@ -99,7 +99,7 @@ export function Career({ hero }: CareerProps) {
                             <WinRate
                                 rate={rate}
                                 judged={isJudged(hero.wins, hero.losses)}
-                                suffix={` ${t("career.winsLabel")}`}
+                                suffix={t("career.winsSuffix")}
                             />
                         </Typography>
                         <Typography as="p" mono className={styles.record}>

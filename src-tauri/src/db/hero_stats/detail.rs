@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
 
 use crate::types::hero_stats::{
-    AllyHero, AwardCount, GameLength, HeroBest, HeroBests, HeroDetail, HeroGame, HeroInfo,
+    AwardCount, GameLength, HeroBest, HeroBests, HeroDetail, HeroGame, HeroInfo,
     HeroTotals, MapRecord, TalentRecord, TrendPoint, WinStreak,
 };
 
@@ -38,7 +38,6 @@ pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option
     let best_game = best_game(&mut tx, hero_id).await?;
     let last_game = last_game(&mut tx, hero_id).await?;
     let lengths = lengths(&mut tx, hero_id).await?;
-    let ally = ally(&mut tx, hero_id).await?;
     tx.commit().await?;
 
     Ok(Some(HeroDetail {
@@ -52,7 +51,6 @@ pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option
         best_game,
         last_game,
         lengths,
-        ally,
     }))
 }
 
@@ -100,8 +98,8 @@ async fn totals(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroT
              COALESCE(SUM(json_extract(score, '$.SelfHealing')), 0) AS self_healing,
              COALESCE(SUM(json_extract(score, '$.DamageTaken')), 0) AS damage_taken,
              COALESCE(SUM(json_extract(score, '$.ExperienceContribution')), 0) AS xp,
-             SUM(json_extract(score, '$.RegenGlobes')) AS globes,
-             SUM(json_extract(score, '$.MercCampCaptures')) AS camps,
+             COALESCE(SUM(json_extract(score, '$.RegenGlobes')), 0) AS globes,
+             COALESCE(SUM(json_extract(score, '$.MercCampCaptures')), 0) AS camps,
              AVG(json_extract(score, '$.SoloKill')) AS avg_kills,
              AVG(json_extract(score, '$.Deaths')) AS avg_deaths,
              AVG(json_extract(score, '$.Assists')) AS avg_assists,
@@ -126,8 +124,7 @@ async fn totals(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroT
                  AS share_xp,
              AVG(duration) AS avg_duration,
              COALESCE(SUM(duration), 0) AS total_duration,
-             COALESCE(SUM(time_dead_secs), 0.0) AS total_time_dead_secs,
-             MAX(timestamp) AS last_played
+             COALESCE(SUM(time_dead_secs), 0.0) AS total_time_dead_secs
          FROM games",
     );
     query.build_query_as().fetch_one(conn).await
@@ -384,23 +381,6 @@ async fn lengths(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<
         .collect())
 }
 
-/// Returns the hero most often on the owner's team, ties going to the latest game.
-async fn ally(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Option<AllyHero>> {
-    let mut query = hero_games("SELECT h.id AS hero_id, h.name, COUNT(*) AS games", hero_id);
-    query.push(
-        " JOIN replays_players orp
-             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
-         JOIN replays_players ally
-             ON ally.replay_id = r.id AND ally.team = orp.team
-             AND ally.player_id != r.owner_player_id
-         JOIN heroes h ON h.id = ally.hero_id
-         GROUP BY h.id
-         ORDER BY games DESC, MAX(r.timestamp) DESC, h.name
-         LIMIT 1",
-    );
-    query.build_query_as().fetch_optional(conn).await
-}
-
 async fn win_streak(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Option<WinStreak>> {
     let mut query = hero_games("SELECT r.owner_win, r.timestamp", hero_id);
     query.push(" ORDER BY r.timestamp, r.id");
@@ -524,7 +504,7 @@ mod tests {
             (totals.kills, totals.hero_damage, totals.healing),
             (6, 4000, 0)
         );
-        assert_eq!((totals.globes, totals.camps), (Some(5), None));
+        assert_eq!((totals.globes, totals.camps), (5, 0));
         assert_eq!(totals.total_time_dead_secs, 30.0);
         assert_eq!(
             Some(totals.total_duration as f64),
@@ -547,8 +527,6 @@ mod tests {
             maps,
             [("cursed_hollow", 2, 0, 1), ("braxis_holdout", 1, 1, 0)]
         );
-
-        assert_eq!(totals.last_played, DateTime::from_timestamp(400, 0));
 
         assert_eq!(
             talent_rows(&detail),
@@ -741,28 +719,6 @@ mod tests {
         });
     }
 
-    #[tokio::test]
-    async fn finds_the_most_common_ally_hero() {
-        let pool = pool().await;
-        let mut a = hero_game("a", 100, Mode::QuickMatch, "cursed_hollow", "Wizard", true);
-        with_player(&mut a, "ally", 0, "Uther");
-        with_player(&mut a, "enemy", 1, "Muradin");
-        let mut b = hero_game("b", 200, Mode::QuickMatch, "cursed_hollow", "Wizard", true);
-        with_player(&mut b, "ally", 0, "Tyrande");
-        with_player(&mut b, "enemy", 1, "Muradin");
-        let mut c = hero_game("c", 300, Mode::QuickMatch, "cursed_hollow", "Wizard", true);
-        with_player(&mut c, "ally", 0, "Uther");
-        with_player(&mut c, "enemy", 1, "Muradin");
-        for game in [a, b, c] {
-            insert_bundle(&pool, game).await.unwrap();
-        }
-        let wizard = wizard_id(&pool).await;
-
-        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
-        let ally = detail.ally.unwrap();
-        assert_eq!((ally.name.as_str(), ally.games), ("Uther", 2));
-    }
-
     #[test]
     fn finds_the_latest_longest_win_streak() {
         let at = |timestamp| DateTime::from_timestamp(timestamp, 0).unwrap();
@@ -933,7 +889,6 @@ mod tests {
         assert!(detail.trend.is_empty());
         assert!(detail.bests.hero_damage.is_none() && detail.bests.fastest_win.is_none());
         assert!(detail.best_game.is_none() && detail.last_game.is_none());
-        assert!(detail.ally.is_none());
         assert!(detail.lengths.iter().all(|length| length.games == 0));
 
         assert!(hero_detail(&pool, wizard + 100).await.unwrap().is_none());

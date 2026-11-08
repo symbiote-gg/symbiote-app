@@ -94,12 +94,6 @@ export type GameLength = {
     losses: number;
 };
 
-export type AllyHero = {
-    heroId: number;
-    name: string;
-    games: number;
-};
-
 export type WinStreak = {
     games: number;
     /** When its last game was played. */
@@ -135,8 +129,8 @@ export type HeroDetail = {
     selfHealing: number;
     damageTaken: number;
     xp: number;
-    globes: number | null;
-    camps: number | null;
+    globes: number;
+    camps: number;
     avgKills: number | null;
     avgDeaths: number | null;
     avgAssists: number | null;
@@ -159,7 +153,6 @@ export type HeroDetail = {
     /** Seconds across every game. */
     totalDuration: number;
     totalTimeDeadSecs: number;
-    lastPlayed: string | null;
     awards: AwardCount[];
     maps: MapRecord[];
     talents: TalentRecord[];
@@ -168,7 +161,6 @@ export type HeroDetail = {
     bestGame: HeroGame | null;
     lastGame: HeroGame | null;
     lengths: GameLength[];
-    ally: AllyHero | null;
 };
 
 export const getHeroDetail = (heroId: number) =>

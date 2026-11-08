@@ -92,7 +92,7 @@
         "noGames": "No games on {hero} yet.",
         "replays": "{hero} replays",
         "career": {
-            "winsLabel": "wins",
+            "winsSuffix": " wins",
             "record": "{wins}<win>W</win> {losses}<loss>L</loss>",
             "timePlayed": "Time played",
             "playTime": "{hours}<unit>h</unit> {minutes}<unit>m</unit>",
@@ -132,7 +132,7 @@
         },
         "teamShare": {
             "title": "Team share",
-            "subtitle": "Your average share of your team's totals on {hero}.",
+            "subtitle": "Your average share per game on {hero}.",
             "heroDamage": "Hero damage",
             "siegeDamage": "Siege damage",
             "healing": "Healing",

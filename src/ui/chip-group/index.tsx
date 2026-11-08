@@ -24,7 +24,6 @@ export interface ChipButtonProps {
     icon: ReactNode;
     count?: number;
     pressed: boolean;
-    /** Purple when pressed, for the chip that means you. */
     accent?: "primary";
     disabled?: boolean;
     value?: string;

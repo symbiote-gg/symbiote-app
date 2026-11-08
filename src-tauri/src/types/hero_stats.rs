@@ -61,8 +61,8 @@ pub struct HeroTotals {
     pub self_healing: i64,
     pub damage_taken: i64,
     pub xp: i64,
-    pub globes: Option<i64>,
-    pub camps: Option<i64>,
+    pub globes: i64,
+    pub camps: i64,
     pub avg_kills: Option<f64>,
     pub avg_deaths: Option<f64>,
     pub avg_assists: Option<f64>,
@@ -85,7 +85,6 @@ pub struct HeroTotals {
     /// Seconds across every game.
     pub total_duration: i64,
     pub total_time_dead_secs: f64,
-    pub last_played: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, FromRow, Serialize)]
@@ -178,15 +177,6 @@ pub struct GameLength {
     pub losses: i64,
 }
 
-/// The hero most often on the owner's team in their games on a hero.
-#[derive(Debug, FromRow, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AllyHero {
-    pub hero_id: i64,
-    pub name: String,
-    pub games: i64,
-}
-
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WinStreak {
@@ -224,5 +214,4 @@ pub struct HeroDetail {
     pub last_game: Option<HeroGame>,
     /// Shortest first, every length whether played or not.
     pub lengths: Vec<GameLength>,
-    pub ally: Option<AllyHero>,
 }
