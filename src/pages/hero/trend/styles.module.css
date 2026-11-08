@@ -16,13 +16,8 @@
     @apply relative col-start-2 row-start-1;
 }
 
-.grid,
-.guide {
+.grid {
     @apply absolute inset-x-0 border-t border-line;
-}
-
-.guide {
-    @apply border-dashed border-fg-muted/50;
 }
 
 .line {
@@ -54,16 +49,6 @@
 
 .dot {
     @apply absolute size-2 -translate-1/2 rounded-full bg-accent ring-2 ring-surface;
-}
-
-.best {
-    @apply pointer-events-none absolute leading-none text-accent;
-    transform: translate(-50%, calc(-100% - 0.625rem));
-}
-
-.last {
-    @apply pointer-events-none absolute rounded-md border border-line bg-surface-2 px-2 py-1 leading-none text-fg;
-    transform: translate(calc(-100% + 0.5rem), calc(-100% - 0.625rem));
 }
 
 .games {
@@ -99,10 +84,50 @@
     @apply relative block h-full w-full outline-none;
 }
 
+.popover {
+    @apply p-0;
+}
+
+.panelHeader {
+    @apply flex items-center gap-3 border-b border-line px-3 py-2.5;
+}
+
+.panelChip {
+    @apply ml-auto;
+}
+
+.cells {
+    @apply grid grid-cols-2 divide-x divide-line;
+}
+
+.cell {
+    @apply flex min-w-0 flex-col items-start gap-1 px-3 py-2.5;
+}
+
+.record {
+    @apply inline-flex items-baseline gap-1.5;
+}
+
+.wins {
+    @apply text-win;
+}
+
+.losses {
+    @apply text-loss;
+}
+
+.none {
+    @apply text-fg/80;
+}
+
+.letter {
+    @apply ml-0.5 text-xs;
+}
+
 /* No opacity transition: WebKitGTK hides the page's overlay scrollbar while one runs, so
    sweeping across columns made it flicker. */
 .crosshair::after {
-    @apply absolute inset-y-0 left-1/2 w-px bg-fg/30 opacity-0 content-[''];
+    @apply absolute inset-y-0 left-1/2 w-0 border-l border-dashed border-fg-muted/50 opacity-0 content-[''];
 }
 
 .hit:hover .crosshair::after,

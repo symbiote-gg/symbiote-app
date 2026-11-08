@@ -17,7 +17,7 @@ export interface GameLengthProps {
 
 export function GameLength({ lengths }: GameLengthProps) {
     const t = useTranslations("hero.gameLength");
-    const { percent } = useFormatStat();
+    const { winPercent } = useFormatStat();
 
     const rows = lengths.map((length) => ({
         ...length,
@@ -83,7 +83,7 @@ export function GameLength({ lengths }: GameLengthProps) {
                         className={styles.note}
                     >
                         {t.rich(`best.${span(best)}`, {
-                            rate: percent(best.rate),
+                            rate: winPercent(best.rate),
                             from: best.from,
                             to: best.to ?? 0,
                             b: strong,

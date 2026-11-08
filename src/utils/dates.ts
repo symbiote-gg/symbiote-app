@@ -47,6 +47,14 @@ export function usePlayedAt() {
 }
 
 export function usePlayedDay() {
+    return useDayLabel(MONTH_FORMAT);
+}
+
+export function usePlayedDate() {
+    return useDayLabel(FULL_DATE_FORMAT);
+}
+
+function useDayLabel(otherYear: typeof MONTH_FORMAT | typeof FULL_DATE_FORMAT) {
     const format = useFormatter();
     const t = useTranslations("dates");
 
@@ -64,7 +72,7 @@ export function usePlayedDay() {
 
         return format.dateTime(
             date.toDate(),
-            date.isSame(now, "year") ? DATE_FORMAT : MONTH_FORMAT,
+            date.isSame(now, "year") ? DATE_FORMAT : otherYear,
         );
     };
 }

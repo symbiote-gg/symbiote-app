@@ -27,6 +27,15 @@ export function useFormatStat() {
                   maximumFractionDigits: 0,
               });
 
+    const winPercent = (value: Value) =>
+        value == null
+            ? "-"
+            : format.number(value, {
+                  style: "percent",
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+              });
+
     const kda = (value: Value) =>
         value == null
             ? "-"
@@ -35,5 +44,5 @@ export function useFormatStat() {
                   maximumFractionDigits: 1,
               });
 
-    return { compact, percent, kda };
+    return { compact, percent, winPercent, kda };
 }

@@ -108,15 +108,17 @@
         },
         "trend": {
             "title": "Win rate over time",
-            "byMonth": "Monthly win rate on {hero}, bars are games played.",
-            "byWeek": "Weekly win rate on {hero}, bars are games played.",
-            "week": "Week of {date}",
+            "subtitle": "Your career win rate on {hero} after each day, over games played per day.",
             "games": "{count, plural, one {# game} other {# games}}",
             "noGames": "No games",
             "record": "{wins}-{losses}",
-            "winRate": "{rate} win rate",
-            "best": "Best {bucket} {rate}",
-            "noLine": "Not enough games in a {bucket, select, week {week} other {month}} to draw a line yet."
+            "career": "{rate} career win rate",
+            "restDay": "Rest day",
+            "thisDay": "This day",
+            "careerLabel": "Career",
+            "winLetter": "W",
+            "lossLetter": "D",
+            "noLine": "No games with a result to draw a line yet."
         },
         "perGame": {
             "title": "Per game",

@@ -106,30 +106,17 @@ pub struct TalentRecord {
     pub losses: i64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum TrendBucket {
-    Week,
-    Month,
-}
-
 #[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TrendPoint {
-    /// The bucket's first day, as `YYYY-MM-DD` in local time.
-    pub start: String,
+    /// The day, as `YYYY-MM-DD` in local time.
+    pub day: String,
     pub games: i64,
     pub wins: i64,
     pub losses: i64,
-}
-
-/// The owner's results on a hero per bucket, oldest first. Buckets without games are
-/// left out.
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct HeroTrend {
-    pub bucket: TrendBucket,
-    pub points: Vec<TrendPoint>,
+    /// Win rate over all decided career games as of this day, or `None` on a day
+    /// without a decided game.
+    pub rate: Option<f64>,
 }
 
 /// The owner's game on a hero with the best value of a stat.
@@ -211,7 +198,9 @@ pub struct HeroDetail {
     pub awards: Vec<AwardCount>,
     pub maps: Vec<MapRecord>,
     pub talents: Vec<TalentRecord>,
-    pub trend: HeroTrend,
+    /// The owner's days with games on the hero, oldest first, over the 90 days ending
+    /// on the day of the last game. Days without games are left out.
+    pub trend: Vec<TrendPoint>,
     pub bests: HeroBests,
     pub best_game: Option<HeroGame>,
     pub last_game: Option<HeroGame>,

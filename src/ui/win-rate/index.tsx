@@ -30,13 +30,13 @@ export interface WinRateProps {
 
 /** Colors a win rate by grade and inherits everything else from its parent. */
 export function WinRate({ rate, judged = true, className }: WinRateProps) {
-    const { percent } = useFormatStat();
+    const { winPercent } = useFormatStat();
 
     const grade = rate === null ? "unjudged" : winRateGrade(rate, judged);
 
     return (
         <span className={classNames(className, styles[grade])}>
-            {percent(rate)}
+            {winPercent(rate)}
         </span>
     );
 }

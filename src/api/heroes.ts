@@ -53,17 +53,13 @@ export type TalentRecord = {
 };
 
 export type TrendPoint = {
-    /** The bucket's first day, as `YYYY-MM-DD` in local time. */
-    start: string;
+    /** The day, as `YYYY-MM-DD` in local time. */
+    day: string;
     games: number;
     wins: number;
     losses: number;
-};
-
-export type HeroTrend = {
-    bucket: "week" | "month";
-    /** Oldest first, without the buckets that have no games. */
-    points: TrendPoint[];
+    /** Win rate over all decided career games as of this day, or `null` on a day without a decided game. */
+    rate: number | null;
 };
 
 export type HeroBest = {
@@ -149,7 +145,7 @@ export type HeroDetail = {
     awards: AwardCount[];
     maps: MapRecord[];
     talents: TalentRecord[];
-    trend: HeroTrend;
+    trend: TrendPoint[];
     bests: HeroBests;
     bestGame: HeroGame | null;
     lastGame: HeroGame | null;

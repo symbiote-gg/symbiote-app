@@ -2,17 +2,19 @@ import { TrendingUp } from "lucide-react";
 import { useId } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
-import type { HeroTrend } from "@/api/heroes";
+import type { TrendPoint } from "@/api/heroes";
 import { useFormatStat } from "@/hooks/useFormatStat";
-import { Card, CardHeader, Tooltip, Typography } from "@/ui";
-import { isJudged, isRated, winRate } from "@/utils/hero-stats";
 import {
-    type Bucket,
-    type Point,
-    curve,
-    fillBuckets,
-    rateDomain,
-} from "./buckets";
+    Card,
+    CardHeader,
+    Chip,
+    Eyebrow,
+    Tooltip,
+    Typography,
+    WinRate,
+} from "@/ui";
+import { usePlayedDate } from "@/utils/dates";
+import { type Day, type Point, curve, fillDays, rateDomain } from "./days";
 
 import styles from "./styles.module.css";
 
@@ -20,106 +22,56 @@ const MAX_LABELS = 12;
 
 export interface TrendProps {
     hero: string;
-    trend: HeroTrend;
+    trend: TrendPoint[];
 }
 
 export function Trend({ hero, trend }: TrendProps) {
     const t = useTranslations("hero.trend");
     const format = useFormatter();
-    const { percent } = useFormatStat();
+    const { percent, winPercent } = useFormatStat();
     const gradient = useId();
 
-    const buckets = fillBuckets(trend);
-    const count = buckets.length;
-    const maxGames = Math.max(1, ...buckets.map((bucket) => bucket.games));
+    const days = fillDays(trend);
+    const count = days.length;
+    const maxGames = Math.max(1, ...days.map((day) => day.games));
     const labelEvery = Math.ceil(count / MAX_LABELS);
 
-    // Buckets with too few games swing too much to draw, but still show their
-    // bar and their rate in the tooltip.
-    const rates = buckets.map((bucket) =>
-        isRated(bucket.wins, bucket.losses)
-            ? winRate(bucket.wins, bucket.losses)
-            : null,
-    );
+    const rates = days.map((day) => day.rate);
     const domain = rateDomain(rates.filter((rate) => rate !== null));
 
     const x = (index: number) => ((index + 0.5) / count) * 100;
     const y = (rate: number) =>
         ((domain.high - rate) / (domain.high - domain.low)) * 100;
 
-    const segments: Point[][] = [[]];
-    rates.forEach((rate, index) => {
-        if (rate === null) segments.push([]);
-        else segments[segments.length - 1].push({ x: x(index), y: y(rate) });
-    });
-    const lines = segments.filter((segment) => segment.length > 1);
-
-    // A rated bucket between unrated ones has no line to sit on, so it gets a dot.
-    const isolated = rates.flatMap((rate, index) =>
-        rate !== null &&
-        (rates[index - 1] ?? null) === null &&
-        (rates[index + 1] ?? null) === null
-            ? [index]
-            : [],
+    // The career rate carries across days without games, so one line connects
+    // every rated day.
+    const line: Point[] = rates.flatMap((rate, index) =>
+        rate === null ? [] : [{ x: x(index), y: y(rate) }],
     );
 
-    const lastIndex = rates.reduce<number>(
-        (last, rate, index) => (rate === null ? last : index),
-        -1,
-    );
-    const lastRate = lastIndex >= 0 ? rates[lastIndex] : null;
+    const dayName = (day: Day) =>
+        format.dateTime(day.day.toDate(), {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
 
-    const bestIndex = buckets.reduce<number>((best, bucket, index) => {
-        const rate = rates[index];
-        if (rate === null || !isJudged(bucket.wins, bucket.losses)) return best;
-        return best < 0 || rate > (rates[best] ?? 0) ? index : best;
-    }, -1);
-    const bestRate = bestIndex >= 0 ? rates[bestIndex] : null;
-    const dots = [...new Set([bestIndex, lastIndex, ...isolated])];
+    const axisLabel = (day: Day) =>
+        format.dateTime(day.day.toDate(), { month: "short", day: "numeric" });
 
-    const bucketName = (bucket: Bucket) =>
-        trend.bucket === "week"
-            ? t("week", {
-                  date: format.dateTime(bucket.start.toDate(), {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                  }),
-              })
-            : format.dateTime(bucket.start.toDate(), {
-                  month: "long",
-                  year: "numeric",
-              });
-
-    const shortName = (bucket: Bucket) =>
-        format.dateTime(
-            bucket.start.toDate(),
-            trend.bucket === "week"
-                ? { month: "short", day: "numeric" }
-                : { month: "short" },
-        );
-
-    const axisLabel = (bucket: Bucket, index: number) =>
-        trend.bucket === "month" && (index === 0 || bucket.start.month() === 0)
-            ? format.dateTime(bucket.start.toDate(), {
-                  month: "short",
-                  year: "numeric",
-              })
-            : shortName(bucket);
-
-    const summary = (bucket: Bucket) => {
-        const rate = winRate(bucket.wins, bucket.losses);
-
-        return bucket.games === 0
+    const summary = (day: Day) =>
+        day.games === 0
             ? t("noGames")
             : [
-                  t("games", { count: bucket.games }),
-                  t("record", { wins: bucket.wins, losses: bucket.losses }),
-                  rate === null ? null : t("winRate", { rate: percent(rate) }),
+                  t("games", { count: day.games }),
+                  t("record", { wins: day.wins, losses: day.losses }),
+                  day.rate === null
+                      ? null
+                      : t("career", { rate: winPercent(day.rate) }),
               ]
                   .filter(Boolean)
                   .join(", ");
-    };
 
     return (
         <Card>
@@ -127,9 +79,7 @@ export function Trend({ hero, trend }: TrendProps) {
                 size="sm"
                 icon={TrendingUp}
                 title={t("title")}
-                subtitle={t(trend.bucket === "week" ? "byWeek" : "byMonth", {
-                    hero,
-                })}
+                subtitle={t("subtitle", { hero })}
             />
             <div className={styles.body}>
                 <div className={styles.ticks}>
@@ -151,9 +101,7 @@ export function Trend({ hero, trend }: TrendProps) {
                     {domain.ticks.map((tick) => (
                         <span
                             key={tick}
-                            className={
-                                tick === 0.5 ? styles.guide : styles.grid
-                            }
+                            className={styles.grid}
                             style={{ top: `${y(tick)}%` }}
                         />
                     ))}
@@ -178,98 +126,45 @@ export function Trend({ hero, trend }: TrendProps) {
                                 />
                             </linearGradient>
                         </defs>
-                        {lines.map((segment, index) => (
+                        {line.length > 1 && (
                             <path
-                                key={index}
-                                d={area(segment)}
+                                d={area(line)}
                                 fill={`url(#${gradient})`}
                                 className={styles.area}
                             />
-                        ))}
-                        {lines.map((segment, index) => (
-                            <path
-                                key={index}
-                                d={curve(segment)}
-                                className={styles.stroke}
-                            />
-                        ))}
+                        )}
+                        {line.length > 1 && (
+                            <path d={curve(line)} className={styles.stroke} />
+                        )}
                     </svg>
-                    {dots.map((index) => {
-                        const rate = index >= 0 ? rates[index] : null;
-                        return (
-                            rate !== null && (
-                                <span
-                                    key={index}
-                                    className={styles.dot}
-                                    style={{
-                                        left: `${x(index)}%`,
-                                        top: `${y(rate)}%`,
-                                    }}
-                                />
-                            )
-                        );
-                    })}
-                    {bestRate !== null && bestIndex !== lastIndex && (
-                        <Typography
-                            as="span"
-                            size="xs"
-                            weight="semibold"
-                            mono
-                            noWrap
-                            className={styles.best}
+                    {line.length === 1 && (
+                        <span
+                            className={styles.dot}
                             style={{
-                                left: `${x(bestIndex)}%`,
-                                top: `${y(bestRate)}%`,
+                                left: `${line[0].x}%`,
+                                top: `${line[0].y}%`,
                             }}
-                        >
-                            {t("best", {
-                                bucket: shortName(buckets[bestIndex]),
-                                rate: percent(bestRate),
-                            })}
-                        </Typography>
+                        />
                     )}
-                    {lastIndex < 0 && (
+                    {line.length === 0 && (
                         <Typography
                             as="p"
                             size="sm"
                             variant="tertiary"
                             className={styles.empty}
                         >
-                            {t("noLine", { bucket: trend.bucket })}
-                        </Typography>
-                    )}
-                    {lastRate !== null && (
-                        <Typography
-                            as="span"
-                            size="xs"
-                            mono
-                            noWrap
-                            className={styles.last}
-                            style={{
-                                left: `${x(lastIndex)}%`,
-                                top: `${y(lastRate)}%`,
-                            }}
-                        >
-                            {lastIndex === bestIndex
-                                ? t("best", {
-                                      bucket: shortName(buckets[lastIndex]),
-                                      rate: percent(lastRate),
-                                  })
-                                : `${shortName(buckets[lastIndex])} ${percent(lastRate)}`}
+                            {t("noLine")}
                         </Typography>
                     )}
                 </div>
                 <div className={styles.games}>
-                    {buckets.map((bucket) => (
-                        <span
-                            key={bucket.start.valueOf()}
-                            className={styles.slot}
-                        >
-                            {bucket.games > 0 && (
+                    {days.map((day) => (
+                        <span key={day.day.valueOf()} className={styles.slot}>
+                            {day.games > 0 && (
                                 <span
                                     className={styles.bar}
                                     style={{
-                                        height: `${(bucket.games / maxGames) * 100}%`,
+                                        height: `${(day.games / maxGames) * 100}%`,
                                     }}
                                 />
                             )}
@@ -277,11 +172,8 @@ export function Trend({ hero, trend }: TrendProps) {
                     ))}
                 </div>
                 <div className={styles.labels}>
-                    {buckets.map((bucket, index) => (
-                        <span
-                            key={bucket.start.valueOf()}
-                            className={styles.label}
-                        >
+                    {days.map((day, index) => (
+                        <span key={day.day.valueOf()} className={styles.label}>
                             {index % labelEvery === 0 && (
                                 <Typography
                                     as="span"
@@ -290,23 +182,24 @@ export function Trend({ hero, trend }: TrendProps) {
                                     mono
                                     noWrap
                                 >
-                                    {axisLabel(bucket, index)}
+                                    {axisLabel(day)}
                                 </Typography>
                             )}
                         </span>
                     ))}
                 </div>
                 <div className={styles.hits}>
-                    {buckets.map((bucket) => (
+                    {days.map((day) => (
                         <Tooltip
-                            key={bucket.start.valueOf()}
-                            content={bucketName(bucket)}
-                            description={summary(bucket)}
+                            key={day.day.valueOf()}
+                            content={<DayPanel day={day} />}
+                            compact={false}
                             className={styles.hit}
+                            panelClassName={styles.popover}
                         >
                             <span
                                 tabIndex={0}
-                                aria-label={`${bucketName(bucket)}: ${summary(bucket)}`}
+                                aria-label={`${dayName(day)}: ${summary(day)}`}
                                 className={styles.crosshair}
                             />
                         </Tooltip>
@@ -317,7 +210,68 @@ export function Trend({ hero, trend }: TrendProps) {
     );
 }
 
-/** The closed shape between a line and the bottom of the plot. */
+function DayPanel({ day }: { day: Day }) {
+    const t = useTranslations("hero.trend");
+    const playedDate = usePlayedDate();
+
+    const rest = day.games === 0;
+
+    return (
+        <>
+            <div className={styles.panelHeader}>
+                <Typography size="base" weight="semibold" noWrap>
+                    {playedDate(day.day.format("YYYY-MM-DD"))}
+                </Typography>
+                <Chip
+                    size="sm"
+                    tone={rest ? "neutral" : "primary"}
+                    uppercase
+                    className={styles.panelChip}
+                >
+                    {rest ? t("restDay") : t("games", { count: day.games })}
+                </Chip>
+            </div>
+            <div className={styles.cells}>
+                <div className={styles.cell}>
+                    <Eyebrow as="span">{t("thisDay")}</Eyebrow>
+                    <Typography
+                        as="span"
+                        size="lg"
+                        weight="semibold"
+                        mono
+                        className={styles.record}
+                    >
+                        <span
+                            className={day.wins > 0 ? styles.wins : styles.none}
+                        >
+                            {day.wins}
+                            <span className={styles.letter}>
+                                {t("winLetter")}
+                            </span>
+                        </span>
+                        <span
+                            className={
+                                day.losses > 0 ? styles.losses : styles.none
+                            }
+                        >
+                            {day.losses}
+                            <span className={styles.letter}>
+                                {t("lossLetter")}
+                            </span>
+                        </span>
+                    </Typography>
+                </div>
+                <div className={styles.cell}>
+                    <Eyebrow as="span">{t("careerLabel")}</Eyebrow>
+                    <Typography as="span" size="lg" weight="semibold" mono>
+                        <WinRate rate={day.carried} />
+                    </Typography>
+                </div>
+            </div>
+        </>
+    );
+}
+
 function area(points: Point[]) {
     const first = points[0];
     const last = points[points.length - 1];

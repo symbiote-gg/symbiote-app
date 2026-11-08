@@ -3,11 +3,11 @@ use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
 
 use crate::types::hero_stats::{
     AllyHero, AwardCount, GameLength, HeroBest, HeroBests, HeroDetail, HeroGame, HeroInfo,
-    HeroTotals, HeroTrend, MapRecord, TalentRecord, TrendBucket, TrendPoint, WinStreak,
+    HeroTotals, MapRecord, TalentRecord, TrendPoint, WinStreak,
 };
 
-/// Games spread over less than this many seconds are bucketed by week, not month.
-const WEEKLY_SPAN: i64 = 13 * 7 * 24 * 60 * 60;
+/// The trend covers this many days, ending on the day of the hero's last game.
+const TREND_DAYS: i64 = 90;
 
 /// Shorter win streaks aren't worth calling a best.
 const MIN_WIN_STREAK: i64 = 2;
@@ -158,34 +158,42 @@ async fn talents(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<
     query.build_query_as().fetch_all(conn).await
 }
 
-async fn trend(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroTrend> {
-    let (first, last): (Option<i64>, Option<i64>) =
-        hero_games("SELECT MIN(r.timestamp), MAX(r.timestamp)", hero_id)
-            .build_query_as()
-            .fetch_one(&mut *conn)
-            .await?;
-    let bucket = match first.zip(last) {
-        Some((first, last)) if last - first < WEEKLY_SPAN => TrendBucket::Week,
-        _ => TrendBucket::Month,
-    };
-    let start = match bucket {
-        TrendBucket::Week => "date(r.timestamp, 'unixepoch', 'localtime', '-6 days', 'weekday 1')",
-        TrendBucket::Month => "strftime('%Y-%m-01', r.timestamp, 'unixepoch', 'localtime')",
-    };
-
+async fn trend(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<TrendPoint>> {
     let mut query = hero_games(
-        &format!(
-            "SELECT {start} AS start,
-                 COUNT(*) AS games,
-                 COALESCE(SUM(r.owner_win = 1), 0) AS wins,
-                 COALESCE(SUM(r.owner_win = 0), 0) AS losses"
-        ),
+        "WITH games AS (
+             SELECT r.id, r.timestamp, r.owner_win,
+                 date(r.timestamp, 'unixepoch', 'localtime') AS day",
         hero_id,
     );
-    query.push(" GROUP BY start ORDER BY start");
-    let points: Vec<TrendPoint> = query.build_query_as().fetch_all(conn).await?;
-
-    Ok(HeroTrend { bucket, points })
+    // The day cutoff filters the output only: `rates` is unfiltered, so games before
+    // the cutoff still feed the career rate.
+    query.push(format!(
+        "),
+         days AS (
+             SELECT day, COUNT(*) AS games,
+                 COALESCE(SUM(owner_win = 1), 0) AS wins,
+                 COALESCE(SUM(owner_win = 0), 0) AS losses
+             FROM games
+             WHERE day >= (SELECT date(MAX(timestamp), 'unixepoch', 'localtime',
+                 '-{back} days') FROM games)
+             GROUP BY day),
+         rates AS (
+             SELECT day, rate,
+                 ROW_NUMBER() OVER (PARTITION BY day ORDER BY timestamp DESC, id DESC)
+                     AS newest
+             FROM (
+                 SELECT day, timestamp, id,
+                     AVG(owner_win) OVER (ORDER BY timestamp, id
+                         ROWS UNBOUNDED PRECEDING) AS rate
+                 FROM games
+                 WHERE owner_win IS NOT NULL))
+         SELECT d.day, d.games, d.wins, d.losses, rt.rate
+         FROM days d
+         LEFT JOIN rates rt ON rt.day = d.day AND rt.newest = 1
+         ORDER BY d.day",
+        back = TREND_DAYS - 1,
+    ));
+    query.build_query_as().fetch_all(conn).await
 }
 
 /// What a best ranks the games by, among those meeting `condition`.
@@ -692,59 +700,136 @@ mod tests {
         assert!(longest_streak(&results[3..5]).is_none());
     }
 
-    fn trend_rows(detail: &HeroDetail) -> Vec<(&str, i64, i64, i64)> {
+    fn trend_rows(detail: &HeroDetail) -> Vec<(&str, i64, i64, i64, Option<f64>)> {
         detail
             .trend
-            .points
             .iter()
-            .map(|p| (p.start.as_str(), p.games, p.wins, p.losses))
+            .map(|p| (p.day.as_str(), p.games, p.wins, p.losses, p.rate))
             .collect()
     }
 
+    fn local_day(timestamp: i64) -> String {
+        DateTime::from_timestamp(timestamp, 0)
+            .unwrap()
+            .with_timezone(&chrono::Local)
+            .format("%Y-%m-%d")
+            .to_string()
+    }
+
+    /// More than a day plus any DST shift, so games land on distinct local days.
+    const DAY_APART: i64 = 100_000;
+
     #[tokio::test]
-    async fn buckets_games_close_together_by_week() {
+    async fn accumulates_the_rate_over_career_games() {
         let pool = pool().await;
-        let wizard = insert_games(&pool).await;
+        let start = 1_700_000_000;
+        let loss = hero_game(
+            "a",
+            start,
+            Mode::QuickMatch,
+            "cursed_hollow",
+            "Wizard",
+            false,
+        );
+        insert_bundle(&pool, loss).await.unwrap();
+        for n in 1..=10 {
+            let win = hero_game(
+                &format!("w{n}"),
+                start + n * DAY_APART,
+                Mode::QuickMatch,
+                "cursed_hollow",
+                "Wizard",
+                true,
+            );
+            insert_bundle(&pool, win).await.unwrap();
+        }
+        let wizard = wizard_id(&pool).await;
 
         let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
-        assert_eq!(detail.trend.bucket, TrendBucket::Week);
-        assert_eq!(detail.trend.points.len(), 1);
+        let rows = trend_rows(&detail);
+        assert_eq!(rows.len(), 11);
+        assert_eq!(rows[0], (local_day(start).as_str(), 1, 0, 1, Some(0.0)));
+        assert_eq!(rows[9].4, Some(9.0 / 10.0));
+        assert_eq!(rows[10].4, Some(10.0 / 11.0));
+    }
+
+    #[tokio::test]
+    async fn counts_undecided_games_without_rating_them() {
+        let pool = pool().await;
+        let start = 1_700_000_000;
+        let win = hero_game(
+            "a",
+            start,
+            Mode::QuickMatch,
+            "cursed_hollow",
+            "Wizard",
+            true,
+        );
+        let mut undecided = hero_game(
+            "b",
+            start + 60,
+            Mode::QuickMatch,
+            "cursed_hollow",
+            "Wizard",
+            true,
+        );
+        undecided.replay.owner_win = None;
+        let loss = hero_game(
+            "c",
+            start + 120,
+            Mode::QuickMatch,
+            "cursed_hollow",
+            "Wizard",
+            false,
+        );
+        let mut alone = hero_game(
+            "d",
+            start + DAY_APART,
+            Mode::QuickMatch,
+            "cursed_hollow",
+            "Wizard",
+            true,
+        );
+        alone.replay.owner_win = None;
+        for game in [win, undecided, loss, alone] {
+            insert_bundle(&pool, game).await.unwrap();
+        }
+        let wizard = wizard_id(&pool).await;
+
+        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
         assert_eq!(
-            (detail.trend.points[0].games, detail.trend.points[0].wins),
-            (3, 1)
+            trend_rows(&detail),
+            [
+                (local_day(start).as_str(), 3, 1, 1, Some(0.5)),
+                (local_day(start + DAY_APART).as_str(), 1, 0, 0, None),
+            ]
         );
     }
 
     #[tokio::test]
-    async fn buckets_games_spread_out_by_month() {
+    async fn limits_the_trend_to_the_last_ninety_days() {
         let pool = pool().await;
-        // Mid-month, so no time zone moves them to another month.
-        let games = [
-            ("a", 1_700_000_000, true),
-            ("b", 1_700_100_000, false),
-            ("c", 1_710_000_000, true),
-        ];
-        for (name, timestamp, win) in games {
-            let game = hero_game(
-                name,
-                timestamp,
-                Mode::QuickMatch,
-                "cursed_hollow",
-                "Wizard",
-                win,
-            );
-            insert_bundle(&pool, game).await.unwrap();
-        }
-        let wizard = sqlx::query_scalar("SELECT id FROM heroes WHERE slug = 'Wizard'")
-            .fetch_one(&pool)
-            .await
-            .unwrap();
+        let start = 1_700_000_000;
+        let late = start + 100 * 24 * 60 * 60;
+        let loss = hero_game(
+            "a",
+            start,
+            Mode::QuickMatch,
+            "cursed_hollow",
+            "Wizard",
+            false,
+        );
+        let win = hero_game("b", late, Mode::QuickMatch, "cursed_hollow", "Wizard", true);
+        insert_bundle(&pool, loss).await.unwrap();
+        insert_bundle(&pool, win).await.unwrap();
+        let wizard = wizard_id(&pool).await;
 
+        // The old loss is before the cutoff, so it has no point, but it still
+        // feeds the career rate.
         let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
-        assert_eq!(detail.trend.bucket, TrendBucket::Month);
         assert_eq!(
             trend_rows(&detail),
-            [("2023-11-01", 2, 1, 1), ("2024-03-01", 1, 1, 0)]
+            [(local_day(late).as_str(), 1, 1, 0, Some(0.5))]
         );
     }
 
@@ -763,7 +848,7 @@ mod tests {
         assert_eq!(detail.totals.games, 0);
         assert_eq!(detail.totals.avg_kills, None);
         assert!(detail.maps.is_empty());
-        assert!(detail.trend.points.is_empty());
+        assert!(detail.trend.is_empty());
         assert!(detail.bests.hero_damage.is_none() && detail.bests.fastest_win.is_none());
         assert!(detail.best_game.is_none() && detail.last_game.is_none());
         assert!(detail.ally.is_none());
