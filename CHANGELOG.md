@@ -10,6 +10,11 @@ and this project adheres to
 
 ### Added
 
+- Add hero page with career stats, win rate over time, best and last game,
+  talent pick and win rates, team share, maps, game length, awards and personal
+  bests.
+- Add heroes page listing the played heroes with their games, win rate, KDA and
+  averages, with mode, date, role and name filters and sorting.
 - Add team levels to fight popovers.
 - Add xp by source on replay detail overview.
 - Add multikill, killstreak and vengeance to standouts.
