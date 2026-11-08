@@ -3,8 +3,8 @@ import { useTranslations } from "use-intl";
 
 import { GameIcon, TalentTooltip } from "@/components";
 import { useFormatStat } from "@/hooks/useFormatStat";
-import { Eyebrow, Meter, Typography, WinRate } from "@/ui";
-import { RARE_PICK, type Tier, type TierTalent, formatPickRate } from "./tiers";
+import { Meter, Typography, WinRate } from "@/ui";
+import { type Tier, type TierTalent, formatPickRate } from "./tiers";
 
 import styles from "./styles.module.css";
 
@@ -13,8 +13,6 @@ export interface TierColumnProps {
 }
 
 export function TierColumn({ tier }: TierColumnProps) {
-    const t = useTranslations("hero.talents");
-
     return (
         <li className={styles.tier}>
             <div className={styles.head}>
@@ -28,7 +26,6 @@ export function TierColumn({ tier }: TierColumnProps) {
                         {tier.level}
                     </Typography>
                 </span>
-                <Eyebrow as="span">{t("level", { level: tier.level })}</Eyebrow>
             </div>
 
             <ul className={styles.talents}>
@@ -53,11 +50,7 @@ function TalentTile({ entry }: TalentTileProps) {
     const games = t("games", { games: talent.picks });
 
     return (
-        <li
-            className={classNames(styles.talent, {
-                [styles.rare]: entry.pickRate < RARE_PICK,
-            })}
-        >
+        <li className={styles.talent}>
             <TalentTooltip talent={talent} level={entry.level}>
                 <span
                     className={classNames(styles.tile, {

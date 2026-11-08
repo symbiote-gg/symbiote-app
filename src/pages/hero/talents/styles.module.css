@@ -12,11 +12,11 @@
 }
 
 .track::before {
-    @apply pointer-events-none absolute -z-10 h-0.5 bg-linear-to-r from-mvp/70 to-mvp/30;
+    @apply pointer-events-none absolute -z-10 h-0.75 bg-linear-to-r from-accent/70 to-accent/30;
     inset-inline: calc(
         (100% - (var(--tiers) - 1) * var(--gap)) / var(--tiers) / 2
     );
-    top: calc(var(--badge) / 2 - 1px);
+    top: calc(var(--badge) / 2 - 1.5px);
     content: "";
 }
 
@@ -33,12 +33,12 @@
 }
 
 .badge .level {
-    @apply text-mvp;
+    @apply text-accent;
 }
 
 /* The ring cuts the line short of the diamond. */
 .badge::before {
-    @apply absolute inset-2 -z-10 rotate-45 rounded-md border-2 border-mvp/70 bg-surface ring-6 ring-surface;
+    @apply absolute inset-2 -z-10 rotate-45 rounded-md border-3 border-accent/70 bg-surface ring-6 ring-surface;
     content: "";
 }
 
@@ -48,10 +48,6 @@
 
 .talent {
     @apply grid;
-}
-
-.rare {
-    @apply sparse;
 }
 
 .tile {
@@ -67,7 +63,7 @@
 }
 
 .tile .icon {
-    @apply size-11 shrink-0 rounded-full;
+    @apply size-11 shrink-0 ring-2 ring-fg-muted/60;
 }
 
 .tile.top .icon {

@@ -145,7 +145,6 @@
         "talents": {
             "title": "Talents",
             "subtitle": "Gold marks your most picked talent at each level. Win rates show from {games} games.",
-            "level": "Level {level}",
             "pick": "pick",
             "win": "win",
             "games": "{games, plural, one {# game} other {# games}}"

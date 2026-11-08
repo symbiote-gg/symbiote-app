@@ -55,6 +55,9 @@ export function HeroDetail() {
                                 <Games hero={hero} />
                             </div>
                         )}
+                        <div className={styles.talents}>
+                            <Talents talents={hero.talents} />
+                        </div>
                         <div className={styles.perGame}>
                             <PerGame hero={hero} />
                         </div>
@@ -63,9 +66,6 @@ export function HeroDetail() {
                         </div>
                         <div className={styles.awards}>
                             <Awards awards={hero.awards} games={hero.games} />
-                        </div>
-                        <div className={styles.talents}>
-                            <Talents talents={hero.talents} />
                         </div>
                         <div className={styles.bests}>
                             <Bests hero={hero.name} bests={hero.bests} />

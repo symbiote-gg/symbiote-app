@@ -2,8 +2,6 @@ import type { TalentRecord } from "@/api/heroes";
 import { isJudged, winRate } from "@/utils/hero-stats";
 import { TIER_LEVELS } from "@/utils/talents";
 
-export const RARE_PICK = 0.05;
-
 /** Picked, but too rarely for a whole percent. */
 const TRACE_PICK = 0.005;
 
