@@ -19,7 +19,9 @@ export function Difference({ ally, enemy, leader, formatXp }: DifferenceProps) {
     return (
         <span className={styles.root}>
             {leader === null ? (
-                <Chip size="sm">{t("even")}</Chip>
+                <Chip size="sm" uppercase>
+                    {t("even")}
+                </Chip>
             ) : (
                 <Chip
                     size="sm"

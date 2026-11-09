@@ -51,7 +51,7 @@
 }
 
 .identity {
-    @apply flex min-w-0 flex-col gap-6 px-gutter pt-6 pb-7 @4xl/career:flex-row @4xl/career:items-end @4xl/career:justify-between;
+    @apply flex min-w-0 flex-col gap-6 px-gutter pt-6 pb-6 @4xl/career:flex-row @4xl/career:items-end @4xl/career:justify-between;
 }
 
 .hero {
@@ -102,7 +102,7 @@
 }
 
 .body {
-    @apply grid gap-4 px-gutter pt-5 pb-gutter @[96rem]/career:grid-cols-[minmax(28rem,2fr)_5fr];
+    @apply grid gap-4 px-gutter pb-gutter @[96rem]/career:grid-cols-[minmax(28rem,2fr)_5fr];
 }
 
 .tiles {

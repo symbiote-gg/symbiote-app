@@ -31,7 +31,7 @@ export function KindChip({ kind, size }: KindChipProps) {
     const t = useTranslations("replay.killLog");
 
     return (
-        <Chip icon={ICONS[kind]} size={size} className={styles.kind}>
+        <Chip icon={ICONS[kind]} size={size} uppercase className={styles.kind}>
             {t("kind", { kind })}
         </Chip>
     );

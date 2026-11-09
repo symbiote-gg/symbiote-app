@@ -5,7 +5,7 @@
 }
 
 .header {
-    @apply flex h-17 shrink-0 select-none items-center gap-6 border-b border-line bg-bg/90 px-6 backdrop-blur lg:px-10;
+    @apply flex h-17 shrink-0 select-none items-center gap-6 border-b border-line bg-bg/90 px-6 backdrop-blur;
 }
 
 .brand {
