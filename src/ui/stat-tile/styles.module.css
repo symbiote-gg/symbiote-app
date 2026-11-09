@@ -9,7 +9,7 @@
 }
 
 .panel {
-    @apply flex-col gap-2 rounded-lg border border-line bg-surface-2/40 px-3.5 py-3;
+    @apply flex-col gap-2 rounded-lg border border-line bg-surface-2/40 p-3;
 }
 
 .head {

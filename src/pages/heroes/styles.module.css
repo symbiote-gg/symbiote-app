@@ -13,7 +13,7 @@
 }
 
 .grid {
-    @apply grid grid-cols-[repeat(auto-fill,minmax(22rem,1fr))] gap-4 px-gutter py-5 transition-opacity;
+    @apply grid grid-cols-[repeat(auto-fill,minmax(22rem,1fr))] gap-3 px-gutter pt-5 pb-6 transition-opacity;
 }
 
 .grid[aria-busy="true"] {

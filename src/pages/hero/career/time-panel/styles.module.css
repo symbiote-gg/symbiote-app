@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .root {
-    @apply @container/time flex min-w-0 flex-col gap-4 rounded-lg border px-5 pt-4.5 pb-5;
+    @apply @container/time flex min-w-0 flex-col gap-4 rounded-lg border p-4;
     border-color: color-mix(in oklab, var(--accent) 45%, var(--color-line));
     background: linear-gradient(
         160deg,

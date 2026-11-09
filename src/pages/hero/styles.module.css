@@ -3,11 +3,11 @@
 .main {
     --accent: var(--hero-accent, var(--color-primary-text));
     --card-icon: var(--accent);
-    @apply flex flex-col gap-6;
+    @apply flex flex-col gap-stack;
 }
 
 .grid {
-    @apply grid grid-cols-12 gap-6;
+    @apply grid grid-cols-12 gap-stack;
 }
 
 .grid > * {

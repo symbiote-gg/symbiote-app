@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex flex-col gap-6 p-6;
+    @apply flex flex-col gap-stack p-6;
 }
 
 .fluid {

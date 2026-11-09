@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .root {
-    @apply relative isolate flex h-41 flex-col justify-end gap-1 overflow-hidden rounded-lg border border-line bg-surface-2 px-4 pb-3.5;
+    @apply relative isolate flex h-41 flex-col justify-end gap-1 overflow-hidden rounded-lg border border-line bg-surface-2 p-4;
     text-shadow: 0 1px 8px color-mix(in oklab, var(--color-bg) 80%, transparent);
 }
 
