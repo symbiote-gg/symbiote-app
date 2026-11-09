@@ -10,7 +10,6 @@ pub struct ProfileSummary {
     pub wins: i64,
     pub losses: i64,
     pub mvps: i64,
-    pub top_damage_games: i64,
     pub main_role: Option<HeroRole>,
     pub recent: Vec<Option<bool>>,
 }

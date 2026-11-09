@@ -28,7 +28,7 @@
             "winRate": "Win rate",
             "mainRole": "Main role",
             "mvps": "MVPs",
-            "topDamage": "Top hero damage on your team in <b>{pct}%</b> of games.",
+            "record": "{wins}<win>W</win> {losses}<loss>L</loss>",
             "empty": "Your stats show up after your first game.",
             "cta": "View profile"
         },

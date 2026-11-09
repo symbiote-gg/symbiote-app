@@ -19,6 +19,7 @@ export interface StatTileProps {
     icon?: LucideIcon;
     /** A line under the value, on `panel` only. */
     detail?: ReactNode;
+    className?: string;
 }
 
 export function StatTile({
@@ -28,11 +29,12 @@ export function StatTile({
     variant = "row",
     icon: Icon,
     detail,
+    className,
 }: StatTileProps) {
     const panel = variant === "panel";
 
     return (
-        <div className={classNames(styles.root, styles[variant])}>
+        <div className={classNames(className, styles.root, styles[variant])}>
             <div className={styles.head}>
                 {panel && Icon && (
                     <span className={styles.badge}>

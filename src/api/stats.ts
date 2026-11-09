@@ -7,7 +7,6 @@ export type ProfileSummary = {
     wins: number;
     losses: number;
     mvps: number;
-    topDamageGames: number;
     mainRole: HeroRole | null;
     recent: (boolean | null)[];
 };
@@ -35,10 +34,8 @@ export type MostPlayedHeroes = {
     heroes: HeroStat[];
 };
 
-export const getProfileSummary = (since: Date) =>
-    invoke<ProfileSummary>("get_profile_summary", {
-        since: Math.floor(since.getTime() / 1000),
-    });
+export const getProfileSummary = () =>
+    invoke<ProfileSummary>("get_profile_summary");
 
 export const getMostPlayedHeroes = (limit: number) =>
     invoke<MostPlayedHeroes>("get_most_played_heroes", { limit });

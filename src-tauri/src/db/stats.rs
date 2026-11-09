@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use sqlx::SqlitePool;
 
 use crate::types::hero::HeroRole;
@@ -8,13 +7,10 @@ use crate::types::stats::{HeroStat, MapStat, MostPlayedHeroes, ProfileSummary};
 /// How many of the latest results [`profile_summary`] returns.
 const RECENT_GAMES: i64 = 20;
 
-/// Sums up the owner's results, counting games played since `since` separately.
+/// Sums up the owner's results.
 ///
 /// All the figures are read from the same snapshot, so they agree with each other.
-pub async fn profile_summary(
-    pool: &SqlitePool,
-    since: DateTime<Utc>,
-) -> sqlx::Result<ProfileSummary> {
+pub async fn profile_summary(pool: &SqlitePool) -> sqlx::Result<ProfileSummary> {
     let mut tx = pool.begin().await?;
     let (games, wins, losses): (i64, i64, i64) = sqlx::query_as(
         "SELECT COUNT(*),
@@ -22,7 +18,6 @@ pub async fn profile_summary(
              COALESCE(SUM(owner_win = 0), 0)
          FROM replays",
     )
-    .bind(since.timestamp())
     .fetch_one(&mut *tx)
     .await?;
 
@@ -32,21 +27,6 @@ pub async fn profile_summary(
          JOIN replays_players_awards a
              ON a.replay_id = r.id AND a.player_id = r.owner_player_id
          WHERE a.award = 'mvp'",
-    )
-    .fetch_one(&mut *tx)
-    .await?;
-
-    let top_damage_games: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*)
-         FROM replays r
-         JOIN replays_players o
-             ON o.replay_id = r.id AND o.player_id = r.owner_player_id
-         WHERE COALESCE(json_extract(o.score, '$.HeroDamage'), 0) > 0
-           AND COALESCE(json_extract(o.score, '$.HeroDamage'), 0) >= (
-               SELECT MAX(COALESCE(json_extract(t.score, '$.HeroDamage'), 0))
-               FROM replays_players t
-               WHERE t.replay_id = r.id AND t.team = o.team
-           )",
     )
     .fetch_one(&mut *tx)
     .await?;
@@ -76,7 +56,6 @@ pub async fn profile_summary(
         wins,
         losses,
         mvps,
-        top_damage_games,
         main_role,
         recent,
     })

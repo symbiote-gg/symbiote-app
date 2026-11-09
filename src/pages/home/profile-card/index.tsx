@@ -1,5 +1,5 @@
-import { UserRound } from "lucide-react";
-import { useMemo } from "react";
+import { Crown, Percent, UserRound } from "lucide-react";
+import { type ReactNode, useMemo } from "react";
 import { useTranslations } from "use-intl";
 
 import { WinStrip } from "@/components";
@@ -14,13 +14,19 @@ import {
     StatTile,
     Typography,
     WinRate,
-    richStrong,
 } from "@/ui";
 import { isJudged, winRate } from "@/utils/hero-stats";
+import { ROLE_ICONS } from "@/utils/role-icons";
 
 import styles from "./styles.module.css";
 
 const RECENT_GAMES = 20;
+
+const win = (chunks: ReactNode) => <span className={styles.win}>{chunks}</span>;
+
+const loss = (chunks: ReactNode) => (
+    <span className={styles.loss}>{chunks}</span>
+);
 
 export function ProfileCard() {
     const t = useTranslations("home.profile");
@@ -34,14 +40,12 @@ export function ProfileCard() {
 
         return {
             recent,
-            recentWins: recent.filter((win) => win === true).length,
-            recentLosses: recent.filter((win) => win === false).length,
+            recentWins: recent.filter((result) => result === true).length,
+            recentLosses: recent.filter((result) => result === false).length,
             rate: winRate(data.wins, data.losses),
             judged: isJudged(data.wins, data.losses),
             mainRole: data.mainRole,
             mvps: data.mvps,
-            topDamageGames: data.topDamageGames,
-            games: data.games,
         };
     }, [data]);
 
@@ -68,8 +72,13 @@ export function ProfileCard() {
                             <Eyebrow>
                                 {t("last", { count: profile.recent.length })}
                             </Eyebrow>
-                            <Typography size="xs" variant="tertiary" mono>
-                                {profile.recentWins}-{profile.recentLosses}
+                            <Typography size="xs" mono>
+                                {t.rich("record", {
+                                    wins: profile.recentWins,
+                                    losses: profile.recentLosses,
+                                    win,
+                                    loss,
+                                })}
                             </Typography>
                         </div>
                         <WinStrip
@@ -79,6 +88,21 @@ export function ProfileCard() {
                     </div>
                     <div className={styles.stats}>
                         <StatTile
+                            variant="panel"
+                            icon={
+                                profile.mainRole
+                                    ? ROLE_ICONS[profile.mainRole]
+                                    : undefined
+                            }
+                            label={t("mainRole")}
+                            value={
+                                profile.mainRole ? roles(profile.mainRole) : "-"
+                            }
+                            className={styles.wide}
+                        />
+                        <StatTile
+                            variant="panel"
+                            icon={Percent}
                             label={t("winRate")}
                             value={
                                 <WinRate
@@ -88,25 +112,13 @@ export function ProfileCard() {
                             }
                         />
                         <StatTile
-                            label={t("mainRole")}
-                            value={
-                                profile.mainRole ? roles(profile.mainRole) : "-"
-                            }
-                        />
-                        <StatTile
+                            variant="panel"
+                            icon={Crown}
                             label={t("mvps")}
                             value={profile.mvps}
                             accent="mvp"
                         />
                     </div>
-                    <Typography size="sm">
-                        {t.rich("topDamage", {
-                            pct: Math.round(
-                                (profile.topDamageGames / profile.games) * 100,
-                            ),
-                            b: richStrong,
-                        })}
-                    </Typography>
                 </div>
             )}
         </Card>

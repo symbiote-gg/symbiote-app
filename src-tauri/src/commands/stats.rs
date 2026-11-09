@@ -1,21 +1,14 @@
-use chrono::DateTime;
 use sqlx::SqlitePool;
 use tauri::State;
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::types::replay::Mode;
 use crate::types::stats::{MapStat, MostPlayedHeroes, ProfileSummary};
 
-/// Sums up the owner's results; `since` is a unix timestamp in seconds from which
-/// games count as new.
+/// Sums up the owner's results.
 #[tauri::command]
-pub async fn get_profile_summary(
-    pool: State<'_, SqlitePool>,
-    since: i64,
-) -> Result<ProfileSummary> {
-    let since = DateTime::from_timestamp(since, 0)
-        .ok_or_else(|| Error::InvalidArgument(format!("since {since}")))?;
-    Ok(crate::db::stats::profile_summary(&pool, since).await?)
+pub async fn get_profile_summary(pool: State<'_, SqlitePool>) -> Result<ProfileSummary> {
+    Ok(crate::db::stats::profile_summary(&pool).await?)
 }
 
 const MAX_MOST_PLAYED_HEROES: i64 = 200;
