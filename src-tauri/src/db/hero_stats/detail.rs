@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
 
 use crate::types::hero_stats::{
-    AwardCount, GameLength, HeroBest, HeroBests, HeroDetail, HeroGame, HeroInfo,
-    HeroTotals, MapRecord, TalentRecord, TrendPoint, WinStreak,
+    AwardCount, GameLength, HeroBest, HeroBests, HeroDetail, HeroGame, HeroInfo, HeroTotals,
+    MapRecord, TalentRecord, TrendPoint, WinStreak,
 };
 
 /// The trend covers this many days, ending on the day of the hero's last game.
