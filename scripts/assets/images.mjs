@@ -18,7 +18,7 @@ export async function downloadImages(
     pin,
     category,
     names,
-    { width, height, lossless = false },
+    { width, height, lossless = false, fallback },
 ) {
     const unique = [...new Set(names.filter(Boolean))];
     const queue = unique.filter((name) => SAFE_NAME.test(name));
@@ -33,9 +33,14 @@ export async function downloadImages(
         for (let name; (name = queue.shift()) !== undefined;) {
             const target = join(dir, webp(name));
             if (!(await exists(target))) {
-                const res = await fetch(
+                let res = await fetch(
                     rawGithub(pin, `heroesimages/${category}/${name}`),
                 );
+                if (!res.ok && fallback) {
+                    res = await fetch(
+                        rawGithub(pin, `heroesimages/${fallback}/${name}`),
+                    );
+                }
                 if (!res.ok) {
                     missing.push(name);
                     continue;

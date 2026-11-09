@@ -52,6 +52,8 @@ const IMAGES = [
         category: "abilitytalents",
         key: "icon",
         size: [64, 64],
+        // A few older talents use hero UI art that heroes-images keeps with the portraits.
+        fallback: "heroportraits",
     },
     { kind: "awards", category: "matchawards", key: "icon", size: [64, 64] },
     {
@@ -121,13 +123,21 @@ async function main() {
 
     const files = {};
     const summary = [];
-    for (const { kind, category, key, size, lossless, variants } of IMAGES) {
+    for (const {
+        kind,
+        category,
+        key,
+        size,
+        lossless,
+        variants,
+        fallback,
+    } of IMAGES) {
         const [width, height] = size;
         const { hashes, missing } = await downloadImages(
             PINS.heroesImages,
             category,
             facts[kind].map((fact) => fact[key]),
-            { width, height, lossless },
+            { width, height, lossless, fallback },
         );
         Object.assign(files, hashes);
 
