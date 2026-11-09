@@ -55,11 +55,7 @@
 }
 
 .tile.top {
-    @apply border-mvp/40;
-    background-image: linear-gradient(
-        color-mix(in oklab, var(--color-mvp) 5%, transparent),
-        color-mix(in oklab, var(--color-mvp) 5%, transparent)
-    );
+    @apply border-mvp/40 bg-linear-150 from-mvp/10 to-transparent to-50%;
 }
 
 .tile .icon {

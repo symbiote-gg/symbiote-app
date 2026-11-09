@@ -52,6 +52,23 @@
         );
 }
 
+.glow {
+    @apply absolute inset-0 -z-10;
+    background: radial-gradient(
+        ellipse 55% 70% at 0% 100%,
+        color-mix(in oklab, var(--tone) 25%, transparent),
+        transparent
+    );
+}
+
+.glow.win {
+    --tone: var(--color-win);
+}
+
+.glow.loss {
+    --tone: var(--color-loss);
+}
+
 .top {
     @apply flex min-w-0 items-center gap-2 px-gutter;
     text-shadow: 0 1px 8px color-mix(in oklab, var(--color-bg) 80%, transparent);

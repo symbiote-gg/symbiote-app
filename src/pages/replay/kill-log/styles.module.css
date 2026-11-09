@@ -49,7 +49,7 @@
 }
 
 .emptyIcon.win {
-    @apply bg-win/15 text-win ring-win/30;
+    @apply bg-win/15 text-win ring-win/40;
 }
 
 .emptyIconGlyph {

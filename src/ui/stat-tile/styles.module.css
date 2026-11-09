@@ -25,7 +25,7 @@
     );
     background: color-mix(
         in oklab,
-        var(--card-icon, currentColor) 12%,
+        var(--card-icon, currentColor) 15%,
         transparent
     );
     color: var(--card-icon, currentColor);

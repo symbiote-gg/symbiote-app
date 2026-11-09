@@ -41,6 +41,9 @@ export function GameCard({ icon: Icon, title, game }: GameCardProps) {
                     />
                 )}
                 <div className={styles.shade} />
+                {result !== "unknown" && (
+                    <div className={classNames(styles.glow, styles[result])} />
+                )}
                 <div className={styles.top}>
                     <Eyebrow className={styles.eyebrow}>
                         <Icon aria-hidden />
