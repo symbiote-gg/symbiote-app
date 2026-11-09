@@ -128,6 +128,7 @@ export function PlayerRow({
                                 category="abilitytalents"
                                 icon={talent.icon}
                                 label={talent.name ?? talent.slug}
+                                framed
                                 className={styles.talent}
                             />
                         </TalentTooltip>

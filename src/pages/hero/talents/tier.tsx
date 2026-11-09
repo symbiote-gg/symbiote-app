@@ -61,6 +61,7 @@ function TalentTile({ entry }: TalentTileProps) {
                         category="abilitytalents"
                         icon={talent.icon}
                         label={name}
+                        framed
                         className={styles.icon}
                     />
 

@@ -10,16 +10,27 @@ export interface GameIconProps {
     category: GameIconCategory;
     icon: string | null;
     label: string;
+    framed?: boolean;
     className?: string;
 }
 
-export function GameIcon({ category, icon, label, className }: GameIconProps) {
+export function GameIcon({
+    category,
+    icon,
+    label,
+    framed,
+    className,
+}: GameIconProps) {
     const [failed, onError] = useImageFallback();
+
+    const rootClass = classNames(className, styles.root, {
+        [styles.framed]: framed,
+    });
 
     if (!icon || failed) {
         return (
             <span
-                className={classNames(className, styles.root, styles.fallback)}
+                className={classNames(rootClass, styles.fallback)}
                 aria-label={label}
             >
                 ?
@@ -31,7 +42,7 @@ export function GameIcon({ category, icon, label, className }: GameIconProps) {
         <img
             src={`/game/${category}/${icon}`}
             alt={label}
-            className={classNames(className, styles.root)}
+            className={rootClass}
             onError={onError}
         />
     );

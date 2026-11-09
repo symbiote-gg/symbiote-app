@@ -89,7 +89,7 @@
 }
 
 .icons {
-    @apply flex items-center gap-1.5 pr-6;
+    @apply flex items-center gap-2 pr-6;
 }
 
 .icons .talent {
@@ -97,7 +97,7 @@
 }
 
 .emptySlot {
-    @apply size-9 shrink-0 rounded-md border border-dashed border-line;
+    @apply size-9 shrink-0 rounded-md outline-2 outline-line outline-dashed;
 }
 
 .number {

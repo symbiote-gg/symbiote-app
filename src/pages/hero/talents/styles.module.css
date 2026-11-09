@@ -63,11 +63,11 @@
 }
 
 .tile .icon {
-    @apply size-11 shrink-0 ring-2 ring-fg-muted/60;
+    @apply size-11 shrink-0;
 }
 
 .tile.top .icon {
-    @apply ring-2 ring-mvp;
+    @apply ring-mvp;
 }
 
 .info {

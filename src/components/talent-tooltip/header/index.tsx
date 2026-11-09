@@ -25,6 +25,7 @@ export function Header({ talent, level, quest }: HeaderProps) {
                 category="abilitytalents"
                 icon={talent.icon}
                 label={name}
+                framed
                 className={styles.icon}
             />
             <div className={styles.headerText}>
