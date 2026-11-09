@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Crown } from "lucide-react";
+import { ShieldUser } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import { HeroPortrait } from "@/components";
@@ -29,7 +29,7 @@ export function HeroesCard() {
     return (
         <Card className={styles.root}>
             <CardHeader
-                icon={Crown}
+                icon={ShieldUser}
                 size="sm"
                 title={t("title")}
                 subtitle={t("played", {

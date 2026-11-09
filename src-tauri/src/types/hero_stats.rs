@@ -144,7 +144,6 @@ pub struct HeroBest {
     pub value: f64,
     /// The map's name.
     pub map: String,
-    pub loading_screen: Option<String>,
     pub timestamp: DateTime<Utc>,
 }
 
@@ -190,9 +189,14 @@ pub struct WinStreak {
 pub struct HeroBests {
     pub hero_damage: Option<HeroBest>,
     pub siege_damage: Option<HeroBest>,
+    pub healing: Option<HeroBest>,
+    pub damage_taken: Option<HeroBest>,
+    pub xp: Option<HeroBest>,
     pub takedowns: Option<HeroBest>,
     /// The shortest win, its length in seconds as the value.
     pub fastest_win: Option<HeroBest>,
+    /// The win with the fewest deaths, zero included.
+    pub fewest_deaths_win: Option<HeroBest>,
     pub win_streak: Option<WinStreak>,
 }
 

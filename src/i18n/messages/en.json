@@ -173,14 +173,18 @@
         },
         "bests": {
             "title": "Personal bests",
-            "subtitle": "Your records on {hero}.",
+            "subtitle": "Your records on {hero}, on the map they happened.",
             "heroDamage": "Most hero damage",
             "siegeDamage": "Most siege damage",
+            "healing": "Most healing",
+            "damageTaken": "Most damage taken",
+            "xp": "Most XP contribution",
+            "fewestDeathsWin": "Fewest deaths in a win",
             "winStreak": "Longest win streak",
-            "inARow": "games in a row",
+            "meta": "{map}, {date}",
+            "streak": "games in a row, until {date}",
             "fastestWin": "Fastest win",
-            "takedowns": "Most takedowns",
-            "replay": "Replay"
+            "takedowns": "Most takedowns"
         },
         "maps": {
             "title": "Maps",

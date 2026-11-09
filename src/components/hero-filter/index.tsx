@@ -1,4 +1,4 @@
-import { Crown } from "lucide-react";
+import { ShieldUser } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { HeroRole } from "@/api/replays";
@@ -52,7 +52,7 @@ export function HeroFilter({ value, roles, onChange }: HeroFilterProps) {
 
     return (
         <Combobox
-            icon={<Crown />}
+            icon={<ShieldUser />}
             label={t("label")}
             valueLabel={valueLabel}
             clearLabel={t("clear")}

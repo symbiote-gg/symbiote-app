@@ -234,6 +234,8 @@ struct BestBy {
     value: &'static str,
     condition: &'static str,
     lowest: bool,
+    /// Whether a value of zero counts, like a deathless game.
+    zero: bool,
 }
 
 const fn highest(value: &'static str) -> BestBy {
@@ -241,30 +243,45 @@ const fn highest(value: &'static str) -> BestBy {
         value,
         condition: "",
         lowest: false,
+        zero: false,
     }
 }
 
 const MOST_HERO_DAMAGE: BestBy = highest("json_extract(orp.score, '$.HeroDamage')");
 const MOST_SIEGE_DAMAGE: BestBy = highest("json_extract(orp.score, '$.SiegeDamage')");
+const MOST_HEALING: BestBy = highest("json_extract(orp.score, '$.Healing')");
+const MOST_DAMAGE_TAKEN: BestBy = highest("json_extract(orp.score, '$.DamageTaken')");
+const MOST_XP: BestBy = highest("json_extract(orp.score, '$.ExperienceContribution')");
 const MOST_TAKEDOWNS: BestBy = highest("json_extract(orp.score, '$.Takedowns')");
 const FASTEST_WIN: BestBy = BestBy {
     value: "r.duration",
     condition: " AND r.owner_win = 1",
     lowest: true,
+    zero: false,
+};
+const FEWEST_DEATHS_WIN: BestBy = BestBy {
+    value: "json_extract(orp.score, '$.Deaths')",
+    condition: " AND r.owner_win = 1",
+    lowest: true,
+    zero: true,
 };
 
 async fn bests(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroBests> {
     Ok(HeroBests {
         hero_damage: best(conn, hero_id, &MOST_HERO_DAMAGE).await?,
         siege_damage: best(conn, hero_id, &MOST_SIEGE_DAMAGE).await?,
+        healing: best(conn, hero_id, &MOST_HEALING).await?,
+        damage_taken: best(conn, hero_id, &MOST_DAMAGE_TAKEN).await?,
+        xp: best(conn, hero_id, &MOST_XP).await?,
         takedowns: best(conn, hero_id, &MOST_TAKEDOWNS).await?,
         fastest_win: best(conn, hero_id, &FASTEST_WIN).await?,
+        fewest_deaths_win: best(conn, hero_id, &FEWEST_DEATHS_WIN).await?,
         win_streak: win_streak(conn, hero_id).await?,
     })
 }
 
-/// Returns the owner's game on `hero_id` with the best positive value.
-/// Ties go to the latest game.
+/// Returns the owner's game on `hero_id` with the best positive value, or the best
+/// non-negative one when zero counts. Ties go to the latest game.
 async fn best(
     conn: &mut SqliteConnection,
     hero_id: i64,
@@ -274,11 +291,12 @@ async fn best(
         value,
         condition,
         lowest,
+        zero,
     } = by;
     let mut query = hero_games(
         &format!(
             "SELECT r.id AS replay_id, CAST({value} AS REAL) AS value,
-                 COALESCE(m.name, r.map) AS map, m.loading_screen, r.timestamp"
+                 COALESCE(m.name, r.map) AS map, r.timestamp"
         ),
         hero_id,
     );
@@ -286,9 +304,10 @@ async fn best(
         " JOIN replays_players orp
              ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
          LEFT JOIN maps m ON m.id = r.map
-         WHERE {value} > 0{condition}
+         WHERE {value} {} 0{condition}
          ORDER BY value {}, r.timestamp DESC, r.id DESC
          LIMIT 1",
+        if *zero { ">=" } else { ">" },
         if *lowest { "ASC" } else { "DESC" },
     ));
     query.build_query_as().fetch_optional(conn).await
@@ -609,6 +628,45 @@ mod tests {
         assert_eq!(best(&bests.siege_damage), None);
         assert_eq!(best(&bests.fastest_win), Some((a, 62.0, "braxis_holdout")));
         assert!(bests.win_streak.is_none());
+    }
+
+    #[tokio::test]
+    async fn finds_the_owners_volume_and_deathless_bests() {
+        let pool = pool().await;
+
+        let mut a = hero_game("a", 300, Mode::QuickMatch, "braxis_holdout", "Wizard", true);
+        a.replay_players[0].score = json!({
+            "Deaths": 1, "Healing": 0, "DamageTaken": 40000, "ExperienceContribution": 9000,
+        });
+        let mut b = hero_game("b", 200, Mode::QuickMatch, "cursed_hollow", "Wizard", true);
+        b.replay_players[0].score = json!({
+            "Deaths": 0, "Healing": 0, "DamageTaken": 20000, "ExperienceContribution": 12000,
+        });
+        // A deathless loss is not a deathless win.
+        let mut c = hero_game("c", 400, Mode::QuickMatch, "cursed_hollow", "Wizard", false);
+        c.replay_players[0].score = json!({"Deaths": 0, "Healing": 0});
+
+        for game in [a, b, c] {
+            insert_bundle(&pool, game).await.unwrap();
+        }
+        let wizard = sqlx::query_scalar("SELECT id FROM heroes WHERE slug = 'Wizard'")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        let a = replay_id(&pool, "a").await;
+        let b = replay_id(&pool, "b").await;
+
+        let bests = hero_detail(&pool, wizard).await.unwrap().unwrap().bests;
+        assert_eq!(
+            best(&bests.fewest_deaths_win),
+            Some((b, 0.0, "cursed_hollow"))
+        );
+        assert_eq!(
+            best(&bests.damage_taken),
+            Some((a, 40000.0, "braxis_holdout"))
+        );
+        assert_eq!(best(&bests.xp), Some((b, 12000.0, "cursed_hollow")));
+        assert_eq!(best(&bests.healing), None);
     }
 
     #[tokio::test]

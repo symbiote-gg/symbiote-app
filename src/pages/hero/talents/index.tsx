@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { GitFork } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useTranslations } from "use-intl";
 
@@ -24,7 +24,7 @@ export function Talents({ talents }: TalentsProps) {
         <Card>
             <CardHeader
                 size="sm"
-                icon={Star}
+                icon={GitFork}
                 title={t("title")}
                 subtitle={t("subtitle", { games: MIN_JUDGED_GAMES })}
             />

@@ -43,6 +43,9 @@ export function HeroDetail() {
                 )}
                 {!!hero?.games && (
                     <div className={styles.grid}>
+                        <div className={styles.bests}>
+                            <Bests hero={hero} />
+                        </div>
                         <div
                             className={classNames(styles.trend, {
                                 [styles.beside]: games,
@@ -69,9 +72,6 @@ export function HeroDetail() {
                         </div>
                         <div className={styles.awards}>
                             <Awards awards={hero.awards} games={hero.games} />
-                        </div>
-                        <div className={styles.bests}>
-                            <Bests hero={hero.name} bests={hero.bests} />
                         </div>
                     </div>
                 )}

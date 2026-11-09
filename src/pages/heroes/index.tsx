@@ -1,4 +1,4 @@
-import { Crown } from "lucide-react";
+import { ShieldUser } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -50,7 +50,7 @@ export function Heroes() {
         <Page fill>
             <Card className={styles.card}>
                 <CardHeader
-                    icon={Crown}
+                    icon={ShieldUser}
                     title={t("title")}
                     subtitle={t("played", {
                         played: data?.heroes.length ?? 0,

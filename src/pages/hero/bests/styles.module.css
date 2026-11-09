@@ -4,41 +4,30 @@
     @apply grid flex-1 auto-rows-fr grid-cols-2 gap-3 px-gutter pb-6 md:grid-cols-3 xl:auto-cols-fr xl:grid-flow-col xl:grid-cols-none;
 }
 
+.item {
+    @apply flex min-w-0 flex-col *:flex-1;
+}
+
 .tile {
-    @apply relative isolate flex h-full min-h-44 min-w-0 flex-col gap-1.5 overflow-hidden rounded-lg border border-line bg-surface-2/40 p-4;
-    text-shadow: 0 1px 8px color-mix(in oklab, var(--color-bg) 80%, transparent);
+    @apply relative isolate flex min-h-32 min-w-0 flex-col justify-between gap-3 overflow-hidden rounded-lg border border-tile-line bg-surface-2 bg-linear-150 from-accent/10 to-transparent to-50% p-4;
 }
 
-/* A best without a map, like the win streak, has no art: an accent wash fills
-   in for it. */
-.tile.plain {
-    @apply bg-linear-150 from-accent/18 to-transparent to-70%;
+.watermark {
+    /* Faded as a whole, as a translucent color would darken where strokes cross,
+       and unrotated so the strokes stay crisp. */
+    @apply absolute -right-4 -bottom-4 -z-10 size-28 text-accent opacity-15;
+    stroke-width: 1.25;
 }
 
-.art {
-    @apply absolute inset-0 -z-10 size-full object-cover opacity-70;
-}
-
-.shade {
-    @apply absolute inset-0 -z-10;
-    background: linear-gradient(
-        to top,
-        var(--color-surface-2),
-        color-mix(in oklab, var(--color-surface-2) 60%, transparent) 50%,
-        color-mix(in oklab, var(--color-surface-2) 30%, transparent)
-    );
+.body {
+    @apply flex min-w-0 flex-col gap-1;
 }
 
 .tile .value {
-    @apply mt-1 text-4xl leading-none font-extrabold;
+    @apply text-3xl leading-none font-extrabold;
     font-stretch: 75%;
 }
 
-.footer {
-    @apply mt-auto flex items-center justify-between gap-3 pt-5;
-}
-
-.footer .replay {
-    @apply bg-scrim-soft;
-    text-shadow: none;
+.link {
+    @apply transition-colors hover:bg-tile-hover;
 }

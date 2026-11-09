@@ -61,8 +61,10 @@
     @apply inline-flex items-center gap-1.5 text-sm tracking-[0.12em] text-accent;
 }
 
+/* About the label's cap height, lifted a pixel so it sits on the caps' baseline
+   instead of reading low beside the uppercase label. */
 .eyebrow svg {
-    @apply size-4;
+    @apply relative -top-px size-3.5;
 }
 
 .bottom {

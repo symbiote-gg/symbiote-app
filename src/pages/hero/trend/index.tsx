@@ -1,4 +1,4 @@
-import { TrendingUp } from "lucide-react";
+import { ChartSpline } from "lucide-react";
 import { useId } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
@@ -84,7 +84,7 @@ export function Trend({ hero, trend }: TrendProps) {
         <Card>
             <CardHeader
                 size="sm"
-                icon={TrendingUp}
+                icon={ChartSpline}
                 title={t("title")}
                 subtitle={t("subtitle", { hero, trend: TREND_DAYS })}
             />

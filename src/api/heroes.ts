@@ -67,7 +67,6 @@ export type HeroBest = {
     value: number;
     /** The map's name. */
     map: string;
-    loadingScreen: string | null;
     timestamp: string;
 };
 
@@ -103,9 +102,14 @@ export type WinStreak = {
 export type HeroBests = {
     heroDamage: HeroBest | null;
     siegeDamage: HeroBest | null;
+    healing: HeroBest | null;
+    damageTaken: HeroBest | null;
+    xp: HeroBest | null;
     takedowns: HeroBest | null;
     /** The shortest win, its length in seconds as the value. */
     fastestWin: HeroBest | null;
+    /** The win with the fewest deaths, zero included. */
+    fewestDeathsWin: HeroBest | null;
     winStreak: WinStreak | null;
 };
 

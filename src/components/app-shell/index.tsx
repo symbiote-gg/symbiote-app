@@ -1,10 +1,10 @@
 import classNames from "classnames";
 import {
     Clapperboard,
-    Crown,
     House,
     Info,
     Settings,
+    ShieldUser,
     UserRound,
 } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
@@ -20,7 +20,7 @@ import styles from "./styles.module.css";
 const NAV = [
     { key: "home", href: "/", Icon: House },
     { key: "replays", href: "/replays", Icon: Clapperboard },
-    { key: "heroes", href: "/heroes", Icon: Crown },
+    { key: "heroes", href: "/heroes", Icon: ShieldUser },
     { key: "profile", href: "/profile", Icon: UserRound },
 ] as const;
 

@@ -1,4 +1,4 @@
-import { History, Trophy } from "lucide-react";
+import { Crown, Rewind } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { HeroDetail } from "@/api/heroes";
@@ -17,13 +17,13 @@ export function Games({ hero }: GamesProps) {
         <div className={styles.games}>
             {hero.bestGame ? (
                 <GameCard
-                    icon={Trophy}
+                    icon={Crown}
                     title={t("bestGame")}
                     game={hero.bestGame}
                 />
             ) : (
                 <GamePlaceholder
-                    icon={Trophy}
+                    icon={Crown}
                     title={t("bestGame")}
                     headline={t("noBestGame.headline")}
                     description={t("noBestGame.description", {
@@ -33,7 +33,7 @@ export function Games({ hero }: GamesProps) {
             )}
             {hero.lastGame && (
                 <GameCard
-                    icon={History}
+                    icon={Rewind}
                     title={t("lastGame")}
                     game={hero.lastGame}
                 />
