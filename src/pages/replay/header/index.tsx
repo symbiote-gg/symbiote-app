@@ -3,6 +3,7 @@ import classNames from "classnames";
 import { Folder, History, MonitorPlay } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
+import { Link } from "wouter";
 
 import type { HeroRole, ReplayDetail, ReplayPlayerDetail } from "@/api/replays";
 import {
@@ -165,14 +166,17 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                     </div>
                     <div className={styles.summary}>
                         <div className={styles.identity}>
-                            <span className={styles.portrait}>
+                            <Link
+                                href={`/heroes/${replay.ownerHeroId}`}
+                                className={styles.portrait}
+                            >
                                 <HeroPortrait
                                     name={replay.heroName}
                                     portrait={replay.heroPortrait}
                                     size="xl"
                                     className={styles.portraitImage}
                                 />
-                            </span>
+                            </Link>
                             <div className={styles.text}>
                                 <div className={styles.facts}>
                                     {result !== "unknown" && (

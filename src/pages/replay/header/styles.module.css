@@ -100,12 +100,16 @@
 }
 
 .portrait {
-    @apply relative shrink-0;
+    @apply relative shrink-0 rounded-full;
     grid-area: portrait;
 }
 
 .portrait .portraitImage {
     @apply ring-2 ring-fg-muted/60;
+}
+
+.portrait:hover .portraitImage {
+    @apply ring-primary;
 }
 
 .text {

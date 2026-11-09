@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { ShieldUser } from "lucide-react";
 import { useTranslations } from "use-intl";
+import { Link } from "wouter";
 
 import { HeroPortrait } from "@/components";
 import { useMostPlayedHeroes } from "@/hooks/useMostPlayedHeroes";
@@ -71,41 +72,46 @@ export function HeroesCard() {
                                 const judged = isJudged(hero.wins, hero.losses);
 
                                 return (
-                                    <li
-                                        key={hero.heroId}
-                                        className={styles.row}
-                                    >
-                                        <HeroPortrait
-                                            name={hero.name}
-                                            portrait={hero.portrait}
-                                        />
-                                        <Typography truncate>
-                                            {hero.name}
-                                        </Typography>
-                                        <span className={styles.rate}>
-                                            <Meter
-                                                value={rate ?? 0}
-                                                neutral={!judged}
+                                    <li key={hero.heroId}>
+                                        <Link
+                                            href={`/heroes/${hero.heroId}`}
+                                            className={classNames(
+                                                styles.row,
+                                                styles.link,
+                                            )}
+                                        >
+                                            <HeroPortrait
+                                                name={hero.name}
+                                                portrait={hero.portrait}
                                             />
+                                            <Typography truncate>
+                                                {hero.name}
+                                            </Typography>
+                                            <span className={styles.rate}>
+                                                <Meter
+                                                    value={rate ?? 0}
+                                                    neutral={!judged}
+                                                />
+                                                <Typography
+                                                    size="xs"
+                                                    mono
+                                                    className={styles.pct}
+                                                >
+                                                    <WinRate
+                                                        rate={rate}
+                                                        judged={judged}
+                                                    />
+                                                </Typography>
+                                            </span>
                                             <Typography
                                                 size="xs"
+                                                variant="tertiary"
                                                 mono
-                                                className={styles.pct}
+                                                className={styles.games}
                                             >
-                                                <WinRate
-                                                    rate={rate}
-                                                    judged={judged}
-                                                />
+                                                {hero.games}
                                             </Typography>
-                                        </span>
-                                        <Typography
-                                            size="xs"
-                                            variant="tertiary"
-                                            mono
-                                            className={styles.games}
-                                        >
-                                            {hero.games}
-                                        </Typography>
+                                        </Link>
                                     </li>
                                 );
                             })}
