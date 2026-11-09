@@ -10,6 +10,10 @@ and this project adheres to
 
 ### Added
 
+- Add links to the hero page from the homepage heroes card and the replay
+  header.
+- Note in the standout fights how many losses started with your team a talent
+  tier behind.
 - Add hero page with career stats, win rate over time, best and last game,
   talent pick and win rates, team share, maps, game length, awards and personal
   bests.
@@ -82,6 +86,9 @@ and this project adheres to
 - Use a dedicated color for quest talents.
 - Parse fewer replays at once during a bulk ingest, keeping the CPU usage low.
 - Clarify the duel range label in the timeline popover.
+- Redesign the homepage profile card, showing the recent record in win and loss
+  colors and the main role with its icon.
+- Reduce the pages spacings.
 
 ### Fixed
 
