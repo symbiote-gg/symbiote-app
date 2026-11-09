@@ -118,7 +118,7 @@
         },
         "trend": {
             "title": "Win rate over time",
-            "subtitle": "Your career win rate on {hero} after each day, over games played per day.",
+            "subtitle": "Your career win rate on {hero} in the last {trend} days, over games played per day.",
             "games": "{count, plural, one {# game} other {# games}}",
             "noGames": "No games",
             "record": "{wins}-{losses}",
@@ -184,7 +184,8 @@
         },
         "maps": {
             "title": "Maps",
-            "subtitle": "Win rate and games, maps with 10+ games first."
+            "subtitle": "Win rate and games, maps with 10+ games first.",
+            "games": "{count, plural, one {# game} other {# games}}"
         },
         "games": {
             "bestGame": "Best game",

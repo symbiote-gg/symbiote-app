@@ -59,8 +59,8 @@ const IMAGES = [
         category: "loadingscreens",
         key: "loading_screen",
         size: [1920, 1080],
-        // The hero page's map thumbnails. Keep in sync with its Maps card.
-        variants: [[48, 32]],
+        // The hero page's map cards. Keep in sync with its Maps card.
+        variants: [[264, 164]],
     },
 ];
 

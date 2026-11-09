@@ -58,11 +58,11 @@ export function HeroDetail() {
                         <div className={styles.talents}>
                             <Talents talents={hero.talents} />
                         </div>
-                        <div className={styles.teamShare}>
-                            <TeamShare hero={hero} />
-                        </div>
                         <div className={styles.maps}>
                             <Maps maps={hero.maps} />
+                        </div>
+                        <div className={styles.teamShare}>
+                            <TeamShare hero={hero} />
                         </div>
                         <div className={styles.gameLength}>
                             <GameLength lengths={hero.lengths} />

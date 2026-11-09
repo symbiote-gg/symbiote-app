@@ -1,0 +1,41 @@
+@reference "@/index.css";
+
+.root {
+    @apply relative isolate flex h-41 flex-col justify-end gap-1 overflow-hidden rounded-lg border border-line bg-surface-2 px-4 pb-3.5;
+    text-shadow: 0 1px 8px color-mix(in oklab, var(--color-bg) 80%, transparent);
+}
+
+.art {
+    @apply absolute inset-0 -z-10 size-full object-cover opacity-70;
+}
+
+.shade {
+    @apply absolute inset-0 -z-10;
+    background: linear-gradient(
+        to top,
+        var(--color-surface-2),
+        color-mix(in oklab, var(--color-surface-2) 60%, transparent) 55%,
+        color-mix(in oklab, var(--color-surface-2) 20%, transparent)
+    );
+}
+
+.stats {
+    @apply flex flex-col gap-2;
+}
+
+.few {
+    @apply sparse;
+}
+
+.figures {
+    @apply flex items-baseline gap-2;
+}
+
+.figures .rate {
+    @apply text-3xl leading-none font-extrabold;
+    font-stretch: 75%;
+}
+
+.stats .meter {
+    @apply w-full;
+}

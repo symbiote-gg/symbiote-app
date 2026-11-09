@@ -14,7 +14,14 @@ import {
     WinRate,
 } from "@/ui";
 import { usePlayedDate } from "@/utils/dates";
-import { type Day, type Point, curve, fillDays, rateDomain } from "./days";
+import {
+    type Day,
+    type Point,
+    TREND_DAYS,
+    curve,
+    fillDays,
+    rateDomain,
+} from "./days";
 
 import styles from "./styles.module.css";
 
@@ -79,7 +86,7 @@ export function Trend({ hero, trend }: TrendProps) {
                 size="sm"
                 icon={TrendingUp}
                 title={t("title")}
-                subtitle={t("subtitle", { hero })}
+                subtitle={t("subtitle", { hero, trend: TREND_DAYS })}
             />
             <div className={styles.body}>
                 <div className={styles.ticks}>
