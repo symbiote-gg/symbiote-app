@@ -2,12 +2,7 @@
 
 .root {
     --accent: var(--hero-accent, var(--color-primary-text));
-    @apply flex flex-col gap-4 overflow-hidden rounded-lg border border-tile-line bg-surface-2 px-4 pt-4 transition-colors hover:bg-tile-hover;
-    background-image: radial-gradient(
-        ellipse 80% 70% at 50% 0%,
-        color-mix(in oklab, var(--accent) 14%, transparent),
-        transparent
-    );
+    @apply flex flex-col gap-4 overflow-hidden rounded-lg border border-tile-line bg-surface-2 bg-linear-150 from-accent/10 to-transparent to-50% px-4 pt-4 transition-colors hover:bg-tile-hover;
 }
 
 .head {
@@ -15,7 +10,7 @@
 }
 
 .head .portrait {
-    @apply ring-2 ring-accent ring-offset-2 ring-offset-bg;
+    @apply ring-2 ring-accent ring-offset-2 ring-offset-surface-2;
 }
 
 .titles {
@@ -27,7 +22,8 @@
 }
 
 .result .pct {
-    @apply text-2xl leading-tight;
+    @apply text-3xl leading-none font-extrabold;
+    font-stretch: 75%;
 }
 
 .stats {

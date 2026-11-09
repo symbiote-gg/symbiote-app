@@ -61,11 +61,7 @@ export function HeroCard({ hero }: HeroCardProps) {
                     )}
                 </div>
                 <div className={styles.result}>
-                    <Typography
-                        as="span"
-                        weight="semibold"
-                        className={styles.pct}
-                    >
+                    <Typography as="span" display className={styles.pct}>
                         <WinRate rate={rate} judged={!neutral} />
                     </Typography>
                     <Typography as="span" size="sm" variant="tertiary">
