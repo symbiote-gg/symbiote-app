@@ -304,7 +304,7 @@
             "stayedInLost": "spent in {count} lost fights before dying.",
             "deathsPunished": "were followed by the enemy taking a structure or objective.",
             "timeDead": "{percent}% of the game spent waiting to respawn.",
-            "fightRecord": "{variant, select, tank {that opened with you there were won.} other {you fought in were won.}}",
+            "fightRecord": "{variant, select, tank {that opened with you there were won.} other {you fought in were won.}}{behindLost, plural, =0 {} other { # of the losses started with your team a talent tier behind.}}",
             "missedFights": "happened with you nowhere near the kills.",
             "allFights": "you were around for every single one.",
             "stolenCamps": "by the enemy on your side of the map.",

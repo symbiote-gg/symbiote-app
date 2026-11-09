@@ -33,6 +33,8 @@ const SHUTDOWN_STREAK: usize = 15;
 const KILL_STREAK: usize = 15;
 /// Takedowns in a chain worth calling out: a triple is an ordinary won fight.
 const MULTIKILL: usize = 4;
+/// Lost fights started a talent tier down worth adding to the fight record.
+const LOST_BEHIND: usize = 2;
 const VENGEANCES: usize = 2;
 
 pub struct RuleContext<'a> {
@@ -279,11 +281,17 @@ impl Evaluation<'_> {
         }
 
         let tank = self.ctx.tank();
-        let (joined, won, lost) = if tank {
+        let (joined, won, lost, lost_behind) = if tank {
             let started = &self.m.fights.started;
-            (started.joined, started.won, started.lost)
+            (
+                started.joined,
+                started.won,
+                started.lost,
+                started.lost_behind,
+            )
         } else {
-            (self.m.fights.joined, self.m.fights.won, self.m.fights.lost)
+            let fights = &self.m.fights;
+            (fights.joined, fights.won, fights.lost, fights.lost_behind)
         };
 
         if joined >= 2 {
@@ -299,6 +307,13 @@ impl Evaluation<'_> {
                 count_figure(won, Some(joined)),
             );
             record.variant = tank.then_some(Variant::Tank);
+            // Always set, 0 when too few to mention, so the sentence can read it.
+            let behind = if lost_behind >= LOST_BEHIND {
+                lost_behind
+            } else {
+                0
+            };
+            record.params.insert("behindLost".to_owned(), behind as i64);
             self.found.push(record);
         }
     }
@@ -704,6 +719,24 @@ mod tests {
         let items = evaluate(&m, &ctx(None));
         assert_eq!(find(&items, StandoutId::FightRecord).tone, Tone::Good);
         assert_eq!(find(&items, StandoutId::AllFights).tone, Tone::Good);
+    }
+
+    #[test]
+    fn mentions_losses_a_talent_tier_behind_from_two() {
+        let mut m = metrics::empty();
+        m.fights.total = 4;
+        m.fights.joined = 4;
+        m.fights.lost = 3;
+        m.fights.lost_behind = 1;
+
+        let behind = |m: &GameMetrics| {
+            let items = evaluate(m, &ctx(None));
+            find(&items, StandoutId::FightRecord).params["behindLost"]
+        };
+        assert_eq!(behind(&m), 0);
+
+        m.fights.lost_behind = 2;
+        assert_eq!(behind(&m), 2);
     }
 
     #[test]
