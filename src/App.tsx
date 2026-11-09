@@ -21,10 +21,7 @@ function App() {
                 <Switch>
                     <Route path="/" component={Home} />
                     <Route path="/replays" component={Replays} />
-                    <Route
-                        path="/replays/:replayId/:tab?"
-                        component={ReplayDetail}
-                    />
+                    <Route path="/replays/:replayId" component={ReplayDetail} />
                     <Route path="/profile" component={Profile} />
                     <Route path="/heroes" component={Heroes} />
                     <Route path="/heroes/:heroId" component={HeroDetail} />

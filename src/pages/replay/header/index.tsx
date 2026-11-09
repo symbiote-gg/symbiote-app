@@ -37,7 +37,6 @@ export interface HeaderProps {
     replay: ReplayDetail;
     owner: ReplayPlayerDetail | undefined;
     allyTeam: number;
-    tabs: ReactNode;
 }
 
 interface HeaderStat {
@@ -45,7 +44,7 @@ interface HeaderStat {
     value: ReactNode;
 }
 
-export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
+export function Header({ replay, owner, allyTeam }: HeaderProps) {
     const t = useTranslations();
     const { compact, percent } = useFormatStat();
     const playedOn = usePlayedOn();
@@ -306,7 +305,6 @@ export function Header({ replay, owner, allyTeam, tabs }: HeaderProps) {
                     </div>
                 </div>
             </div>
-            <div className={styles.tabs}>{tabs}</div>
         </header>
     );
 }

@@ -23,7 +23,6 @@ export * from "./side";
 export * from "./stat";
 export * from "./stat-tile";
 export * from "./table-head";
-export * from "./tabs";
 export * from "./tooltip";
 export * from "./typography";
 export * from "./win-rate";
