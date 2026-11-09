@@ -51,11 +51,11 @@
 }
 
 .identity {
-    @apply flex min-w-0 flex-col gap-6 px-gutter pt-6 pb-6 @4xl/career:flex-row @4xl/career:items-end @4xl/career:justify-between;
+    @apply flex min-w-0 flex-col gap-6 px-gutter pt-6 pb-6 @4xl/career:flex-row @4xl/career:items-center @4xl/career:gap-10;
 }
 
 .hero {
-    @apply flex min-w-0 flex-1 items-center gap-6;
+    @apply flex min-w-0 items-center gap-6;
 }
 
 .hero .portrait {
@@ -76,7 +76,7 @@
 }
 
 .result {
-    @apply flex shrink-0 flex-col gap-2 @4xl/career:items-end;
+    @apply flex shrink-0 flex-col gap-2;
 }
 
 .result .rate {
