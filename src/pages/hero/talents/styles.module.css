@@ -47,7 +47,7 @@
 }
 
 .talent {
-    @apply grid;
+    @apply grid grid-cols-1;
 }
 
 .tile {

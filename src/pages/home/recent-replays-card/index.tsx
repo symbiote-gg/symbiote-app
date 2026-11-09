@@ -1,8 +1,9 @@
 import { Clapperboard } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslations } from "use-intl";
 
 import { ReplayListHeader, ReplayRow } from "@/components";
-import { useRecentReplays } from "@/hooks/useRecentReplays";
+import { useReplays } from "@/hooks/useReplays";
 import {
     ButtonLink,
     Card,
@@ -18,7 +19,16 @@ const RECENT_REPLAYS_LIMIT = 50;
 
 export function RecentReplaysCard() {
     const t = useTranslations("home.replays");
-    const { data, error } = useRecentReplays(RECENT_REPLAYS_LIMIT);
+    const { data, error } = useReplays();
+
+    // The replays page may have loaded more pages into the shared cache.
+    const replays = useMemo(
+        () =>
+            data?.pages
+                .flatMap((page) => page.replays)
+                .slice(0, RECENT_REPLAYS_LIMIT),
+        [data],
+    );
 
     return (
         <Card className={styles.root}>
@@ -31,13 +41,13 @@ export function RecentReplaysCard() {
                 divided
             />
             {error && <ErrorMessage error={error} />}
-            {data?.replays.length === 0 ? (
+            {replays?.length === 0 ? (
                 <EmptyState>{t("empty")}</EmptyState>
             ) : (
                 <>
                     <ReplayListHeader />
                     <CardBody>
-                        {data?.replays.map((replay) => (
+                        {replays?.map((replay) => (
                             <ReplayRow key={replay.id} replay={replay} />
                         ))}
                     </CardBody>
