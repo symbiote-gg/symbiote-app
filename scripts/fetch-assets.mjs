@@ -60,7 +60,7 @@ const IMAGES = [
         key: "loading_screen",
         size: [1920, 1080],
         // The hero page's map cards. Keep in sync with its Maps card.
-        variants: [[264, 164]],
+        variants: [[420, 164]],
     },
 ];
 

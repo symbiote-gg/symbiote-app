@@ -16,13 +16,17 @@ import { useFormatter, useTranslations } from "use-intl";
 import { Link } from "wouter";
 
 import type { HeroBest, HeroDetail } from "@/api/heroes";
+import type { HeroRole } from "@/api/replays";
 import { Card, CardHeader, Eyebrow, Typography } from "@/ui";
 import { formatDuration, usePlayedDay } from "@/utils/dates";
 import { MIN_TEAM_SHARE } from "@/utils/hero-stats";
 
 import styles from "./styles.module.css";
 
-/** Records that grow with what the hero does, ranked by the owner's share of the team's total. */
+/**
+ * Records that grow with what the hero does. Those outside its role's lead are
+ * ranked by the owner's share of the team's total.
+ */
 const VOLUME_SHARES = {
     heroDamage: "shareHeroDamage",
     siegeDamage: "shareSiegeDamage",
@@ -48,7 +52,20 @@ const BEST_ICONS: Record<GameBest, LucideIcon> = {
     fastestWin: Timer,
 };
 
-const LEADING_VOLUMES = 2;
+/**
+ * The volume records that lead, by the hero's role: team shares of XP and damage
+ * taken sit near an even fifth for everyone, so ranking by share picks noise.
+ */
+const ROLE_VOLUMES: Record<HeroRole, VolumeBest[]> = {
+    tank: ["damageTaken", "heroDamage"],
+    bruiser: ["damageTaken", "siegeDamage"],
+    healer: ["healing", "xp"],
+    support: ["heroDamage", "xp"],
+    melee_assassin: ["heroDamage", "siegeDamage"],
+    ranged_assassin: ["heroDamage", "siegeDamage"],
+};
+
+const DEFAULT_VOLUMES: VolumeBest[] = ["heroDamage", "siegeDamage"];
 
 const MAX_TILES = 6;
 
@@ -103,24 +120,23 @@ export function Bests({ hero }: BestsProps) {
         icon: Flame,
     };
 
-    const volumes = VOLUMES.map((key) => ({
-        key,
-        share: hero[VOLUME_SHARES[key]] ?? 0,
-    }))
+    const leading = hero.role ? ROLE_VOLUMES[hero.role] : DEFAULT_VOLUMES;
+
+    const trailing = VOLUMES.filter((key) => !leading.includes(key))
+        .map((key) => ({ key, share: hero[VOLUME_SHARES[key]] ?? 0 }))
         .filter(({ share }) => share >= MIN_TEAM_SHARE)
         .sort((a, b) => b.share - a.share)
-        .map(({ key }) => fromGame(key, bests[key], amount))
-        .filter((tile) => tile !== null);
+        .map(({ key }) => fromGame(key, bests[key], amount));
 
     const tiles = [
-        ...volumes.slice(0, LEADING_VOLUMES),
+        ...leading.map((key) => fromGame(key, bests[key], amount)),
         fromGame("takedowns", bests.takedowns, count),
         fromGame("fewestDeathsWin", bests.fewestDeathsWin, count),
         fromGame("fastestWin", bests.fastestWin, (secs) =>
             formatDuration(secs),
         ),
         streak,
-        ...volumes.slice(LEADING_VOLUMES),
+        ...trailing,
     ]
         .filter((tile) => tile !== null)
         .slice(0, MAX_TILES);

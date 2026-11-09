@@ -281,22 +281,15 @@ impl Evaluation<'_> {
         }
 
         let tank = self.ctx.tank();
-        let (joined, won, lost, lost_behind) = if tank {
-            let started = &self.m.fights.started;
-            (
-                started.joined,
-                started.won,
-                started.lost,
-                started.lost_behind,
-            )
+        let fights = if tank {
+            &self.m.fights.started
         } else {
-            let fights = &self.m.fights;
-            (fights.joined, fights.won, fights.lost, fights.lost_behind)
+            &self.m.fights.joined
         };
 
-        if joined >= 2 {
+        if fights.count >= 2 {
             // An even record, trades included, is neither a win nor a cost.
-            let tone = match won.cmp(&lost) {
+            let tone = match fights.won.cmp(&fights.lost) {
                 Ordering::Greater => Tone::Good,
                 Ordering::Equal => Tone::Watch,
                 Ordering::Less => Tone::Bad,
@@ -304,16 +297,16 @@ impl Evaluation<'_> {
             let mut record = standout(
                 StandoutId::FightRecord,
                 tone,
-                count_figure(won, Some(joined)),
+                count_figure(fights.won, Some(fights.count)),
             );
             record.variant = tank.then_some(Variant::Tank);
             // Always set, 0 when too few to mention, so the sentence can read it.
-            let behind = if lost_behind >= LOST_BEHIND {
-                lost_behind
+            let behind = if fights.lost_behind >= LOST_BEHIND {
+                fights.lost_behind
             } else {
                 0
             };
-            record.params.insert("behindLost".to_owned(), behind as i64);
+            record.params.insert("lostBehind".to_owned(), behind as i64);
             self.found.push(record);
         }
     }
@@ -598,7 +591,7 @@ mod tests {
         m.time_dead = Some(120.0);
         m.time_dead_share = Some(0.2);
         m.fights.total = 5;
-        m.fights.joined = 2;
+        m.fights.joined.count = 2;
         m.fights.missed = 3;
         m.lane.structures = 2;
 
@@ -645,10 +638,10 @@ mod tests {
         m.unanswered.count = 2;
         m.unanswered.fight_deaths = 6;
         m.fights.total = 4;
-        m.fights.joined = 3;
-        m.fights.won = 3;
+        m.fights.joined.count = 3;
+        m.fights.joined.won = 3;
         m.fights.missed = 1;
-        m.fights.started.joined = 2;
+        m.fights.started.count = 2;
         m.fights.started.lost = 2;
 
         let mut tank = ctx(None);
@@ -712,9 +705,9 @@ mod tests {
     fn a_winning_record_reads_good() {
         let mut m = metrics::empty();
         m.fights.total = 4;
-        m.fights.joined = 4;
-        m.fights.won = 3;
-        m.fights.lost = 1;
+        m.fights.joined.count = 4;
+        m.fights.joined.won = 3;
+        m.fights.joined.lost = 1;
 
         let items = evaluate(&m, &ctx(None));
         assert_eq!(find(&items, StandoutId::FightRecord).tone, Tone::Good);
@@ -725,17 +718,17 @@ mod tests {
     fn mentions_losses_a_talent_tier_behind_from_two() {
         let mut m = metrics::empty();
         m.fights.total = 4;
-        m.fights.joined = 4;
-        m.fights.lost = 3;
-        m.fights.lost_behind = 1;
+        m.fights.joined.count = 4;
+        m.fights.joined.lost = 3;
+        m.fights.joined.lost_behind = 1;
 
         let behind = |m: &GameMetrics| {
             let items = evaluate(m, &ctx(None));
-            find(&items, StandoutId::FightRecord).params["behindLost"]
+            find(&items, StandoutId::FightRecord).params["lostBehind"]
         };
         assert_eq!(behind(&m), 0);
 
-        m.fights.lost_behind = 2;
+        m.fights.joined.lost_behind = 2;
         assert_eq!(behind(&m), 2);
     }
 
@@ -743,7 +736,7 @@ mod tests {
     fn an_even_record_is_only_worth_a_look() {
         let mut m = metrics::empty();
         m.fights.total = 2;
-        m.fights.joined = 2;
+        m.fights.joined.count = 2;
 
         let items = evaluate(&m, &ctx(None));
         assert_eq!(find(&items, StandoutId::FightRecord).tone, Tone::Watch);

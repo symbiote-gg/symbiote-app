@@ -103,12 +103,8 @@ pub struct Punished {
 #[derive(Debug)]
 pub struct Fights {
     pub total: usize,
-    pub joined: usize,
-    pub won: usize,
-    pub lost: usize,
-    /// Lost fights that started with the owner's team on a lower talent tier.
-    pub lost_behind: usize,
     pub missed: usize,
+    pub joined: FightRecord,
     /// The record over the fights whose opening death involved the owner, the
     /// record a frontliner is judged on.
     pub started: FightRecord,
@@ -116,9 +112,10 @@ pub struct Fights {
 
 #[derive(Debug)]
 pub struct FightRecord {
-    pub joined: usize,
+    pub count: usize,
     pub won: usize,
     pub lost: usize,
+    /// Lost fights that started with the owner's team on a lower talent tier.
     pub lost_behind: usize,
 }
 
@@ -152,11 +149,12 @@ fn tier(level: u32) -> usize {
     TALENT_LEVELS.iter().filter(|&&at| level >= at).count()
 }
 
-/// A team's level at `time`, read off its level-ups.
+/// A team's level just before `time`, read off its level-ups, so a level-up from
+/// a fight's opening kill doesn't count as already reached.
 fn level_at(curve: &[(f64, u32)], time: f64) -> u32 {
     curve
         .iter()
-        .take_while(|(at, _)| *at <= time)
+        .take_while(|(at, _)| *at < time)
         .last()
         .map_or(1, |&(_, level)| level)
 }
@@ -335,14 +333,14 @@ pub fn game_metrics(
             .map_or(1, |curve| tier(level_at(curve, time)))
     };
     let behind =
-        |fight: &Fight| tier_at(ally_team, fight.start) < tier_at(1 - ally_team, fight.start);
+        |fight: &Fight| tier_at(ally_team, fight.start) < tier_at(ally_team ^ 1, fight.start);
 
     // The record over the fights; equal deaths on both sides is a trade and
     // counts in neither.
     let record = |fights: &[&&Fight]| {
         fights.iter().fold(
             FightRecord {
-                joined: fights.len(),
+                count: fights.len(),
                 won: 0,
                 lost: 0,
                 lost_behind: 0,
@@ -364,7 +362,6 @@ pub fn game_metrics(
             },
         )
     };
-    let joined_record = record(&joined);
 
     let structures = timeline
         .structures
@@ -499,11 +496,8 @@ pub fn game_metrics(
             .map(|dead| dead / duration),
         fights: Fights {
             total: team_fights.len(),
-            joined: joined.len(),
-            won: joined_record.won,
-            lost: joined_record.lost,
-            lost_behind: joined_record.lost_behind,
             missed: team_fights.len() - joined.len(),
+            joined: record(&joined),
             started: record(&started),
         },
         stolen_camps: StolenCamps { count: stolen },
@@ -615,15 +609,15 @@ mod tests {
         };
 
         let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
-        assert_eq!((m.fights.joined, m.fights.won), (2, 2));
-        assert_eq!((m.fights.started.joined, m.fights.started.won), (1, 1));
+        assert_eq!((m.fights.joined.count, m.fights.joined.won), (2, 2));
+        assert_eq!((m.fights.started.count, m.fights.started.won), (1, 1));
     }
 
     #[test]
     fn counts_losses_started_a_talent_tier_behind() {
         let lost = |time| vec![death(time, 0, 1, &[6]), death(time + 2.0, 0, 2, &[6])];
         let timeline = Timeline {
-            deaths: [100.0, 200.0, 300.0, 400.0]
+            deaths: [100.0, 200.0, 300.0, 400.0, 500.0]
                 .into_iter()
                 .flat_map(lost)
                 .collect(),
@@ -636,17 +630,19 @@ mod tests {
                 fight(FightKind::TeamFight, vec![4, 5], 300.0),
                 // 10 against 10.
                 fight(FightKind::TeamFight, vec![6, 7], 400.0),
+                // 10 against 12: 13 comes from the opening kill itself.
+                fight(FightKind::TeamFight, vec![8, 9], 500.0),
             ],
             levels: [
                 vec![(0.0, 1), (90.0, 6), (150.0, 8), (250.0, 9), (350.0, 10)],
-                vec![(0.0, 1), (90.0, 9), (250.0, 10)],
+                vec![(0.0, 1), (90.0, 9), (250.0, 10), (450.0, 12), (500.0, 13)],
             ],
             ..Timeline::default()
         };
 
         let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
-        assert_eq!(m.fights.lost, 4);
-        assert_eq!(m.fights.lost_behind, 2);
+        assert_eq!(m.fights.joined.lost, 5);
+        assert_eq!(m.fights.joined.lost_behind, 2);
         assert_eq!(m.fights.started.lost_behind, 2);
     }
 
@@ -674,10 +670,10 @@ mod tests {
         };
 
         let m = game_metrics(&timeline, 600.0, 1, 0, None, None, &[]);
-        assert_eq!((m.fights.joined, m.fights.won), (1, 1));
+        assert_eq!((m.fights.joined.count, m.fights.joined.won), (1, 1));
         assert_eq!(m.fights.missed, 1);
         // Present at the first death counts as being there for the open.
-        assert_eq!(m.fights.started.joined, 1);
+        assert_eq!(m.fights.started.count, 1);
     }
 
     #[test]

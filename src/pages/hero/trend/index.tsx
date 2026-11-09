@@ -86,7 +86,7 @@ export function Trend({ hero, trend }: TrendProps) {
                 size="sm"
                 icon={ChartSpline}
                 title={t("title")}
-                subtitle={t("subtitle", { hero, trend: TREND_DAYS })}
+                subtitle={t("subtitle", { hero, days: TREND_DAYS })}
             />
             <div className={styles.body}>
                 <div className={styles.ticks}>

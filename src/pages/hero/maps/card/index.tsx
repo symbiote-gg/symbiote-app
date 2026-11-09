@@ -7,7 +7,7 @@ import { Meter, Typography, WinRate } from "@/ui";
 
 import styles from "./styles.module.css";
 
-const THUMB = "@264x164.webp";
+const THUMB = "@420x164.webp";
 
 export interface MapCardProps {
     map: MapRecord;

@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
 
+use crate::standouts::CHEAP_DEATH_HEROES;
 use crate::types::hero_stats::{
     AwardCount, GameLength, HeroBest, HeroBests, HeroDetail, HeroGame, HeroInfo, HeroTotals,
     MapRecord, TalentRecord, TrendPoint, WinStreak,
@@ -28,13 +29,18 @@ pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option
     else {
         return Ok(None);
     };
+    let slug: String = sqlx::query_scalar("SELECT slug FROM heroes WHERE id = ?")
+        .bind(hero_id)
+        .fetch_one(&mut *tx)
+        .await?;
+    let cheap_deaths = CHEAP_DEATH_HEROES.contains(&slug.as_str());
 
     let totals = totals(&mut tx, hero_id).await?;
     let awards = awards(&mut tx, hero_id).await?;
     let maps = maps(&mut tx, hero_id).await?;
     let talents = talents(&mut tx, hero_id).await?;
     let trend = trend(&mut tx, hero_id).await?;
-    let bests = bests(&mut tx, hero_id).await?;
+    let bests = bests(&mut tx, hero_id, cheap_deaths).await?;
     let best_game = best_game(&mut tx, hero_id).await?;
     let last_game = last_game(&mut tx, hero_id).await?;
     let lengths = lengths(&mut tx, hero_id).await?;
@@ -266,7 +272,19 @@ const FEWEST_DEATHS_WIN: BestBy = BestBy {
     zero: true,
 };
 
-async fn bests(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroBests> {
+/// `cheap_deaths` drops the fewest-deaths win: the scoreboard's deaths miss most
+/// of those heroes' deaths.
+async fn bests(
+    conn: &mut SqliteConnection,
+    hero_id: i64,
+    cheap_deaths: bool,
+) -> sqlx::Result<HeroBests> {
+    let fewest_deaths_win = if cheap_deaths {
+        None
+    } else {
+        best(conn, hero_id, &FEWEST_DEATHS_WIN).await?
+    };
+
     Ok(HeroBests {
         hero_damage: best(conn, hero_id, &MOST_HERO_DAMAGE).await?,
         siege_damage: best(conn, hero_id, &MOST_SIEGE_DAMAGE).await?,
@@ -275,7 +293,7 @@ async fn bests(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroBe
         xp: best(conn, hero_id, &MOST_XP).await?,
         takedowns: best(conn, hero_id, &MOST_TAKEDOWNS).await?,
         fastest_win: best(conn, hero_id, &FASTEST_WIN).await?,
-        fewest_deaths_win: best(conn, hero_id, &FEWEST_DEATHS_WIN).await?,
+        fewest_deaths_win,
         win_streak: win_streak(conn, hero_id).await?,
     })
 }
@@ -667,6 +685,23 @@ mod tests {
         );
         assert_eq!(best(&bests.xp), Some((b, 12000.0, "cursed_hollow")));
         assert_eq!(best(&bests.healing), None);
+    }
+
+    #[tokio::test]
+    async fn skips_the_deathless_win_on_cheap_death_heroes() {
+        let pool = pool().await;
+
+        let mut game = hero_game("a", 300, Mode::QuickMatch, "braxis_holdout", "Murky", true);
+        game.replay_players[0].score = json!({"Deaths": 0});
+        insert_bundle(&pool, game).await.unwrap();
+
+        let murky = sqlx::query_scalar("SELECT id FROM heroes WHERE slug = 'Murky'")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+
+        let bests = hero_detail(&pool, murky).await.unwrap().unwrap().bests;
+        assert!(bests.fewest_deaths_win.is_none());
     }
 
     #[tokio::test]

@@ -29,7 +29,7 @@ const PUSH_HEROES: [&str; 10] = [
 
 /// Heroes whose deaths cost only seconds: Murky's respawn is a blink, and a lone
 /// Viking down leaves two still playing. Their time dead says nothing.
-const CHEAP_DEATH_HEROES: [&str; 2] = [LOST_VIKINGS, "Murky"];
+pub const CHEAP_DEATH_HEROES: [&str; 2] = [LOST_VIKINGS, "Murky"];
 
 /// One game's raw data, as the metrics read it.
 pub struct GameData {

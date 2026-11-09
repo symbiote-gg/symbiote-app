@@ -113,10 +113,12 @@ export function Career({ hero }: CareerProps) {
                     </div>
                 )}
             </div>
-            <div className={styles.body}>
-                <TimePanel hero={hero} />
-                <Tiles hero={hero} className={styles.tiles} />
-            </div>
+            {hero.games > 0 && (
+                <div className={styles.body}>
+                    <TimePanel hero={hero} />
+                    <Tiles hero={hero} className={styles.tiles} />
+                </div>
+            )}
         </header>
     );
 }

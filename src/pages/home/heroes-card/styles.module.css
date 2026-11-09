@@ -13,7 +13,7 @@
 }
 
 .link {
-    @apply px-gutter py-1 transition-colors hover:bg-row-hover;
+    @apply px-gutter py-1 hover:bg-row-hover;
 }
 
 .head {
