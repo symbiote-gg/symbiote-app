@@ -72,6 +72,7 @@ export function TimePanel({ hero }: TimePanelProps) {
                 <Meter
                     value={aliveShare}
                     color="accent"
+                    track="loss"
                     size="md"
                     className={styles.meter}
                 />
