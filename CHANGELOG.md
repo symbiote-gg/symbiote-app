@@ -10,6 +10,9 @@ and this project adheres to
 
 ### Added
 
+- Animate new replays in the lists, hero cards and map cards as they appear.
+- Add a particle effect to the hero page header.
+- Animate the role performances rows when expanding and collapsing them.
 - Add links to the hero page from the homepage heroes card and the replay
   header.
 - Note in the standout fights how many losses started with your team a talent
@@ -61,6 +64,8 @@ and this project adheres to
 
 ### Changed
 
+- Move the kill log right below the scoreboard in the replay detail page, hiding
+  it when the replay events were purged.
 - Bump frontend dependencies.
 - Adjust the players scoreboard columns order.
 - Improve the replays list rendering performance.
@@ -92,6 +97,9 @@ and this project adheres to
 
 ### Fixed
 
+- Fix the recent replay card not updating when watched replays are ingested.
+- Fix missing icons for a few older talents.
+- Improve the award icons quality.
 - Fix nav component on small screens.
 - Fix icon alignement for icons in talent popovers.
 - Fix issue with retention settings.
