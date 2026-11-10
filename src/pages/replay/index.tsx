@@ -77,6 +77,16 @@ export function ReplayDetail() {
                                     ]}
                                     duration={replay.duration}
                                 />
+                                {!replay.eventsExpired && owner && (
+                                    <KillLog
+                                        timeline={replay.timeline}
+                                        killLog={replay.killLog}
+                                        duration={replay.duration}
+                                        players={replay.players}
+                                        allyTeam={allyTeam}
+                                        owner={owner}
+                                    />
+                                )}
                                 <XpSources
                                     ally={replay.teams[allyTeam]}
                                     enemy={replay.teams[1 - allyTeam]}
@@ -102,16 +112,6 @@ export function ReplayDetail() {
                                     allyTeam={allyTeam}
                                     ownerSlot={replay.ownerSlot}
                                 />
-                                {owner && (
-                                    <KillLog
-                                        timeline={replay.timeline}
-                                        killLog={replay.killLog}
-                                        duration={replay.duration}
-                                        players={replay.players}
-                                        allyTeam={allyTeam}
-                                        owner={owner}
-                                    />
-                                )}
                             </>
                         )}
                         <RolePerformances

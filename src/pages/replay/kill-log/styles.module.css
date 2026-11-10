@@ -1,19 +1,11 @@
 @reference "@/index.css";
 
 .root {
-    @apply @container self-stretch;
-}
-
-.halves {
-    @apply grid min-h-0 @5xl:grid-cols-2;
+    @apply grid gap-stack self-stretch xl:grid-cols-2;
 }
 
 .half {
-    @apply flex min-w-0 flex-col;
-}
-
-.half + .half {
-    @apply border-t border-line @5xl:border-t-0 @5xl:border-l;
+    @apply min-w-0;
 }
 
 .top {

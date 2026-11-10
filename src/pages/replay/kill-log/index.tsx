@@ -8,7 +8,6 @@ import type {
     ReplayPlayerDetail,
     Timeline as TimelineData,
 } from "@/api/replays";
-import { Card } from "@/ui";
 import { formatDuration } from "@/utils/dates";
 import { killerOf } from "@/utils/timeline/markers";
 import type { Roster } from "@/utils/timeline/roster";
@@ -72,70 +71,66 @@ export function KillLog({
     );
 
     return (
-        <Card className={styles.root}>
-            <div className={styles.halves}>
-                <Half
-                    title={t.rich("title", {
-                        count: killCount,
-                        n: toned(killsTone),
-                    })}
-                    icon={Swords}
-                    top={
-                        <Top
-                            label={t("mostKilled")}
-                            tone="win"
-                            top={mostKilled}
-                            roster={roster}
-                        />
-                    }
-                    heroLabel={t("victim")}
-                    withLabel={t("with")}
-                    empty={
-                        <Empty
-                            icon={Swords}
-                            tone="muted"
-                            title={t("noKills")}
-                            description={t("noKillsHint")}
-                        />
-                    }
-                    entries={kills}
-                    roster={roster}
-                    footer={
-                        unplaced && (
-                            <Unplaced unplaced={unplaced} roster={roster} />
-                        )
-                    }
-                />
-                <Half
-                    title={t.rich("deathsTitle", {
-                        count: deaths.length,
-                        n: toned(deathsTone),
-                    })}
-                    icon={Tombstone}
-                    top={
-                        <Top
-                            label={t("mostBy")}
-                            tone="loss"
-                            top={mostBy}
-                            roster={roster}
-                        />
-                    }
-                    heroLabel={t("killedBy")}
-                    withLabel={t("helpedBy")}
-                    empty={
-                        <Empty
-                            icon={HeartPulse}
-                            tone="win"
-                            title={t("immortal")}
-                            description={t("immortalHint", {
-                                duration: formatDuration(duration),
-                            })}
-                        />
-                    }
-                    entries={deaths}
-                    roster={roster}
-                />
-            </div>
-        </Card>
+        <div className={styles.root}>
+            <Half
+                title={t.rich("title", {
+                    count: killCount,
+                    n: toned(killsTone),
+                })}
+                icon={Swords}
+                top={
+                    <Top
+                        label={t("mostKilled")}
+                        tone="win"
+                        top={mostKilled}
+                        roster={roster}
+                    />
+                }
+                heroLabel={t("victim")}
+                withLabel={t("with")}
+                empty={
+                    <Empty
+                        icon={Swords}
+                        tone="muted"
+                        title={t("noKills")}
+                        description={t("noKillsHint")}
+                    />
+                }
+                entries={kills}
+                roster={roster}
+                footer={
+                    unplaced && <Unplaced unplaced={unplaced} roster={roster} />
+                }
+            />
+            <Half
+                title={t.rich("deathsTitle", {
+                    count: deaths.length,
+                    n: toned(deathsTone),
+                })}
+                icon={Tombstone}
+                top={
+                    <Top
+                        label={t("mostBy")}
+                        tone="loss"
+                        top={mostBy}
+                        roster={roster}
+                    />
+                }
+                heroLabel={t("killedBy")}
+                withLabel={t("helpedBy")}
+                empty={
+                    <Empty
+                        icon={HeartPulse}
+                        tone="win"
+                        title={t("immortal")}
+                        description={t("immortalHint", {
+                            duration: formatDuration(duration),
+                        })}
+                    />
+                }
+                entries={deaths}
+                roster={roster}
+            />
+        </div>
     );
 }

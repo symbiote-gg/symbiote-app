@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
-import { CardBody, CardHeader, TableHead } from "@/ui";
+import { Card, CardBody, CardHeader, TableHead } from "@/ui";
 import type { Roster } from "@/utils/timeline/roster";
 import type { OwnerDeath } from "./kill-log";
 import { Row } from "./row";
@@ -37,7 +37,7 @@ export function Half({
     const t = useTranslations("replay.killLog");
 
     return (
-        <div className={styles.half}>
+        <Card className={styles.half}>
             <CardHeader size="sm" icon={icon} title={title} action={top} />
             {entries.length === 0 && !footer ? (
                 empty
@@ -69,6 +69,6 @@ export function Half({
                     </CardBody>
                 </>
             )}
-        </div>
+        </Card>
     );
 }
