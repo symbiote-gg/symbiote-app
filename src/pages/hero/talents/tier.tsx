@@ -109,22 +109,24 @@ function TalentTile({ entry }: TalentTileProps) {
                                 </Typography>{" "}
                                 {t("pick")}
                             </Typography>
-                            <Typography
-                                as="span"
-                                size="xs"
-                                variant="tertiary"
-                                noWrap
-                            >
+                            {talent.picks > 0 && (
                                 <Typography
                                     as="span"
                                     size="xs"
-                                    weight="semibold"
-                                    mono
+                                    variant="tertiary"
+                                    noWrap
                                 >
-                                    <WinRate rate={entry.rate} />
-                                </Typography>{" "}
-                                {t("win")}
-                            </Typography>
+                                    <Typography
+                                        as="span"
+                                        size="xs"
+                                        weight="semibold"
+                                        mono
+                                    >
+                                        <WinRate rate={entry.rate} />
+                                    </Typography>{" "}
+                                    {t("win")}
+                                </Typography>
+                            )}
                         </span>
                     </span>
                 </span>
