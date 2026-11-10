@@ -9,7 +9,7 @@
 }
 
 .tile {
-    @apply flex min-w-0 flex-col justify-between gap-3 rounded-lg border border-line bg-surface-2/40 p-3;
+    @apply flex min-w-0 flex-col justify-between gap-3 rounded-lg border border-tile-line bg-surface-2 p-3;
 }
 
 .stats {
