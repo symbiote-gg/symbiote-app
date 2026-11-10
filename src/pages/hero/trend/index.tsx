@@ -1,19 +1,10 @@
 import { ChartSpline } from "lucide-react";
-import { type FocusEvent, type PointerEvent, useId, useState } from "react";
+import { useId } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
 import type { TrendPoint } from "@/api/heroes";
 import { useFormatStat } from "@/hooks/useFormatStat";
-import {
-    Card,
-    CardHeader,
-    Chip,
-    Eyebrow,
-    Popover,
-    Typography,
-    WinRate,
-} from "@/ui";
-import { usePlayedDate } from "@/utils/dates";
+import { Card, CardHeader, Typography } from "@/ui";
 import {
     type Day,
     type Point,
@@ -22,15 +13,11 @@ import {
     fillDays,
     rateDomain,
 } from "./days";
+import { Hits } from "./hits";
 
 import styles from "./styles.module.css";
 
 const MAX_LABELS = 12;
-
-const hitAt = (target: EventTarget | null) =>
-    target instanceof Element
-        ? target.closest<HTMLSpanElement>("[data-day]")
-        : null;
 
 export interface TrendProps {
     hero: string;
@@ -42,18 +29,6 @@ export function Trend({ hero, trend }: TrendProps) {
     const format = useFormatter();
     const { percent, winPercent } = useFormatStat();
     const gradient = useId();
-    const panel = useId();
-
-    const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
-    const active = anchor ? Number(anchor.dataset.day) : -1;
-
-    const onOver = (
-        e: PointerEvent<HTMLDivElement> | FocusEvent<HTMLDivElement>,
-    ) => {
-        const hit = hitAt(e.target);
-        if (hit && hit !== anchor) setAnchor(hit);
-    };
-    const onOut = () => setAnchor(null);
 
     const days = fillDays(trend);
     const count = days.length;
@@ -96,6 +71,8 @@ export function Trend({ hero, trend }: TrendProps) {
               ]
                   .filter(Boolean)
                   .join(", ");
+
+    const labels = days.map((day) => `${dayName(day)}: ${summary(day)}`);
 
     return (
         <Card>
@@ -205,107 +182,9 @@ export function Trend({ hero, trend }: TrendProps) {
                         </span>
                     ))}
                 </div>
-                <div
-                    className={styles.hits}
-                    onPointerOver={onOver}
-                    onPointerLeave={onOut}
-                    onFocus={onOver}
-                    onBlur={onOut}
-                >
-                    {days.map((day, index) => (
-                        <span
-                            key={day.day.valueOf()}
-                            data-day={index}
-                            className={styles.hit}
-                        >
-                            <span
-                                tabIndex={0}
-                                aria-label={`${dayName(day)}: ${summary(day)}`}
-                                aria-describedby={
-                                    index === active ? panel : undefined
-                                }
-                                className={styles.crosshair}
-                            />
-                        </span>
-                    ))}
-                    {active >= 0 && (
-                        <Popover
-                            id={panel}
-                            role="tooltip"
-                            anchor={anchor}
-                            placement="top"
-                            compact={false}
-                            interactive={false}
-                            className={styles.popover}
-                        >
-                            <DayPanel day={days[active]} />
-                        </Popover>
-                    )}
-                </div>
+                <Hits days={days} labels={labels} />
             </div>
         </Card>
-    );
-}
-
-function DayPanel({ day }: { day: Day }) {
-    const t = useTranslations("hero.trend");
-    const playedDate = usePlayedDate();
-
-    const rest = day.games === 0;
-
-    return (
-        <>
-            <div className={styles.panelHeader}>
-                <Typography size="base" weight="semibold" noWrap>
-                    {playedDate(day.day.format("YYYY-MM-DD"))}
-                </Typography>
-                <Chip
-                    size="sm"
-                    tone={rest ? "neutral" : "primary"}
-                    uppercase
-                    className={styles.panelChip}
-                >
-                    {rest ? t("restDay") : t("games", { count: day.games })}
-                </Chip>
-            </div>
-            <div className={styles.cells}>
-                <div className={styles.cell}>
-                    <Eyebrow as="span">{t("thisDay")}</Eyebrow>
-                    <Typography
-                        as="span"
-                        size="lg"
-                        weight="semibold"
-                        mono
-                        className={styles.record}
-                    >
-                        <span
-                            className={day.wins > 0 ? styles.wins : styles.none}
-                        >
-                            {day.wins}
-                            <span className={styles.letter}>
-                                {t("winLetter")}
-                            </span>
-                        </span>
-                        <span
-                            className={
-                                day.losses > 0 ? styles.losses : styles.none
-                            }
-                        >
-                            {day.losses}
-                            <span className={styles.letter}>
-                                {t("lossLetter")}
-                            </span>
-                        </span>
-                    </Typography>
-                </div>
-                <div className={styles.cell}>
-                    <Eyebrow as="span">{t("careerLabel")}</Eyebrow>
-                    <Typography as="span" size="lg" weight="semibold" mono>
-                        <WinRate rate={day.carried} rolling={false} />
-                    </Typography>
-                </div>
-            </div>
-        </>
     );
 }
 
