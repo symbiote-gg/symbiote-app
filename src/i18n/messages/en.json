@@ -151,12 +151,9 @@
         },
         "awards": {
             "title": "Awards",
-            "mvpAll": "Every game ends with MVP.",
-            "mvpEvery": "1 in {count} games ends with MVP.",
-            "mvpShare": "MVP in {mvps} of {games} games.",
-            "empty": "No awards in these games.",
-            "more": "{count, plural, one {# more award} other {# more awards}}",
-            "fewer": "Show fewer"
+            "subtitle": "Your end-of-game awards on {hero}.",
+            "games": "{count} of {games, plural, one {# game} other {# games}}",
+            "empty": "No awards in these games."
         },
         "talents": {
             "title": "Talents",

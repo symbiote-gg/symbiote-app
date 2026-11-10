@@ -14,6 +14,7 @@ export const MINIMAPS = join(ROOT, "src/generated/minimaps.json");
 export const SOURCES = [
     join(ROOT, "scripts/fetch-assets.mjs"),
     join(ROOT, "scripts/assets"),
+    join(ROOT, "src/utils/image-variants.ts"),
 ];
 
 export const IMAGE = { format: "webp", quality: 85, variantSharpen: 0.5 };

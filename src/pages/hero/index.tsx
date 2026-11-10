@@ -71,7 +71,11 @@ export function HeroDetail() {
                             <GameLength lengths={hero.lengths} />
                         </div>
                         <div className={styles.awards}>
-                            <Awards awards={hero.awards} games={hero.games} />
+                            <Awards
+                                hero={hero.name}
+                                awards={hero.awards}
+                                games={hero.games}
+                            />
                         </div>
                     </div>
                 )}

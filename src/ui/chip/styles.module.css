@@ -40,6 +40,10 @@
     @apply border-side/40 bg-side/15 text-side;
 }
 
+.mvp {
+    @apply border-mvp/40 bg-mvp/15 text-mvp;
+}
+
 .uppercase {
     @apply tracking-wider;
 }

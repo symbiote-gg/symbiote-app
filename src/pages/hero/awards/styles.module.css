@@ -1,30 +1,37 @@
 @reference "@/index.css";
 
 .body {
-    @apply flex flex-col items-start gap-4 px-gutter pb-6;
+    @apply px-gutter pb-6;
 }
 
-.list {
-    @apply flex w-full flex-col gap-3;
+.tiles {
+    @apply grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(12.5rem,1fr))] gap-3;
 }
 
-.row {
-    @apply grid grid-cols-[1.75rem_minmax(6rem,9rem)_minmax(0,1fr)_2.5rem_2.5rem] items-center gap-3;
+.award {
+    @apply grid grid-cols-1;
 }
 
-.row .icon {
-    @apply size-7 rounded-full ring-1 ring-accent/60 ring-offset-2 ring-offset-surface;
+.tile {
+    @apply relative isolate flex w-full min-w-0 items-center gap-3 overflow-hidden rounded-lg border border-tile-line bg-surface-2 p-3;
 }
 
-.row .meter {
-    @apply w-full;
+.tile.mvp {
+    @apply border-mvp/40 bg-linear-150 from-mvp/10 to-transparent to-50%;
 }
 
-.count,
-.share {
-    @apply text-right;
+.sweep {
+    @apply appear-sweep;
 }
 
-.toggle {
-    @apply cursor-pointer rounded text-xs font-semibold text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent;
+.info {
+    @apply flex min-w-0 flex-col gap-1;
+}
+
+.info .count {
+    @apply text-2xl leading-none font-semibold;
+}
+
+.tile.mvp .count {
+    @apply text-mvp;
 }

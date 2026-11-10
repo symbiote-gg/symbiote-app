@@ -1,7 +1,8 @@
 import classNames from "classnames";
 
 import type { Award } from "@/api/replays";
-import { Tooltip, Typography } from "@/ui";
+import { Chip } from "@/ui";
+import { AWARD_VARIANTS } from "@/utils/image-variants";
 import { GameIcon } from "../game-icon";
 
 import styles from "./styles.module.css";
@@ -13,20 +14,26 @@ export interface AwardPillProps {
 
 export function AwardPill({ award, iconOnlyWhenNarrow }: AwardPillProps) {
     const name = award.name ?? award.type;
-    const pill = (
-        <Pill
-            award={award}
-            name={name}
-            iconOnlyWhenNarrow={iconOnlyWhenNarrow}
-        />
-    );
-
-    if (!award.description) return pill;
 
     return (
-        <Tooltip content={name} description={award.description}>
-            {pill}
-        </Tooltip>
+        <Chip
+            size="sm"
+            tone={award.type === "mvp" ? "mvp" : "neutral"}
+            leading={
+                <GameIcon
+                    category="matchawards"
+                    icon={award.icon}
+                    label={name}
+                    variant={AWARD_VARIANTS.pill}
+                    className={styles.icon}
+                />
+            }
+            className={classNames(styles.root, {
+                [styles.iconOnlyWhenNarrow]: iconOnlyWhenNarrow,
+            })}
+        >
+            <span className={styles.label}>{name}</span>
+        </Chip>
     );
 }
 
@@ -43,34 +50,4 @@ export function AwardPills({ awards, iconOnlyWhenNarrow }: AwardPillsProps) {
             iconOnlyWhenNarrow={iconOnlyWhenNarrow}
         />
     ));
-}
-
-interface PillProps extends AwardPillProps {
-    name: string;
-}
-
-function Pill({ award, name, iconOnlyWhenNarrow }: PillProps) {
-    return (
-        <span
-            className={classNames(styles.root, {
-                [styles.mvp]: award.type === "mvp",
-                [styles.iconOnlyWhenNarrow]: iconOnlyWhenNarrow,
-            })}
-        >
-            <GameIcon
-                category="matchawards"
-                icon={award.icon}
-                label={name}
-                className={styles.icon}
-            />
-            <Typography
-                size="xs"
-                weight="semibold"
-                noWrap
-                className={styles.label}
-            >
-                {name}
-            </Typography>
-        </span>
-    );
 }

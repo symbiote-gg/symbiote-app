@@ -4,6 +4,7 @@ import { mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import sharp from "sharp";
 
+import { variantFile } from "../../src/utils/image-variants.ts";
 import { ASSETS_DIR, CONCURRENCY, IMAGE, MAX_MISSING } from "./config.mjs";
 import { exists, rawGithub, sha256 } from "./io.mjs";
 
@@ -18,7 +19,7 @@ export async function downloadImages(
     pin,
     category,
     names,
-    { width, height, lossless = false, fallback },
+    { width, height, lossless = false, fallback, center = false },
 ) {
     const unique = [...new Set(names.filter(Boolean))];
     const queue = unique.filter((name) => SAFE_NAME.test(name));
@@ -46,9 +47,15 @@ export async function downloadImages(
                     continue;
                 }
 
-                await sharp(Buffer.from(await res.arrayBuffer()))
+                // Centering crops the clear margin and pads the art back to a
+                // square, so uneven margins in the source don't offset it.
+                const image = sharp(Buffer.from(await res.arrayBuffer()));
+                if (center) image.trim();
+
+                await image
                     .resize(width, height, {
-                        fit: "inside",
+                        fit: center ? "contain" : "inside",
+                        background: { r: 0, g: 0, b: 0, alpha: 0 },
                         withoutEnlargement: true,
                     })
                     .webp(lossless ? { lossless } : { quality: IMAGE.quality })
@@ -81,8 +88,7 @@ export async function writeVariants(category, names, sizes) {
     for (const name of new Set(names.filter(Boolean))) {
         for (const size of sizes) {
             const [width, height] = Array.isArray(size) ? size : [size, size];
-            const suffix = Array.isArray(size) ? `${width}x${height}` : size;
-            const variant = name.replace(/\.webp$/, `@${suffix}.webp`);
+            const variant = variantFile(name, size);
             const target = join(dir, variant);
             if (!(await exists(target))) {
                 await sharp(join(dir, name))

@@ -1,124 +1,110 @@
-import { Award as AwardIcon } from "lucide-react";
-import { useState } from "react";
+import classNames from "classnames";
+import { Award } from "lucide-react";
+import { useRef } from "react";
 import { useTranslations } from "use-intl";
 
 import type { AwardCount } from "@/api/heroes";
-import { GameIcon } from "@/components";
+import { AwardIcon, AwardTooltip } from "@/components";
+import { type AppearCheck, useAppear } from "@/hooks/useAppear";
+import { useAppearGate } from "@/hooks/useAppearGate";
 import { useFormatStat } from "@/hooks/useFormatStat";
-import { Card, CardHeader, EmptyState, Meter, Tooltip, Typography } from "@/ui";
+import { Card, CardHeader, Chip, EmptyState, Typography } from "@/ui";
 
 import styles from "./styles.module.css";
 
-const SHOWN_AWARDS = 6;
+const TRACE_SHARE = 0.01;
 
 export interface AwardsProps {
+    hero: string;
     awards: AwardCount[];
     games: number;
 }
 
-export function Awards({ awards, games }: AwardsProps) {
+export function Awards({ hero, awards, games }: AwardsProps) {
     const t = useTranslations("hero.awards");
-    const [expanded, setExpanded] = useState(false);
-
-    const mvps = awards.find((award) => award.type === "mvp")?.count ?? 0;
-    const mvpEvery = mvps > 0 ? Math.round(games / mvps) : 0;
-    let mvpLine: string | undefined;
-    if (mvps > 0 && mvps === games) mvpLine = t("mvpAll");
-    else if (mvpEvery >= 2) mvpLine = t("mvpEvery", { count: mvpEvery });
-    else if (mvps > 0) mvpLine = t("mvpShare", { mvps, games });
-
-    const most = Math.max(1, ...awards.map((award) => award.count));
-    const shown = expanded ? awards : awards.slice(0, SHOWN_AWARDS);
-    const hidden = awards.length - shown.length;
-
-    const onToggle = () => setExpanded(!expanded);
+    const appear = useAppearGate(true);
 
     return (
         <Card>
             <CardHeader
                 size="sm"
-                icon={AwardIcon}
+                icon={Award}
                 title={t("title")}
-                subtitle={mvpLine}
+                subtitle={t("subtitle", { hero })}
             />
             {awards.length === 0 ? (
                 <EmptyState>{t("empty")}</EmptyState>
             ) : (
                 <div className={styles.body}>
-                    <ul className={styles.list}>
-                        {shown.map((award) => (
-                            <Row
+                    <ul className={styles.tiles}>
+                        {awards.map((award) => (
+                            <Tile
                                 key={award.type}
                                 award={award}
                                 games={games}
-                                most={most}
+                                appear={appear}
                             />
                         ))}
                     </ul>
-                    {awards.length > SHOWN_AWARDS && (
-                        <button
-                            type="button"
-                            className={styles.toggle}
-                            onClick={onToggle}
-                        >
-                            {expanded
-                                ? t("fewer")
-                                : t("more", { count: hidden })}
-                        </button>
-                    )}
                 </div>
             )}
         </Card>
     );
 }
 
-interface RowProps {
+interface TileProps {
     award: AwardCount;
     games: number;
-    most: number;
+    appear: AppearCheck;
 }
 
-function Row({ award, games, most }: RowProps) {
+function Tile({ award, games, appear }: TileProps) {
+    const t = useTranslations("hero.awards");
     const { percent } = useFormatStat();
+    const ref = useRef<HTMLLIElement>(null);
 
     const name = award.name ?? award.type;
-    const icon = (
-        <GameIcon
-            category="matchawards"
-            icon={award.icon}
-            label={name}
-            className={styles.icon}
-        />
+    const mvp = award.type === "mvp";
+
+    const share = award.count / Math.max(games, 1);
+
+    useAppear(ref, appear, "card", { sweep: styles.sweep });
+
+    const chips = (
+        <>
+            <Chip size="sm" uppercase>
+                {t("games", { count: award.count, games })}
+            </Chip>
+            <Chip size="sm" tone="primary" uppercase>
+                {share < TRACE_SHARE
+                    ? `<${percent(TRACE_SHARE)}`
+                    : percent(share)}
+            </Chip>
+        </>
     );
 
     return (
-        <li className={styles.row}>
-            {award.description ? (
-                <Tooltip content={name} description={award.description}>
-                    {icon}
-                </Tooltip>
-            ) : (
-                icon
-            )}
-            <Typography size="sm" weight="semibold" truncate>
-                {name}
-            </Typography>
-            <Meter
-                value={award.count / most}
-                color={award.type === "mvp" ? "mvp" : "accent"}
-                className={styles.meter}
-            />
-            <Typography size="xs" mono className={styles.count}>
-                {award.count}
-            </Typography>
-            <Typography
-                size="xs"
-                variant="tertiary"
-                mono
-                className={styles.share}
-            >
-                {percent(award.count / Math.max(games, 1))}
-            </Typography>
+        <li ref={ref} className={styles.award}>
+            <AwardTooltip award={award} chips={chips}>
+                <span
+                    className={classNames(styles.tile, {
+                        [styles.mvp]: mvp,
+                    })}
+                >
+                    <AwardIcon award={award} size="md" />
+
+                    <span className={styles.sweep} aria-hidden />
+
+                    <span className={styles.info}>
+                        <Typography as="span" mono className={styles.count}>
+                            {award.count}
+                        </Typography>
+                        <Typography as="span" size="sm" variant="secondary">
+                            {name}
+                        </Typography>
+                    </span>
+                </span>
+            </AwardTooltip>
         </li>
     );
 }

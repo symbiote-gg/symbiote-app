@@ -1,23 +1,16 @@
 @reference "@/index.css";
 
 .root {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-fg/15 bg-fg/8 py-0.5 pr-2.5 pl-0.5;
+    @apply pl-0.5;
 }
 
-.mvp {
-    @apply border-mvp/40 bg-mvp/15 text-mvp;
-}
-
-.mvp .label {
-    color: inherit;
-}
-
+/* Fills the chip's height between its borders, so it matches the other chips. */
 .root .icon {
-    @apply size-6 rounded-full;
+    @apply -my-0.5 size-5 rounded-none;
 }
 
 .iconOnlyWhenNarrow {
-    @apply @max-6xl:pr-0.5;
+    @apply @max-6xl:gap-0 @max-6xl:pr-0.5;
 }
 
 .iconOnlyWhenNarrow .label {

@@ -6,10 +6,9 @@ import type { MapRecord } from "@/api/heroes";
 import { type AppearCheck, useAppear } from "@/hooks/useAppear";
 import { useImageFallback } from "@/hooks/useImageFallback";
 import { Meter, Typography, WinRate } from "@/ui";
+import { MAP_CARD_VARIANT, variantFile } from "@/utils/image-variants";
 
 import styles from "./styles.module.css";
-
-const THUMB = "@420x164.webp";
 
 export interface MapCardProps {
     map: MapRecord;
@@ -29,7 +28,7 @@ export function MapCard({ map, rate, judged, appear }: MapCardProps) {
         <li ref={ref} className={styles.root}>
             {map.loadingScreen && !failed && (
                 <img
-                    src={`/game/loadingscreens/${map.loadingScreen.replace(/\.webp$/, THUMB)}`}
+                    src={`/game/loadingscreens/${variantFile(map.loadingScreen, MAP_CARD_VARIANT)}`}
                     alt=""
                     decoding="async"
                     className={styles.art}

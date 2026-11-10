@@ -8,7 +8,7 @@
     --badge: calc(var(--spacing) * 14);
     --gap: calc(var(--spacing) * 3);
     @apply relative isolate grid min-w-min gap-x-(--gap);
-    grid-template-columns: repeat(var(--tiers), minmax(--spacing(46), 1fr));
+    grid-template-columns: repeat(var(--tiers), minmax(--spacing(56), 1fr));
 }
 
 .track::before {

@@ -1,0 +1,26 @@
+@reference "@/index.css";
+
+/* Two classes, to win over GameIcon's own size on the same element. */
+.md:is(.badge, .frame) {
+    @apply size-11 shrink-0;
+}
+
+.lg:is(.badge, .frame) {
+    @apply size-12 shrink-0;
+}
+
+/* A hex covers less of its box than the MVP disc, so it gets a thinner inset
+   to look the same size. */
+.badge {
+    @apply p-0.5;
+}
+
+/* The MVP art is a full-bleed disc with no frame of its own, so it sits
+   inset in a still frame and turns inside it. */
+.frame {
+    @apply flex shrink-0 items-center justify-center rounded-md p-1 ring-2 ring-mvp;
+}
+
+.frame .spin {
+    @apply size-full animate-[spin_10s_linear_infinite] rounded-full motion-reduce:animate-none;
+}

@@ -5,6 +5,11 @@ import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import process from "node:process";
 
+import {
+    AWARD_VARIANTS,
+    MAP_CARD_VARIANT,
+    PORTRAIT_VARIANTS,
+} from "../src/utils/image-variants.ts";
 import { ACCENT_OVERRIDES } from "./assets/accents.mjs";
 import {
     ASSETS_DIR,
@@ -25,10 +30,19 @@ import { exists, hashTree, readJson, writeJson } from "./assets/io.mjs";
 import { MINIMAPS_DIR, fetchMinimaps } from "./assets/minimaps.mjs";
 import { loadFacts } from "./assets/sources/index.mjs";
 
+const AWARD_SIZES = [
+    ...new Set(
+        Object.values(AWARD_VARIANTS).flatMap((size) =>
+            typeof size === "number" ? size : Object.values(size),
+        ),
+    ),
+].sort((a, b) => a - b);
+
 // The heroes-images category, fact field and maximum size of each kind of
 // image. Map loading screens and hero banners are art shown large, so they keep
 // a much larger size. Portraits and banners are shown up to or above their
-// native size, so they're never downscaled and are stored losslessly.
+// native size, so they're never downscaled and are stored losslessly. Icons are
+// shown up to 48px, so they're kept at twice that for HiDPI screens.
 const IMAGES = [
     {
         kind: "heroes",
@@ -36,9 +50,7 @@ const IMAGES = [
         key: "portrait",
         size: [128, 128],
         lossless: true,
-        // WebKit blurs large downscales, so the sizes HeroPortrait shows are
-        // made here instead. Keep in sync with VARIANTS in src/utils/portraits.ts.
-        variants: [24, 32, 40, 48, 96],
+        variants: Object.values(PORTRAIT_VARIANTS),
     },
     {
         kind: "heroes",
@@ -51,18 +63,27 @@ const IMAGES = [
         kind: "talents",
         category: "abilitytalents",
         key: "icon",
-        size: [64, 64],
+        size: [96, 96],
         // A few older talents use hero UI art that heroes-images keeps with the portraits.
         fallback: "heroportraits",
     },
-    { kind: "awards", category: "matchawards", key: "icon", size: [64, 64] },
+    {
+        kind: "awards",
+        category: "matchawards",
+        key: "icon",
+        size: [96, 96],
+        // Few enough that lossless costs little, and lossy smears their fine linework.
+        lossless: true,
+        // The hex badges sit low in their canvas, flush with the bottom edge.
+        center: true,
+        variants: AWARD_SIZES,
+    },
     {
         kind: "maps",
         category: "loadingscreens",
         key: "loading_screen",
         size: [1920, 1080],
-        // The hero page's map cards. Keep in sync with its Maps card.
-        variants: [[420, 164]],
+        variants: [MAP_CARD_VARIANT],
     },
 ];
 
@@ -105,10 +126,14 @@ async function main() {
         image: {
             ...IMAGE,
             sizes: Object.fromEntries(
-                IMAGES.map(({ category, key, size, lossless, variants }) => [
-                    `${category}/${key}`,
-                    lossless || variants ? { size, lossless, variants } : size,
-                ]),
+                IMAGES.map(
+                    ({ category, key, size, lossless, variants, center }) => [
+                        `${category}/${key}`,
+                        lossless || variants || center
+                            ? { size, lossless, variants, center }
+                            : size,
+                    ],
+                ),
             ),
         },
     };
@@ -131,13 +156,14 @@ async function main() {
         lossless,
         variants,
         fallback,
+        center,
     } of IMAGES) {
         const [width, height] = size;
         const { hashes, missing } = await downloadImages(
             PINS.heroesImages,
             category,
             facts[kind].map((fact) => fact[key]),
-            { width, height, lossless, fallback },
+            { width, height, lossless, fallback, center },
         );
         Object.assign(files, hashes);
 

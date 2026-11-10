@@ -9,10 +9,11 @@ import styles from "./styles.module.css";
 export type ChipSize = "sm" | "md";
 
 export type ChipTone =
-    "neutral" | "primary" | "win" | "loss" | "quest" | "warn" | "side";
+    "neutral" | "primary" | "win" | "loss" | "quest" | "warn" | "side" | "mvp";
 
 export interface ChipProps {
     icon?: LucideIcon;
+    leading?: ReactNode;
     size?: ChipSize;
     tone?: ChipTone;
     uppercase?: boolean;
@@ -22,6 +23,7 @@ export interface ChipProps {
 
 export function Chip({
     icon: Icon,
+    leading,
     size = "md",
     tone = "neutral",
     uppercase,
@@ -39,6 +41,7 @@ export function Chip({
             )}
         >
             {Icon && <Icon className={styles.icon} aria-hidden />}
+            {leading}
             <Typography
                 as="span"
                 size={size === "sm" ? "xs" : "sm"}

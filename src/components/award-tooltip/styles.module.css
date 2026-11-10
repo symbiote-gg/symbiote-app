@@ -1,0 +1,29 @@
+@reference "@/index.css";
+
+.panel {
+    @apply max-h-none w-max max-w-72;
+}
+
+.panel.mvp {
+    @apply border-mvp/40 bg-linear-150 from-mvp/10 to-transparent to-50%;
+}
+
+.header {
+    @apply mb-3 flex items-center gap-2.5;
+}
+
+.header:last-child {
+    @apply mb-0;
+}
+
+.text {
+    @apply flex min-w-0 flex-col gap-1.5;
+}
+
+.text .title {
+    @apply leading-5;
+}
+
+.chips {
+    @apply flex items-center gap-1.5;
+}
