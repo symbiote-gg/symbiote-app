@@ -4,7 +4,7 @@ import { Fragment, type ReactNode, useState } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail, RoleStat } from "@/api/replays";
-import { Typography } from "@/ui";
+import { Collapse, Typography } from "@/ui";
 import { Gap } from "../gap";
 import { Heroes } from "../heroes";
 import { RoleLabel } from "../role-label";
@@ -57,7 +57,7 @@ export function RoleRow({
                 <Heroes side="enemy" players={enemy} ownerId={ownerId} />
                 <ChevronDown size={16} className={styles.chevron} />
             </button>
-            {open && (
+            <Collapse open={open}>
                 <div className={styles.breakdown}>
                     <ScoreBreakdown
                         columns={columns}
@@ -65,12 +65,10 @@ export function RoleRow({
                         formatValue={formatValue}
                     />
                 </div>
-            )}
+            </Collapse>
         </li>
     );
 }
-
-/** A role only one team had, on a single line: its heroes and their numbers. */
 export function OneSidedRow({
     comparison,
     own,

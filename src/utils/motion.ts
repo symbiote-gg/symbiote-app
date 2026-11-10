@@ -1,6 +1,7 @@
-// Mirrors the motion tokens in `index.css`: the Web Animations API takes neither
-// an easing nor a duration from a CSS variable.
-export const EASE_SETTLE = "cubic-bezier(0.2, 0.7, 0.2, 1)";
+// Mirrors the motion tokens in `index.css`: neither the Web Animations API nor
+// `motion` takes an easing or a duration from a CSS variable.
+export const EASE_SETTLE_CURVE = [0.2, 0.7, 0.2, 1] as const;
+export const EASE_SETTLE = `cubic-bezier(${EASE_SETTLE_CURVE.join(", ")})`;
 export const ENTER_MS = 250;
 export const TRAVEL_MS = 450;
 export const STAGGER_MS = 40;

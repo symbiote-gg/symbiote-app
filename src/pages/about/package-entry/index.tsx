@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useTranslations } from "use-intl";
 
 import type { ThirdPartyPackage } from "@/api/licenses";
-import { Typography } from "@/ui";
+import { Collapse, Typography } from "@/ui";
 import { ExternalLink } from "../external-link";
 
 import styles from "./styles.module.css";
@@ -40,7 +40,7 @@ export function PackageEntry({ pkg, texts }: PackageEntryProps) {
                 </Typography>
                 <ChevronDown size={14} className={styles.chevron} />
             </button>
-            {open && (
+            <Collapse open={open} lazy>
                 <div className={styles.body}>
                     <div>
                         <ExternalLink href={pkg.url} variant="chip">
@@ -59,7 +59,7 @@ export function PackageEntry({ pkg, texts }: PackageEntryProps) {
                         </pre>
                     ))}
                 </div>
-            )}
+            </Collapse>
         </div>
     );
 }

@@ -5,6 +5,7 @@ export * from "./card";
 export * from "./checkbox";
 export * from "./chip";
 export * from "./chip-group";
+export * from "./collapse";
 export * from "./combobox";
 export * from "./dropdown";
 export * from "./empty-state";
