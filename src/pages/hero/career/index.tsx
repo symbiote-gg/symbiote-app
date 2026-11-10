@@ -13,6 +13,7 @@ import {
 import { Button, Chip, Typography, WinRate, rollingChunks } from "@/ui";
 import { isJudged, winRate } from "@/utils/hero-stats";
 import { ROLE_ICONS } from "@/utils/role-icons";
+import { Motes } from "./motes";
 import { Tiles } from "./tiles";
 import { TimePanel } from "./time-panel";
 
@@ -52,6 +53,7 @@ export function Career({ hero }: CareerProps) {
                     onError={onError}
                 />
             )}
+            <Motes accent={hero.accent} className={styles.motes} />
             <div className={styles.top}>
                 <BackLink
                     href="/heroes"

@@ -42,6 +42,19 @@
     mask-composite: intersect;
 }
 
+.motes {
+    @apply pointer-events-none absolute top-0 right-0 -z-10 h-48 w-[60%];
+    mask-image:
+        linear-gradient(
+            to right,
+            transparent,
+            rgb(0 0 0 / 0.35) 25%,
+            black 50%
+        ),
+        linear-gradient(to top, transparent, black 30%);
+    mask-composite: intersect;
+}
+
 .top {
     @apply flex items-center justify-between gap-3 px-gutter pt-5;
 }
