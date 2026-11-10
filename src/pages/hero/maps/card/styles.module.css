@@ -19,6 +19,10 @@
     );
 }
 
+.sweep {
+    @apply appear-sweep;
+}
+
 .stats {
     @apply flex flex-col gap-2;
 }

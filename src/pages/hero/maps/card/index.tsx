@@ -1,7 +1,9 @@
 import classNames from "classnames";
+import { useRef } from "react";
 import { useTranslations } from "use-intl";
 
 import type { MapRecord } from "@/api/heroes";
+import { useAppear } from "@/hooks/useAppear";
 import { useImageFallback } from "@/hooks/useImageFallback";
 import { Meter, Typography, WinRate } from "@/ui";
 
@@ -13,14 +15,18 @@ export interface MapCardProps {
     map: MapRecord;
     rate: number | null;
     judged: boolean;
+    appear: boolean;
 }
 
-export function MapCard({ map, rate, judged }: MapCardProps) {
+export function MapCard({ map, rate, judged, appear }: MapCardProps) {
     const t = useTranslations("hero.maps");
     const [failed, onError] = useImageFallback();
+    const ref = useRef<HTMLLIElement>(null);
+
+    useAppear(ref, appear, "card", { sweep: styles.sweep });
 
     return (
-        <li className={styles.root}>
+        <li ref={ref} className={styles.root}>
             {map.loadingScreen && !failed && (
                 <img
                     src={`/game/loadingscreens/${map.loadingScreen.replace(/\.webp$/, THUMB)}`}
@@ -31,6 +37,7 @@ export function MapCard({ map, rate, judged }: MapCardProps) {
                 />
             )}
             <span className={styles.shade} />
+            <span className={styles.sweep} aria-hidden />
             <Typography size="sm" weight="semibold" truncate>
                 {map.name}
             </Typography>

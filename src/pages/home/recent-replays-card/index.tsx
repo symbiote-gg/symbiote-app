@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useTranslations } from "use-intl";
 
 import { ReplayListHeader, ReplayRow } from "@/components";
+import { useAppearGate } from "@/hooks/useAppearGate";
 import { useReplays } from "@/hooks/useReplays";
 import {
     ButtonLink,
@@ -29,6 +30,7 @@ export function RecentReplaysCard() {
                 .slice(0, RECENT_REPLAYS_LIMIT),
         [data],
     );
+    const appear = useAppearGate(!!data);
 
     return (
         <Card className={styles.root}>
@@ -48,7 +50,11 @@ export function RecentReplaysCard() {
                     <ReplayListHeader />
                     <CardBody>
                         {replays?.map((replay) => (
-                            <ReplayRow key={replay.id} replay={replay} />
+                            <ReplayRow
+                                key={replay.id}
+                                replay={replay}
+                                appear={appear}
+                            />
                         ))}
                     </CardBody>
                 </>

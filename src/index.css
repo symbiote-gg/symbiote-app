@@ -38,6 +38,18 @@
         "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
 
     --shadow-glow: 0 0 12px rgb(119 51 255 / 0.45);
+
+    --ease-settle: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Motion tiers. Hover and colour feedback keep Tailwind's 150ms default.
+   `enter` is something appearing in place, `travel` something covering a
+   distance, like rolling digits or a sweep. Both ease with `settle`.
+   `src/utils/motion.ts` mirrors these for the Web Animations API. */
+:root {
+    --motion-enter: 250ms;
+    --motion-travel: 450ms;
+    --motion-stagger: 40ms;
 }
 
 /* Team tints keyed off the nearest `--side`. Solid `side` is for ink only;
@@ -127,6 +139,14 @@
 /* Old results showing while new ones load. */
 @utility stale {
     opacity: 60%;
+}
+
+/* A band of `accent` light parked off the left edge of a clipping card, which the
+   appear animation slides across. One `transform`, not Tailwind's separate
+   `translate`, so the keyframes replace the parked position instead of adding to it. */
+@utility appear-sweep {
+    @apply pointer-events-none absolute inset-y-0 left-0 w-1/2 bg-linear-to-r from-transparent via-accent/25 to-transparent;
+    transform: translateX(-150%) skewX(-12deg);
 }
 
 @utility row-marker {

@@ -2,7 +2,11 @@
 
 .root {
     --accent: var(--hero-accent, var(--color-primary-text));
-    @apply flex flex-col gap-4 overflow-hidden rounded-lg border border-tile-line bg-surface-2 bg-linear-150 from-accent/10 to-transparent to-50% px-4 pt-4 transition-colors hover:bg-tile-hover;
+    @apply relative flex flex-col gap-4 overflow-hidden rounded-lg border border-tile-line bg-surface-2 bg-linear-150 from-accent/10 to-transparent to-50% px-4 pt-4 transition-colors hover:bg-tile-hover;
+}
+
+.sweep {
+    @apply appear-sweep;
 }
 
 .head {

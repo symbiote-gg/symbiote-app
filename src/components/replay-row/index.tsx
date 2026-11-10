@@ -1,6 +1,6 @@
 import { noop, useQueryClient } from "@tanstack/react-query";
 import classNames from "classnames";
-import { memo } from "react";
+import { memo, useRef } from "react";
 import { useTranslations } from "use-intl";
 import { Link } from "wouter";
 
@@ -11,6 +11,7 @@ import {
     replayQuery,
 } from "@/api/queries";
 import { type Replay, markReplayAsSeen } from "@/api/replays";
+import { useAppear } from "@/hooks/useAppear";
 import { useFormatStat } from "@/hooks/useFormatStat";
 import { Typography } from "@/ui";
 import { formatDuration, usePlayedAt } from "@/utils/dates";
@@ -27,18 +28,23 @@ import styles from "./styles.module.css";
 export interface ReplayRowProps {
     replay: Replay;
     wide?: boolean;
+    appear?: boolean;
     className?: string;
 }
 
 export const ReplayRow = memo(function ReplayRow({
     replay,
     wide,
+    appear = false,
     className,
 }: ReplayRowProps) {
     const t = useTranslations();
     const { compact } = useFormatStat();
     const playedAt = usePlayedAt();
     const queryClient = useQueryClient();
+    const ref = useRef<HTMLAnchorElement>(null);
+
+    useAppear(ref, appear, "row");
 
     const onPointerEnter = () =>
         queryClient.query(replayQuery(replay.id)).catch(noop);
@@ -56,6 +62,7 @@ export const ReplayRow = memo(function ReplayRow({
 
     return (
         <Link
+            ref={ref}
             href={`/replays/${replay.id}`}
             className={classNames(className, columns.row, styles.root, {
                 [styles.new]: replay.isNew,

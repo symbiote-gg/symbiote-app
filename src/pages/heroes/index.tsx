@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { Page } from "@/components";
+import { useAppearGate } from "@/hooks/useAppearGate";
 import { useHeroList } from "@/hooks/useHeroList";
 import {
     Button,
@@ -35,6 +36,10 @@ export function Heroes() {
         () => (data ? pickHeroes(data.heroes, filters) : []),
         [data, filters],
     );
+    const appear = useAppearGate(!!data && !isPlaceholderData, {
+        resetKey: filters,
+        duringIngest: true,
+    });
 
     const onFiltersChange = (next: FilterState) => {
         saved.filters = next;
@@ -86,7 +91,7 @@ export function Heroes() {
                         >
                             {heroes.map((hero) => (
                                 <li key={hero.heroId}>
-                                    <HeroCard hero={hero} />
+                                    <HeroCard hero={hero} appear={appear} />
                                 </li>
                             ))}
                         </ul>

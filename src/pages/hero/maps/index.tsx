@@ -2,6 +2,7 @@ import { Map as MapIcon } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { MapRecord } from "@/api/heroes";
+import { useAppearGate } from "@/hooks/useAppearGate";
 import { Card, CardHeader } from "@/ui";
 import { isJudged, winRate } from "@/utils/hero-stats";
 import { MapCard } from "./card";
@@ -14,6 +15,7 @@ export interface MapsProps {
 
 export function Maps({ maps }: MapsProps) {
     const t = useTranslations("hero.maps");
+    const appear = useAppearGate(true);
 
     const rated = maps.map((map) => ({
         ...map,
@@ -44,6 +46,7 @@ export function Maps({ maps }: MapsProps) {
                         map={map}
                         rate={map.rate}
                         judged={map.judged}
+                        appear={appear}
                     />
                 ))}
             </ul>

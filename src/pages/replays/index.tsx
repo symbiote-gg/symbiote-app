@@ -10,6 +10,7 @@ import { useTranslations } from "use-intl";
 
 import { DEFAULT_REPLAY_SORT, type ReplaySort } from "@/api/replays";
 import { Page, ReplayListHeader } from "@/components";
+import { useAppearGate } from "@/hooks/useAppearGate";
 import { useIngesting } from "@/hooks/useIngestProgress";
 import { useReplays } from "@/hooks/useReplays";
 import {
@@ -57,6 +58,11 @@ export function Replays() {
         [data],
     );
     const total = data?.pages[0]?.total ?? 0;
+
+    const view = useMemo(() => ({ query, sort }), [query, sort]);
+    const appear = useAppearGate(!!data && !isPlaceholderData, {
+        resetKey: view,
+    });
 
     useLayoutEffect(() => {
         if (scroller.current) scroller.current.scrollTop = saved.offset;
@@ -127,6 +133,7 @@ export function Replays() {
                     replays={replays}
                     total={total}
                     stale={isPlaceholderData}
+                    appear={appear}
                     initialOffset={saved.offset}
                     hasNextPage={hasNextPage}
                     isFetchingNextPage={isFetchingNextPage}

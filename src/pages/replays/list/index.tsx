@@ -1,6 +1,12 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import classNames from "classnames";
-import { type ReactNode, type RefObject, type UIEvent, useEffect } from "react";
+import {
+    type ReactNode,
+    type RefObject,
+    type UIEvent,
+    useEffect,
+    useRef,
+} from "react";
 
 import type { Replay } from "@/api/replays";
 import { ReplayRow } from "@/components";
@@ -16,6 +22,7 @@ export interface ListProps {
     replays: Replay[];
     total: number;
     stale: boolean;
+    appear: boolean;
     initialOffset: number;
     hasNextPage: boolean;
     isFetchingNextPage: boolean;
@@ -29,6 +36,7 @@ export function List({
     replays,
     total,
     stale,
+    appear,
     initialOffset,
     hasNextPage,
     isFetchingNextPage,
@@ -36,8 +44,11 @@ export function List({
     onScroll,
     children,
 }: ListProps) {
+    const known = useRef<Set<number> | null>(null);
+
     const virtualizer = useVirtualizer({
         count: hasNextPage ? total : replays.length,
+        getItemKey: (index) => replays[index]?.id ?? `skeleton-${index}`,
         getScrollElement: () => ref.current,
         estimateSize: () => ROW_HEIGHT,
         overscan: 4,
@@ -57,6 +68,18 @@ export function List({
             fetchNextPage();
         }
     }, [lastIndex, replays.length, hasNextPage, isFetchingNextPage]);
+
+    useEffect(() => {
+        known.current = new Set(replays.map((replay) => replay.id));
+    }, [replays]);
+
+    // Rows remount as they scroll into view, so only a replay missing from the list's
+    // last data animates, and only above where it ended, since pages append below.
+    const arrived = (id: number, index: number) =>
+        appear &&
+        !!known.current &&
+        index < known.current.size &&
+        !known.current.has(id);
 
     return (
         <CardBody ref={ref} onScroll={onScroll}>
@@ -78,7 +101,11 @@ export function List({
                             style={{ height: item.size }}
                         >
                             {replay ? (
-                                <ReplayRow replay={replay} wide />
+                                <ReplayRow
+                                    replay={replay}
+                                    wide
+                                    appear={arrived(replay.id, item.index)}
+                                />
                             ) : (
                                 <div className={styles.skeleton} aria-hidden />
                             )}

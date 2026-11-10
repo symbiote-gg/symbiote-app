@@ -36,3 +36,22 @@ export function useIngesting(): boolean {
 
     return ingesting;
 }
+
+// Stats refetch a few seconds after the last ingested batch, so the ingest only reads
+// quiet that long past its end, or the last heroes would still pop in.
+const QUIET_MS = 10_000;
+
+let busyUntil = Infinity;
+let watching = false;
+
+/** Starts tracking `ingestQuiet` for the app's lifetime; later calls do nothing. */
+export function watchIngestQuiet() {
+    if (watching) return;
+    watching = true;
+
+    watchIngestProgress((progress) => {
+        busyUntil = toPhase(progress) ? Infinity : Date.now() + QUIET_MS;
+    });
+}
+
+export const ingestQuiet = () => Date.now() >= busyUntil;
