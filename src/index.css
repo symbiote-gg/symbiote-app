@@ -43,12 +43,15 @@
 }
 
 /* Motion tiers. Hover and colour feedback keep Tailwind's 150ms default.
-   `enter` is something appearing in place, `travel` something covering a
-   distance, like rolling digits or a sweep. Both ease with `settle`.
-   `src/utils/motion.ts` mirrors these for the Web Animations API. */
+   `enter` is a small thing appearing in place, like a row. `travel` is
+   something covering a distance, like rolling digits, or a card popping in.
+   `reveal` is light passing over a card once it's in, like its sweep and
+   glow. All ease with `settle`, except a sweep, which glides.
+   `src/utils/motion.ts` mirrors these for `motion`. */
 :root {
     --motion-enter: 250ms;
     --motion-travel: 450ms;
+    --motion-reveal: 900ms;
     --motion-stagger: 40ms;
 }
 

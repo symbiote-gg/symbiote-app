@@ -39,5 +39,5 @@
 }
 
 .stats > div + div {
-    @apply border-l border-tile-line;
+    @apply border-l border-tile-line pl-3;
 }
