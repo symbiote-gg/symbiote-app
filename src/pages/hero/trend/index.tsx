@@ -105,13 +105,6 @@ export function Trend({ hero, trend }: TrendProps) {
                     ))}
                 </div>
                 <div className={styles.rate}>
-                    {domain.ticks.map((tick) => (
-                        <span
-                            key={tick}
-                            className={styles.grid}
-                            style={{ top: `${y(tick)}%` }}
-                        />
-                    ))}
                     <svg
                         viewBox="0 0 100 100"
                         preserveAspectRatio="none"

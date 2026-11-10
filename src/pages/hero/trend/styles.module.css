@@ -16,10 +16,6 @@
     @apply relative col-start-2 row-start-1;
 }
 
-.grid {
-    @apply absolute inset-x-0 border-t border-line;
-}
-
 .line {
     @apply absolute inset-0 size-full overflow-visible;
 }
