@@ -38,6 +38,12 @@ export function Trend({ hero, trend }: TrendProps) {
     const rates = days.map((day) => day.rate);
     const domain = rateDomain(rates.filter((rate) => rate !== null));
 
+    // Ticks are absolutely positioned, so the widest one is rendered in flow
+    // to size the axis column to its content.
+    const widestTick = domain.ticks
+        .map((tick) => percent(tick))
+        .reduce((a, b) => (b.length > a.length ? b : a), "");
+
     const x = (index: number) => ((index + 0.5) / count) * 100;
     const y = (rate: number) =>
         ((domain.high - rate) / (domain.high - domain.low)) * 100;
@@ -84,6 +90,15 @@ export function Trend({ hero, trend }: TrendProps) {
             />
             <div className={styles.body}>
                 <div className={styles.ticks}>
+                    <Typography
+                        as="span"
+                        size="xs"
+                        mono
+                        aria-hidden
+                        className={styles.tickSizer}
+                    >
+                        {widestTick}
+                    </Typography>
                     {domain.ticks.map((tick) => (
                         <Typography
                             key={tick}

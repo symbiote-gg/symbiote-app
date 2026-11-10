@@ -1,11 +1,15 @@
 @reference "@/index.css";
 
 .body {
-    @apply grid grid-cols-[2.5rem_minmax(0,1fr)] grid-rows-[13rem_3.5rem_auto] gap-x-3 px-gutter pb-6;
+    @apply grid grid-cols-[max-content_minmax(0,1fr)] grid-rows-[13rem_3.5rem_auto] gap-x-3 px-gutter pb-6;
 }
 
 .ticks {
     @apply relative col-start-1 row-start-1;
+}
+
+.tickSizer {
+    @apply invisible block leading-none;
 }
 
 .tick {
