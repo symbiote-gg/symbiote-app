@@ -90,7 +90,6 @@
         "back": "Heroes",
         "notFound": "This hero does not exist.",
         "noGames": "No games on {hero} yet.",
-        "replays": "{hero} replays",
         "career": {
             "winsSuffix": " wins",
             "record": "<num>{wins}</num><win>W</win> <num>{losses}</num><loss>D</loss>",

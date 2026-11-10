@@ -1,16 +1,10 @@
-import { Clapperboard } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
-import { useLocation } from "wouter";
 
 import type { HeroDetail } from "@/api/heroes";
 import { BackLink, HeroPortrait } from "@/components";
 import { useImageFallback } from "@/hooks/useImageFallback";
-import {
-    NO_FILTERS as NO_REPLAY_FILTERS,
-    openReplaysOn,
-} from "@/pages/replays/filters/state";
-import { Button, Chip, Typography, WinRate, rollingChunks } from "@/ui";
+import { Chip, Typography, WinRate, rollingChunks } from "@/ui";
 import { isJudged, winRate } from "@/utils/hero-stats";
 import { ROLE_ICONS } from "@/utils/role-icons";
 import { Motes } from "./motes";
@@ -32,15 +26,9 @@ export interface CareerProps {
 export function Career({ hero }: CareerProps) {
     const t = useTranslations("hero");
     const roles = useTranslations("roles");
-    const [, navigate] = useLocation();
     const [failed, onError] = useImageFallback();
 
     const rate = winRate(hero.wins, hero.losses);
-
-    const onReplays = () => {
-        openReplaysOn({ ...NO_REPLAY_FILTERS, heroes: [hero.heroId] });
-        navigate("/replays");
-    };
 
     return (
         <header className={styles.root}>
@@ -60,15 +48,6 @@ export function Career({ hero }: CareerProps) {
                     label={t("back")}
                     className={styles.tool}
                 />
-                <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={onReplays}
-                    className={styles.tool}
-                >
-                    <Clapperboard aria-hidden />
-                    {t("replays", { hero: hero.name })}
-                </Button>
             </div>
             <div className={styles.identity}>
                 <div className={styles.hero}>
