@@ -6,7 +6,7 @@
 }
 
 .art {
-    @apply absolute inset-0 -z-10 size-full object-cover opacity-70;
+    @apply absolute inset-0 -z-10 size-full object-cover opacity-75;
 }
 
 .shade {
@@ -14,8 +14,8 @@
     background: linear-gradient(
         to top,
         var(--color-surface-2),
-        color-mix(in oklab, var(--color-surface-2) 60%, transparent) 55%,
-        color-mix(in oklab, var(--color-surface-2) 20%, transparent)
+        color-mix(in oklab, var(--color-surface-2) 60%, transparent) 40%,
+        color-mix(in oklab, var(--color-surface-2) 35%, transparent)
     );
 }
 
