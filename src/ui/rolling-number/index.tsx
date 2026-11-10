@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import type { CSSProperties } from "react";
+import { type CSSProperties, useState } from "react";
 
 import styles from "./styles.module.css";
 
@@ -12,7 +12,16 @@ export interface RollingNumberProps {
 }
 
 export function RollingNumber({ value, className }: RollingNumberProps) {
+    const [shown, setShown] = useState(value);
+    const [from, setFrom] = useState<string | null>(null);
+
+    if (value !== shown) {
+        setFrom(shown);
+        setShown(value);
+    }
+
     const chars = [...value];
+    const fromChars = from === null ? null : [...from];
 
     return (
         <span className={classNames(className, styles.root)}>
@@ -27,8 +36,19 @@ export function RollingNumber({ value, className }: RollingNumberProps) {
                         return <span key={`${fromRight}-${char}`}>{char}</span>;
                     }
 
+                    if (fromChars === null) {
+                        return <span key={`${fromRight}-digit`}>{char}</span>;
+                    }
+
+                    // A column that was not a digit before has nothing to roll from.
+                    const previous =
+                        fromChars[fromChars.length - 1 - fromRight];
+                    const start =
+                        previous && DIGIT.test(previous) ? previous : char;
+
                     const style = {
                         "--digit": char,
+                        "--from": start,
                         "--from-right": fromRight,
                     } as CSSProperties;
 

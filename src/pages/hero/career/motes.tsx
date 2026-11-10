@@ -199,8 +199,15 @@ export function Motes({ accent, className }: MotesProps) {
 
         const resizer = new ResizeObserver(onResize);
         const viewer = new IntersectionObserver(onIntersect);
-        resizer.observe(canvas);
-        viewer.observe(canvas);
+
+        // The page mounts in one big commit; observing straight away would put
+        // the backing store allocation and first draw in that same frame.
+        let start = requestAnimationFrame(() => {
+            start = requestAnimationFrame(() => {
+                resizer.observe(canvas);
+                viewer.observe(canvas);
+            });
+        });
 
         window.addEventListener("focus", onFocus);
         window.addEventListener("blur", onBlur);
@@ -208,6 +215,7 @@ export function Motes({ accent, className }: MotesProps) {
         reduce.addEventListener("change", sync);
 
         return () => {
+            cancelAnimationFrame(start);
             cancelAnimationFrame(frame);
             resizer.disconnect();
             viewer.disconnect();

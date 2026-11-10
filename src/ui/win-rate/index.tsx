@@ -11,6 +11,7 @@ export interface WinRateProps {
     rate: number | null;
     judged?: boolean;
     suffix?: ReactNode;
+    rolling?: boolean;
     className?: string;
 }
 
@@ -18,6 +19,7 @@ export function WinRate({
     rate,
     judged = true,
     suffix,
+    rolling = true,
     className,
 }: WinRateProps) {
     const { winPercent } = useFormatStat();
@@ -26,7 +28,11 @@ export function WinRate({
 
     return (
         <span className={classNames(className, styles[grade])}>
-            <RollingNumber value={winPercent(rate)} />
+            {rolling ? (
+                <RollingNumber value={winPercent(rate)} />
+            ) : (
+                winPercent(rate)
+            )}
             {suffix}
         </span>
     );

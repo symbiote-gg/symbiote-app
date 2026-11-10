@@ -73,7 +73,7 @@
 }
 
 .hit {
-    @apply flex h-full min-w-0 flex-1;
+    @apply flex h-full min-w-0 flex-1 cursor-pointer;
 }
 
 .crosshair {

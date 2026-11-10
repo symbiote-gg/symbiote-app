@@ -1,5 +1,5 @@
 import { ChartSpline } from "lucide-react";
-import { useId } from "react";
+import { type FocusEvent, type PointerEvent, useId, useState } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
 import type { TrendPoint } from "@/api/heroes";
@@ -9,7 +9,7 @@ import {
     CardHeader,
     Chip,
     Eyebrow,
-    Tooltip,
+    Popover,
     Typography,
     WinRate,
 } from "@/ui";
@@ -27,6 +27,11 @@ import styles from "./styles.module.css";
 
 const MAX_LABELS = 12;
 
+const hitAt = (target: EventTarget | null) =>
+    target instanceof Element
+        ? target.closest<HTMLSpanElement>("[data-day]")
+        : null;
+
 export interface TrendProps {
     hero: string;
     trend: TrendPoint[];
@@ -37,6 +42,18 @@ export function Trend({ hero, trend }: TrendProps) {
     const format = useFormatter();
     const { percent, winPercent } = useFormatStat();
     const gradient = useId();
+    const panel = useId();
+
+    const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
+    const active = anchor ? Number(anchor.dataset.day) : -1;
+
+    const onOver = (
+        e: PointerEvent<HTMLDivElement> | FocusEvent<HTMLDivElement>,
+    ) => {
+        const hit = hitAt(e.target);
+        if (hit && hit !== anchor) setAnchor(hit);
+    };
+    const onOut = () => setAnchor(null);
 
     const days = fillDays(trend);
     const count = days.length;
@@ -188,22 +205,42 @@ export function Trend({ hero, trend }: TrendProps) {
                         </span>
                     ))}
                 </div>
-                <div className={styles.hits}>
-                    {days.map((day) => (
-                        <Tooltip
+                <div
+                    className={styles.hits}
+                    onPointerOver={onOver}
+                    onPointerLeave={onOut}
+                    onFocus={onOver}
+                    onBlur={onOut}
+                >
+                    {days.map((day, index) => (
+                        <span
                             key={day.day.valueOf()}
-                            content={<DayPanel day={day} />}
-                            compact={false}
+                            data-day={index}
                             className={styles.hit}
-                            panelClassName={styles.popover}
                         >
                             <span
                                 tabIndex={0}
                                 aria-label={`${dayName(day)}: ${summary(day)}`}
+                                aria-describedby={
+                                    index === active ? panel : undefined
+                                }
                                 className={styles.crosshair}
                             />
-                        </Tooltip>
+                        </span>
                     ))}
+                    {active >= 0 && (
+                        <Popover
+                            id={panel}
+                            role="tooltip"
+                            anchor={anchor}
+                            placement="top"
+                            compact={false}
+                            interactive={false}
+                            className={styles.popover}
+                        >
+                            <DayPanel day={days[active]} />
+                        </Popover>
+                    )}
                 </div>
             </div>
         </Card>
@@ -264,7 +301,7 @@ function DayPanel({ day }: { day: Day }) {
                 <div className={styles.cell}>
                     <Eyebrow as="span">{t("careerLabel")}</Eyebrow>
                     <Typography as="span" size="lg" weight="semibold" mono>
-                        <WinRate rate={day.carried} />
+                        <WinRate rate={day.carried} rolling={false} />
                     </Typography>
                 </div>
             </div>

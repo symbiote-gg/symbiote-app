@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getHeroDetail } from "@/api/heroes";
+import { heroDetailQuery } from "@/api/queries";
 
 export function useHeroDetail(heroId: number) {
-    return useQuery({
-        queryKey: ["stats", "heroes", "detail", heroId],
-        queryFn: () => getHeroDetail(heroId),
-    });
+    return useQuery(heroDetailQuery(heroId));
 }

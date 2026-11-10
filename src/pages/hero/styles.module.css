@@ -38,6 +38,33 @@
     @apply xl:col-span-12;
 }
 
+/* Everything past the trend starts below the fold, so its layout and paint
+   wait until it scrolls into view instead of landing in the mount frame. */
+.talents,
+.maps,
+.teamShare,
+.gameLength,
+.awards {
+    content-visibility: auto;
+}
+
+.talents {
+    contain-intrinsic-block-size: auto 40rem;
+}
+
+.maps {
+    contain-intrinsic-block-size: auto 24rem;
+}
+
+.teamShare,
+.gameLength {
+    contain-intrinsic-block-size: auto 20rem;
+}
+
+.awards {
+    contain-intrinsic-block-size: auto 16rem;
+}
+
 .talents {
     @apply xl:col-span-12;
 }

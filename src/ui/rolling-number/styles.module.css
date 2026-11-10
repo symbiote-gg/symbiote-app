@@ -27,6 +27,13 @@
     transition-delay: calc(var(--from-right) * var(--motion-stagger));
 }
 
+/* A strip mounts on the first change, so it starts at the digit it replaces. */
+@starting-style {
+    .strip {
+        transform: translateY(calc(var(--from) * -10%));
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .strip {
         transition: none;

@@ -53,6 +53,7 @@
         ),
         linear-gradient(to top, transparent, black 30%);
     mask-composite: intersect;
+    will-change: transform;
 }
 
 .top {
