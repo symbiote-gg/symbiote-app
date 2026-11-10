@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import classNames from "classnames";
 import { Info, RefreshCw, TriangleAlert } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
 import { retentionPreviewQuery } from "@/api/queries";
@@ -49,9 +49,7 @@ export function StorageCard({ years }: StorageCardProps) {
     const importing = useIngesting();
     const [pending, setPending] = useState<Retention | null>(null);
 
-    useEffect(() => {
-        if (importing) setPending(null);
-    }, [importing]);
+    if (importing && pending !== null) setPending(null);
 
     // Prefetch every option so the confirm panel renders on click without a loading gap
     const previews = useRetentionPreviews(RETENTION_YEARS);

@@ -3,7 +3,7 @@ import { useRef } from "react";
 import { useTranslations } from "use-intl";
 
 import type { MapRecord } from "@/api/heroes";
-import { useAppear } from "@/hooks/useAppear";
+import { type AppearCheck, useAppear } from "@/hooks/useAppear";
 import { useImageFallback } from "@/hooks/useImageFallback";
 import { Meter, Typography, WinRate } from "@/ui";
 
@@ -15,7 +15,7 @@ export interface MapCardProps {
     map: MapRecord;
     rate: number | null;
     judged: boolean;
-    appear: boolean;
+    appear: AppearCheck;
 }
 
 export function MapCard({ map, rate, judged, appear }: MapCardProps) {

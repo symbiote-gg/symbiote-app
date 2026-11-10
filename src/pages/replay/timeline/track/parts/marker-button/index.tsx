@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import type { FocusEvent, MouseEvent, PointerEvent } from "react";
+import type { FocusEvent, MouseEvent, PointerEvent, Ref } from "react";
 
 import type { TimelineText } from "@/hooks/useTimelineText";
 import { sideClass } from "@/ui";
@@ -104,6 +104,7 @@ function TickVisual({ marker }: { marker: Marker }) {
 }
 
 interface MarkerButtonProps {
+    ref?: Ref<HTMLButtonElement>;
     marker: Marker;
     top: number;
     duration: number;
@@ -120,6 +121,7 @@ interface MarkerButtonProps {
 }
 
 export function MarkerButton({
+    ref,
     marker,
     top,
     duration,
@@ -139,6 +141,7 @@ export function MarkerButton({
 
     return (
         <button
+            ref={ref}
             type="button"
             data-id={marker.id}
             tabIndex={tabbable ? 0 : -1}

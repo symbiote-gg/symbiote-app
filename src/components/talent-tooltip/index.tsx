@@ -1,12 +1,10 @@
 import type { ReactNode } from "react";
 
 import type { TalentPick } from "@/api/replays";
+import { useTalentGroups } from "@/hooks/useTalentGroups";
 import { Tooltip } from "@/ui";
-import {
-    TalentDescription,
-    isQuest,
-    useTalentGroups,
-} from "../talent-description";
+import { isQuest } from "@/utils/talents";
+import { TalentDescription } from "../talent-description";
 import { Header } from "./header";
 
 import styles from "./styles.module.css";

@@ -1,4 +1,4 @@
-import { type RefObject, useLayoutEffect } from "react";
+import { type RefObject, useEffectEvent, useLayoutEffect, useRef } from "react";
 
 import {
     EASE_SETTLE,
@@ -9,6 +9,8 @@ import {
 } from "@/utils/motion";
 
 export type AppearKind = "card" | "row";
+
+export type AppearCheck = () => boolean;
 
 export interface AppearParts {
     glow?: string;
@@ -63,13 +65,19 @@ function glow(el: HTMLElement, delay: number): Animation {
 
 export function useAppear(
     ref: RefObject<HTMLElement | null>,
-    appear: boolean,
+    appear: AppearCheck | undefined,
     kind: AppearKind,
     parts: AppearParts = {},
 ) {
-    useLayoutEffect(() => {
+    const decided = useRef<boolean | null>(null);
+
+    // Animates only on mount, with the props of that render.
+    const animate = useEffectEvent(() => {
         const el = ref.current;
-        if (!appear || !el || reducedMotion()) return;
+        if (!el || reducedMotion()) return;
+
+        if (decided.current === null) decided.current = appear?.() ?? false;
+        if (!decided.current) return;
 
         const delay = nextStagger();
         const animations = [kind === "card" ? pop(el, delay) : drop(el, delay)];
@@ -86,5 +94,7 @@ export function useAppear(
         return () => {
             for (const animation of animations) animation.cancel();
         };
-    }, []);
+    });
+
+    useLayoutEffect(() => animate(), []);
 }

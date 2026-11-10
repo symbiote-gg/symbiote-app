@@ -11,7 +11,7 @@ import {
     replayQuery,
 } from "@/api/queries";
 import { type Replay, markReplayAsSeen } from "@/api/replays";
-import { useAppear } from "@/hooks/useAppear";
+import { type AppearCheck, useAppear } from "@/hooks/useAppear";
 import { useFormatStat } from "@/hooks/useFormatStat";
 import { Typography } from "@/ui";
 import { formatDuration, usePlayedAt } from "@/utils/dates";
@@ -28,14 +28,19 @@ import styles from "./styles.module.css";
 export interface ReplayRowProps {
     replay: Replay;
     wide?: boolean;
-    appear?: boolean;
+    appear?: AppearCheck;
     className?: string;
 }
+
+const sameRow = (prev: ReplayRowProps, next: ReplayRowProps) =>
+    prev.replay === next.replay &&
+    prev.wide === next.wide &&
+    prev.className === next.className;
 
 export const ReplayRow = memo(function ReplayRow({
     replay,
     wide,
-    appear = false,
+    appear,
     className,
 }: ReplayRowProps) {
     const t = useTranslations();
@@ -150,4 +155,4 @@ export const ReplayRow = memo(function ReplayRow({
             </span>
         </Link>
     );
-});
+}, sameRow);

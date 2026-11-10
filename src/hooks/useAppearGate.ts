@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 
+import type { AppearCheck } from "./useAppear";
 import { ingestQuiet, watchIngestQuiet } from "./useIngestProgress";
 
 export interface AppearGateOptions {
@@ -7,23 +8,26 @@ export interface AppearGateOptions {
     duringIngest?: boolean;
 }
 
+const UNSETTLED = Symbol("unsettled");
+
+/**
+ * Lets items animate in only once `ready` data has been on screen for `resetKey`, so a
+ * first load or a reset doesn't animate everything. Items run the check as they mount,
+ * before this hook's effect marks the commit that showed the data as settled.
+ */
 export function useAppearGate(
     ready: boolean,
     { resetKey, duringIngest = false }: AppearGateOptions = {},
-): boolean {
-    const settled = useRef(false);
-    const key = useRef(resetKey);
-
-    if (!Object.is(key.current, resetKey)) {
-        key.current = resetKey;
-        settled.current = false;
-    }
+): AppearCheck {
+    const settledFor = useRef<unknown>(UNSETTLED);
 
     useEffect(watchIngestQuiet, []);
 
     useEffect(() => {
-        if (ready) settled.current = true;
+        if (ready) settledFor.current = resetKey;
     });
 
-    return settled.current && (duringIngest || ingestQuiet());
+    return () =>
+        Object.is(settledFor.current, resetKey) &&
+        (duringIngest || ingestQuiet());
 }

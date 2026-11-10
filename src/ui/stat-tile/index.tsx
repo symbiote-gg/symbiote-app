@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Eyebrow } from "../eyebrow";
-import { rolling } from "../rolling-number";
+import { rolling } from "../rolling-number/rolling";
 import { Typography } from "../typography";
 
 import styles from "./styles.module.css";

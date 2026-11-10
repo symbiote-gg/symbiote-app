@@ -55,7 +55,7 @@ export function DeathMap({
 }: DeathMapProps) {
     const t = useTranslations("replay.deathMap");
     const text = useTimelineText(players);
-    const [time, setTime] = useState(Math.ceil(duration));
+    const [time, setTime] = useState(() => Math.ceil(duration));
     const [layer, setLayer] = useState("0");
     const [filter, setFilter] = useState<DeathFilter>("all");
     const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -143,7 +143,10 @@ export function DeathMap({
     };
 
     const onPinEnter = (e: SyntheticEvent<HTMLButtonElement>) =>
-        popoverRef.current?.hover(Number(e.currentTarget.dataset.death));
+        popoverRef.current?.hover(
+            Number(e.currentTarget.dataset.death),
+            e.currentTarget,
+        );
 
     const onPinLeave = () => popoverRef.current?.leave();
 
@@ -208,7 +211,6 @@ export function DeathMap({
                     <DeathPopover
                         ref={popoverRef}
                         deaths={visible}
-                        container={pinsRef}
                         roster={roster}
                         text={text}
                     />

@@ -87,6 +87,7 @@ export function Track({
     const closeTimer = useRef<number | undefined>(undefined);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [bookend, setBookend] = useState<Bookend | null>(null);
+    const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
     const cursor = useRef<CursorHandle>(null);
 
     const placed = layout(markers, width, duration);
@@ -239,6 +240,7 @@ export function Track({
                 {placed.map((p) => (
                     <MarkerButton
                         key={p.marker.id}
+                        ref={p.marker.id === selectedId ? setAnchor : undefined}
                         marker={p.marker}
                         top={top(p)}
                         duration={duration}
@@ -273,7 +275,7 @@ export function Track({
                         highlightSlot={highlightSlot}
                         curves={curves}
                         text={text}
-                        track={ref.current}
+                        anchor={anchor}
                         side={selected.marker.side}
                         onPointerEnter={cancelClose}
                         onPointerLeave={scheduleClose}

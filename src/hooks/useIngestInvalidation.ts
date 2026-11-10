@@ -83,10 +83,12 @@ export function useIngestInvalidation() {
                 if (!data || !isDefaultListKey(key)) continue;
                 queryClient.setQueryData(key, applyIngested(data, ingested));
             }
-            filteredTimer ??= setTimeout(
-                refreshFiltered,
-                Math.max(0, filteredAt + FILTERED_MS - Date.now()),
-            );
+            if (filteredTimer === undefined) {
+                filteredTimer = setTimeout(
+                    refreshFiltered,
+                    Math.max(0, filteredAt + FILTERED_MS - Date.now()),
+                );
+            }
             for (const { replay, refreshed } of ingested) {
                 if (refreshed) {
                     queryClient.invalidateQueries({
@@ -96,12 +98,16 @@ export function useIngestInvalidation() {
             }
             // New games shift the hero baselines the standouts are judged against.
             queryClient.invalidateQueries({ queryKey: STANDOUTS_KEY });
-            statsTimer ??= setTimeout(refreshStats, STATS_MS);
+            if (statsTimer === undefined) {
+                statsTimer = setTimeout(refreshStats, STATS_MS);
+            }
         };
 
         const onIngested = (message: ReplayIngested) => {
             batch.push(message);
-            flushTimer ??= setTimeout(flush, FLUSH_MS);
+            if (flushTimer === undefined) {
+                flushTimer = setTimeout(flush, FLUSH_MS);
+            }
         };
 
         const unsubscribe = subscribeIngest(onIngested);

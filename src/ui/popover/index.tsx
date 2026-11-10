@@ -8,7 +8,7 @@ import {
     useFloating,
 } from "@floating-ui/react-dom";
 import classNames from "classnames";
-import type { PointerEvent, ReactNode } from "react";
+import { type PointerEvent, type ReactNode, useState } from "react";
 import { createPortal } from "react-dom";
 
 import styles from "./styles.module.css";
@@ -53,8 +53,10 @@ export function Popover({
     onPointerEnter,
     onPointerLeave,
 }: PopoverProps) {
-    const { refs, floatingStyles, isPositioned, middlewareData } = useFloating({
-        elements: { reference: anchor },
+    const [floating, setFloating] = useState<HTMLDivElement | null>(null);
+
+    const { floatingStyles, isPositioned, middlewareData } = useFloating({
+        elements: { reference: anchor, floating },
         placement:
             placement === "side"
                 ? align === "start"
@@ -88,7 +90,7 @@ export function Popover({
 
     return createPortal(
         <div
-            ref={refs.setFloating}
+            ref={setFloating}
             id={id}
             role={role}
             aria-label={ariaLabel}

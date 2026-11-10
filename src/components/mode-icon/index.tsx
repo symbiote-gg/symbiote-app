@@ -1,42 +1,18 @@
 import classNames from "classnames";
-import {
-    Bot,
-    CircleQuestionMark,
-    Dices,
-    ListChecks,
-    type LucideIcon,
-    PartyPopper,
-    SlidersHorizontal,
-    Trophy,
-    Zap,
-} from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { Mode } from "@/api/replays";
+import { MODE_ICONS } from "@/utils/mode-icons";
 
 import styles from "./style.module.css";
-
-const ICONS: Partial<Record<Mode, LucideIcon>> = {
-    quick_match: Zap,
-    versus_ai: Bot,
-    brawl: PartyPopper,
-    unranked_draft: ListChecks,
-    storm_league: Trophy,
-    aram: Dices,
-    custom: SlidersHorizontal,
-};
 
 export interface ModeIconProps {
     mode: Mode;
     className?: string;
 }
 
-export function modeIcon(mode: Mode): LucideIcon {
-    return ICONS[mode] ?? CircleQuestionMark;
-}
-
 export function ModeIcon({ mode, className }: ModeIconProps) {
-    const Icon = modeIcon(mode);
+    const Icon = MODE_ICONS[mode];
 
     return <Icon className={classNames(styles.root, className)} />;
 }

@@ -24,9 +24,9 @@ export function Kills({ deaths, offsets, time, roster }: KillsProps) {
         >
             {[...deaths]
                 .sort((a, b) => a.time - b.time)
-                .map((death, index) => (
+                .map((death) => (
                     <KillRow
-                        key={index}
+                        key={`${death.victim}-${death.time}`}
                         death={death}
                         offset={offsets ? death.time - time : null}
                         roster={roster}

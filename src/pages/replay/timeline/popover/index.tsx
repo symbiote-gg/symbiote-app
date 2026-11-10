@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { type PointerEvent, useLayoutEffect, useState } from "react";
+import type { PointerEvent } from "react";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
 import type { TimelineText } from "@/hooks/useTimelineText";
@@ -19,7 +19,7 @@ interface PopoverProps {
     highlightSlot: number | null;
     curves: [LevelCurve, LevelCurve];
     text: TimelineText;
-    track: HTMLElement | null;
+    anchor: HTMLElement | null;
     side: Side;
     onPointerEnter: () => void;
     onPointerLeave: (e: PointerEvent<HTMLElement>) => void;
@@ -32,21 +32,11 @@ export function Popover({
     highlightSlot,
     curves,
     text,
-    track,
+    anchor,
     side,
     onPointerEnter,
     onPointerLeave,
 }: PopoverProps) {
-    const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-
-    useLayoutEffect(() => {
-        setAnchor(
-            track?.querySelector<HTMLElement>(
-                `[data-id="${CSS.escape(marker.id)}"]`,
-            ) ?? null,
-        );
-    }, [track, marker.id]);
-
     const view = markerView(marker);
     const roster = { players, allyTeam, highlightSlot };
 

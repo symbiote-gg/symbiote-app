@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { type CSSProperties, Children, type ReactNode } from "react";
+import type { CSSProperties } from "react";
 
 import styles from "./styles.module.css";
 
@@ -46,15 +46,4 @@ export function RollingNumber({ value, className }: RollingNumberProps) {
             </span>
         </span>
     );
-}
-
-export function rolling(node: ReactNode) {
-    if (typeof node === "number" || typeof node === "string") {
-        return <RollingNumber value={String(node)} />;
-    }
-    return node;
-}
-
-export function rollingChunks(chunks: ReactNode) {
-    return <RollingNumber value={Children.toArray(chunks).join("")} />;
 }

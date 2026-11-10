@@ -17,5 +17,9 @@ export function Card({ ref, className, children }: CardProps) {
     );
 }
 
-export * from "./body";
-export * from "./header";
+export { CardBody, type CardBodyProps } from "./body";
+export {
+    CardHeader,
+    type CardHeaderProps,
+    type CardHeaderSize,
+} from "./header";

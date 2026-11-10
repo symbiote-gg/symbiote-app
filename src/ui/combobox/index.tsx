@@ -74,6 +74,7 @@ export function Combobox<
         const option = options.find((option) => option.value === picked);
         return option ? [option] : [];
     });
+    const chosen = new Set(value);
     const active = Math.min(activeIndex, results.length - 1);
     const optionId = (index: number) => `${id}-option-${index}`;
 
@@ -193,7 +194,7 @@ export function Combobox<
                         </Eyebrow>
                     )}
                     {results.map((option, index) => {
-                        const selected = value.includes(option.value);
+                        const selected = chosen.has(option.value);
 
                         return (
                             <div

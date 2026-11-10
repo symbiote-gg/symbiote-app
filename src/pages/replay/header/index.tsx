@@ -6,18 +6,13 @@ import { useTranslations } from "use-intl";
 import { Link } from "wouter";
 
 import type { HeroRole, ReplayDetail, ReplayPlayerDetail } from "@/api/replays";
-import {
-    BackLink,
-    HeroPortrait,
-    Kad,
-    ResultChip,
-    modeIcon,
-} from "@/components";
+import { BackLink, HeroPortrait, Kad, ResultChip } from "@/components";
 import { useFormatStat } from "@/hooks/useFormatStat";
 import { useImageFallback } from "@/hooks/useImageFallback";
 import { useWatchReplay } from "@/hooks/useWatchReplay";
 import { Button, Chip, Stat, Tooltip, Typography, sideClasses } from "@/ui";
 import { formatDuration, usePlayedOn } from "@/utils/dates";
+import { MODE_ICONS } from "@/utils/mode-icons";
 import { matchResult } from "@/utils/result";
 import { FlowChip } from "./flow-chip";
 
@@ -190,7 +185,7 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                                     )}
                                     <Chip
                                         size="sm"
-                                        icon={modeIcon(replay.mode)}
+                                        icon={MODE_ICONS[replay.mode]}
                                         uppercase
                                         className={styles.tag}
                                     >

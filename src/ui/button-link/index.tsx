@@ -6,7 +6,7 @@ import {
     type ButtonSize,
     type ButtonVariant,
     buttonClassName,
-} from "../button";
+} from "../button/class-names";
 
 export interface ButtonLinkProps {
     href: string;

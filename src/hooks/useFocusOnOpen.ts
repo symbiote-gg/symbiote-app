@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent } from "react";
 
 /**
  * Focuses `target()` once a panel opens. Waits a frame because the panel stays hidden
@@ -8,12 +8,11 @@ export function useFocusOnOpen(
     open: boolean,
     target: () => HTMLElement | null | undefined,
 ) {
-    const getTarget = useRef(target);
-    getTarget.current = target;
+    const focusTarget = useEffectEvent(() => target()?.focus());
 
     useEffect(() => {
         if (!open) return;
-        const frame = requestAnimationFrame(() => getTarget.current()?.focus());
+        const frame = requestAnimationFrame(() => focusTarget());
         return () => cancelAnimationFrame(frame);
     }, [open]);
 }

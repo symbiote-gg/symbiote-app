@@ -4,7 +4,7 @@ import { Link } from "wouter";
 
 import type { HeroStat } from "@/api/stats";
 import { HeroPortrait } from "@/components";
-import { useAppear } from "@/hooks/useAppear";
+import { type AppearCheck, useAppear } from "@/hooks/useAppear";
 import { Meter, Typography, WinRate, rolling } from "@/ui";
 import { isJudged, winRate } from "@/utils/hero-stats";
 
@@ -12,7 +12,7 @@ import styles from "./styles.module.css";
 
 export interface HeroRowProps {
     hero: HeroStat;
-    appear: boolean;
+    appear: AppearCheck;
 }
 
 export function HeroRow({ hero, appear }: HeroRowProps) {

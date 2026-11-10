@@ -10,6 +10,7 @@ import {
 
 import type { Replay } from "@/api/replays";
 import { ReplayRow } from "@/components";
+import type { AppearCheck } from "@/hooks/useAppear";
 import { CardBody } from "@/ui";
 
 import styles from "./styles.module.css";
@@ -22,7 +23,7 @@ export interface ListProps {
     replays: Replay[];
     total: number;
     stale: boolean;
-    appear: boolean;
+    appear: AppearCheck;
     initialOffset: number;
     hasNextPage: boolean;
     isFetchingNextPage: boolean;
@@ -67,7 +68,13 @@ export function List({
         ) {
             fetchNextPage();
         }
-    }, [lastIndex, replays.length, hasNextPage, isFetchingNextPage]);
+    }, [
+        lastIndex,
+        replays.length,
+        hasNextPage,
+        isFetchingNextPage,
+        fetchNextPage,
+    ]);
 
     useEffect(() => {
         known.current = new Set(replays.map((replay) => replay.id));
@@ -75,8 +82,8 @@ export function List({
 
     // Rows remount as they scroll into view, so only a replay missing from the list's
     // last data animates, and only above where it ended, since pages append below.
-    const arrived = (id: number, index: number) =>
-        appear &&
+    const arrived = (id: number, index: number) => () =>
+        appear() &&
         !!known.current &&
         index < known.current.size &&
         !known.current.has(id);

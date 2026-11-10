@@ -1,6 +1,6 @@
 import classNames from "classnames";
 
-import { winRateGrade } from "../win-rate";
+import { winRateGrade } from "../win-rate/grade";
 
 import styles from "./styles.module.css";
 

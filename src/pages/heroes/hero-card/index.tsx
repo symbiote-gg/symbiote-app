@@ -4,7 +4,7 @@ import { Link } from "wouter";
 
 import type { HeroSummary } from "@/api/heroes";
 import { HeroPortrait } from "@/components";
-import { useAppear } from "@/hooks/useAppear";
+import { type AppearCheck, useAppear } from "@/hooks/useAppear";
 import { useFormatStat } from "@/hooks/useFormatStat";
 import { Stat, Typography, WinRate } from "@/ui";
 import { usePlayedDay } from "@/utils/dates";
@@ -14,10 +14,10 @@ import styles from "./styles.module.css";
 
 export interface HeroCardProps {
     hero: HeroSummary;
-    appear?: boolean;
+    appear?: AppearCheck;
 }
 
-export function HeroCard({ hero, appear = false }: HeroCardProps) {
+export function HeroCard({ hero, appear }: HeroCardProps) {
     const t = useTranslations("heroes.card");
     const roles = useTranslations("roles");
     const { compact, kda: formatKda } = useFormatStat();

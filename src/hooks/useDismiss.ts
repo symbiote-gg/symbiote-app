@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent } from "react";
 
 /**
  * Closes an open panel anchored to `anchor` on Escape, which also moves focus back to
@@ -10,18 +10,17 @@ export function useDismiss(
     anchor: HTMLElement | null,
     onClose: () => void,
 ) {
-    const close = useRef(onClose);
-    close.current = onClose;
+    const close = useEffectEvent(onClose);
 
     useEffect(() => {
         if (!open) return;
 
         const onPointerDown = (e: PointerEvent) => {
-            if (!anchor?.contains(e.target as Node)) close.current();
+            if (!anchor?.contains(e.target as Node)) close();
         };
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.key !== "Escape") return;
-            close.current();
+            close();
             anchor?.focus();
         };
 

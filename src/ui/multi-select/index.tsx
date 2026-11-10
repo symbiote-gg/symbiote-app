@@ -70,6 +70,8 @@ export function MultiSelect<T extends string>({
         );
     };
 
+    const chosen = new Set(value);
+
     return (
         <>
             <FilterTrigger
@@ -97,7 +99,7 @@ export function MultiSelect<T extends string>({
                         <Checkbox
                             key={option.value}
                             value={option.value}
-                            checked={value.includes(option.value)}
+                            checked={chosen.has(option.value)}
                             disabled={option.disabled}
                             onChange={onToggle}
                         >

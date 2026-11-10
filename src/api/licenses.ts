@@ -14,5 +14,10 @@ export type ThirdPartyLicenses = {
 };
 
 export async function getThirdPartyLicenses(): Promise<ThirdPartyLicenses> {
-    return (await fetch(licensesUrl)).json();
+    const response = await fetch(licensesUrl);
+    if (!response.ok) {
+        throw new Error(`Failed to load licenses: ${response.status}`);
+    }
+
+    return response.json();
 }

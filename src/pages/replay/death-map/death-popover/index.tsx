@@ -1,10 +1,8 @@
 import {
     type PointerEvent,
     type Ref,
-    type RefObject,
     useEffect,
     useImperativeHandle,
-    useLayoutEffect,
     useRef,
     useState,
 } from "react";
@@ -21,7 +19,7 @@ const CLOSE_DELAY_MS = 200;
 
 interface AnchoredPopoverProps {
     death: PlacedDeath;
-    container: RefObject<HTMLElement | null>;
+    anchor: HTMLElement;
     roster: Roster;
     text: TimelineText;
     onPointerEnter: () => void;
@@ -29,23 +27,13 @@ interface AnchoredPopoverProps {
 }
 
 function AnchoredPopover({
-    death: { id, entry },
-    container,
+    death: { entry },
+    anchor,
     roster,
     text,
     onPointerEnter,
     onPointerLeave,
 }: AnchoredPopoverProps) {
-    const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-
-    useLayoutEffect(() => {
-        setAnchor(
-            container.current?.querySelector<HTMLElement>(
-                `[data-death="${id}"]`,
-            ) ?? null,
-        );
-    }, [container, id]);
-
     return (
         <Popover
             anchor={anchor}
@@ -62,26 +50,24 @@ function AnchoredPopover({
 }
 
 export interface DeathPopoverHandle {
-    hover: (id: number) => void;
+    hover: (id: number, anchor: HTMLElement) => void;
     leave: () => void;
+}
+
+interface Hovered {
+    id: number;
+    anchor: HTMLElement;
 }
 
 interface DeathPopoverProps {
     ref: Ref<DeathPopoverHandle>;
     deaths: PlacedDeath[];
-    container: RefObject<HTMLElement | null>;
     roster: Roster;
     text: TimelineText;
 }
 
-export function DeathPopover({
-    ref,
-    deaths,
-    container,
-    roster,
-    text,
-}: DeathPopoverProps) {
-    const [hoveredId, setHoveredId] = useState<number | null>(null);
+export function DeathPopover({ ref, deaths, roster, text }: DeathPopoverProps) {
+    const [hovered, setHovered] = useState<Hovered | null>(null);
     const closeTimer = useRef<number | undefined>(undefined);
 
     const cancelClose = () => window.clearTimeout(closeTimer.current);
@@ -89,7 +75,7 @@ export function DeathPopover({
     const scheduleClose = () => {
         cancelClose();
         closeTimer.current = window.setTimeout(
-            () => setHoveredId(null),
+            () => setHovered(null),
             CLOSE_DELAY_MS,
         );
     };
@@ -99,24 +85,24 @@ export function DeathPopover({
     useImperativeHandle(
         ref,
         () => ({
-            hover: (id) => {
+            hover: (id, anchor) => {
                 cancelClose();
-                setHoveredId(id);
+                setHovered({ id, anchor });
             },
             leave: scheduleClose,
         }),
         [],
     );
 
-    const death = deaths.find(({ id }) => id === hoveredId);
+    const death = deaths.find(({ id }) => id === hovered?.id);
 
-    if (!death) return null;
+    if (!hovered || !death) return null;
 
     return (
         <AnchoredPopover
             key={death.id}
             death={death}
-            container={container}
+            anchor={hovered.anchor}
             roster={roster}
             text={text}
             onPointerEnter={cancelClose}

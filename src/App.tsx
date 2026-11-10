@@ -12,11 +12,13 @@ import { ReplayDetail } from "./pages/replay";
 import { Replays } from "./pages/replays";
 import { Settings } from "./pages/settings";
 
+const HASH_ROUTER = { hook: useHashLocation };
+
 function App() {
     useIngestInvalidation();
 
     return (
-        <Router hook={useHashLocation}>
+        <Router {...HASH_ROUTER}>
             <AppShell>
                 <Switch>
                     <Route path="/" component={Home} />
