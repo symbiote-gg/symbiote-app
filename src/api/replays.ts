@@ -64,8 +64,7 @@ export type ReplayPage = {
 
 export type ReplayIngested = {
     replay: Replay;
-    removed: number | null;
-    /** Already stored, re-parsed in place after a INGEST_VERSION update. */
+    /** Already stored, overwritten in place by a re-parse or a longer file of its game. */
     refreshed: boolean;
     total: number;
 };

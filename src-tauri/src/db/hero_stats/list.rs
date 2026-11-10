@@ -23,14 +23,14 @@ pub async fn hero_list(pool: &SqlitePool, filters: &ReplayFilters) -> sqlx::Resu
              AVG(json_extract(orp.score, '$.Healing')) AS avg_healing,
              AVG(json_extract(orp.score, '$.DamageTaken')) AS avg_damage_taken,
              MAX(r.timestamp) AS last_played
-         FROM (SELECT * FROM replays WHERE 1 = 1",
+         FROM (SELECT * FROM replays_view WHERE 1 = 1",
     );
     push_filters(&mut query, filters);
     query.push(
         ") r
          JOIN heroes h ON h.id = r.owner_hero_id
-         JOIN replays_players orp
-             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
+         JOIN games_players orp
+             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
          GROUP BY h.id
          ORDER BY games DESC, wins DESC, h.name",
     );
@@ -61,7 +61,7 @@ mod tests {
         let mut b = hero_game("b", 300, Mode::QuickMatch, "cursed_hollow", "Wizard", false);
         b.replay_players[0].score = json!({"Takedowns": 4, "Deaths": 3, "HeroDamage": 3000});
         let mut c = hero_game("c", 200, Mode::QuickMatch, "cursed_hollow", "Wizard", true);
-        c.replay.owner_win = None;
+        c.replay.winner_team = None;
         let d = hero_game("d", 100, Mode::QuickMatch, "cursed_hollow", "Tyrande", true);
 
         for outcome in insert_bundles(pool, vec![a, b, c, d], 0).await.unwrap() {

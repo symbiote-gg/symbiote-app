@@ -36,15 +36,8 @@ export function applyIngested<TPageParam>(
     );
 
     let total = data.pages[0].total;
-    for (const { replay, removed, total: ingestedTotal } of batch) {
+    for (const { replay, total: ingestedTotal } of batch) {
         total = Math.max(total, ingestedTotal);
-
-        if (removed !== null) {
-            for (const page of pages) {
-                const index = page.findIndex((r) => r.id === removed);
-                if (index !== -1) page.splice(index, 1);
-            }
-        }
 
         const current = pages.find((page) =>
             page.some((r) => r.id === replay.id),

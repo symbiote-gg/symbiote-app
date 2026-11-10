@@ -43,13 +43,10 @@ pub async fn get_detail(
     let Some(mut detail) = sqlx::query_as::<_, ReplayDetail>(
         "SELECT r.id, r.hash, r.path, r.ingest_date, r.timestamp, r.mode, r.map, r.owner_hero_id,
              COALESCE(m.name, r.map) AS map_name, m.loading_screen AS map_loading_screen,
-             r.owner_player_id, orp.slot AS owner_slot, orp.team AS owner_team, r.owner_win,
-             r.duration, r.is_new, h.name AS hero_name, h.role AS hero_role,
-             h.portrait AS hero_portrait
-         FROM replays r
+             r.owner_player_id, r.owner_slot, r.owner_team, r.owner_win, r.duration, r.is_new,
+             h.name AS hero_name, h.role AS hero_role, h.portrait AS hero_portrait
+         FROM replays_view r
          JOIN heroes h ON h.id = r.owner_hero_id
-         JOIN replays_players orp
-             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
          LEFT JOIN maps m ON m.id = r.map
          WHERE r.id = ?",
     )
@@ -85,10 +82,10 @@ pub async fn get_detail(
              json_extract(rp.score, '$.ProtectionGivenToAllies') AS protection,
              rp.time_dead_secs AS time_dead,
              rp.time_on_fire_secs AS time_on_fire, rp.upvotes, rp.party
-         FROM replays_players rp
+         FROM games_players rp
          JOIN players p ON p.id = rp.player_id
          JOIN heroes h ON h.id = rp.hero_id
-         WHERE rp.replay_id = ?
+         WHERE rp.game_id = (SELECT game_id FROM replays WHERE id = ?)
          ORDER BY rp.slot",
     )
     .bind(id)
@@ -98,9 +95,9 @@ pub async fn get_detail(
     let talents = sqlx::query_as::<_, PlayerTalentRow>(
         "SELECT rpt.player_id, rpt.tier, rpt.talent_id, t.slug, rpt.gameloop, t.name,
              t.description, t.icon
-         FROM replays_players_talents rpt
+         FROM games_players_talents rpt
          JOIN talents t ON t.id = rpt.talent_id
-         WHERE rpt.replay_id = ?
+         WHERE rpt.game_id = (SELECT game_id FROM replays WHERE id = ?)
          ORDER BY rpt.tier",
     )
     .bind(id)
@@ -109,21 +106,19 @@ pub async fn get_detail(
 
     let awards = sqlx::query_as::<_, PlayerAwardRow>(
         "SELECT rpa.player_id, rpa.award, a.name, a.description, a.icon
-         FROM replays_players_awards rpa
+         FROM games_players_awards rpa
          LEFT JOIN awards a ON a.id = rpa.award
-         WHERE rpa.replay_id = ?
+         WHERE rpa.game_id = (SELECT game_id FROM replays WHERE id = ?)
          ORDER BY rpa.award = 'mvp' DESC, rpa.award",
     )
     .bind(id)
     .fetch_all(&mut *tx)
     .await?;
 
-    // Every teammate stores the same team-wide breakdown, so any row per team does.
     let team_xp = sqlx::query_as::<_, TeamXpRow>(
         "SELECT team, json(xp) AS xp
-         FROM replays_players
-         WHERE replay_id = ? AND xp IS NOT NULL
-         GROUP BY team",
+         FROM games_teams
+         WHERE game_id = (SELECT game_id FROM replays WHERE id = ?)",
     )
     .bind(id)
     .fetch_all(&mut *tx)
@@ -186,10 +181,10 @@ pub(crate) async fn fetch_event_rows(
     sqlx::query_as::<_, RawEvent>(
         "SELECT k.name AS kind, CAST(e.gameloop - r.gates_open_loop AS REAL) / ? AS time,
              e.team, json(e.data) AS data
-         FROM events e
-         JOIN replays r ON r.id = e.replay_id
+         FROM replays_view r
+         JOIN events e ON e.game_id = r.game_id
          JOIN event_kinds k ON k.id = e.kind_id
-         WHERE e.replay_id = ?
+         WHERE r.id = ?
          ORDER BY e.gameloop, e.id",
     )
     .bind(LOOPS_PER_SECOND)
@@ -275,7 +270,7 @@ mod tests {
             panic!("the replay should be inserted");
         };
         let mut unknown = bundle("b", 1000);
-        unknown.replay.game_id = hex("other");
+        unknown.replay.game_key = hex("other");
         unknown.replay.map = "New Map".to_owned();
         let InsertOutcome::Inserted(unknown) = insert_bundle(&pool, unknown).await.unwrap() else {
             panic!("the replay should be inserted");

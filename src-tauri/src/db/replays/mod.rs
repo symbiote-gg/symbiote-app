@@ -30,6 +30,18 @@ pub async fn mark_seen(pool: &SqlitePool, id: i64) -> sqlx::Result<()> {
     Ok(())
 }
 
+/// Returns the other accounts' replays of replay `id`'s game.
+pub async fn sibling_ids(executor: impl SqliteExecutor<'_>, id: i64) -> sqlx::Result<Vec<i64>> {
+    sqlx::query_scalar(
+        "SELECT s.id FROM replays r
+         JOIN replays s ON s.game_id = r.game_id AND s.id <> r.id
+         WHERE r.id = ?",
+    )
+    .bind(id)
+    .fetch_all(executor)
+    .await
+}
+
 pub async fn count(executor: impl SqliteExecutor<'_>) -> sqlx::Result<i64> {
     sqlx::query_scalar("SELECT COUNT(*) FROM replays")
         .fetch_one(executor)
@@ -41,13 +53,13 @@ pub async fn count(executor: impl SqliteExecutor<'_>) -> sqlx::Result<i64> {
 pub async fn import_summary(
     executor: impl SqliteExecutor<'_>,
 ) -> sqlx::Result<(i64, Option<DateTime<Utc>>, Option<DateTime<Utc>>)> {
-    sqlx::query_as("SELECT COUNT(*), MAX(ingest_date), MIN(timestamp) FROM replays")
+    sqlx::query_as("SELECT COUNT(*), MAX(ingest_date), MIN(timestamp) FROM replays_view")
         .fetch_one(executor)
         .await
 }
 
 pub async fn count_since(executor: impl SqliteExecutor<'_>, since: i64) -> sqlx::Result<i64> {
-    sqlx::query_scalar("SELECT COUNT(*) FROM replays WHERE timestamp >= ?")
+    sqlx::query_scalar("SELECT COUNT(*) FROM replays_view WHERE timestamp >= ?")
         .bind(since)
         .fetch_one(executor)
         .await
@@ -56,7 +68,7 @@ pub async fn count_since(executor: impl SqliteExecutor<'_>, since: i64) -> sqlx:
 pub async fn count_with_events(executor: impl SqliteExecutor<'_>) -> sqlx::Result<i64> {
     sqlx::query_scalar(
         "SELECT COUNT(*) FROM replays r
-         WHERE EXISTS (SELECT 1 FROM events e WHERE e.replay_id = r.id)",
+         WHERE EXISTS (SELECT 1 FROM events e WHERE e.game_id = r.game_id)",
     )
     .fetch_one(executor)
     .await

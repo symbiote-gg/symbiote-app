@@ -1,11 +1,9 @@
-use sqlx::types::Json;
 use sqlx::{FromRow, SqliteConnection, SqlitePool};
 
 use super::detail::fetch_event_rows;
 use crate::standouts::{GameData, StandoutsInput, LOST_VIKINGS};
 use crate::timeline;
 use crate::types::hero::HeroRole;
-use crate::types::timeline::XpBreakdown;
 
 /// Games shorter than this say little about the player's usual.
 const MIN_GAME_SECS: i64 = 600;
@@ -28,7 +26,7 @@ struct CurrentRow {
     owner_slot: i64,
     ally_team: i64,
     owner_time_dead: Option<f64>,
-    owner_xp: Option<Json<XpBreakdown>>,
+    owner_minion_damage: Option<f64>,
 }
 
 #[derive(FromRow)]
@@ -38,7 +36,7 @@ struct CandidateRow {
     owner_slot: i64,
     ally_team: i64,
     owner_time_dead: Option<f64>,
-    owner_xp: Option<Json<XpBreakdown>>,
+    owner_minion_damage: Option<f64>,
 }
 
 /// Returns what the standouts of the replay `id` are computed from: the game itself
@@ -58,11 +56,12 @@ pub async fn get_standouts_input(
         "SELECT r.duration, r.timestamp, r.owner_hero_id AS hero_id, r.owner_player_id,
              h.slug AS hero_slug, h.role AS hero_role,
              orp.slot AS owner_slot, orp.team AS ally_team,
-             orp.time_dead_secs AS owner_time_dead, json(orp.xp) AS owner_xp
-         FROM replays r
+             orp.time_dead_secs AS owner_time_dead,
+             CAST(json_extract(orp.score, '$.MinionDamage') AS REAL) AS owner_minion_damage
+         FROM replays_view r
          JOIN heroes h ON h.id = r.owner_hero_id
-         JOIN replays_players orp
-             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
+         JOIN games_players orp
+             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
          WHERE r.id = ?",
     )
     .bind(id)
@@ -77,10 +76,11 @@ pub async fn get_standouts_input(
 
     let candidates = sqlx::query_as::<_, CandidateRow>(
         "SELECT r.id, r.duration, orp.slot AS owner_slot, orp.team AS ally_team,
-             orp.time_dead_secs AS owner_time_dead, json(orp.xp) AS owner_xp
-         FROM replays r
-         JOIN replays_players orp
-             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
+             orp.time_dead_secs AS owner_time_dead,
+             CAST(json_extract(orp.score, '$.MinionDamage') AS REAL) AS owner_minion_damage
+         FROM replays_view r
+         JOIN games_players orp
+             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
          WHERE r.owner_hero_id = ? AND r.owner_player_id = ? AND r.id <> ?
              AND r.timestamp >= ? AND r.duration >= ?
          ORDER BY r.timestamp DESC, r.id DESC
@@ -102,7 +102,7 @@ pub async fn get_standouts_input(
         current.owner_slot,
         current.ally_team,
         current.owner_time_dead,
-        current.owner_xp,
+        current.owner_minion_damage,
     )
     .await?;
     let mut baseline = Vec::with_capacity(candidates.len());
@@ -115,7 +115,7 @@ pub async fn get_standouts_input(
                 row.owner_slot,
                 row.ally_team,
                 row.owner_time_dead,
-                row.owner_xp,
+                row.owner_minion_damage,
             )
             .await?,
         );
@@ -138,13 +138,13 @@ async fn game_data(
     owner_slot: i64,
     ally_team: i64,
     owner_time_dead: Option<f64>,
-    owner_xp: Option<Json<XpBreakdown>>,
+    owner_minion_damage: Option<f64>,
 ) -> sqlx::Result<GameData> {
     let events = fetch_event_rows(tx, id).await?;
     let vikings: Vec<i64> = sqlx::query_scalar(
-        "SELECT rp.slot FROM replays_players rp
+        "SELECT rp.slot FROM games_players rp
          JOIN heroes h ON h.id = rp.hero_id
-         WHERE rp.replay_id = ? AND h.slug = ?",
+         WHERE rp.game_id = (SELECT game_id FROM replays WHERE id = ?) AND h.slug = ?",
     )
     .bind(id)
     .bind(LOST_VIKINGS)
@@ -156,7 +156,7 @@ async fn game_data(
         owner_slot: u8::try_from(owner_slot).unwrap_or_default(),
         ally_team: u8::try_from(ally_team).unwrap_or_default(),
         owner_time_dead,
-        owner_xp: owner_xp.map(|Json(xp)| xp),
+        owner_minion_damage,
         vikings: vikings
             .into_iter()
             .filter_map(|slot| u8::try_from(slot).ok())
@@ -179,7 +179,7 @@ mod tests {
     /// A game with one death event, lasting `game_loops / 16` seconds.
     fn game(game_id: &str, timestamp: i64, game_loops: i64) -> NewReplayBundle {
         let mut game = bundle(game_id, game_loops);
-        game.replay.game_id = hex(game_id);
+        game.replay.game_key = hex(game_id);
         game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
         game.events = vec![death()];
         game
@@ -210,7 +210,7 @@ mod tests {
         insert(&pool, game("newest", 300, 32_000)).await;
         let mut dead = game("middle", 200, 16_000);
         dead.replay_players[0].time_dead_secs = Some(42.0);
-        dead.replay_players[0].xp = Some(serde_json::json!({ "minion": 150.0, "hero": 50.0 }));
+        dead.replay_players[0].score = serde_json::json!({ "MinionDamage": 15000 });
         insert(&pool, dead).await;
         let current = insert(&pool, game("current", 400, 48_000)).await;
 
@@ -227,10 +227,8 @@ mod tests {
         assert_eq!(input.baseline[0].owner_time_dead, None);
         assert_eq!(input.baseline[0].timeline.deaths.len(), 1);
 
-        // A stored breakdown reads back with its missing keys defaulted.
-        let xp = input.baseline[1].owner_xp.as_ref().unwrap();
-        assert_eq!((xp.minion, xp.hero, xp.creep), (150.0, 50.0, 0.0));
-        assert!(input.baseline[0].owner_xp.is_none());
+        assert_eq!(input.baseline[1].owner_minion_damage, Some(15000.0));
+        assert_eq!(input.baseline[0].owner_minion_damage, None);
     }
 
     #[tokio::test]
@@ -239,7 +237,6 @@ mod tests {
         insert(&pool, game("expired", 100, 16_000)).await;
         insert(&pool, game("short", 200, 8_000)).await;
         let mut other = game("other", 300, 16_000);
-        other.replay.owner_hero_slug = "Tank".to_owned();
         other.replay_players[0].hero_slug = "Tank".to_owned();
         other.heroes.push(Hero {
             slug: "Tank".to_owned(),
@@ -258,7 +255,6 @@ mod tests {
     async fn reads_the_vikings_slots() {
         let pool = pool().await;
         let mut vikings = game("vikings", 100, 16_000);
-        vikings.replay.owner_hero_slug = LOST_VIKINGS.to_owned();
         vikings.replay_players[0].hero_slug = LOST_VIKINGS.to_owned();
         vikings.heroes.push(Hero {
             slug: LOST_VIKINGS.to_owned(),

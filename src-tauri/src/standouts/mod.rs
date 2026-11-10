@@ -7,7 +7,7 @@ mod rules;
 
 use crate::types::hero::HeroRole;
 use crate::types::standouts::StandoutsResult;
-use crate::types::timeline::{Timeline, XpBreakdown};
+use crate::types::timeline::Timeline;
 
 /// The Lost Vikings' slug: three heroes on one player.
 pub const LOST_VIKINGS: &str = "LostVikings";
@@ -38,7 +38,7 @@ pub struct GameData {
     pub owner_slot: u8,
     pub ally_team: u8,
     pub owner_time_dead: Option<f64>,
-    pub owner_xp: Option<XpBreakdown>,
+    pub owner_minion_damage: Option<f64>,
     /// Slots playing the Lost Vikings.
     pub vikings: Vec<u8>,
     pub timeline: Timeline,
@@ -60,7 +60,7 @@ pub fn compute(input: &StandoutsInput) -> StandoutsResult {
             g.owner_slot,
             g.ally_team,
             g.owner_time_dead,
-            g.owner_xp.as_ref(),
+            g.owner_minion_damage,
             &g.vikings,
         )
     };

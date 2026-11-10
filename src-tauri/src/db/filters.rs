@@ -1,11 +1,12 @@
-//! Conditions narrowing queries over `replays` to the games a filter picks.
+//! Conditions narrowing queries over `replays_view` to the games a filter picks.
 
 use sqlx::{QueryBuilder, Sqlite};
 
 use crate::types::replay::ReplayFilters;
 
-/// Appends a condition per set field of `filters` to a `WHERE` clause over `replays`.
-pub(crate) fn push_filters(query: &mut QueryBuilder<'_, Sqlite>, filters: &ReplayFilters) {
+/// Appends a condition per set field of `filters` to a `WHERE` clause over
+/// `replays_view`.
+pub(crate) fn push_filters(query: &mut QueryBuilder<Sqlite>, filters: &ReplayFilters) {
     push_in(query, " AND mode IN (", &filters.modes, ")");
     push_in(query, " AND map IN (", &filters.maps, ")");
     push_in(query, " AND owner_hero_id IN (", &filters.heroes, ")");
@@ -28,13 +29,9 @@ pub(crate) fn push_filters(query: &mut QueryBuilder<'_, Sqlite>, filters: &Repla
 
 /// Appends `values` as a comma separated list between `prefix` and `suffix`, unless there
 /// are no values.
-fn push_in<'args, T>(
-    query: &mut QueryBuilder<'args, Sqlite>,
-    prefix: &str,
-    values: &[T],
-    suffix: &str,
-) where
-    T: 'args + Clone + sqlx::Encode<'args, Sqlite> + sqlx::Type<Sqlite>,
+fn push_in<T>(query: &mut QueryBuilder<Sqlite>, prefix: &str, values: &[T], suffix: &str)
+where
+    T: Clone + for<'t> sqlx::Encode<'t, Sqlite> + sqlx::Type<Sqlite>,
 {
     if values.is_empty() {
         return;

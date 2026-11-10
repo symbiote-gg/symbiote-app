@@ -17,13 +17,14 @@ use crate::types::replay::{
 };
 
 /// Score screen stats kept per player; the parser emits ~130, mostly unused or zero.
-const SCORE_KEYS: [&str; 17] = [
+const SCORE_KEYS: [&str; 18] = [
     "SoloKill",
     "Deaths",
     "Assists",
     "Takedowns",
     "HeroDamage",
     "SiegeDamage",
+    "MinionDamage",
     "Healing",
     "SelfHealing",
     "DamageTaken",
@@ -151,16 +152,15 @@ pub(super) fn build_bundle(
     let replay = NewReplay {
         hash,
         path: path.to_string_lossy().into_owned(),
-        game_id: game_id(
+        game_key: game_key(
             summary.random_value,
             summary.players.iter().map(|p| p.toon.as_str()),
         )?,
         timestamp,
         mode: summary.mode.into(),
         map: maps.resolve(&summary.map),
-        owner_hero_slug: seeded.resolve(owner.hero_id.as_deref(), &owner.hero),
         owner_toon: player_toon(owner),
-        owner_win: owner.won,
+        winner_team: summary.winner.map(i64::from),
         duration: summary.duration_secs().round() as i64,
         game_loops: summary.game_loops.into(),
         gates_open_loop: summary.gates_open_loop.unwrap_or(0).into(),
@@ -250,7 +250,7 @@ fn party_toons(
 ///
 /// Every file of a game shares it: the seed is drawn once per game, so the files a
 /// reconnect splits a game into, or the replays of two players, all hash the same.
-fn game_id<'a>(seed: Option<u32>, toons: impl IntoIterator<Item = &'a str>) -> Result<String> {
+fn game_key<'a>(seed: Option<u32>, toons: impl IntoIterator<Item = &'a str>) -> Result<String> {
     let seed =
         seed.ok_or_else(|| Error::InvalidReplay("no game seed in the init data".to_owned()))?;
 
@@ -445,16 +445,16 @@ mod tests {
     }
 
     #[test]
-    fn game_id_ignores_player_order() {
-        let a = game_id(Some(42), ["2-Hero-1-1", "2-Hero-1-2"]).unwrap();
-        let b = game_id(Some(42), ["2-Hero-1-2", "2-Hero-1-1"]).unwrap();
+    fn game_key_ignores_player_order() {
+        let a = game_key(Some(42), ["2-Hero-1-1", "2-Hero-1-2"]).unwrap();
+        let b = game_key(Some(42), ["2-Hero-1-2", "2-Hero-1-1"]).unwrap();
         assert_eq!(a, b);
-        assert_ne!(a, game_id(Some(43), ["2-Hero-1-1", "2-Hero-1-2"]).unwrap());
+        assert_ne!(a, game_key(Some(43), ["2-Hero-1-1", "2-Hero-1-2"]).unwrap());
     }
 
     #[test]
-    fn game_id_needs_a_seed() {
-        assert!(game_id(None, ["2-Hero-1-1"]).is_err());
+    fn game_key_needs_a_seed() {
+        assert!(game_key(None, ["2-Hero-1-1"]).is_err());
     }
 
     #[test]

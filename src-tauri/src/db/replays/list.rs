@@ -27,17 +27,18 @@ async fn count_filtered(
     executor: impl SqliteExecutor<'_>,
     filters: &ReplayFilters,
 ) -> sqlx::Result<i64> {
-    let mut query = QueryBuilder::<Sqlite>::new("SELECT COUNT(*) FROM replays WHERE 1 = 1");
+    let mut query = QueryBuilder::<Sqlite>::new("SELECT COUNT(*) FROM replays_view WHERE 1 = 1");
     push_filters(&mut query, filters);
     query.build_query_scalar().fetch_one(executor).await
 }
 
-/// The owner's hero damage, over a row of `replays`. The only sort key that can be null.
+/// The owner's hero damage, over a row of `replays_view`. The only sort key that can be
+/// null.
 const OWNER_HERO_DAMAGE: &str = "(SELECT json_extract(score, '$.HeroDamage')
-     FROM replays_players
-     WHERE replay_id = replays.id AND player_id = replays.owner_player_id)";
+     FROM games_players
+     WHERE game_id = replays_view.game_id AND player_id = replays_view.owner_player_id)";
 
-/// The value `column` sorts replays by, over a row of `replays`.
+/// The value `column` sorts replays by, over a row of `replays_view`.
 fn sort_key(column: ReplaySortColumn) -> &'static str {
     match column {
         ReplaySortColumn::Played => "timestamp",
@@ -59,7 +60,7 @@ fn order_by(sort: ReplaySort, key: &str, id: &str) -> String {
 }
 
 /// Appends a condition keeping only the replays `sort` lists after `cursor`.
-fn push_after(query: &mut QueryBuilder<'_, Sqlite>, sort: ReplaySort, cursor: ReplayCursor) {
+fn push_after(query: &mut QueryBuilder<Sqlite>, sort: ReplaySort, cursor: ReplayCursor) {
     let key = sort_key(sort.column);
     let op = if sort.desc { "<" } else { ">" };
     match cursor.value {
@@ -83,27 +84,26 @@ fn push_after(query: &mut QueryBuilder<'_, Sqlite>, sort: ReplaySort, cursor: Re
     }
 }
 
-/// Builds the query listing each replay picked by the subquery over `replays` that
+/// Builds the query listing each replay picked by the subquery over `replays_view` that
 /// `push_source` appends, with its owner's hero and stats, in `sort` order.
 ///
 /// `push_source` continues a `SELECT ... WHERE 1 = 1` that also selects the replay's
 /// sort key as `sort_key`.
-fn list_rows_query<'args>(
+fn list_rows_query(
     sort: ReplaySort,
-    push_source: impl FnOnce(&mut QueryBuilder<'args, Sqlite>),
-) -> QueryBuilder<'args, Sqlite> {
+    push_source: impl FnOnce(&mut QueryBuilder<Sqlite>),
+) -> QueryBuilder<Sqlite> {
     let mut query = QueryBuilder::new(format!(
         "SELECT r.id, r.hash, r.path, r.ingest_date, r.timestamp, r.mode, r.map, r.owner_hero_id,
              COALESCE(m.name, r.map) AS map_name, m.loading_screen AS map_loading_screen,
-             r.owner_player_id, orp.slot AS owner_slot, orp.team AS owner_team, r.owner_win,
-             r.duration, r.is_new, h.name AS hero_name, h.role AS hero_role,
-             h.portrait AS hero_portrait,
+             r.owner_player_id, r.owner_slot, r.owner_team, r.owner_win, r.duration, r.is_new,
+             h.name AS hero_name, h.role AS hero_role, h.portrait AS hero_portrait,
              json_extract(orp.score, '$.SoloKill') AS owner_kills,
              json_extract(orp.score, '$.Deaths') AS owner_deaths,
              json_extract(orp.score, '$.Assists') AS owner_assists,
              json_extract(orp.score, '$.Takedowns') AS owner_takedowns,
              json_extract(orp.score, '$.HeroDamage') AS owner_hero_damage
-         FROM (SELECT *, {key} AS sort_key FROM replays WHERE 1 = 1",
+         FROM (SELECT *, {key} AS sort_key FROM replays_view WHERE 1 = 1",
         key = sort_key(sort.column),
     ));
     push_source(&mut query);
@@ -111,8 +111,8 @@ fn list_rows_query<'args>(
         ") r
          JOIN heroes h ON h.id = r.owner_hero_id
          LEFT JOIN maps m ON m.id = r.map
-         JOIN replays_players orp
-             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id",
+         JOIN games_players orp
+             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id",
     );
     query.push(order_by(sort, "r.sort_key", "r.id"));
     query
@@ -180,12 +180,13 @@ async fn attach_players(
         return Ok(());
     }
     let mut query = QueryBuilder::<Sqlite>::new(
-        "SELECT rp.replay_id, rp.player_id, p.name, rp.slot, rp.team, rp.hero_id,
+        "SELECT r.id AS replay_id, rp.player_id, p.name, rp.slot, rp.team, rp.hero_id,
              h.name AS hero_name, h.portrait AS hero_portrait
-         FROM replays_players rp
+         FROM replays r
+         JOIN games_players rp ON rp.game_id = r.game_id
          JOIN players p ON p.id = rp.player_id
          JOIN heroes h ON h.id = rp.hero_id
-         WHERE rp.replay_id IN (",
+         WHERE r.id IN (",
     );
     let mut ids = query.separated(", ");
     for replay in replays.iter() {
@@ -220,11 +221,12 @@ async fn attach_owner_awards(
         return Ok(());
     }
     let mut query = QueryBuilder::<Sqlite>::new(
-        "SELECT rpa.replay_id, rpa.award, a.name, a.description, a.icon
-         FROM replays_players_awards rpa
-         JOIN replays r ON r.id = rpa.replay_id AND r.owner_player_id = rpa.player_id
+        "SELECT r.id AS replay_id, rpa.award, a.name, a.description, a.icon
+         FROM replays r
+         JOIN games_players_awards rpa
+             ON rpa.game_id = r.game_id AND rpa.player_id = r.owner_player_id
          LEFT JOIN awards a ON a.id = rpa.award
-         WHERE rpa.replay_id IN (",
+         WHERE r.id IN (",
     );
     let mut ids = query.separated(", ");
     for replay in replays.iter() {
@@ -444,7 +446,7 @@ mod tests {
         hero_damage: Option<i64>,
     ) {
         let mut game = bundle(game_id, duration * 16);
-        game.replay.game_id = hex(game_id);
+        game.replay.game_key = hex(game_id);
         game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
         if let Some(hero_damage) = hero_damage {
             game.replay_players[0].score = serde_json::json!({ "HeroDamage": hero_damage });
@@ -511,7 +513,7 @@ mod tests {
 
     async fn insert_awarded_game(pool: &SqlitePool, game_id: &str) {
         let mut game = bundle(game_id, 1000);
-        game.replay.game_id = hex(game_id);
+        game.replay.game_key = hex(game_id);
         game.replay_players[0].awards = vec!["mvp".to_owned(), "escape_artist".to_owned()];
         insert_bundle(pool, game).await.unwrap();
     }

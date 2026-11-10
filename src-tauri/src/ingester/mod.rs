@@ -309,31 +309,50 @@ async fn store(
 
         for ((outcome, path), source) in outcomes.into_iter().zip(&paths).zip(sources) {
             progress.settle(&app, source);
-            let (id, removed, refreshed) = match outcome {
+            let (id, refreshed) = match outcome {
                 Ok(InsertOutcome::Inserted(id)) => {
                     total += 1;
-                    (id, None, false)
+                    (id, false)
                 }
-                Ok(InsertOutcome::Replaced { removed, id }) => (id, Some(removed), false),
-                Ok(InsertOutcome::Refreshed(id)) => (id, None, true),
+                Ok(InsertOutcome::Refreshed(id)) => (id, true),
                 Ok(InsertOutcome::Skipped) => continue,
                 Err(e) => {
                     log::warn!("failed to store {path}: {e}");
                     continue;
                 }
             };
-            match db::replays::get_list_row(&pool, id).await {
-                Ok(Some(replay)) => subscribers.notify(&ReplayIngested {
-                    replay,
-                    removed,
-                    refreshed,
-                    total,
-                }),
-                Ok(None) => {}
-                Err(e) => log::error!("failed to read back replay {id}: {e}"),
+            notify_stored(&pool, &subscribers, id, refreshed, total).await;
+
+            // Another account's replay of the game shows its data, which a longer file
+            // may have just overwritten.
+            match db::replays::sibling_ids(&pool, id).await {
+                Ok(siblings) => {
+                    for sibling in siblings {
+                        notify_stored(&pool, &subscribers, sibling, true, total).await;
+                    }
+                }
+                Err(e) => log::error!("failed to read the other replays of {id}'s game: {e}"),
             }
         }
         log::debug!("stored {size} replays in {:?}", started.elapsed());
+    }
+}
+
+async fn notify_stored(
+    pool: &SqlitePool,
+    subscribers: &IngestSubscribers,
+    id: i64,
+    refreshed: bool,
+    total: i64,
+) {
+    match db::replays::get_list_row(pool, id).await {
+        Ok(Some(replay)) => subscribers.notify(&ReplayIngested {
+            replay,
+            refreshed,
+            total,
+        }),
+        Ok(None) => {}
+        Err(e) => log::error!("failed to read back replay {id}: {e}"),
     }
 }
 

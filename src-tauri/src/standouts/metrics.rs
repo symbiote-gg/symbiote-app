@@ -3,7 +3,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use crate::types::timeline::{Death, Fight, FightKind, Timeline, XpBreakdown};
+use crate::types::timeline::{Death, Fight, FightKind, Timeline};
 
 /// Game seconds after a death within which an enemy gain counts as its cost.
 const PUNISH_SECS: f64 = 45.0;
@@ -132,8 +132,8 @@ pub struct Wipes {
 #[derive(Debug)]
 pub struct LanePressure {
     pub structures: usize,
-    /// Minion and creep XP earned, the soak proxy. `None` on games stored
-    /// without the XP breakdown.
+    /// The owner's damage to minions, the soak proxy. `None` on games stored without
+    /// it.
     pub soak: Option<f64>,
     pub soak_per_min: Option<f64>,
 }
@@ -165,7 +165,7 @@ pub fn game_metrics(
     owner_slot: u8,
     ally_team: u8,
     owner_time_dead: Option<f64>,
-    owner_xp: Option<&XpBreakdown>,
+    owner_minion_damage: Option<f64>,
     vikings: &[u8],
 ) -> GameMetrics {
     let owner_deaths: Vec<&Death> = timeline
@@ -503,10 +503,10 @@ pub fn game_metrics(
         stolen_camps: StolenCamps { count: stolen },
         lane: LanePressure {
             structures,
-            soak: owner_xp.map(|xp| xp.minion + xp.creep),
-            soak_per_min: owner_xp
+            soak: owner_minion_damage,
+            soak_per_min: owner_minion_damage
                 .filter(|_| duration > 0.0)
-                .map(|xp| (xp.minion + xp.creep) / duration * 60.0),
+                .map(|damage| damage / duration * 60.0),
         },
         longest_life,
         ended_streak,
@@ -737,14 +737,7 @@ mod tests {
             ],
             ..Timeline::default()
         };
-        let xp = XpBreakdown {
-            minion: 400.0,
-            creep: 200.0,
-            hero: 900.0,
-            ..XpBreakdown::default()
-        };
-
-        let m = game_metrics(&timeline, 600.0, 1, 0, None, Some(&xp), &[]);
+        let m = game_metrics(&timeline, 600.0, 1, 0, None, Some(600.0), &[]);
         assert_eq!(m.lane.structures, 2);
         assert_eq!(m.lane.soak, Some(600.0));
         assert_eq!(m.lane.soak_per_min, Some(60.0));

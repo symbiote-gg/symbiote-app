@@ -50,7 +50,7 @@ pub async fn get_path(pool: &SqlitePool, id: i64) -> sqlx::Result<Option<String>
 /// re-parse, newest first.
 pub async fn list_stale_paths(pool: &SqlitePool, version: i64) -> sqlx::Result<Vec<String>> {
     sqlx::query_scalar(
-        "SELECT path FROM replays WHERE ingest_version < ? OR reparse != 0
+        "SELECT path FROM replays_view WHERE ingest_version < ? OR reparse != 0
          ORDER BY timestamp DESC, id DESC",
     )
     .bind(version)
@@ -96,7 +96,7 @@ mod tests {
             ("current", 300, VERSION),
         ] {
             let mut game = bundle(hash, 1000);
-            game.replay.game_id = hex(hash);
+            game.replay.game_key = hex(hash);
             game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
             game.replay.ingest_version = version;
             insert_bundle(&pool, game).await.unwrap();

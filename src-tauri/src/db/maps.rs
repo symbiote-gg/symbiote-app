@@ -1,4 +1,4 @@
-use sqlx::{QueryBuilder, Sqlite, SqlitePool};
+use sqlx::{QueryBuilder, Sqlite, SqliteExecutor, SqlitePool};
 
 use super::chunk_rows;
 use crate::types::map::MapFact;
@@ -22,4 +22,13 @@ pub async fn seed(pool: &SqlitePool, facts: &[MapFact]) -> sqlx::Result<()> {
             .await?;
     }
     tx.commit().await
+}
+
+/// Stores a map the seed doesn't know under its raw name, so a replay can reference it.
+pub async fn upsert_unseeded(executor: impl SqliteExecutor<'_>, id: &str) -> sqlx::Result<()> {
+    sqlx::query("INSERT INTO maps (id, name) VALUES (?1, ?1) ON CONFLICT (id) DO NOTHING")
+        .bind(id)
+        .execute(executor)
+        .await?;
+    Ok(())
 }

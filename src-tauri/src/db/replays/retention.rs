@@ -1,14 +1,14 @@
 use sqlx::SqlitePool;
 
-/// Most replays whose events are deleted per statement, so a first purge of a large
+/// Most games whose events are deleted per statement, so a first purge of a large
 /// database doesn't hold the write lock against the ingester for long.
 const PURGE_CHUNK: i64 = 100;
 
 /// Lists the path of the replays played before `cutoff` whose events aren't purged yet.
 pub async fn list_expiring(pool: &SqlitePool, cutoff: i64) -> sqlx::Result<Vec<String>> {
     sqlx::query_scalar(
-        "SELECT r.path FROM replays r
-         WHERE r.timestamp < ? AND EXISTS (SELECT 1 FROM events e WHERE e.replay_id = r.id)",
+        "SELECT r.path FROM replays_view r
+         WHERE r.timestamp < ? AND EXISTS (SELECT 1 FROM events e WHERE e.game_id = r.game_id)",
     )
     .bind(cutoff)
     .fetch_all(pool)
@@ -17,12 +17,16 @@ pub async fn list_expiring(pool: &SqlitePool, cutoff: i64) -> sqlx::Result<Vec<S
 
 /// Lists the id and path of the replays played since `cutoff` whose events were purged,
 /// newest first.
+///
+/// Only the file a game was stored from, its longest, can bring the events back: a
+/// re-parse of another account's shorter file leaves the game as it is.
 pub async fn list_restorable(pool: &SqlitePool, cutoff: i64) -> sqlx::Result<Vec<(i64, String)>> {
     sqlx::query_as(
         "SELECT r.id, r.path FROM replays r
-         WHERE r.timestamp >= ?
-             AND NOT EXISTS (SELECT 1 FROM events e WHERE e.replay_id = r.id)
-         ORDER BY r.timestamp DESC, r.id DESC",
+         JOIN games g ON g.id = r.game_id
+         WHERE g.timestamp >= ? AND r.game_loops = g.game_loops
+             AND NOT EXISTS (SELECT 1 FROM events e WHERE e.game_id = g.id)
+         ORDER BY g.timestamp DESC, r.id DESC",
     )
     .bind(cutoff)
     .fetch_all(pool)
@@ -42,16 +46,16 @@ pub async fn mark_stale(pool: &SqlitePool, ids: &[i64]) -> sqlx::Result<()> {
     Ok(())
 }
 
-/// Deletes the events of the replays played before `cutoff`, keeping the replays
+/// Deletes the events of the games played before `cutoff`, keeping the games
 /// themselves. Returns how many events were deleted.
 pub async fn purge_expired_events(pool: &SqlitePool, cutoff: i64) -> sqlx::Result<u64> {
     let mut purged = 0;
     loop {
         let deleted = sqlx::query(
-            "DELETE FROM events WHERE replay_id IN (
-                 SELECT r.id FROM replays r
-                 WHERE r.timestamp < ?
-                     AND EXISTS (SELECT 1 FROM events e WHERE e.replay_id = r.id)
+            "DELETE FROM events WHERE game_id IN (
+                 SELECT g.id FROM games g
+                 WHERE g.timestamp < ?
+                     AND EXISTS (SELECT 1 FROM events e WHERE e.game_id = g.id)
                  LIMIT ?)",
         )
         .bind(cutoff)
@@ -126,6 +130,25 @@ mod tests {
             HashStatus::Stale(restorable[0].0)
         );
         assert_eq!(status(&pool, "kept").await, HashStatus::Current);
+    }
+
+    #[tokio::test]
+    async fn restores_a_shared_game_from_its_longest_file_only() {
+        let pool = pool().await;
+        insert_bundle(&pool, recorded_by("short", "owner", 1000))
+            .await
+            .unwrap();
+        let InsertOutcome::Inserted(long) =
+            insert_bundle(&pool, recorded_by("long", "friend", 2000))
+                .await
+                .unwrap()
+        else {
+            panic!("the friend's replay should be inserted");
+        };
+        purge_expired_events(&pool, i64::MAX).await.unwrap();
+
+        let restorable = list_restorable(&pool, 0).await.unwrap();
+        assert_eq!(restorable, [(long, "long.StormReplay".to_owned())]);
     }
 
     #[tokio::test]

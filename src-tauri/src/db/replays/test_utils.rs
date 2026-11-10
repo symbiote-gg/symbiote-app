@@ -27,19 +27,18 @@ pub async fn status(pool: &SqlitePool, name: &str) -> HashStatus {
     hash_status(pool, &hex(name), VERSION).await.unwrap()
 }
 
-/// A replay of a Li-Ming game by "owner" alone, with an MVP award.
+/// A replay of a Li-Ming game won by "owner" alone on team 0, with an MVP award.
 pub fn bundle(name: &str, game_loops: i64) -> NewReplayBundle {
     NewReplayBundle {
         replay: NewReplay {
             hash: hex(name),
             path: format!("{name}.StormReplay"),
-            game_id: hex("game"),
+            game_key: hex("game"),
             timestamp: DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
             mode: Mode::QuickMatch,
             map: "cursed_hollow".to_owned(),
-            owner_hero_slug: "Wizard".to_owned(),
             owner_toon: "owner".to_owned(),
-            owner_win: Some(true),
+            winner_team: Some(0),
             duration: game_loops / 16,
             game_loops,
             gates_open_loop: 0,
@@ -85,12 +84,11 @@ pub fn hero_game(
     win: bool,
 ) -> NewReplayBundle {
     let mut game = bundle(name, 1000);
-    game.replay.game_id = hex(name);
+    game.replay.game_key = hex(name);
     game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
     game.replay.mode = mode;
     game.replay.map = map.to_owned();
-    game.replay.owner_hero_slug = hero.to_owned();
-    game.replay.owner_win = Some(win);
+    game.replay.winner_team = Some(if win { 0 } else { 1 });
     game.heroes = vec![Hero {
         slug: hero.to_owned(),
         name: hero.to_owned(),
@@ -101,7 +99,7 @@ pub fn hero_game(
 
 pub async fn insert_game(pool: &SqlitePool, game_id: &str, timestamp: i64) {
     let mut game = bundle(game_id, 1000);
-    game.replay.game_id = hex(game_id);
+    game.replay.game_key = hex(game_id);
     game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
     insert_bundle(pool, game).await.unwrap();
 }
@@ -123,16 +121,49 @@ pub fn death() -> NewEvent {
 
 pub fn game_with_events(game_id: &str, timestamp: i64) -> NewReplayBundle {
     let mut game = bundle(game_id, 1000);
-    game.replay.game_id = hex(game_id);
+    game.replay.game_key = hex(game_id);
     game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
     game.events = vec![death()];
     game
 }
 
 pub async fn event_count(pool: &SqlitePool, id: i64) -> i64 {
-    sqlx::query_scalar("SELECT COUNT(*) FROM events WHERE replay_id = ?")
-        .bind(id)
-        .fetch_one(pool)
-        .await
-        .unwrap()
+    sqlx::query_scalar(
+        "SELECT COUNT(*) FROM events WHERE game_id = (SELECT game_id FROM replays WHERE id = ?)",
+    )
+    .bind(id)
+    .fetch_one(pool)
+    .await
+    .unwrap()
+}
+
+/// A file of the game "game" recorded by `owner`, which "owner" on team 0 won against
+/// "friend" on team 1.
+pub fn recorded_by(name: &str, owner: &str, game_loops: i64) -> NewReplayBundle {
+    let mut game = bundle(name, game_loops);
+    game.replay.owner_toon = owner.to_owned();
+    game.players.push(Player {
+        toon: "friend".to_owned(),
+        name: "Friend".to_owned(),
+        account_level: None,
+    });
+    game.replay_players.push(NewReplayPlayer {
+        toon: "friend".to_owned(),
+        slot: 6,
+        team: 1,
+        hero_slug: "Wizard".to_owned(),
+        time_dead_secs: None,
+        time_on_fire_secs: None,
+        upvotes: 0,
+        party: None,
+        xp: None,
+        score: serde_json::json!({}),
+        talents: vec![],
+        awards: vec![],
+    });
+    for player in &mut game.replay_players {
+        player.xp = Some(serde_json::json!({ "minion": 100.0 * (player.team + 1) as f64 }));
+    }
+    game.events = vec![death()];
+    game
 }

@@ -9,13 +9,13 @@ use crate::types::player::Player;
 pub struct NewReplay {
     pub hash: String,
     pub path: String,
-    pub game_id: String,
+    /// Identifies the game across its files, whichever account recorded them.
+    pub game_key: String,
     pub timestamp: DateTime<Utc>,
     pub mode: Mode,
     pub map: String,
-    pub owner_hero_slug: String,
     pub owner_toon: String,
-    pub owner_win: Option<bool>,
+    pub winner_team: Option<i64>,
     pub duration: i64,
     pub game_loops: i64,
     pub gates_open_loop: i64,
@@ -71,7 +71,6 @@ pub struct NewReplayBundle {
 #[serde(rename_all = "camelCase")]
 pub struct ReplayIngested {
     pub replay: ReplayWithPlayers,
-    pub removed: Option<i64>,
     /// Whether it was already stored and got re-parsed in place.
     pub refreshed: bool,
     pub total: i64,

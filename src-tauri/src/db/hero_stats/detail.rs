@@ -62,10 +62,10 @@ pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option
 
 /// Starts a query whose `FROM` is the owner's games on `hero_id`, as `r`, after
 /// `select`.
-fn hero_games<'args>(select: &str, hero_id: i64) -> QueryBuilder<'args, Sqlite> {
+fn hero_games(select: &str, hero_id: i64) -> QueryBuilder<Sqlite> {
     let mut query = QueryBuilder::new(select);
     query
-        .push(" FROM (SELECT * FROM replays WHERE owner_hero_id = ")
+        .push(" FROM (SELECT * FROM replays_view WHERE owner_hero_id = ")
         .push_bind(hero_id)
         .push(") r");
     query
@@ -73,7 +73,7 @@ fn hero_games<'args>(select: &str, hero_id: i64) -> QueryBuilder<'args, Sqlite> 
 
 async fn totals(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroTotals> {
     let mut query = hero_games(
-        "WITH games AS (
+        "WITH owner_games AS (
              SELECT r.owner_win, r.duration, r.timestamp, orp.score, orp.time_dead_secs,
                  SUM(json_extract(tp.score, '$.SoloKill')) AS team_kills,
                  SUM(json_extract(tp.score, '$.HeroDamage')) AS team_hero_damage,
@@ -87,9 +87,9 @@ async fn totals(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroT
     // kills sum the scoreboard's SoloKill: tracker kills miss Leoric's killer and enemy
     // Deaths only counts full wipes.
     query.push(
-        " JOIN replays_players orp
-             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
-         JOIN replays_players tp ON tp.replay_id = r.id AND tp.team = orp.team
+        " JOIN games_players orp
+             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
+         JOIN games_players tp ON tp.game_id = r.game_id AND tp.team = orp.team
          GROUP BY r.id)
          SELECT COUNT(*) AS games,
              COALESCE(SUM(owner_win = 1), 0) AS wins,
@@ -131,7 +131,7 @@ async fn totals(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroT
              AVG(duration) AS avg_duration,
              COALESCE(SUM(duration), 0) AS total_duration,
              COALESCE(SUM(time_dead_secs), 0.0) AS total_time_dead_secs
-         FROM games",
+         FROM owner_games",
     );
     query.build_query_as().fetch_one(conn).await
 }
@@ -142,8 +142,8 @@ async fn awards(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<A
         hero_id,
     );
     query.push(
-        " JOIN replays_players_awards rpa
-             ON rpa.replay_id = r.id AND rpa.player_id = r.owner_player_id
+        " JOIN games_players_awards rpa
+             ON rpa.game_id = r.game_id AND rpa.player_id = r.owner_player_id
          LEFT JOIN awards a ON a.id = rpa.award
          GROUP BY rpa.award
          ORDER BY rpa.award = 'mvp' DESC, count DESC, rpa.award",
@@ -174,8 +174,8 @@ async fn talents(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<
     );
     query
         .push(
-            " JOIN replays_players_talents rpt
-                 ON rpt.replay_id = r.id AND rpt.player_id = r.owner_player_id)
+            " JOIN games_players_talents rpt
+                 ON rpt.game_id = r.game_id AND rpt.player_id = r.owner_player_id)
              SELECT p.tier, t.id AS talent_id, t.slug, t.name, t.description, t.icon,
                  COUNT(*) AS picks,
                  COALESCE(SUM(p.owner_win = 1), 0) AS wins,
@@ -199,7 +199,7 @@ async fn talents(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<
 
 async fn trend(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<TrendPoint>> {
     let mut query = hero_games(
-        "WITH games AS (
+        "WITH owner_games AS (
              SELECT r.id, r.timestamp, r.owner_win,
                  date(r.timestamp, 'unixepoch', 'localtime') AS day",
         hero_id,
@@ -212,9 +212,9 @@ async fn trend(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<Tr
              SELECT day, COUNT(*) AS games,
                  COALESCE(SUM(owner_win = 1), 0) AS wins,
                  COALESCE(SUM(owner_win = 0), 0) AS losses
-             FROM games
+             FROM owner_games
              WHERE day >= (SELECT date(MAX(timestamp), 'unixepoch', 'localtime',
-                 '-{back} days') FROM games)
+                 '-{back} days') FROM owner_games)
              GROUP BY day),
          rates AS (
              SELECT day, rate,
@@ -224,7 +224,7 @@ async fn trend(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<Tr
                  SELECT day, timestamp, id,
                      AVG(owner_win) OVER (ORDER BY timestamp, id
                          ROWS UNBOUNDED PRECEDING) AS rate
-                 FROM games
+                 FROM owner_games
                  WHERE owner_win IS NOT NULL))
          SELECT d.day, d.games, d.wins, d.losses, rt.rate
          FROM days d
@@ -319,8 +319,8 @@ async fn best(
         hero_id,
     );
     query.push(format!(
-        " JOIN replays_players orp
-             ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
+        " JOIN games_players orp
+             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
          LEFT JOIN maps m ON m.id = r.map
          WHERE {value} {} 0{condition}
          ORDER BY value {}, r.timestamp DESC, r.id DESC
@@ -373,8 +373,8 @@ async fn hero_game(
     );
     query
         .push(
-            " JOIN replays_players orp
-                 ON orp.replay_id = r.id AND orp.player_id = r.owner_player_id
+            " JOIN games_players orp
+                 ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
              LEFT JOIN maps m ON m.id = r.map",
         )
         .push(tail);
@@ -486,7 +486,7 @@ mod tests {
         b.replay_players[0].awards = vec!["most_kills".to_owned()];
         b.replay_players[0].talents = vec![talent(1, "spark"), talent(2, "blink")];
         let mut c = hero_game("c", 200, Mode::QuickMatch, "cursed_hollow", "Wizard", true);
-        c.replay.owner_win = None;
+        c.replay.winner_team = None;
         c.replay_players[0].talents = vec![talent(1, "spark"), talent(2, "spark_moved")];
         let d = hero_game("d", 100, Mode::QuickMatch, "cursed_hollow", "Tyrande", true);
 
@@ -904,7 +904,7 @@ mod tests {
             "Wizard",
             true,
         );
-        undecided.replay.owner_win = None;
+        undecided.replay.winner_team = None;
         let loss = hero_game(
             "c",
             start + 120,
@@ -921,7 +921,7 @@ mod tests {
             "Wizard",
             true,
         );
-        alone.replay.owner_win = None;
+        alone.replay.winner_team = None;
         for game in [win, undecided, loss, alone] {
             insert_bundle(&pool, game).await.unwrap();
         }

@@ -87,12 +87,7 @@ export function useIngestInvalidation() {
                 refreshFiltered,
                 Math.max(0, filteredAt + FILTERED_MS - Date.now()),
             );
-            for (const { replay, removed, refreshed } of ingested) {
-                if (removed !== null) {
-                    queryClient.removeQueries({
-                        queryKey: replayQuery(removed).queryKey,
-                    });
-                }
+            for (const { replay, refreshed } of ingested) {
                 if (refreshed) {
                     queryClient.invalidateQueries({
                         queryKey: replayQuery(replay.id).queryKey,
