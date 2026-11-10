@@ -12,7 +12,14 @@ import { DEFAULT_REPLAY_SORT, type ReplaySort } from "@/api/replays";
 import { Page, ReplayListHeader } from "@/components";
 import { useIngesting } from "@/hooks/useIngestProgress";
 import { useReplays } from "@/hooks/useReplays";
-import { Button, Card, CardHeader, EmptyState, ErrorMessage } from "@/ui";
+import {
+    Button,
+    Card,
+    CardHeader,
+    EmptyState,
+    ErrorMessage,
+    rollingChunks,
+} from "@/ui";
 import { Filters } from "./filters";
 import {
     type FilterState,
@@ -89,7 +96,10 @@ export function Replays() {
                 <CardHeader
                     icon={Clapperboard}
                     title={t("title")}
-                    subtitle={t("count", { count: total })}
+                    subtitle={t.rich("count", {
+                        count: total,
+                        num: rollingChunks,
+                    })}
                     action={
                         <Button
                             variant="secondary"

@@ -2,6 +2,7 @@ import classNames from "classnames";
 import type { ReactNode } from "react";
 
 import { useFormatStat } from "@/hooks/useFormatStat";
+import { RollingNumber } from "../rolling-number";
 
 import styles from "./styles.module.css";
 
@@ -24,14 +25,11 @@ export function winRateGrade(rate: number, judged = true): WinRateGrade {
 
 export interface WinRateProps {
     rate: number | null;
-    /** False greys the rate out, for samples too small to grade. */
     judged?: boolean;
-    /** Follows the rate in its color, like a "wins" label. */
     suffix?: ReactNode;
     className?: string;
 }
 
-/** Colors a win rate by grade and inherits everything else from its parent. */
 export function WinRate({
     rate,
     judged = true,
@@ -44,7 +42,7 @@ export function WinRate({
 
     return (
         <span className={classNames(className, styles[grade])}>
-            {winPercent(rate)}
+            <RollingNumber value={winPercent(rate)} />
             {suffix}
         </span>
     );

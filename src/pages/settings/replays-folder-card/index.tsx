@@ -10,6 +10,7 @@ import {
     ErrorMessage,
     Eyebrow,
     Typography,
+    rolling,
 } from "@/ui";
 import { usePlayedAt } from "@/utils/dates";
 
@@ -87,7 +88,9 @@ export function ReplaysFolderCard() {
                                     <Eyebrow>{label}</Eyebrow>
                                 </dt>
                                 <dd>
-                                    <Typography size="lg">{value}</Typography>
+                                    <Typography size="lg">
+                                        {rolling(value)}
+                                    </Typography>
                                 </dd>
                             </div>
                         ))}

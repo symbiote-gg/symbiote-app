@@ -3,7 +3,7 @@ import { useFormatter, useTranslations } from "use-intl";
 
 import type { HeroDetail } from "@/api/heroes";
 import { useFormatStat } from "@/hooks/useFormatStat";
-import { Eyebrow, Meter, Stat, Typography } from "@/ui";
+import { Eyebrow, Meter, Stat, Typography, rollingChunks } from "@/ui";
 import { formatDuration } from "@/utils/dates";
 import { kda } from "@/utils/hero-stats";
 
@@ -48,6 +48,7 @@ export function TimePanel({ hero }: TimePanelProps) {
             <Typography display noWrap className={styles.total}>
                 {t.rich("playTime", {
                     ...hoursAndMinutes(hero.totalDuration),
+                    num: rollingChunks,
                     unit,
                 })}
             </Typography>

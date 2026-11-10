@@ -10,7 +10,7 @@ import {
     NO_FILTERS as NO_REPLAY_FILTERS,
     openReplaysOn,
 } from "@/pages/replays/filters/state";
-import { Button, Chip, Typography, WinRate } from "@/ui";
+import { Button, Chip, Typography, WinRate, rollingChunks } from "@/ui";
 import { isJudged, winRate } from "@/utils/hero-stats";
 import { ROLE_ICONS } from "@/utils/role-icons";
 import { Tiles } from "./tiles";
@@ -106,6 +106,7 @@ export function Career({ hero }: CareerProps) {
                             {t.rich("career.record", {
                                 wins: hero.wins,
                                 losses: hero.losses,
+                                num: rollingChunks,
                                 win,
                                 loss,
                             })}

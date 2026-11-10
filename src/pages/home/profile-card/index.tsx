@@ -14,6 +14,7 @@ import {
     StatTile,
     Typography,
     WinRate,
+    rollingChunks,
 } from "@/ui";
 import { isJudged, winRate } from "@/utils/hero-stats";
 import { ROLE_ICONS } from "@/utils/role-icons";
@@ -76,6 +77,7 @@ export function ProfileCard() {
                                 {t.rich("record", {
                                     wins: profile.recentWins,
                                     losses: profile.recentLosses,
+                                    num: rollingChunks,
                                     win,
                                     loss,
                                 })}

@@ -28,7 +28,7 @@
             "winRate": "Win rate",
             "mainRole": "Main role",
             "mvps": "MVPs",
-            "record": "{wins}<win>W</win> {losses}<loss>L</loss>",
+            "record": "<num>{wins}</num><win>W</win> <num>{losses}</num><loss>D</loss>",
             "empty": "Your stats show up after your first game.",
             "cta": "View profile"
         },
@@ -47,7 +47,7 @@
     "replays": {
         "title": "Replays",
         "refresh": "Refresh",
-        "count": "{count, plural, one {# game} other {# games}}.",
+        "count": "{count, plural, one {<num>{count, number}</num> game} other {<num>{count, number}</num> games}}.",
         "filters": {
             "label": "Filters",
             "clear": "Clear {count} filters",
@@ -93,9 +93,9 @@
         "replays": "{hero} replays",
         "career": {
             "winsSuffix": " wins",
-            "record": "{wins}<win>W</win> {losses}<loss>L</loss>",
+            "record": "<num>{wins}</num><win>W</win> <num>{losses}</num><loss>D</loss>",
             "timePlayed": "Time played",
-            "playTime": "{hours}<unit>h</unit> {minutes}<unit>m</unit>",
+            "playTime": "<num>{hours}</num><unit>h</unit> <num>{minutes}</num><unit>m</unit>",
             "hours": "{hours}h {minutes}m",
             "alive": "<b>{time}</b> alive",
             "dead": "<b>{time}</b> dead",

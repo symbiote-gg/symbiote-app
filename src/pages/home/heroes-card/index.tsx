@@ -16,6 +16,7 @@ import {
     TableHead,
     Typography,
     WinRate,
+    rolling,
 } from "@/ui";
 import { isJudged, winRate } from "@/utils/hero-stats";
 
@@ -109,7 +110,7 @@ export function HeroesCard() {
                                                 mono
                                                 className={styles.games}
                                             >
-                                                {hero.games}
+                                                {rolling(hero.games)}
                                             </Typography>
                                         </Link>
                                     </li>

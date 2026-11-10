@@ -3,11 +3,11 @@ import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Eyebrow } from "../eyebrow";
+import { rolling } from "../rolling-number";
 import { Typography } from "../typography";
 
 import styles from "./styles.module.css";
 
-/** `row` puts the label beside the value, `panel` stacks them in a raised tile. */
 export type StatTileVariant = "row" | "panel";
 
 export interface StatTileProps {
@@ -15,9 +15,7 @@ export interface StatTileProps {
     value: ReactNode;
     accent?: "mvp" | "loss";
     variant?: StatTileVariant;
-    /** Shown in a badge before the label, on `panel` only. */
     icon?: LucideIcon;
-    /** A line under the value, on `panel` only. */
     detail?: ReactNode;
     className?: string;
 }
@@ -49,7 +47,7 @@ export function StatTile({
                 truncate
                 className={classNames(styles.value, accent && styles[accent])}
             >
-                {value}
+                {rolling(value)}
             </Typography>
             {panel && detail && (
                 <Typography

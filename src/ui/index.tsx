@@ -16,6 +16,7 @@ export * from "./popover";
 export * from "./radio";
 export * from "./range-calendar";
 export * from "./rich-text";
+export * from "./rolling-number";
 export * from "./search-input";
 export * from "./segmented";
 export * from "./select";
