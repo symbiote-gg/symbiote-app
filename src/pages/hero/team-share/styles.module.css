@@ -4,26 +4,27 @@
     @apply @container flex flex-1 flex-col px-gutter pb-6;
 }
 
-.groups {
-    @apply grid gap-5 @3xl:grid-cols-2;
+.tiles {
+    @apply grid flex-1 auto-rows-fr grid-cols-2 gap-3 @xl:grid-cols-3;
 }
 
-.group {
+.tile {
+    @apply flex min-w-0 flex-col justify-between gap-3 rounded-lg border border-line bg-surface-2/40 p-3;
+}
+
+.stats {
     @apply flex flex-col gap-2;
 }
 
-.rows {
-    @apply flex flex-col gap-3;
+.figures {
+    @apply flex flex-wrap items-baseline gap-x-2;
 }
 
-.row {
-    @apply grid grid-cols-[minmax(7rem,1fr)_minmax(0,16rem)_2.5rem] items-center gap-3;
+.figures .share {
+    @apply text-3xl leading-none font-extrabold;
+    font-stretch: 75%;
 }
 
-.row .meter {
+.stats .meter {
     @apply w-full;
-}
-
-.share {
-    @apply justify-self-end;
 }

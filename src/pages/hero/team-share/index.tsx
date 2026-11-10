@@ -2,11 +2,10 @@ import { ChartPie } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import type { HeroDetail } from "@/api/heroes";
-import { useFormatStat } from "@/hooks/useFormatStat";
-import { Card, CardHeader, Eyebrow } from "@/ui";
+import { Card, CardHeader } from "@/ui";
 import { formatDuration } from "@/utils/dates";
 import { MIN_TEAM_SHARE } from "@/utils/hero-stats";
-import { Row } from "./row";
+import { Tile } from "./tile";
 
 import styles from "./styles.module.css";
 
@@ -26,33 +25,26 @@ type ShareLabel =
     | "xp"
     | "killParticipation";
 
-type RowSpec = { label: ShareLabel; share: ShareKey } | { label: "timeDead" };
+type TileSpec = { label: ShareLabel; share: ShareKey } | { label: "timeDead" };
 
-type Group = { id: "damage" | "sustain" | "team"; rows: RowSpec[] };
+/**
+ * The volumes a hero's kit leads vary by role, so the smallest of the four is
+ * left out: siege damage for healers, healing for everyone else. With the three
+ * fixed tiles that keeps the card at six.
+ */
+const VOLUMES: TileSpec[] = [
+    { label: "heroDamage", share: "shareHeroDamage" },
+    { label: "siegeDamage", share: "shareSiegeDamage" },
+    { label: "damageTaken", share: "shareDamageTaken" },
+    { label: "healing", share: "shareHealing" },
+];
 
-const GROUPS: Group[] = [
-    {
-        id: "damage",
-        rows: [
-            { label: "heroDamage", share: "shareHeroDamage" },
-            { label: "siegeDamage", share: "shareSiegeDamage" },
-        ],
-    },
-    {
-        id: "sustain",
-        rows: [
-            { label: "damageTaken", share: "shareDamageTaken" },
-            { label: "healing", share: "shareHealing" },
-        ],
-    },
-    {
-        id: "team",
-        rows: [
-            { label: "killParticipation", share: "killParticipation" },
-            { label: "xp", share: "shareXp" },
-            { label: "timeDead" },
-        ],
-    },
+const LEADING_VOLUMES = 3;
+
+const FIXED: TileSpec[] = [
+    { label: "killParticipation", share: "killParticipation" },
+    { label: "xp", share: "shareXp" },
+    { label: "timeDead" },
 ];
 
 export interface TeamShareProps {
@@ -61,46 +53,39 @@ export interface TeamShareProps {
 
 export function TeamShare({ hero }: TeamShareProps) {
     const t = useTranslations("hero.teamShare");
-    const { percent } = useFormatStat();
 
     // Time dead has no team total: its share is of the average game instead.
     const timeDead = () => {
         if (hero.avgTimeDeadSecs === null || !hero.avgDuration) return null;
 
-        const share = hero.avgTimeDeadSecs / hero.avgDuration;
-
         return {
-            share,
-            hint: t("shareHint.timeDead", {
-                share: percent(share),
+            share: hero.avgTimeDeadSecs / hero.avgDuration,
+            detail: t("detail.timeDead", {
                 duration: formatDuration(hero.avgDuration),
             }),
-            muted: true,
         };
     };
 
     const ofTeam = (label: ShareLabel, share: number | null) =>
-        share === null
-            ? null
-            : {
-                  share,
-                  hint: t(`shareHint.${label}`, { share: percent(share) }),
-                  muted: false,
-              };
+        share === null ? null : { share, detail: t(`detail.${label}`) };
 
-    const groups = GROUPS.map((group) => ({
-        id: group.id,
-        rows: group.rows.flatMap((row) => {
-            const cells =
-                "share" in row
-                    ? ofTeam(row.label, hero[row.share])
-                    : timeDead();
+    const shareOf = (spec: TileSpec) =>
+        "share" in spec ? (hero[spec.share] ?? 0) : 0;
 
-            if (cells === null || cells.share < MIN_TEAM_SHARE) return [];
+    const trailing = [...VOLUMES]
+        .sort((a, b) => shareOf(b) - shareOf(a))
+        .slice(LEADING_VOLUMES);
 
-            return [{ key: row.label, label: t(row.label), ...cells }];
-        }),
-    })).filter((group) => group.rows.length > 0);
+    const tiles = [...VOLUMES, ...FIXED].flatMap((spec) => {
+        if (trailing.includes(spec)) return [];
+
+        const cells =
+            "share" in spec ? ofTeam(spec.label, hero[spec.share]) : timeDead();
+
+        if (cells === null || cells.share < MIN_TEAM_SHARE) return [];
+
+        return [{ key: spec.label, label: t(spec.label), ...cells }];
+    });
 
     return (
         <Card>
@@ -111,24 +96,16 @@ export function TeamShare({ hero }: TeamShareProps) {
                 subtitle={t("subtitle", { hero: hero.name })}
             />
             <div className={styles.body}>
-                <div className={styles.groups}>
-                    {groups.map((group) => (
-                        <section key={group.id} className={styles.group}>
-                            <Eyebrow as="h3">{t(`group.${group.id}`)}</Eyebrow>
-                            <ul className={styles.rows}>
-                                {group.rows.map((row) => (
-                                    <Row
-                                        key={row.key}
-                                        label={row.label}
-                                        share={row.share}
-                                        hint={row.hint}
-                                        muted={row.muted}
-                                    />
-                                ))}
-                            </ul>
-                        </section>
+                <ul className={styles.tiles}>
+                    {tiles.map((tile) => (
+                        <Tile
+                            key={tile.key}
+                            label={tile.label}
+                            share={tile.share}
+                            detail={tile.detail}
+                        />
                     ))}
-                </div>
+                </ul>
             </div>
         </Card>
     );

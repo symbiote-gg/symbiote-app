@@ -1,30 +1,38 @@
 @reference "@/index.css";
 
 .body {
-    @apply flex flex-1 flex-col gap-5 px-gutter pb-6;
+    @apply @container flex flex-1 flex-col px-gutter pb-6;
 }
 
-.rows {
-    @apply flex flex-col gap-3.5;
+.tiles {
+    @apply grid flex-1 auto-rows-fr gap-3 @xl:grid-cols-2;
 }
 
-.row {
-    @apply grid grid-cols-[6rem_minmax(0,1fr)_2.5rem_2.5rem] items-center gap-3;
+.tile {
+    @apply flex min-w-0 flex-col justify-between gap-3 rounded-lg border border-line bg-surface-2/40 p-3;
 }
 
-.row .meter {
+.label {
+    @apply truncate;
+}
+
+.stats {
+    @apply flex flex-col gap-2;
+}
+
+.few {
+    @apply sparse;
+}
+
+.figures {
+    @apply flex flex-wrap items-baseline gap-x-2;
+}
+
+.figures .rate {
+    @apply text-3xl leading-none font-extrabold;
+    font-stretch: 75%;
+}
+
+.stats .meter {
     @apply w-full;
-}
-
-.rate,
-.games {
-    @apply text-right;
-}
-
-.note {
-    @apply rounded-lg bg-surface-2/60 px-3.5 py-2.5;
-}
-
-.note strong {
-    @apply font-semibold text-fg;
 }

@@ -1,15 +1,12 @@
+import classNames from "classnames";
 import { Clock } from "lucide-react";
-import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
 import type { GameLength as Length } from "@/api/heroes";
-import { useFormatStat } from "@/hooks/useFormatStat";
-import { Card, CardHeader, Meter, Typography, WinRate } from "@/ui";
+import { Card, CardHeader, Eyebrow, Meter, Typography, WinRate } from "@/ui";
 import { isJudged, winRate } from "@/utils/hero-stats";
 
 import styles from "./styles.module.css";
-
-const strong = (chunks: ReactNode) => <strong>{chunks}</strong>;
 
 export interface GameLengthProps {
     lengths: Length[];
@@ -17,7 +14,6 @@ export interface GameLengthProps {
 
 export function GameLength({ lengths }: GameLengthProps) {
     const t = useTranslations("hero.gameLength");
-    const { winPercent } = useFormatStat();
 
     const rows = lengths.map((length) => ({
         ...length,
@@ -26,10 +22,6 @@ export function GameLength({ lengths }: GameLengthProps) {
         from: length.from / 60,
         to: length.to === null ? null : length.to / 60,
     }));
-
-    const best = rows
-        .filter((row) => row.judged && row.rate !== null)
-        .sort((a, b) => (b.rate ?? 0) - (a.rate ?? 0))[0];
 
     const span = (row: (typeof rows)[number]) =>
         row.to === null ? "over" : row.from === 0 ? "under" : "between";
@@ -43,53 +35,62 @@ export function GameLength({ lengths }: GameLengthProps) {
                 subtitle={t("subtitle")}
             />
             <div className={styles.body}>
-                <ul className={styles.rows}>
+                <ul className={styles.tiles}>
                     {rows.map((row) => (
-                        <li key={row.from} className={styles.row}>
-                            <Typography size="sm" noWrap>
+                        <li key={row.from} className={styles.tile}>
+                            <Eyebrow as="h3" className={styles.label}>
                                 {t(`label.${span(row)}`, {
                                     from: row.from,
                                     to: row.to ?? 0,
                                 })}
-                            </Typography>
-                            <Meter
-                                value={row.rate ?? 0}
-                                neutral={!row.judged}
-                                className={styles.meter}
-                            />
-                            <Typography
-                                size="xs"
-                                weight="semibold"
-                                mono
-                                className={styles.rate}
+                            </Eyebrow>
+                            <span
+                                className={classNames(styles.stats, {
+                                    [styles.few]: !row.judged,
+                                })}
                             >
-                                <WinRate rate={row.rate} judged={row.judged} />
-                            </Typography>
-                            <Typography
-                                size="xs"
-                                variant="tertiary"
-                                mono
-                                className={styles.games}
-                            >
-                                {row.games}
-                            </Typography>
+                                <span className={styles.figures}>
+                                    {row.rate === null ? (
+                                        <Typography
+                                            as="span"
+                                            size="xs"
+                                            variant="secondary"
+                                        >
+                                            {row.games === 0
+                                                ? t("noGames")
+                                                : t("noResult")}
+                                        </Typography>
+                                    ) : (
+                                        <Typography
+                                            as="span"
+                                            display
+                                            className={styles.rate}
+                                        >
+                                            <WinRate
+                                                rate={row.rate}
+                                                judged={row.judged}
+                                            />
+                                        </Typography>
+                                    )}
+                                    {row.games > 0 && (
+                                        <Typography
+                                            as="span"
+                                            size="xs"
+                                            variant="secondary"
+                                        >
+                                            {t("games", { count: row.games })}
+                                        </Typography>
+                                    )}
+                                </span>
+                                <Meter
+                                    value={row.rate ?? 0}
+                                    neutral={!row.judged}
+                                    className={styles.meter}
+                                />
+                            </span>
                         </li>
                     ))}
                 </ul>
-                {best && best.rate !== null && (
-                    <Typography
-                        size="sm"
-                        variant="secondary"
-                        className={styles.note}
-                    >
-                        {t.rich(`best.${span(best)}`, {
-                            rate: winPercent(best.rate),
-                            from: best.from,
-                            to: best.to ?? 0,
-                            b: strong,
-                        })}
-                    </Typography>
-                )}
             </div>
         </Card>
     );
