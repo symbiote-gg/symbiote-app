@@ -2,21 +2,20 @@
 // with a minimaps.json index next to the files, in the pin's path folder. While
 // calibrating, MINIMAPS_DIR reads them from a local folder instead. A minimap is
 // an .svg traced from the map's own minimap image.
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import process from "node:process";
 
-import { MINIMAPS } from "./config.mjs";
-import { fetchOk, rawGithub, writeJson } from "./io.mjs";
+import { ASSETS_DIR, MINIMAPS } from "./config.mjs";
+import { fetchOk, rawGithub, sha256, writeJson } from "./io.mjs";
 
 export const MINIMAPS_DIR = process.env.MINIMAPS_DIR ?? null;
 
+const CATEGORY = "minimaps";
 const MAP_ID = /^[a-z0-9_]+$/;
 // Names become paths and URLs: no separators or leading dot.
 const SAFE_NAME = /^[\w'-][\w'.-]*\.svg$/i;
 const VIEW_BOX = /viewBox="0 0 ([\d.]+) ([\d.]+)"/;
-const PATHS = ["ground"];
-const OPTIONAL_PATHS = ["jungle", "walls", "bright"];
 
 const isView = (view) =>
     Array.isArray(view) &&
@@ -43,33 +42,23 @@ function validate(index) {
     }
 }
 
-// The paths go in the index, not in a file: the app draws them itself.
-function vector(file, data) {
-    const svg = data.toString("utf8");
-    const box = svg.match(VIEW_BOX);
+// The stage needs the minimap's proportions before the image has loaded.
+function sizeOf(file, data) {
+    const box = data.toString("utf8").match(VIEW_BOX);
     if (!box) throw new Error(`no viewBox in ${file}`);
 
-    const pathOf = (id) =>
-        svg.match(new RegExp(`<path id="${id}"[^>]* d="([^"]+)"`))?.[1];
-
-    const paths = {};
-    for (const id of PATHS) {
-        paths[id] = pathOf(id);
-        if (!paths[id]) throw new Error(`no #${id} path in ${file}`);
-    }
-    for (const id of OPTIONAL_PATHS) {
-        if (pathOf(id)) paths[id] = pathOf(id);
-    }
-
-    return { width: Number(box[1]), height: Number(box[2]), paths };
+    return { width: Number(box[1]), height: Number(box[2]) };
 }
 
-// Writes the index, with each minimap's paths in it, to the generated sources. A
-// null pin and no MINIMAPS_DIR write an empty index.
+// Writes the minimaps to the assets folder and the index, pointing at them, to the
+// generated sources. A null pin and no MINIMAPS_DIR write an empty index.
 export async function fetchMinimaps(pin) {
+    const dir = join(ASSETS_DIR, CATEGORY);
+    await rm(dir, { recursive: true, force: true });
+
     if (!pin && !MINIMAPS_DIR) {
         await writeJson(MINIMAPS, {});
-        return { count: 0 };
+        return { hashes: {}, count: 0 };
     }
 
     const remote = (name) =>
@@ -82,22 +71,32 @@ export async function fetchMinimaps(pin) {
     const index = JSON.parse(await read("minimaps.json"));
     validate(index);
 
-    const vectors = {};
+    await mkdir(dir, { recursive: true });
+    const hashes = {};
+    const sizes = {};
     const files = [
         ...new Set(Object.values(index).flatMap((l) => l.map((x) => x.file))),
     ];
 
     for (const file of files) {
-        vectors[file] = vector(file, await read(file));
+        const data = await read(file);
+        sizes[file] = sizeOf(file, data);
+
+        await writeFile(join(dir, file), data);
+        hashes[`${CATEGORY}/${file}`] = sha256(data);
     }
 
     const output = Object.fromEntries(
         Object.entries(index).map(([map, layers]) => [
             map,
-            layers.map(({ file, view }) => ({ ...vectors[file], view })),
+            layers.map(({ file, view }) => ({
+                src: `/game/${CATEGORY}/${file}`,
+                ...sizes[file],
+                view,
+            })),
         ]),
     );
 
     await writeJson(MINIMAPS, output);
-    return { count: Object.keys(output).length };
+    return { hashes, count: Object.keys(output).length };
 }

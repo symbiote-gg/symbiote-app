@@ -24,6 +24,10 @@
     aspect-ratio: var(--aspect);
 }
 
+.render {
+    @apply absolute inset-0 block size-full select-none;
+}
+
 .pins {
     @apply absolute inset-0;
 }

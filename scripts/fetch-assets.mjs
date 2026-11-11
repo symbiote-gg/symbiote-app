@@ -211,6 +211,7 @@ async function main() {
     }
 
     const minimaps = await fetchMinimaps(PINS.minimaps);
+    Object.assign(files, minimaps.hashes);
     summary.push(`${minimaps.count} minimaps`);
 
     for (const kind of new Set(IMAGES.map(({ kind }) => kind))) {

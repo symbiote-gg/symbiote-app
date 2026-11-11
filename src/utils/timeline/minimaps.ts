@@ -2,15 +2,8 @@ import type { CSSProperties } from "react";
 
 import index from "@/generated/minimaps.json";
 
-export interface MinimapPaths {
-    ground: string;
-    jungle?: string;
-    walls?: string;
-    bright?: string;
-}
-
 export interface MinimapLayer {
-    paths: MinimapPaths;
+    src: string;
     width: number;
     height: number;
     view: number[];
