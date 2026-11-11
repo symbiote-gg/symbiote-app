@@ -195,3 +195,28 @@
 .stat + .stat {
     @apply @6xl/header:border-l;
 }
+
+.portraitBar {
+    @apply size-24 rounded-full;
+    grid-area: portrait;
+}
+
+.factsBar {
+    @apply h-5.5 w-56;
+}
+
+.titleBar {
+    @apply w-80;
+}
+
+.momentBar {
+    @apply w-36;
+}
+
+.resultBar {
+    @apply w-28;
+}
+
+.statValueBar {
+    @apply w-14;
+}

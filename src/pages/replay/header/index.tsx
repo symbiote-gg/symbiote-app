@@ -9,6 +9,7 @@ import type { HeroRole, ReplayDetail, ReplayPlayerDetail } from "@/api/replays";
 import { BackLink, HeroPortrait, Kad, ResultChip } from "@/components";
 import { useFormatStat } from "@/hooks/useFormatStat";
 import { useImageFallback } from "@/hooks/useImageFallback";
+import { usePrefetchHero } from "@/hooks/usePrefetchHero";
 import { useWatchReplay } from "@/hooks/useWatchReplay";
 import { Button, Chip, Stat, Tooltip, Typography, sideClasses } from "@/ui";
 import { formatDuration, usePlayedOn } from "@/utils/dates";
@@ -47,6 +48,7 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
     const [failed, onError] = useImageFallback();
 
     const watch = useWatchReplay();
+    const onPortraitEnter = usePrefetchHero(replay.ownerHeroId);
 
     const onReveal = () => revealItemInDir(replay.path);
     const onWatch = () => watch.mutate(replay.id);
@@ -164,6 +166,7 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                             <Link
                                 href={`/heroes/${replay.ownerHeroId}`}
                                 className={styles.portrait}
+                                onPointerEnter={onPortraitEnter}
                             >
                                 <HeroPortrait
                                     name={replay.heroName}

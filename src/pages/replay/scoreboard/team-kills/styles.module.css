@@ -49,3 +49,16 @@
     @apply h-0.5 w-4 rounded-full bg-fg-muted;
     content: "";
 }
+
+.breakdownBar {
+    @apply w-24;
+}
+
+/* Cap height trims the count's line box, so the bar is sized in em. */
+.countBar {
+    @apply h-[0.7em] w-12;
+}
+
+.durationBar {
+    @apply w-10;
+}

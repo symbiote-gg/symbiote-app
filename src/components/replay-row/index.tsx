@@ -9,6 +9,7 @@ import {
     type ReplayListData,
     markSeenInPages,
     replayQuery,
+    standoutsQuery,
 } from "@/api/queries";
 import { type Replay, markReplayAsSeen } from "@/api/replays";
 import { type AppearCheck, useAppear } from "@/hooks/useAppear";
@@ -51,8 +52,10 @@ export const ReplayRow = memo(function ReplayRow({
 
     useAppear(ref, appear, "row");
 
-    const onPointerEnter = () =>
+    const onPointerEnter = () => {
         queryClient.query(replayQuery(replay.id)).catch(noop);
+        queryClient.query(standoutsQuery(replay.id)).catch(noop);
+    };
 
     const onClick = () => {
         if (!replay.isNew) return;

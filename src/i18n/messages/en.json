@@ -350,7 +350,7 @@
         },
         "teamKills": {
             "title": "Kills",
-            "breakdown": "{ai, plural, =0 {All by heroes} other {{heroes} by heroes, # by AI}}",
+            "breakdown": "{ai, plural, =0 {All by heroes} other {{heroes} by heroes, # by NPCs}}",
             "level": "<label>LV</label> {level}"
         },
         "xpSources": {
@@ -467,7 +467,7 @@
             "fightRange": "{start}-{end} ({seconds}s)",
             "offset": "+{seconds}s",
             "assists": "Assists: {heroes}",
-            "aiCredit": "AI",
+            "aiCredit": "NPCs",
             "gatesOpen": "Gates open",
             "gameEnded": "{side, select, ally {Your team won} enemy {Enemy team won} other {Game ended}}",
             "structureTitle": "{keep, select, true {Keep} other {Fort}}",
@@ -600,7 +600,7 @@
             "with": "With",
             "helpedBy": "Helped by",
             "fight": "Fight",
-            "kind": "{kind, select, solo {Solo} pick {Pick} gank {Gank} skirmish {Skirmish} teamFight {Team fight} ai {AI} other {Fight}}",
+            "kind": "{kind, select, solo {Solo} pick {Pick} gank {Gank} skirmish {Skirmish} teamFight {Team fight} ai {NPC} other {Fight}}",
             "noKills": "No kills",
             "noKillsHint": "You didn't land a killing blow this game.",
             "immortal": "Immortal",

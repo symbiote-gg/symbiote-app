@@ -8,9 +8,11 @@ import { useStandouts } from "@/hooks/useStandouts";
 import { ErrorMessage } from "@/ui";
 import { DeathMap } from "./death-map";
 import { Header } from "./header";
+import { HeaderSkeleton } from "./header/skeleton";
 import { KillLog } from "./kill-log";
 import { RolePerformances } from "./role-performances";
 import { Scoreboard, ScoreboardTeam } from "./scoreboard";
+import { ScoreboardSkeleton } from "./scoreboard/skeleton";
 import { Standouts } from "./standouts";
 import { Timeline } from "./timeline";
 import { XpSources } from "./xp-sources";
@@ -37,11 +39,10 @@ export function ReplayDetail() {
     const { replayId } = useParams<{ replayId: string }>();
     const { data: replay, error } = useReplay(Number(replayId));
 
-    const standouts = useStandouts(
-        Number(replayId),
-        !!replay && !replay.eventsExpired,
-    );
+    const standouts = useStandouts(Number(replayId));
     const result = standouts.data ?? null;
+
+    const loading = !replay && !error;
 
     // Standouts sit above the scoreboard, so the overview waits for them
     // instead of pushing the scoreboard down when they land.
@@ -59,13 +60,20 @@ export function ReplayDetail() {
                         <ErrorMessage error={error} />
                     </>
                 )}
-                {replay && (
+                {loading && (
+                    <>
+                        <HeaderSkeleton />
+                        <ScoreboardSkeleton />
+                    </>
+                )}
+                {!loading && replay && (
                     <>
                         <Header
                             replay={replay}
                             owner={owner}
                             allyTeam={allyTeam}
                         />
+                        {standoutsPending && <ScoreboardSkeleton />}
                         {!standoutsPending && (
                             <>
                                 {result && <Standouts result={result} />}

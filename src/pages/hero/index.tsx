@@ -8,13 +8,17 @@ import { useHeroDetail } from "@/hooks/useHeroDetail";
 import { EmptyState, ErrorMessage } from "@/ui";
 import { Awards } from "./awards";
 import { Bests } from "./bests";
+import { BestsSkeleton } from "./bests/skeleton";
 import { Career } from "./career";
+import { CareerSkeleton } from "./career/skeleton";
 import { GameLength } from "./game-length";
 import { Games } from "./games";
+import { GamesSkeleton } from "./games/skeleton";
 import { Maps } from "./maps";
 import { Talents } from "./talents";
 import { TeamShare } from "./team-share";
 import { Trend } from "./trend";
+import { TrendSkeleton } from "./trend/skeleton";
 
 import styles from "./styles.module.css";
 
@@ -22,6 +26,7 @@ export function HeroDetail() {
     const t = useTranslations("hero");
     const { heroId } = useParams<{ heroId: string }>();
     const { data: hero, error } = useHeroDetail(Number(heroId));
+    const loading = hero === undefined && !error;
 
     const accent = hero?.accent
         ? ({ "--hero-accent": hero.accent } as CSSProperties)
@@ -37,6 +42,27 @@ export function HeroDetail() {
                 )}
                 {error && <ErrorMessage error={error} />}
                 {hero === null && <EmptyState>{t("notFound")}</EmptyState>}
+                {loading && (
+                    <>
+                        <CareerSkeleton />
+                        <div className={styles.grid}>
+                            <div className={styles.bests}>
+                                <BestsSkeleton />
+                            </div>
+                            <div
+                                className={classNames(
+                                    styles.trend,
+                                    styles.beside,
+                                )}
+                            >
+                                <TrendSkeleton />
+                            </div>
+                            <div className={styles.games}>
+                                <GamesSkeleton />
+                            </div>
+                        </div>
+                    </>
+                )}
                 {hero && <Career hero={hero} />}
                 {hero?.games === 0 && (
                     <EmptyState>{t("noGames", { hero: hero.name })}</EmptyState>

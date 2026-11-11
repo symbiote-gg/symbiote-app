@@ -31,3 +31,15 @@
 .link {
     @apply transition-colors hover:bg-tile-hover;
 }
+
+.subtitleBar {
+    @apply w-56;
+}
+
+.valueBar {
+    @apply w-20;
+}
+
+.detailBar {
+    @apply w-32;
+}

@@ -5,6 +5,7 @@ import { Link } from "wouter";
 import type { HeroStat } from "@/api/stats";
 import { HeroPortrait } from "@/components";
 import { type AppearCheck, useAppear } from "@/hooks/useAppear";
+import { usePrefetchHero } from "@/hooks/usePrefetchHero";
 import { Meter, Typography, WinRate, rolling } from "@/ui";
 import { isJudged, winRate } from "@/utils/hero-stats";
 
@@ -17,6 +18,7 @@ export interface HeroRowProps {
 
 export function HeroRow({ hero, appear }: HeroRowProps) {
     const ref = useRef<HTMLAnchorElement>(null);
+    const onPointerEnter = usePrefetchHero(hero.heroId);
 
     useAppear(ref, appear, "row");
 
@@ -29,6 +31,7 @@ export function HeroRow({ hero, appear }: HeroRowProps) {
                 ref={ref}
                 href={`/heroes/${hero.heroId}`}
                 className={classNames(styles.row, styles.link)}
+                onPointerEnter={onPointerEnter}
             >
                 <HeroPortrait name={hero.name} portrait={hero.portrait} />
                 <Typography truncate>{hero.name}</Typography>

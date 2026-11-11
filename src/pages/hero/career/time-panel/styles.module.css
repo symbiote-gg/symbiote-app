@@ -54,3 +54,19 @@
 .dead {
     @apply font-semibold text-loss;
 }
+
+.totalBar {
+    @apply w-48;
+}
+
+.statBar {
+    @apply w-12;
+}
+
+.meterBar {
+    @apply block h-1.5 w-full rounded-full;
+}
+
+.lifeBar {
+    @apply w-24;
+}

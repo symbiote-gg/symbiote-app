@@ -24,6 +24,7 @@ export * from "./search-input";
 export * from "./segmented";
 export * from "./select";
 export * from "./side";
+export * from "./skeleton";
 export * from "./stat";
 export * from "./stat-tile";
 export * from "./table-head";

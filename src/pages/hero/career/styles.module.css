@@ -122,3 +122,27 @@
 .tiles {
     @apply grid min-w-0 auto-rows-fr grid-cols-2 gap-3 @5xl/career:grid-cols-5;
 }
+
+.portraitBar {
+    @apply size-24 shrink-0 rounded-full;
+}
+
+.roleBar {
+    @apply h-5.5 w-24;
+}
+
+.nameBar {
+    @apply w-64;
+}
+
+.rateBar {
+    @apply w-40;
+}
+
+.recordBar {
+    @apply w-28;
+}
+
+.detailBar {
+    @apply w-20;
+}

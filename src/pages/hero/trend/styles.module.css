@@ -134,3 +134,11 @@
 .crosshair:focus-visible::after {
     @apply opacity-100;
 }
+
+.subtitleBar {
+    @apply w-72;
+}
+
+.rateBar {
+    @apply block size-full rounded-lg;
+}

@@ -1,0 +1,11 @@
+@reference "@/index.css";
+
+.root {
+    @apply inline-block max-w-full rounded-md bg-line align-middle;
+}
+
+/* Zero specificity, so a caller's class sets the size. The default fits a
+   line of text, so a bar inside a Typography keeps its line height. */
+:where(.root) {
+    @apply h-[0.75em] w-16;
+}

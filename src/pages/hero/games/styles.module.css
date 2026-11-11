@@ -113,3 +113,19 @@
 .stats > div {
     @apply px-4 py-3;
 }
+
+.chipBar {
+    @apply h-5.5 w-20;
+}
+
+.headlineBar {
+    @apply w-32;
+}
+
+.metaBar {
+    @apply w-48;
+}
+
+.kadBar {
+    @apply w-16;
+}

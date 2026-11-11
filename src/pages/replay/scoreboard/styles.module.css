@@ -47,3 +47,7 @@
 .totalValue {
     @apply px-2;
 }
+
+.totalBar {
+    @apply w-10;
+}

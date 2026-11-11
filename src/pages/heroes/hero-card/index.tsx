@@ -6,6 +6,7 @@ import type { HeroSummary } from "@/api/heroes";
 import { HeroPortrait } from "@/components";
 import { type AppearCheck, useAppear } from "@/hooks/useAppear";
 import { useFormatStat } from "@/hooks/useFormatStat";
+import { usePrefetchHero } from "@/hooks/usePrefetchHero";
 import { Stat, Typography, WinRate } from "@/ui";
 import { usePlayedDay } from "@/utils/dates";
 import { isJudged, isRated, kda, winRate } from "@/utils/hero-stats";
@@ -23,6 +24,7 @@ export function HeroCard({ hero, appear }: HeroCardProps) {
     const { compact, kda: formatKda } = useFormatStat();
     const playedDay = usePlayedDay();
     const ref = useRef<HTMLAnchorElement>(null);
+    const onPointerEnter = usePrefetchHero(hero.heroId);
 
     useAppear(ref, appear, "card", {
         glow: styles.portrait,
@@ -51,6 +53,7 @@ export function HeroCard({ hero, appear }: HeroCardProps) {
             href={`/heroes/${hero.heroId}`}
             className={styles.root}
             style={accent}
+            onPointerEnter={onPointerEnter}
         >
             <span className={styles.sweep} aria-hidden />
             <div className={styles.head}>

@@ -103,3 +103,27 @@
 .number {
     @apply text-right;
 }
+
+.portraitBar {
+    @apply size-10 shrink-0 rounded-full;
+}
+
+.heroBar {
+    @apply w-24;
+}
+
+.nameBar {
+    @apply w-20;
+}
+
+.talentBar {
+    @apply size-9 shrink-0;
+}
+
+.kadBar {
+    @apply w-14;
+}
+
+.statBar {
+    @apply w-10;
+}

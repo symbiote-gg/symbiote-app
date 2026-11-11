@@ -6,6 +6,7 @@ import type { ReplayPlayerDetail, TeamSummary } from "@/api/replays";
 import { Kad } from "@/components";
 import { useFormatStat } from "@/hooks/useFormatStat";
 import { Card, Eyebrow, TableHead, Typography } from "@/ui";
+import { useColumns } from "./columns";
 import { PlayerRow } from "./player-row";
 import { STATS, type Stat } from "./stats";
 import { TeamKills } from "./team-kills";
@@ -42,6 +43,7 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
     ) as Record<Stat, number>;
 
     const { compact } = useFormatStat();
+    const columns = useColumns();
 
     return (
         <div className={styles.root}>
@@ -58,28 +60,7 @@ export function Scoreboard({ teams, ownerId, duration }: ScoreboardProps) {
                                 styles.teamGrid,
                                 styles.headerRow,
                             )}
-                            columns={[
-                                { key: "player", label: t("player") },
-                                {
-                                    key: "talents",
-                                    label: t("talents"),
-                                    className: styles.talents,
-                                },
-                                {
-                                    key: "kad",
-                                    label: t("kad"),
-                                    className: styles.number,
-                                },
-                                ...STATS.map(({ stat, label, secondary }) => ({
-                                    key: stat,
-                                    label: t(label),
-                                    className: classNames(
-                                        styles.number,
-                                        styles.statHead,
-                                        { [styles.secondary]: secondary },
-                                    ),
-                                })),
-                            ]}
+                            columns={columns}
                         />
                         {teams.map(({ ally, summary, players }) => (
                             <Fragment key={ally ? "ally" : "enemy"}>
