@@ -1,5 +1,5 @@
 // Fetches hero, talent, award and map facts and images from pinned HeroesToolChest
-// data versions and images commit, and the minimap renders, at build time. Assets
+// data versions and images commit, and the minimaps, at build time. Assets
 // are never committed: outputs live in gitignored folders.
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -211,7 +211,6 @@ async function main() {
     }
 
     const minimaps = await fetchMinimaps(PINS.minimaps);
-    Object.assign(files, minimaps.hashes);
     summary.push(`${minimaps.count} minimaps`);
 
     for (const kind of new Set(IMAGES.map(({ kind }) => kind))) {

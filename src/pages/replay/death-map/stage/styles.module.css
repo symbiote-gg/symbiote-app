@@ -17,39 +17,11 @@
     width: var(--width);
     margin-left: var(--left);
     margin-top: var(--top);
-    --fade: 3.5rem;
 }
 
 .map {
     @apply relative;
     aspect-ratio: var(--aspect);
-}
-
-.render {
-    @apply absolute inset-0 bg-surface;
-    mask-image:
-        linear-gradient(
-            to right,
-            transparent,
-            #000 var(--fade),
-            #000 calc(100% - var(--fade)),
-            transparent
-        ),
-        linear-gradient(
-            to bottom,
-            transparent,
-            #000 var(--fade),
-            #000 calc(100% - var(--fade)),
-            transparent
-        );
-    mask-composite: intersect;
-}
-
-.image {
-    @apply block size-full select-none;
-    filter: brightness(0.55) saturate(0.6);
-    /* Over the surface, a render's black becomes the card's own colour. */
-    mix-blend-mode: screen;
 }
 
 .pins {

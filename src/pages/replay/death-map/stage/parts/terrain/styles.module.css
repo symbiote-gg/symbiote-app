@@ -1,0 +1,31 @@
+@reference "@/index.css";
+
+/* The game's minimap colours, not the theme's: the map should read as the one
+   players know. */
+.root {
+    @apply absolute inset-0 block size-full;
+    --lane: #2b1a36;
+    --jungle: #392546;
+    --wall: #5e426e;
+    --bright: #725284;
+}
+
+.ground {
+    fill: var(--lane);
+    stroke: var(--bright);
+    stroke-width: 1.5px;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.jungle {
+    fill: var(--jungle);
+}
+
+.walls {
+    fill: var(--wall);
+}
+
+.bright {
+    fill: var(--bright);
+}

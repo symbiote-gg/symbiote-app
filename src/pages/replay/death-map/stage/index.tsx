@@ -12,6 +12,7 @@ import type { Roster } from "@/utils/timeline/roster";
 import type { PlacedDeath } from "../deaths";
 import { Core } from "./parts/core";
 import { Pin } from "./parts/pin";
+import { Terrain } from "./parts/terrain";
 
 import styles from "./styles.module.css";
 
@@ -55,14 +56,11 @@ export function Stage({
         >
             <div className={styles.stage}>
                 <div className={styles.map}>
-                    <div className={styles.render}>
-                        <img
-                            src={render.src}
-                            alt=""
-                            draggable={false}
-                            className={styles.image}
-                        />
-                    </div>
+                    <Terrain
+                        width={render.width}
+                        height={render.height}
+                        paths={render.paths}
+                    />
 
                     <div ref={pinsRef} className={styles.pins}>
                         {cores.map(({ team, x, y }) => (

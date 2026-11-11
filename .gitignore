@@ -19,6 +19,9 @@ public/game
 src/generated
 src-tauri/data
 
+# Local tool tracing the minimap SVGs, run by hand
+scripts/assets/trace-minimap.mjs
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
