@@ -75,6 +75,12 @@ export function Controls({
 
     return (
         <div className={styles.root}>
+            <ChipGroup label={t("filterLabel")}>
+                {chip(me)}
+                <ChipDivider />
+                {sides.map(chip)}
+            </ChipGroup>
+
             {layerCount > 1 && (
                 <ChipGroup label={t("layer")}>
                     {LAYERS.slice(0, layerCount).map(
@@ -92,12 +98,6 @@ export function Controls({
                     )}
                 </ChipGroup>
             )}
-
-            <ChipGroup label={t("filterLabel")}>
-                {chip(me)}
-                <ChipDivider />
-                {sides.map(chip)}
-            </ChipGroup>
         </div>
     );
 }

@@ -1,12 +1,16 @@
 import { type MouseEvent, useEffect, useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import type { DeathKind } from "@/api/replays";
 import type { TimelineText } from "@/hooks/useTimelineText";
+import { CardBody, TableHead, Typography } from "@/ui";
 import type { Roster } from "@/utils/timeline/roster";
 import type { PlacedDeath } from "../deaths";
 import { Row } from "./row";
 
 import styles from "./styles.module.css";
+
+const COLUMNS = ["time", "killers", "sword", "victim", "fight"] as const;
 
 function reveal(rows: HTMLElement, id: number) {
     const row = rows.querySelector(`[data-death="${id}"]`);
@@ -41,7 +45,8 @@ export function DeathList({
     text,
     onSelect,
 }: DeathListProps) {
-    const rowsRef = useRef<HTMLUListElement>(null);
+    const t = useTranslations("replay.deathMap.feed");
+    const rowsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (selectedId === null || !rowsRef.current) return;
@@ -54,20 +59,40 @@ export function DeathList({
 
     return (
         <div className={styles.root}>
-            <ul ref={rowsRef} className={styles.rows}>
-                {deaths.map(({ id, entry }) => (
-                    <Row
-                        key={id}
-                        id={id}
-                        entry={entry}
-                        kind={kinds.get(id)}
-                        selected={id === selectedId}
-                        roster={roster}
-                        text={text}
-                        onClick={onClick}
-                    />
-                ))}
-            </ul>
+            <TableHead
+                strip
+                className={styles.columns}
+                columns={COLUMNS.map((key) => ({
+                    key,
+                    label: key === "sword" ? "" : t(`columns.${key}`),
+                }))}
+            />
+            <CardBody ref={rowsRef}>
+                {deaths.length === 0 ? (
+                    <Typography
+                        size="sm"
+                        variant="tertiary"
+                        className={styles.empty}
+                    >
+                        {t("empty")}
+                    </Typography>
+                ) : (
+                    <ul>
+                        {deaths.map(({ id, entry }) => (
+                            <Row
+                                key={id}
+                                id={id}
+                                entry={entry}
+                                kind={kinds.get(id)}
+                                selected={id === selectedId}
+                                roster={roster}
+                                text={text}
+                                onClick={onClick}
+                            />
+                        ))}
+                    </ul>
+                )}
+            </CardBody>
         </div>
     );
 }

@@ -1,29 +1,21 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex max-h-80 min-h-32 min-w-0 flex-col overflow-hidden @5xl:max-h-none @5xl:min-h-0 @5xl:flex-1;
+    @apply flex max-h-96 min-h-32 min-w-0 flex-col @5xl/deaths:max-h-none @5xl/deaths:min-h-0 @5xl/deaths:flex-1;
 }
 
-.rows {
-    @apply min-h-0 flex-1 overflow-y-auto;
+.columns {
+    @apply grid grid-cols-[3.25rem_8.625rem_1rem_minmax(0,1fr)_6.75rem] items-center gap-x-3;
 }
 
 .item {
     @apply border-b border-divider last:border-b-0;
     content-visibility: auto;
-    contain-intrinsic-block-size: auto 2.75rem;
+    contain-intrinsic-block-size: auto 4rem;
 }
 
 .row {
-    @apply grid w-full cursor-pointer grid-cols-[auto_8.625rem_auto_auto_minmax(0,1fr)_auto] items-center gap-x-2.5 py-1.5 text-left transition-colors focus-visible:-outline-offset-2;
-}
-
-.row > :first-child {
-    @apply ml-gutter;
-}
-
-.row > :last-child {
-    @apply mr-gutter;
+    @apply min-h-16 w-full cursor-pointer px-gutter py-2.5 text-left transition-colors focus-visible:-outline-offset-2;
 }
 
 .row:hover {
@@ -31,21 +23,13 @@
 }
 
 .row.selected {
-    @apply bg-surface-2;
+    @apply bg-selected;
 }
 
-.rowTime {
-    @apply min-w-[5ch] text-right;
+.victim {
+    @apply flex min-w-0 items-center gap-3;
 }
 
-.rowFallen {
-    @apply ml-1.5;
-}
-
-.rowVictim {
-    @apply flex min-w-0 items-baseline gap-1;
-}
-
-.rowKind {
-    @apply flex justify-self-end whitespace-nowrap;
+.empty {
+    @apply px-gutter py-12 text-center;
 }

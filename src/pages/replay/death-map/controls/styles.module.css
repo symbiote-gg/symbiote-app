@@ -1,5 +1,5 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex flex-wrap items-center justify-end gap-2 @5xl:shrink-0;
+    @apply flex flex-col items-end gap-2 @5xl/deaths:shrink-0;
 }

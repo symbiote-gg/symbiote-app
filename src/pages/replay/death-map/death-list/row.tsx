@@ -3,9 +3,10 @@ import type { MouseEvent } from "react";
 import { useTranslations } from "use-intl";
 
 import type { DeathKind } from "@/api/replays";
+import { HeroPlayerName } from "@/components";
 import type { TimelineText } from "@/hooks/useTimelineText";
 import { Typography } from "@/ui";
-import { type Roster, heroName } from "@/utils/timeline/roster";
+import type { Roster } from "@/utils/timeline/roster";
 import type { DeathEntry } from "@/utils/timeline/types";
 import { KindChip } from "../../kill-log/kind-chip";
 import { FallenPortrait } from "../../timeline/popover/variants/kills/fallen-portrait";
@@ -41,18 +42,12 @@ export function Row({
                 data-death={id}
                 aria-pressed={selected}
                 aria-label={text.entryLabel(entry)}
-                className={classNames(styles.row, {
+                className={classNames(styles.columns, styles.row, {
                     [styles.selected]: selected,
                 })}
                 onClick={onClick}
             >
-                <Typography
-                    as="span"
-                    size="xs"
-                    variant="tertiary"
-                    mono
-                    className={styles.rowTime}
-                >
+                <Typography as="span" mono weight="semibold">
                     {text.at(entry.time)}
                 </Typography>
                 <KillCells
@@ -61,17 +56,11 @@ export function Row({
                     noKiller={t("timeline.aiCredit")}
                     roster={roster}
                 />
-                <span className={styles.rowFallen}>
+                <span className={styles.victim}>
                     <FallenPortrait slot={entry.victim} roster={roster} />
+                    <HeroPlayerName slot={entry.victim} roster={roster} />
                 </span>
-                <span className={styles.rowVictim}>
-                    <Typography as="span" weight="semibold" truncate>
-                        {heroName(roster, entry.victim)}
-                    </Typography>
-                </span>
-                <span className={styles.rowKind}>
-                    {kind && <KindChip kind={kind} size="sm" />}
-                </span>
+                {kind ? <KindChip kind={kind} size="sm" /> : <span />}
             </button>
         </li>
     );

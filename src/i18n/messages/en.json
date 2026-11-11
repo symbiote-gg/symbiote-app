@@ -530,8 +530,8 @@
                 "heroDamage": "Hero damage",
                 "siegeDamage": "Siege damage",
                 "healing": "Healing",
-                "damageTakenShare": "Share of team damage soaked",
-                "teamfightDamageTakenShare": "Share of team damage soaked in fights",
+                "damageTakenShare": "Share of team damage taken",
+                "teamfightDamageTakenShare": "Share of team damage taken in fights",
                 "xp": "Experience",
                 "hardCc": "Hard CC on heroes",
                 "protection": "Damage prevented on allies",
@@ -542,8 +542,8 @@
                 "heroDamage": "<b>{value}</b> hero damage",
                 "siegeDamage": "<b>{value}</b> siege damage",
                 "healing": "<b>{value}</b> healing",
-                "damageTakenShare": "<b>{value}</b> of the team's damage soaked",
-                "teamfightDamageTakenShare": "<b>{value}</b> of the team's damage soaked in fights",
+                "damageTakenShare": "<b>{value}</b> of the team's damage taken",
+                "teamfightDamageTakenShare": "<b>{value}</b> of the team's damage taken in fights",
                 "xp": "<b>{value}</b> experience",
                 "hardCc": "<b>{value}</b> hard CC on heroes",
                 "protection": "<b>{value}</b> damage prevented on allies",
@@ -575,7 +575,18 @@
                 "teamTopKiller": "Team top killer",
                 "enemyTopKiller": "Enemy top killer"
             },
-            "assists": "Assists"
+            "assists": "Assists",
+            "feed": {
+                "title": "Kill feed",
+                "subtitle": "Every kill in order. Pick one to find it on the map.",
+                "columns": {
+                    "time": "Time",
+                    "killers": "Killed by",
+                    "victim": "Victim",
+                    "fight": "Fight"
+                },
+                "empty": "No deaths to show"
+            }
         },
         "killLog": {
             "title": "{count, plural, one {You killed <n>#</n> hero} other {You killed <n>#</n> heroes}}",

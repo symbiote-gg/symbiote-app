@@ -1,5 +1,6 @@
-import { MapPin } from "lucide-react";
+import { MapPin, Skull } from "lucide-react";
 import {
+    type CSSProperties,
     type MouseEvent,
     type SyntheticEvent,
     useEffect,
@@ -175,49 +176,68 @@ export function DeathMap({
     };
 
     return (
-        <Card className={styles.root}>
-            <CardHeader
-                icon={MapPin}
-                size="sm"
-                title={t("title")}
-                subtitle={t("subtitle")}
-                divided
-                action={
-                    <Controls
-                        layerCount={layers.length}
-                        layer={shown}
-                        counts={counts}
-                        filter={filter}
-                        onLayer={onLayerChange}
-                        onFilter={onFilter}
+        <div
+            className={styles.root}
+            style={
+                { "--aspect": render.width / render.height } as CSSProperties
+            }
+        >
+            <div className={styles.grid}>
+                <Card className={styles.map}>
+                    <CardHeader
+                        icon={MapPin}
+                        size="sm"
+                        title={t("title")}
+                        subtitle={t("subtitle")}
+                        divided
+                        action={
+                            <Controls
+                                layerCount={layers.length}
+                                layer={shown}
+                                counts={counts}
+                                filter={filter}
+                                onLayer={onLayerChange}
+                                onFilter={onFilter}
+                            />
+                        }
                     />
-                }
-            />
-            <div className={styles.body}>
-                <Stage
-                    render={render}
-                    cores={cores}
-                    deaths={visible}
-                    time={time}
-                    selectedId={selectedId}
-                    allyTeam={allyTeam}
-                    roster={roster}
-                    text={text}
-                    pinsRef={pinsRef}
-                    onPinEnter={onPinEnter}
-                    onPinLeave={onPinLeave}
-                    onPinClick={onPinClick}
-                >
-                    <DeathPopover
-                        ref={popoverRef}
+                    <Stage
+                        render={render}
+                        cores={cores}
                         deaths={visible}
+                        time={time}
+                        selectedId={selectedId}
+                        allyTeam={allyTeam}
                         roster={roster}
                         text={text}
+                        pinsRef={pinsRef}
+                        onPinEnter={onPinEnter}
+                        onPinLeave={onPinLeave}
+                        onPinClick={onPinClick}
+                    >
+                        <DeathPopover
+                            ref={popoverRef}
+                            deaths={visible}
+                            roster={roster}
+                            text={text}
+                        />
+                    </Stage>
+                    <Scrubber
+                        ref={scrubberRef}
+                        duration={duration}
+                        text={text}
+                        onTime={onTime}
                     />
-                </Stage>
+                </Card>
 
-                <div className={styles.side}>
-                    <div className={styles.sideInner}>
+                <Card className={styles.feed}>
+                    <div className={styles.feedInner}>
+                        <CardHeader
+                            icon={Skull}
+                            size="sm"
+                            title={t("feed.title")}
+                            subtitle={t("feed.subtitle")}
+                        />
                         <Summary stats={stats} roster={roster} />
                         <DeathList
                             deaths={listed}
@@ -228,21 +248,8 @@ export function DeathMap({
                             onSelect={select}
                         />
                     </div>
-                </div>
-
-                <Scrubber
-                    ref={scrubberRef}
-                    deaths={filtered}
-                    reached={time}
-                    duration={duration}
-                    selectedId={selectedId}
-                    allyTeam={allyTeam}
-                    ownerSlot={ownerSlot}
-                    text={text}
-                    onTickClick={onPinClick}
-                    onTime={onTime}
-                />
+                </Card>
             </div>
-        </Card>
+        </div>
     );
 }

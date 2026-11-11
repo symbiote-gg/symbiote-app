@@ -1,104 +1,50 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex min-w-0 flex-col gap-1 border-t border-line px-gutter py-3 @5xl:col-span-2;
+    @apply flex min-w-0 flex-col gap-1 border-t border-line px-gutter py-2.5;
 }
 
-/* Inset by the range thumb's radius, so times line up with it. */
 .axis {
-    @apply mx-1.5;
-}
-
-.handles {
-    @apply relative h-4;
+    @apply relative mx-1.75;
 }
 
 .handle {
-    @apply absolute top-0 -translate-x-1/2;
+    @apply absolute -top-0.5 z-10 flex -translate-x-1/2 rounded-md border border-line bg-surface-2 px-2 py-0.5;
     left: var(--at);
 }
 
 .bar {
-    @apply relative h-10;
+    @apply relative h-4;
 }
 
 .track {
-    @apply absolute inset-x-1.5 inset-y-0;
+    @apply absolute inset-x-1.75 inset-y-0;
 }
 
 .hit {
     @apply absolute inset-0 cursor-pointer;
 }
 
-.band,
-.fill {
-    @apply pointer-events-none absolute left-0;
+.line {
+    @apply pointer-events-none absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line-strong;
+}
+
+.trail {
+    @apply pointer-events-none absolute top-1/2 left-0 h-0.5 -translate-y-1/2 rounded-full bg-primary;
     right: calc(100% - var(--at));
 }
 
-.band {
-    @apply inset-y-0 rounded-sm bg-fg/5;
-}
-
-.line,
-.fill {
-    @apply pointer-events-none absolute top-1/2 h-0.5 -translate-y-1/2 rounded-full;
-}
-
-.line {
-    @apply inset-x-0 bg-line;
-}
-
-.fill {
-    @apply bg-fg/50;
-}
-
-/* As on the timeline: your team above the axis, the enemy below. */
-.tick {
-    @apply absolute h-4.5 w-2 -translate-x-1/2 cursor-pointer text-side;
-}
-
-.tick.outside:not(:hover, .selected) {
-    @apply dimmed;
-}
-
-.tick:hover,
-.tick.selected {
-    @apply z-10;
-}
-
-.tick.ally {
-    @apply bottom-1/2;
-}
-
-.tick.enemy {
-    @apply top-1/2;
-}
-
-.mark {
-    @apply mx-auto block h-full w-0.5 rounded-full bg-current;
-}
-
-.tick.mine .mark {
-    @apply w-1 ring-1 ring-primary;
-}
-
-.tick:hover .mark,
-.tick.selected .mark {
-    @apply w-1.5;
-}
-
-/* Only the thumb takes the pointer, so the ticks and bar below stay clickable. */
+/* Only the thumb takes the pointer, so the bar below stays clickable. */
 .range {
-    @apply pointer-events-none absolute inset-x-0 top-1/2 z-20 h-3 w-full -translate-y-1/2 appearance-none bg-transparent outline-none;
+    @apply pointer-events-none absolute inset-x-0 top-1/2 z-20 h-3.5 w-full -translate-y-1/2 appearance-none bg-transparent outline-none;
 }
 
 .range::-webkit-slider-runnable-track {
-    @apply h-3;
+    @apply h-3.5;
 }
 
 .range::-webkit-slider-thumb {
-    @apply pointer-events-auto box-border size-3 cursor-pointer appearance-none rounded-full border-[3px] border-fg bg-surface transition-colors;
+    @apply pointer-events-auto box-border size-3.5 cursor-pointer appearance-none rounded-full border-2 border-surface bg-primary;
 }
 
 .range:focus-visible::-webkit-slider-thumb {

@@ -1,10 +1,12 @@
 import classNames from "classnames";
-import type { MouseEvent, SyntheticEvent } from "react";
+import { type MouseEvent, type SyntheticEvent, useEffect, useRef } from "react";
 
 import { TeamPortrait } from "@/components/team-portrait";
 import type { TimelineText } from "@/hooks/useTimelineText";
+import { reducedMotion } from "@/utils/motion";
 import type { Roster } from "@/utils/timeline/roster";
 import type { PlacedDeath } from "../../../deaths";
+import { land, lift } from "./land";
 
 import styles from "./styles.module.css";
 
@@ -29,8 +31,25 @@ export function Pin({
     onLeave,
     onClick,
 }: PinProps) {
+    const ref = useRef<HTMLButtonElement>(null);
+    const wasFaded = useRef(faded);
+
+    // Lands as the scrubber reaches it and lifts as it backs away; never on mount.
+    useEffect(() => {
+        const changed = wasFaded.current !== faded;
+        wasFaded.current = faded;
+
+        if (!changed || !ref.current || reducedMotion()) return;
+
+        const tween = faded ? lift(ref.current) : land(ref.current);
+        tween.play();
+
+        return tween.cancel;
+    }, [faded]);
+
     return (
         <button
+            ref={ref}
             type="button"
             data-death={id}
             aria-label={text.entryLabel(entry)}

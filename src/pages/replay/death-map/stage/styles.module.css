@@ -1,19 +1,21 @@
 @reference "@/index.css";
 
+/* The backdrop is the minimaps' ground colour darkened: theirs are baked into the files. */
 .root {
     @apply relative flex min-w-0 items-start;
     container-type: inline-size;
-    --map-height: min(100vh - 10.5rem, 47rem);
-    --map-width: calc(var(--map-height) * var(--aspect));
+    aspect-ratio: var(--box-aspect);
+    background: #150c1c;
 }
 
-/* Centred by hand, so the offsets can be rounded below. */
+/* The map, whole, inside the box. Centred by hand, so the offsets can be rounded below. */
 .stage {
     @apply relative flex flex-col;
-    --width: min(100cqw, var(--map-width));
+    --box-height: calc(100cqw / var(--box-aspect));
+    --width: min(100cqw, var(--box-height) * var(--aspect));
     --height: calc(var(--width) / var(--aspect));
     --left: calc((100cqw - var(--width)) / 2);
-    --top: calc(max(0px, var(--side-height, 0px) - var(--height)) / 2);
+    --top: calc((var(--box-height) - var(--height)) / 2);
     width: var(--width);
     margin-left: var(--left);
     margin-top: var(--top);

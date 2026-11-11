@@ -1,10 +1,4 @@
-import type {
-    CSSProperties,
-    MouseEvent,
-    ReactNode,
-    RefObject,
-    SyntheticEvent,
-} from "react";
+import type { MouseEvent, ReactNode, RefObject, SyntheticEvent } from "react";
 
 import type { TimelineText } from "@/hooks/useTimelineText";
 import { type MinimapLayer, project } from "@/utils/timeline/minimaps";
@@ -47,12 +41,7 @@ export function Stage({
     children,
 }: StageProps) {
     return (
-        <div
-            className={styles.root}
-            style={
-                { "--aspect": render.width / render.height } as CSSProperties
-            }
-        >
+        <div className={styles.root}>
             <div className={styles.stage}>
                 <div className={styles.map}>
                     <img

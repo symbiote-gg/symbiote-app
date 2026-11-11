@@ -12,8 +12,6 @@ import type { TimelineText } from "@/hooks/useTimelineText";
 import { Typography } from "@/ui";
 import { position } from "@/utils/timeline/layout";
 import { AxisTimes } from "../../timeline/track/parts/axis-times";
-import type { PlacedDeath } from "../deaths";
-import { Ticks } from "./ticks";
 
 import styles from "./styles.module.css";
 
@@ -23,29 +21,12 @@ export interface ScrubberHandle {
 
 interface ScrubberProps {
     ref: Ref<ScrubberHandle>;
-    deaths: PlacedDeath[];
-    reached: number;
     duration: number;
-    selectedId: number | null;
-    allyTeam: number;
-    ownerSlot: number;
     text: TimelineText;
-    onTickClick: (e: MouseEvent<HTMLButtonElement>) => void;
     onTime: (time: number) => void;
 }
 
-export function Scrubber({
-    ref,
-    deaths,
-    reached,
-    duration,
-    selectedId,
-    allyTeam,
-    ownerSlot,
-    text,
-    onTickClick,
-    onTime,
-}: ScrubberProps) {
+export function Scrubber({ ref, duration, text, onTime }: ScrubberProps) {
     const t = useTranslations("replay.deathMap");
 
     const end = Math.ceil(duration);
@@ -78,20 +59,6 @@ export function Scrubber({
             className={styles.root}
             style={{ "--at": position(time, duration) } as CSSProperties}
         >
-            <div className={styles.axis}>
-                <div className={styles.handles}>
-                    {time < end && (
-                        <Typography
-                            as="span"
-                            size="xs"
-                            mono
-                            className={styles.handle}
-                        >
-                            {text.at(time)}
-                        </Typography>
-                    )}
-                </div>
-            </div>
             <div className={styles.bar}>
                 <div className={styles.track}>
                     <div
@@ -99,19 +66,8 @@ export function Scrubber({
                         aria-hidden
                         onClick={onBarClick}
                     />
-                    <div className={styles.band} />
                     <div className={styles.line} />
-                    <div className={styles.fill} />
-                    <Ticks
-                        deaths={deaths}
-                        reached={reached}
-                        duration={duration}
-                        selectedId={selectedId}
-                        allyTeam={allyTeam}
-                        ownerSlot={ownerSlot}
-                        text={text}
-                        onTickClick={onTickClick}
-                    />
+                    <div className={styles.trail} />
                 </div>
                 <input
                     type="range"
@@ -127,6 +83,18 @@ export function Scrubber({
             </div>
             <div className={styles.axis}>
                 <AxisTimes duration={duration} text={text} />
+                {time < end && (
+                    <span className={styles.handle}>
+                        <Typography
+                            as="span"
+                            size="xs"
+                            weight="semibold"
+                            noWrap
+                        >
+                            {text.at(time)}
+                        </Typography>
+                    </span>
+                )}
             </div>
         </div>
     );

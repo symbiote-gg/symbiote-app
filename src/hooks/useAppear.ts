@@ -24,7 +24,7 @@ export interface AppearParts {
 
 type Ease = typeof EASE_SETTLE_CURVE | typeof EASE_SWEEP_CURVE;
 
-interface Tween {
+export interface Tween {
     play: () => void;
     cancel: () => void;
 }
@@ -39,7 +39,8 @@ const overshoot = (progress: number, [from, peak, to]: number[]) =>
         ? lerp(from, peak, progress / POP_PEAK)
         : lerp(peak, to, (progress - POP_PEAK) / (1 - POP_PEAK));
 
-function tween(
+/** Drives inline styles frame by frame: WebKitGTK slows Web Animations under load. */
+export function tween(
     el: HTMLElement,
     props: string[],
     duration: number,
