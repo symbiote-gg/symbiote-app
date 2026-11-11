@@ -105,14 +105,11 @@
 }
 
 .portrait .portraitImage {
-    @apply ring-2 ring-fg-muted/60;
-    transition-property: filter;
-    transition-duration: var(--default-transition-duration);
-    transition-timing-function: var(--default-transition-timing-function);
+    @apply ring-2 ring-fg-muted/60 transition-shadow;
 }
 
 .portrait:hover .portraitImage {
-    filter: brightness(1.15);
+    @apply ring-primary;
 }
 
 .text {
