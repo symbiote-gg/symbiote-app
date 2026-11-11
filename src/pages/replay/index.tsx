@@ -66,7 +66,7 @@ export function ReplayDetail() {
                         <ScoreboardSkeleton />
                     </>
                 )}
-                {!loading && replay && (
+                {replay && (
                     <>
                         <Header
                             replay={replay}
@@ -99,35 +99,35 @@ export function ReplayDetail() {
                                     ally={replay.teams[allyTeam]}
                                     enemy={replay.teams[1 - allyTeam]}
                                 />
+                                {!replay.eventsExpired && (
+                                    <>
+                                        <Timeline
+                                            timeline={replay.timeline}
+                                            duration={replay.duration}
+                                            players={replay.players}
+                                            allyTeam={allyTeam}
+                                            ownerSlot={replay.ownerSlot}
+                                            ownerWin={replay.ownerWin}
+                                        />
+                                        <DeathMap
+                                            key={replay.id}
+                                            map={replay.map}
+                                            timeline={replay.timeline}
+                                            duration={replay.duration}
+                                            players={replay.players}
+                                            allyTeam={allyTeam}
+                                            ownerSlot={replay.ownerSlot}
+                                        />
+                                    </>
+                                )}
+                                <RolePerformances
+                                    performances={replay.rolePerformances}
+                                    players={replay.players}
+                                    ownerId={replay.ownerPlayerId}
+                                    ownerRole={replay.heroRole}
+                                />
                             </>
                         )}
-                        {!replay.eventsExpired && (
-                            <>
-                                <Timeline
-                                    timeline={replay.timeline}
-                                    duration={replay.duration}
-                                    players={replay.players}
-                                    allyTeam={allyTeam}
-                                    ownerSlot={replay.ownerSlot}
-                                    ownerWin={replay.ownerWin}
-                                />
-                                <DeathMap
-                                    key={replay.id}
-                                    map={replay.map}
-                                    timeline={replay.timeline}
-                                    duration={replay.duration}
-                                    players={replay.players}
-                                    allyTeam={allyTeam}
-                                    ownerSlot={replay.ownerSlot}
-                                />
-                            </>
-                        )}
-                        <RolePerformances
-                            performances={replay.rolePerformances}
-                            players={replay.players}
-                            ownerId={replay.ownerPlayerId}
-                            ownerRole={replay.heroRole}
-                        />
                     </>
                 )}
             </div>
