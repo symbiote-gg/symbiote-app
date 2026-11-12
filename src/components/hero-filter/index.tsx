@@ -40,7 +40,6 @@ export function HeroFilter({ value, roles, onChange }: HeroFilterProps) {
                 t("count", { count: 1 }))
               : t("count", { count: value.length });
 
-    const removeLabel = (hero: string) => t("remove", { hero });
     const noResults = () => t("noResults");
 
     const renderOption = ({ hero }: HeroOption) => (
@@ -60,7 +59,6 @@ export function HeroFilter({ value, roles, onChange }: HeroFilterProps) {
             options={options}
             value={value}
             renderOption={renderOption}
-            removeLabel={removeLabel}
             noResults={noResults}
             onChange={onChange}
         />

@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import {
     type ChangeEvent,
     type MouseEvent,
@@ -39,7 +39,6 @@ export interface ComboboxProps<
     value: readonly T[];
     disabled?: boolean;
     renderOption: (option: O) => ReactNode;
-    removeLabel: (label: string) => string;
     noResults: (query: string) => ReactNode;
     onChange: (value: T[]) => void;
 }
@@ -58,7 +57,6 @@ export function Combobox<
     value,
     disabled,
     renderOption,
-    removeLabel,
     noResults,
     onChange,
 }: ComboboxProps<T, O>) {
@@ -70,10 +68,6 @@ export function Combobox<
     const input = useRef<HTMLInputElement>(null);
 
     const results = options.filter((option) => matches(option.label, query));
-    const picked = value.flatMap((picked) => {
-        const option = options.find((option) => option.value === picked);
-        return option ? [option] : [];
-    });
     const chosen = new Set(value);
     const active = Math.min(activeIndex, results.length - 1);
     const optionId = (index: number) => `${id}-option-${index}`;
@@ -108,12 +102,6 @@ export function Combobox<
 
     const onOptionEnter = (e: PointerEvent<HTMLDivElement>) =>
         setActiveIndex(Number(e.currentTarget.dataset.index));
-
-    const onRemove = (e: MouseEvent<HTMLButtonElement>) => {
-        const removed = picked[Number(e.currentTarget.dataset.index)];
-        onChange(value.filter((value) => value !== removed.value));
-        input.current?.focus();
-    };
 
     return (
         <>
@@ -159,27 +147,6 @@ export function Combobox<
                             onChange={onQueryChange}
                         />
                     </label>
-                    {picked.length > 0 && (
-                        <div className={styles.chips}>
-                            {picked.map((option, index) => (
-                                <span
-                                    key={option.value}
-                                    className={styles.chip}
-                                >
-                                    {option.label}
-                                    <button
-                                        type="button"
-                                        data-index={index}
-                                        aria-label={removeLabel(option.label)}
-                                        className={styles.remove}
-                                        onClick={onRemove}
-                                    >
-                                        <X aria-hidden />
-                                    </button>
-                                </span>
-                            ))}
-                        </div>
-                    )}
                 </div>
                 <div
                     id={`${id}-listbox`}

@@ -56,6 +56,9 @@ export function List({
         initialOffset: () => initialOffset,
         useFlushSync: false,
         directDomUpdates: true,
+        // The default translate3d makes every row a compositing layer, and WebKitGTK
+        // churning through them on a filter swap blinks the list and leaves stale tiles.
+        directDomUpdatesMode: "position",
     });
     const items = virtualizer.getVirtualItems();
     const lastIndex = items[items.length - 1]?.index ?? 0;

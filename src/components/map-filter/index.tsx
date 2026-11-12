@@ -33,7 +33,6 @@ export function MapFilter({ value, onChange }: MapFilterProps) {
                 t("count", { count: 1 }))
               : t("count", { count: value.length });
 
-    const removeLabel = (map: string) => t("remove", { map });
     const noResults = () => t("noResults");
 
     const renderOption = ({ label }: MapOption) => (
@@ -50,7 +49,6 @@ export function MapFilter({ value, onChange }: MapFilterProps) {
             options={options}
             value={value}
             renderOption={renderOption}
-            removeLabel={removeLabel}
             noResults={noResults}
             onChange={onChange}
         />

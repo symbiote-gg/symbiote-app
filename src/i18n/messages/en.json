@@ -218,7 +218,6 @@
             "clear": "Clear map filter",
             "count": "{count, plural, one {# map} other {# maps}}",
             "search": "Search maps",
-            "remove": "Remove {map}",
             "noResults": "Maps you haven't played aren't listed."
         },
         "role": {
@@ -256,7 +255,6 @@
             "clear": "Clear hero filter",
             "count": "{count, plural, one {# hero} other {# heroes}}",
             "search": "Search heroes",
-            "remove": "Remove {hero}",
             "noResults": "Heroes you haven't played aren't listed."
         }
     },
