@@ -13,6 +13,7 @@ export interface StatProps {
     size?: "sm" | "lg";
     mono?: boolean;
     truncate?: boolean;
+    inline?: boolean;
     className?: string;
     valueClassName?: string;
 }
@@ -23,11 +24,16 @@ export function Stat({
     size = "lg",
     mono = true,
     truncate,
+    inline,
     className,
     valueClassName,
 }: StatProps) {
     return (
-        <div className={classNames(className, styles.root)}>
+        <div
+            className={classNames(className, styles.root, {
+                [styles.inline]: inline,
+            })}
+        >
             <Eyebrow as="dt" truncate>
                 {label}
             </Eyebrow>

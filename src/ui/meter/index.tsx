@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import type { CSSProperties } from "react";
 
 import { winRateGrade } from "../win-rate/grade";
 
@@ -38,23 +39,17 @@ export function Meter({
             className={classNames(className, styles.root, styles[size], {
                 [styles.fromEnd]: fromEnd,
             })}
+            style={{ "--share": share } as CSSProperties}
             aria-hidden
         >
-            {share > 0 && (
-                <span
-                    className={classNames(styles.fill, styles[fill])}
-                    style={{ width: `${share * 100}%` }}
-                />
-            )}
-            {share < 1 && (
-                <span
-                    className={classNames(
-                        styles.fill,
-                        styles.rest,
-                        track && styles[track],
-                    )}
-                />
-            )}
+            <span className={classNames(styles.fill, styles[fill])} />
+            <span
+                className={classNames(
+                    styles.fill,
+                    styles.rest,
+                    track && styles[track],
+                )}
+            />
         </span>
     );
 }

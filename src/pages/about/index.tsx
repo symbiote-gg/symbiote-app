@@ -14,7 +14,7 @@ import {
     ISSUES_URL,
     REPO_URL,
 } from "@/legal";
-import { Eyebrow, Typography } from "@/ui";
+import { Card, Eyebrow, Typography } from "@/ui";
 import { ExternalLink } from "./external-link";
 import { Licenses } from "./licenses";
 
@@ -50,34 +50,36 @@ export function About() {
                         </div>
                     </div>
                 </header>
-                <dl className={styles.meta}>
-                    <div className={styles.metaRow}>
-                        <dt>
-                            <Eyebrow>{t("meta.version")}</Eyebrow>
-                        </dt>
-                        <dd className={styles.version}>
-                            {version && t("meta.versionValue", { version })}
-                        </dd>
-                    </div>
-                    <div className={styles.metaRow}>
-                        <dt>
-                            <Eyebrow>{t("meta.license")}</Eyebrow>
-                        </dt>
-                        <dd className={styles.metaValue}>
-                            <ExternalLink href={APP_LICENSE_URL}>
-                                {APP_LICENSE}
-                            </ExternalLink>
-                        </dd>
-                    </div>
-                    <div className={styles.metaRow}>
-                        <dt>
-                            <Eyebrow>{t("meta.privacy")}</Eyebrow>
-                        </dt>
-                        <dd className={styles.metaValue}>
-                            {t("meta.privacyValue")}
-                        </dd>
-                    </div>
-                </dl>
+                <Card className={styles.meta}>
+                    <dl>
+                        <div className={styles.metaRow}>
+                            <dt>
+                                <Eyebrow>{t("meta.version")}</Eyebrow>
+                            </dt>
+                            <dd className={styles.version}>
+                                {version && t("meta.versionValue", { version })}
+                            </dd>
+                        </div>
+                        <div className={styles.metaRow}>
+                            <dt>
+                                <Eyebrow>{t("meta.license")}</Eyebrow>
+                            </dt>
+                            <dd className={styles.metaValue}>
+                                <ExternalLink href={APP_LICENSE_URL}>
+                                    {APP_LICENSE}
+                                </ExternalLink>
+                            </dd>
+                        </div>
+                        <div className={styles.metaRow}>
+                            <dt>
+                                <Eyebrow>{t("meta.privacy")}</Eyebrow>
+                            </dt>
+                            <dd className={styles.metaValue}>
+                                {t("meta.privacyValue")}
+                            </dd>
+                        </div>
+                    </dl>
+                </Card>
             </div>
             <Licenses />
             <footer className={styles.footer}>

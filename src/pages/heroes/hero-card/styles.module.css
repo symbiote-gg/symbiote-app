@@ -2,7 +2,7 @@
 
 .root {
     --accent: var(--hero-accent, var(--color-primary-text));
-    @apply relative flex flex-col gap-4 overflow-hidden rounded-lg border border-tile-line bg-surface-2 bg-linear-150 from-accent/10 to-transparent to-50% px-4 pt-4 transition-colors hover:bg-tile-hover;
+    @apply relative flex h-38 flex-col justify-between gap-4 overflow-hidden rounded-lg border border-tile-line bg-surface-2 bg-linear-150 from-accent/16 to-transparent to-55% px-4 pt-4 pb-3 transition-colors hover:bg-tile-hover;
 }
 
 .sweep {
@@ -22,7 +22,12 @@
 }
 
 .result {
-    @apply flex shrink-0 flex-col items-end;
+    @apply flex shrink-0 flex-col items-end self-start;
+}
+
+/* Without a win rate, the games count sits on the name's line. */
+.result > :only-child {
+    @apply mt-1;
 }
 
 .result .pct {
@@ -30,14 +35,14 @@
     font-stretch: 75%;
 }
 
+.foot {
+    @apply flex flex-col gap-3;
+}
+
 .stats {
-    @apply grid grid-cols-[minmax(max-content,3fr)_minmax(max-content,5fr)_minmax(max-content,4.5fr)] -mx-4 border-t border-tile-line;
+    @apply flex min-w-0 gap-6;
 }
 
-.stats > div {
-    @apply px-4 py-3;
-}
-
-.stats > div + div {
-    @apply border-l border-tile-line pl-3;
+.foot .meter {
+    @apply w-full;
 }

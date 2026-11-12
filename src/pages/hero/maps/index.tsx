@@ -4,7 +4,7 @@ import { useTranslations } from "use-intl";
 import type { MapRecord } from "@/api/heroes";
 import { useAppearGate } from "@/hooks/useAppearGate";
 import { Card, CardHeader } from "@/ui";
-import { isJudged, winRate } from "@/utils/hero-stats";
+import { MIN_JUDGED_GAMES, isJudged, winRate } from "@/utils/hero-stats";
 import { MapCard } from "./card";
 
 import styles from "./styles.module.css";
@@ -37,7 +37,7 @@ export function Maps({ maps }: MapsProps) {
                 size="sm"
                 icon={MapIcon}
                 title={t("title")}
-                subtitle={t("subtitle")}
+                subtitle={t("subtitle", { games: MIN_JUDGED_GAMES })}
             />
             <ul className={styles.list}>
                 {cards.map((map) => (

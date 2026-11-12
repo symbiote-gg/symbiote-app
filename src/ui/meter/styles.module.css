@@ -1,7 +1,8 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex gap-0.5 overflow-hidden rounded-full;
+    --gap: calc(var(--spacing) * 0.5);
+    @apply flex justify-between overflow-hidden rounded-full;
 }
 
 :where(.root) {
@@ -20,12 +21,28 @@
     @apply flex-row-reverse;
 }
 
+/* Both sides stay mounted and share the track less one gap, so a side at 0
+   collapses with no gap left over and the bar can travel to and from the ends. */
 .fill {
-    @apply block h-full rounded-full;
+    @apply block h-full shrink-0 rounded-full;
+    width: max(0px, calc((100% + var(--gap)) * var(--share) - var(--gap)));
+    transition:
+        width var(--motion-travel) var(--ease-settle),
+        background-color var(--motion-travel) var(--ease-settle);
 }
 
 .rest {
-    @apply min-w-0 flex-1 bg-fg/15;
+    @apply bg-fg/15;
+    width: max(
+        0px,
+        calc((100% + var(--gap)) * (1 - var(--share)) - var(--gap))
+    );
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fill {
+        transition: none;
+    }
 }
 
 .great {
@@ -49,7 +66,7 @@
 }
 
 .unjudged {
-    @apply bg-rate-unjudged/50;
+    @apply bg-rate-unjudged;
 }
 
 .primary {

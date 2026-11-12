@@ -7,9 +7,8 @@ import { HeroPortrait } from "@/components";
 import { type AppearCheck, useAppear } from "@/hooks/useAppear";
 import { useFormatStat } from "@/hooks/useFormatStat";
 import { usePrefetchHero } from "@/hooks/usePrefetchHero";
-import { Stat, Typography, WinRate } from "@/ui";
-import { usePlayedDay } from "@/utils/dates";
-import { isJudged, isRated, kda, winRate } from "@/utils/hero-stats";
+import { Meter, Stat, Typography, WinRate } from "@/ui";
+import { isJudged, kda, winRate } from "@/utils/hero-stats";
 
 import styles from "./styles.module.css";
 
@@ -22,7 +21,6 @@ export function HeroCard({ hero, appear }: HeroCardProps) {
     const t = useTranslations("heroes.card");
     const roles = useTranslations("roles");
     const { compact, kda: formatKda } = useFormatStat();
-    const playedDay = usePlayedDay();
     const ref = useRef<HTMLAnchorElement>(null);
     const { onPointerEnter, onPointerLeave } = usePrefetchHero(hero.heroId);
 
@@ -31,9 +29,7 @@ export function HeroCard({ hero, appear }: HeroCardProps) {
         sweep: styles.sweep,
     });
 
-    const rate = isRated(hero.wins, hero.losses)
-        ? winRate(hero.wins, hero.losses)
-        : null;
+    const rate = winRate(hero.wins, hero.losses);
     const neutral = !isJudged(hero.wins, hero.losses);
 
     const roleStat =
@@ -69,31 +65,37 @@ export function HeroCard({ hero, appear }: HeroCardProps) {
                         {hero.name}
                     </Typography>
                     {hero.role && (
-                        <Typography size="sm" variant="tertiary" truncate>
+                        <Typography size="sm" variant="secondary" truncate>
                             {roles(hero.role)}
                         </Typography>
                     )}
                 </div>
                 <div className={styles.result}>
-                    <Typography as="span" display className={styles.pct}>
-                        <WinRate rate={rate} judged={!neutral} />
-                    </Typography>
-                    <Typography as="span" size="sm" variant="tertiary">
+                    {rate !== null && (
+                        <Typography as="span" display className={styles.pct}>
+                            <WinRate rate={rate} judged={!neutral} />
+                        </Typography>
+                    )}
+                    <Typography as="span" size="sm" variant="secondary">
                         {t("games", { count: hero.games })}
                     </Typography>
                 </div>
             </div>
-            <dl className={styles.stats}>
-                <Stat label={t("kda")} size="sm" truncate>
-                    {formatKda(kda(hero.takedowns, hero.deaths))}
-                </Stat>
-                <Stat label={roleStat.label} size="sm" truncate>
-                    {compact(roleStat.value, { fixed: true })}
-                </Stat>
-                <Stat label={t("lastPlayed")} size="sm" mono={false} truncate>
-                    {playedDay(hero.lastPlayed)}
-                </Stat>
-            </dl>
+            <div className={styles.foot}>
+                <dl className={styles.stats}>
+                    <Stat label={t("kda")} size="sm" inline>
+                        {formatKda(kda(hero.takedowns, hero.deaths))}
+                    </Stat>
+                    <Stat label={roleStat.label} size="sm" inline truncate>
+                        {compact(roleStat.value, { fixed: true })}
+                    </Stat>
+                </dl>
+                <Meter
+                    value={rate ?? 0}
+                    neutral={neutral}
+                    className={styles.meter}
+                />
+            </div>
         </Link>
     );
 }

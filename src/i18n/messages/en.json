@@ -80,10 +80,9 @@
         "card": {
             "games": "{count, plural, one {# game} other {# games}}",
             "kda": "KDA",
-            "heroDamage": "Hero damage",
+            "heroDamage": "Hero dmg",
             "healing": "Healing",
-            "damageTaken": "Damage taken",
-            "lastPlayed": "Last played"
+            "damageTaken": "Taken"
         }
     },
     "hero": {
@@ -179,7 +178,7 @@
         },
         "maps": {
             "title": "Maps",
-            "subtitle": "Where you win, where you don't. Maps with 10+ games first.",
+            "subtitle": "Where you win, where you don't. Maps with {games}+ games first.",
             "games": "{count, plural, one {# game} other {# games}}"
         },
         "games": {

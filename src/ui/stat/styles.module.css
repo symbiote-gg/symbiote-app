@@ -9,6 +9,14 @@
     @apply gap-1.5;
 }
 
+.inline {
+    @apply flex-row items-baseline;
+}
+
+:where(.inline) {
+    @apply gap-2;
+}
+
 .value {
     @apply leading-none;
 }

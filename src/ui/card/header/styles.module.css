@@ -17,7 +17,7 @@
 }
 
 .titles .subtitle {
-    @apply max-w-3xl;
+    @apply max-w-4xl;
 }
 
 .titles .title {
