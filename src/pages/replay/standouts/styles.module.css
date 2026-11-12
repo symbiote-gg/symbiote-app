@@ -42,3 +42,19 @@
     @apply text-2xl font-semibold leading-tight;
     color: var(--tone);
 }
+
+.tileSkeleton {
+    --tone: transparent;
+}
+
+.iconBar {
+    @apply size-10.5 shrink-0 rounded-lg;
+}
+
+.valueBar {
+    @apply w-20;
+}
+
+.sentenceBar {
+    @apply w-64;
+}

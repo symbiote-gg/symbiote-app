@@ -18,7 +18,7 @@ export interface HeroRowProps {
 
 export function HeroRow({ hero, appear }: HeroRowProps) {
     const ref = useRef<HTMLAnchorElement>(null);
-    const onPointerEnter = usePrefetchHero(hero.heroId);
+    const { onPointerEnter, onPointerLeave } = usePrefetchHero(hero.heroId);
 
     useAppear(ref, appear, "row");
 
@@ -32,6 +32,7 @@ export function HeroRow({ hero, appear }: HeroRowProps) {
                 href={`/heroes/${hero.heroId}`}
                 className={classNames(styles.row, styles.link)}
                 onPointerEnter={onPointerEnter}
+                onPointerLeave={onPointerLeave}
             >
                 <HeroPortrait name={hero.name} portrait={hero.portrait} />
                 <Typography truncate>{hero.name}</Typography>

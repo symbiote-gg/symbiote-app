@@ -24,7 +24,7 @@ export function HeroCard({ hero, appear }: HeroCardProps) {
     const { compact, kda: formatKda } = useFormatStat();
     const playedDay = usePlayedDay();
     const ref = useRef<HTMLAnchorElement>(null);
-    const onPointerEnter = usePrefetchHero(hero.heroId);
+    const { onPointerEnter, onPointerLeave } = usePrefetchHero(hero.heroId);
 
     useAppear(ref, appear, "card", {
         glow: styles.portrait,
@@ -54,6 +54,7 @@ export function HeroCard({ hero, appear }: HeroCardProps) {
             className={styles.root}
             style={accent}
             onPointerEnter={onPointerEnter}
+            onPointerLeave={onPointerLeave}
         >
             <span className={styles.sweep} aria-hidden />
             <div className={styles.head}>

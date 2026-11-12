@@ -14,6 +14,7 @@ import { RolePerformances } from "./role-performances";
 import { Scoreboard, ScoreboardTeam } from "./scoreboard";
 import { ScoreboardSkeleton } from "./scoreboard/skeleton";
 import { Standouts } from "./standouts";
+import { StandoutsSkeleton } from "./standouts/skeleton";
 import { Timeline } from "./timeline";
 import { XpSources } from "./xp-sources";
 
@@ -63,6 +64,7 @@ export function ReplayDetail() {
                 {loading && (
                     <>
                         <HeaderSkeleton />
+                        <StandoutsSkeleton />
                         <ScoreboardSkeleton />
                     </>
                 )}
@@ -73,7 +75,12 @@ export function ReplayDetail() {
                             owner={owner}
                             allyTeam={allyTeam}
                         />
-                        {standoutsPending && <ScoreboardSkeleton />}
+                        {standoutsPending && (
+                            <>
+                                <StandoutsSkeleton />
+                                <ScoreboardSkeleton />
+                            </>
+                        )}
                         {!standoutsPending && (
                             <>
                                 {result && <Standouts result={result} />}

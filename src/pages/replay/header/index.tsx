@@ -48,7 +48,8 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
     const [failed, onError] = useImageFallback();
 
     const watch = useWatchReplay();
-    const onPortraitEnter = usePrefetchHero(replay.ownerHeroId);
+    const { onPointerEnter: onPortraitEnter, onPointerLeave: onPortraitLeave } =
+        usePrefetchHero(replay.ownerHeroId);
 
     const onReveal = () => revealItemInDir(replay.path);
     const onWatch = () => watch.mutate(replay.id);
@@ -167,6 +168,7 @@ export function Header({ replay, owner, allyTeam }: HeaderProps) {
                                 href={`/heroes/${replay.ownerHeroId}`}
                                 className={styles.portrait}
                                 onPointerEnter={onPortraitEnter}
+                                onPointerLeave={onPortraitLeave}
                             >
                                 <HeroPortrait
                                     name={replay.heroName}

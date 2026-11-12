@@ -8,12 +8,11 @@ import {
     REPLAY_LISTS_KEY,
     type ReplayListData,
     markSeenInPages,
-    replayQuery,
-    standoutsQuery,
 } from "@/api/queries";
 import { type Replay, markReplayAsSeen } from "@/api/replays";
 import { type AppearCheck, useAppear } from "@/hooks/useAppear";
 import { useFormatStat } from "@/hooks/useFormatStat";
+import { usePrefetchReplay } from "@/hooks/usePrefetchReplay";
 import { Typography } from "@/ui";
 import { formatDuration, usePlayedAt } from "@/utils/dates";
 import { AwardPills } from "../award-pill";
@@ -49,13 +48,9 @@ export const ReplayRow = memo(function ReplayRow({
     const playedAt = usePlayedAt();
     const queryClient = useQueryClient();
     const ref = useRef<HTMLAnchorElement>(null);
+    const { onPointerEnter, onPointerLeave } = usePrefetchReplay(replay.id);
 
     useAppear(ref, appear, "row");
-
-    const onPointerEnter = () => {
-        queryClient.query(replayQuery(replay.id)).catch(noop);
-        queryClient.query(standoutsQuery(replay.id)).catch(noop);
-    };
 
     const onClick = () => {
         if (!replay.isNew) return;
@@ -77,6 +72,7 @@ export const ReplayRow = memo(function ReplayRow({
                 [columns.wide]: wide,
             })}
             onPointerEnter={onPointerEnter}
+            onPointerLeave={onPointerLeave}
             onClick={onClick}
         >
             <span className={columns.inner}>
