@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex overflow-hidden rounded-full bg-fg/6;
+    @apply flex gap-0.5 overflow-hidden rounded-full;
 }
 
 :where(.root) {
@@ -17,19 +17,15 @@
 }
 
 .fromEnd {
-    @apply justify-end;
+    @apply flex-row-reverse;
 }
 
 .fill {
     @apply block h-full rounded-full;
 }
 
-.split {
-    @apply gap-0.5 bg-transparent;
-}
-
 .rest {
-    @apply min-w-0 flex-1;
+    @apply min-w-0 flex-1 bg-fg/15;
 }
 
 .great {

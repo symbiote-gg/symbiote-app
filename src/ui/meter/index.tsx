@@ -33,29 +33,25 @@ export function Meter({
     const fill = color ?? winRateGrade(value, !neutral);
     const share = Math.min(1, Math.max(0, value));
 
-    const showFill = !track || share > 0;
-    const showRest = track && share < 1;
-
     return (
         <span
             className={classNames(className, styles.root, styles[size], {
-                [styles.split]: track,
                 [styles.fromEnd]: fromEnd,
             })}
             aria-hidden
         >
-            {showFill && (
+            {share > 0 && (
                 <span
                     className={classNames(styles.fill, styles[fill])}
                     style={{ width: `${share * 100}%` }}
                 />
             )}
-            {showRest && (
+            {share < 1 && (
                 <span
                     className={classNames(
                         styles.fill,
                         styles.rest,
-                        styles[track],
+                        track && styles[track],
                     )}
                 />
             )}

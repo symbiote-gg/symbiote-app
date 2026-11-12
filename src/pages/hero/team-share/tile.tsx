@@ -26,12 +26,7 @@ export function Tile({ label, share, detail }: TileProps) {
                         {detail}
                     </Typography>
                 </span>
-                <Meter
-                    value={share}
-                    color="accent"
-                    track="muted"
-                    className={styles.meter}
-                />
+                <Meter value={share} color="accent" className={styles.meter} />
             </span>
         </li>
     );
