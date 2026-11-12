@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { useIngestProgress } from "@/hooks/useIngestProgress";
-import { Popover, Typography } from "@/ui";
+import { Meter, Popover, Typography } from "@/ui";
 
 import styles from "./styles.module.css";
 
@@ -100,11 +100,12 @@ export function IngestProgress() {
                         aria-valuemin={0}
                         aria-valuemax={total}
                         aria-valuenow={done}
-                        className={styles.track}
                     >
-                        <span
-                            className={styles.fill}
-                            style={{ width: `${ratio * 100}%` }}
+                        <Meter
+                            value={ratio}
+                            color="primary"
+                            size="md"
+                            className={styles.meter}
                         />
                     </span>
                     <Typography

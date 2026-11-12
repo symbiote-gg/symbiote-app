@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .pill {
-    @apply flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full border border-primary/40 bg-selected-soft px-3.5 py-2 text-sm font-medium text-fg cursor-pointer;
+    @apply flex shrink-0 items-center gap-2.5 self-stretch whitespace-nowrap rounded-lg border border-primary/40 bg-selected-soft px-3.5 py-2 text-sm font-medium text-fg cursor-pointer;
 }
 
 .label {
@@ -29,12 +29,8 @@
     @apply flex max-h-none w-[26rem] max-w-[calc(100vw-16px)] flex-col gap-3;
 }
 
-.track {
-    @apply block h-1.5 overflow-hidden rounded-full bg-fg/6;
-}
-
-.fill {
-    @apply block h-full rounded-full bg-primary-text transition-[width] duration-1000 ease-linear;
+.meter {
+    @apply w-full;
 }
 
 .count {

@@ -1,10 +1,10 @@
 import classNames from "classnames";
 import {
     Clapperboard,
+    Crown,
     House,
     Info,
     Settings,
-    ShieldUser,
     UserRound,
 } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
@@ -20,7 +20,7 @@ import styles from "./styles.module.css";
 const NAV = [
     { key: "home", href: "/", Icon: House },
     { key: "replays", href: "/replays", Icon: Clapperboard },
-    { key: "heroes", href: "/heroes", Icon: ShieldUser },
+    { key: "heroes", href: "/heroes", Icon: Crown },
     { key: "profile", href: "/profile", Icon: UserRound },
 ] as const;
 
@@ -52,7 +52,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <SymbioteLogo className={styles.logo} />
                     <SymbioteWordmark className={styles.wordmark} />
                 </Link>
-                <nav className={styles.nav}>
+                <nav className={styles.group}>
                     {NAV.map(({ key, href, Icon }) => (
                         <Link
                             key={key}
@@ -68,23 +68,29 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </nav>
                 <div className={styles.end}>
                     <IngestProgress />
-                    {UTILITY.map(({ key, href, Icon }) => (
-                        <Tooltip key={key} content={t(key)} placement="bottom">
-                            <Link
-                                href={href}
-                                aria-label={t(key)}
-                                className={classNames(
-                                    styles.link,
-                                    styles.iconLink,
-                                    {
-                                        [styles.active]: location === href,
-                                    },
-                                )}
+                    <div className={styles.group}>
+                        {UTILITY.map(({ key, href, Icon }) => (
+                            <Tooltip
+                                key={key}
+                                content={t(key)}
+                                placement="bottom"
                             >
-                                <Icon className={styles.icon} />
-                            </Link>
-                        </Tooltip>
-                    ))}
+                                <Link
+                                    href={href}
+                                    aria-label={t(key)}
+                                    className={classNames(
+                                        styles.link,
+                                        styles.iconLink,
+                                        {
+                                            [styles.active]: location === href,
+                                        },
+                                    )}
+                                >
+                                    <Icon className={styles.icon} />
+                                </Link>
+                            </Tooltip>
+                        ))}
+                    </div>
                 </div>
             </header>
             <main ref={main} className={styles.content}>

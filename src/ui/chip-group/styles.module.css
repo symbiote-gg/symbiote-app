@@ -40,12 +40,8 @@
     @apply outline-3 outline-primary-text;
 }
 
-.primary.on {
-    @apply bg-selected text-primary-text;
-}
-
-.primary.on .count {
-    @apply text-primary-text/70;
+.primary.on .icon {
+    @apply text-primary-text;
 }
 
 .divider {
