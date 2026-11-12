@@ -38,6 +38,7 @@
 .figures .rate {
     @apply text-3xl leading-none font-extrabold;
     font-stretch: 75%;
+    text-shadow: none;
 }
 
 .stats .meter {
