@@ -9,7 +9,7 @@
 }
 
 .search {
-    @apply flex items-center gap-2 rounded-md border border-line bg-bg px-2.5 py-2 transition-colors focus-within:border-primary;
+    @apply flex items-center gap-2 rounded-md border border-line bg-bg px-2.5 py-2 transition-colors focus-within:border-line-strong;
 }
 
 .searchIcon {

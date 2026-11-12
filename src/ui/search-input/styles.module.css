@@ -5,15 +5,19 @@
 }
 
 .root {
-    @apply inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-line bg-bg px-2.5 text-sm transition-colors focus-within:border-primary hover:border-fg-muted/40 focus-within:hover:border-primary;
+    @apply inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-line bg-surface px-2.5 text-sm transition-colors focus-within:border-line-strong hover:bg-row-hover;
 }
 
 .active {
-    @apply border-primary/70 bg-primary/15;
+    @apply bg-surface-2 hover:bg-tile-hover;
 }
 
 .icon {
     @apply size-4 shrink-0 text-fg-muted;
+}
+
+.active .icon {
+    @apply text-primary-text;
 }
 
 .input {

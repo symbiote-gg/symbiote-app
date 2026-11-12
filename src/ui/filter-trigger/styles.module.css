@@ -1,25 +1,28 @@
 @reference "@/index.css";
 
 .root {
-    @apply inline-flex h-9 shrink-0 items-stretch rounded-lg border border-line bg-bg text-sm whitespace-nowrap text-fg transition-colors;
+    @apply inline-flex h-9 shrink-0 items-stretch rounded-lg border border-line bg-surface text-sm whitespace-nowrap text-fg transition-colors;
 }
 
-.root:hover:not(.disabled) {
-    @apply border-fg-muted/40;
+.root:has(.trigger:hover:enabled) {
+    @apply bg-row-hover;
 }
 
 .disabled {
     @apply opacity-50;
 }
 
-.active,
-.active:hover:not(.disabled) {
-    @apply border-primary/70 bg-primary/15;
+.active {
+    @apply bg-surface-2;
+}
+
+.active:has(.trigger:hover:enabled) {
+    @apply bg-tile-hover;
 }
 
 .open,
-.open:hover:not(.disabled) {
-    @apply border-primary;
+.open:has(.trigger:hover:enabled) {
+    @apply border-line-strong bg-surface-2;
 }
 
 .trigger {
@@ -55,7 +58,11 @@
 }
 
 .value {
-    @apply max-w-52 truncate font-semibold;
+    @apply max-w-52 truncate font-semibold text-fg-muted;
+}
+
+.active .value {
+    @apply text-fg;
 }
 
 .chevron {
@@ -67,7 +74,7 @@
 }
 
 .clear {
-    @apply inline-flex w-8 cursor-pointer items-center justify-center rounded-r-md border-l border-primary/70 text-primary-text transition-colors;
+    @apply inline-flex w-8 cursor-pointer items-center justify-center rounded-r-md border-l border-line text-fg-muted transition-colors hover:bg-tile-hover hover:text-fg;
 }
 
 .clear:focus-visible {

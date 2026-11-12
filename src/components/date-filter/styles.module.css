@@ -9,7 +9,7 @@
 }
 
 .preset {
-    @apply cursor-pointer rounded-md px-2 py-1.5 text-left text-sm text-fg/85 transition-colors hover:bg-surface-2 hover:text-fg;
+    @apply cursor-pointer rounded-md px-2 py-1.5 text-left text-sm text-fg/85 transition-colors hover:bg-row-hover hover:text-fg;
 }
 
 .selected {

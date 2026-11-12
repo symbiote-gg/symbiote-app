@@ -17,7 +17,7 @@
 }
 
 .nav {
-    @apply inline-flex size-7 cursor-pointer items-center justify-center rounded-md border border-line bg-surface-2 text-fg transition-colors hover:border-fg-muted/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-line;
+    @apply inline-flex size-7 cursor-pointer items-center justify-center rounded-md border border-line bg-surface-2 text-fg transition-colors hover:enabled:bg-tile-hover disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 .nav svg {
@@ -41,7 +41,7 @@
 }
 
 .day:hover:enabled:not(.edge) {
-    @apply bg-surface-2;
+    @apply bg-row-hover;
 }
 
 .day:disabled {
@@ -53,7 +53,11 @@
 }
 
 .inside {
-    @apply w-full rounded-none bg-selected-soft;
+    @apply w-full rounded-none bg-surface-2;
+}
+
+.day.inside:hover:enabled:not(.edge) {
+    @apply bg-tile-hover;
 }
 
 .edge {
