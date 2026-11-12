@@ -33,14 +33,19 @@
 }
 
 .icon {
-    @apply size-4.5;
+    @apply size-4.5 text-fg-muted transition-colors;
+}
+
+.link:hover .icon {
+    @apply text-fg;
 }
 
 .active {
     @apply bg-surface-2 text-fg hover:text-fg;
 }
 
-.active .icon {
+.active .icon,
+.active:hover .icon {
     @apply text-primary-text;
 }
 
