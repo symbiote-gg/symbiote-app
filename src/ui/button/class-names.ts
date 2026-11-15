@@ -4,7 +4,7 @@ import styles from "./styles.module.css";
 
 export type ButtonVariant = "primary" | "secondary";
 
-export type ButtonSize = "sm" | "md";
+export type ButtonSize = "sm" | "md" | "icon";
 
 export const buttonClassName = (
     variant: ButtonVariant,

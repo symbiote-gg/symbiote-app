@@ -12,6 +12,7 @@ export * from "./empty-state";
 export * from "./error-message";
 export * from "./eyebrow";
 export * from "./filter-trigger";
+export * from "./legend";
 export * from "./meter";
 export * from "./multi-select";
 export * from "./popover";

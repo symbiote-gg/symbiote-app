@@ -1,0 +1,36 @@
+@reference "@/index.css";
+
+.body {
+    @apply flex flex-col gap-8 px-gutter pb-6;
+}
+
+.unrated {
+    @apply flex flex-col items-center gap-1 text-center;
+}
+
+.overview {
+    --ring: 25rem;
+    /* One collapsed part row plus half the gap between two: the lists' middle. */
+    --parts-half: 2.875rem;
+    @apply grid items-start gap-x-8 gap-y-2 xl:grid-cols-[minmax(0,1fr)_var(--ring)_minmax(0,1fr)];
+}
+
+.rating {
+    @apply order-first flex flex-col items-center gap-1 pb-6 text-center xl:order-none xl:pb-0;
+}
+
+.side {
+    @apply flex flex-col gap-2 xl:grid xl:grid-rows-[calc(var(--ring)/2-var(--parts-half))_auto] xl:gap-0;
+}
+
+.fact {
+    @apply xl:mb-2 xl:self-end;
+}
+
+.live {
+    @apply sr-only;
+}
+
+.progressBar {
+    @apply w-32;
+}

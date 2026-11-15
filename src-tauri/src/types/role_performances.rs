@@ -3,7 +3,7 @@ use serde::Serialize;
 use crate::types::hero::HeroRole;
 
 /// Declared in the order a role's stats are listed on one line, death share last.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum RoleStat {
     HeroDamage,

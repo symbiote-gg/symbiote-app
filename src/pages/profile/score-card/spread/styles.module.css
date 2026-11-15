@@ -1,0 +1,34 @@
+@reference "@/index.css";
+
+.plot {
+    @apply flex h-18 min-w-0 items-end gap-1;
+}
+
+.plot > span {
+    @apply min-h-0.5 flex-1 rounded-t-sm;
+}
+
+.base,
+.under {
+    background: color-mix(
+        in oklab,
+        var(--color-accent) 55%,
+        var(--color-surface-2)
+    );
+}
+
+.over {
+    background: color-mix(
+        in oklab,
+        var(--color-accent) 28%,
+        var(--color-surface-2)
+    );
+}
+
+.marked {
+    @apply bg-accent;
+}
+
+.plot > .skeletonBar {
+    @apply block w-auto rounded-t-sm rounded-b-none;
+}

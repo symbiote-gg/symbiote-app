@@ -1,8 +1,11 @@
-use sqlx::SqlitePool;
+use sqlx::{QueryBuilder, Sqlite, SqlitePool};
 
+use crate::profile_score::{self, PlayerGame};
 use crate::types::hero::HeroRole;
 use crate::types::replay::Mode;
-use crate::types::stats::{HeroStat, MapStat, MostPlayedHeroes, ProfileSummary};
+use crate::types::stats::{
+    HeroStat, MapStat, MostPlayedHeroes, ProfileScore, ProfileSummary, ScoreScope, ScoredHero,
+};
 
 /// How many of the latest results [`profile_summary`] returns.
 const RECENT_GAMES: i64 = 20;
@@ -61,6 +64,72 @@ pub async fn profile_summary(pool: &SqlitePool) -> sqlx::Result<ProfileSummary> 
     })
 }
 
+/// Every player of the games the profile score reads, a game's players together and
+/// the games in the order played. A player is the owner in the games they have a
+/// replay of.
+async fn scored_players(
+    tx: &mut sqlx::SqliteConnection,
+    scope: ScoreScope,
+) -> sqlx::Result<Vec<PlayerGame>> {
+    let mut query = QueryBuilder::<Sqlite>::new(
+        "SELECT g.id AS game_id, g.timestamp, g.duration, gp.team, gp.hero_id, h.slug AS hero_slug,
+             h.role AS hero_role,
+             json_extract(gp.score, '$.Takedowns') AS takedowns,
+             json_extract(gp.score, '$.Deaths') AS deaths,
+             json_extract(gp.score, '$.HeroDamage') AS hero_damage,
+             json_extract(gp.score, '$.SiegeDamage') AS siege_damage,
+             json_extract(gp.score, '$.Healing') AS healing,
+             json_extract(gp.score, '$.DamageTaken') AS damage_taken,
+             json_extract(gp.score, '$.TeamfightDamageTaken') AS teamfight_damage_taken,
+             json_extract(gp.score, '$.ExperienceContribution') AS xp,
+             CASE WHEN json_extract(gp.score, '$.TimeStunningEnemyHeroes') IS NULL
+                     AND json_extract(gp.score, '$.TimeRootingEnemyHeroes') IS NULL
+                     AND json_extract(gp.score, '$.TimeSilencingEnemyHeroes') IS NULL
+                 THEN NULL
+                 ELSE COALESCE(json_extract(gp.score, '$.TimeStunningEnemyHeroes'), 0)
+                     + COALESCE(json_extract(gp.score, '$.TimeRootingEnemyHeroes'), 0)
+                     + COALESCE(json_extract(gp.score, '$.TimeSilencingEnemyHeroes'), 0)
+             END AS hard_cc,
+             json_extract(gp.score, '$.ProtectionGivenToAllies') AS protection,
+             EXISTS (
+                 SELECT 1 FROM replays r
+                 WHERE r.game_id = g.id AND r.owner_player_id = gp.player_id
+             ) AS is_owner,
+             p.toon LIKE 'ai-%' AS is_ai
+         FROM games g
+         JOIN games_players gp ON gp.game_id = g.id
+         JOIN players p ON p.id = gp.player_id
+         JOIN heroes h ON h.id = gp.hero_id
+         WHERE g.mode IN (",
+    );
+
+    let mut modes = query.separated(", ");
+    for &mode in profile_score::modes(scope) {
+        modes.push_bind(mode);
+    }
+
+    query
+        .push(") AND g.duration >= ")
+        .push_bind(profile_score::MIN_GAME_SECS)
+        .push(" ORDER BY g.timestamp, g.id")
+        .build_query_as::<PlayerGame>()
+        .fetch_all(tx)
+        .await
+}
+
+/// Scores the owner's latest games in the scope's modes against the other players
+/// in them.
+pub async fn profile_score(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<ProfileScore> {
+    let mut tx = pool.begin().await?;
+    let players = scored_players(&mut tx, scope).await?;
+    let heroes = sqlx::query_as::<_, ScoredHero>("SELECT id, name, role, portrait FROM heroes")
+        .fetch_all(&mut *tx)
+        .await?;
+    tx.commit().await?;
+
+    Ok(profile_score::compute(&players, heroes))
+}
+
 /// Returns the `limit` heroes the owner played the most, with how many heroes they
 /// played overall.
 pub async fn most_played_heroes(pool: &SqlitePool, limit: i64) -> sqlx::Result<MostPlayedHeroes> {
@@ -114,4 +183,82 @@ pub async fn played_maps(pool: &SqlitePool) -> sqlx::Result<Vec<MapStat>> {
     )
     .fetch_all(pool)
     .await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db::replays::test_utils::*;
+    use crate::db::test_utils::pool;
+    use crate::types::player::Player;
+    use crate::types::replay::NewReplayPlayer;
+
+    #[tokio::test]
+    async fn scored_players_skip_other_modes_and_short_games() {
+        let pool = pool().await;
+        let game = |name: &str, timestamp, mode, duration| {
+            let mut game = hero_game(name, timestamp, mode, "cursed_hollow", "Wizard", true);
+            game.replay.duration = duration;
+            game
+        };
+
+        let mut played = game("played", 2000, Mode::QuickMatch, 900);
+        played.players.push(Player {
+            toon: "ai-6".to_owned(),
+            name: "Enemy".to_owned(),
+            account_level: None,
+        });
+        played.replay_players.push(NewReplayPlayer {
+            toon: "ai-6".to_owned(),
+            slot: 6,
+            team: 1,
+            hero_slug: "Wizard".to_owned(),
+            time_dead_secs: None,
+            time_on_fire_secs: None,
+            upvotes: 0,
+            party: None,
+            xp: None,
+            score: serde_json::json!({ "HeroDamage": 40_000, "TimeRootingEnemyHeroes": 12 }),
+            talents: vec![],
+            awards: vec![],
+        });
+
+        for game in [
+            played,
+            game("ranked", 1000, Mode::StormLeague, 900),
+            game("aram", 3000, Mode::Aram, 900),
+            game("remake", 4000, Mode::QuickMatch, 599),
+        ] {
+            insert_bundle(&pool, game).await.unwrap();
+        }
+
+        let mut tx = pool.begin().await.unwrap();
+        let players = scored_players(&mut tx, ScoreScope::All).await.unwrap();
+        let read: Vec<_> = players
+            .iter()
+            .map(|p| (p.is_owner, p.is_ai, p.hero_damage, p.hard_cc))
+            .collect();
+        assert_eq!(
+            read,
+            [
+                (true, false, None, None),
+                (true, false, None, None),
+                (false, true, Some(40_000), Some(12)),
+            ]
+        );
+        assert_ne!(players[0].game_id, players[1].game_id);
+        assert_eq!(players[1].game_id, players[2].game_id);
+
+        let draft = scored_players(&mut tx, ScoreScope::Draft).await.unwrap();
+        let [ranked] = &draft[..] else {
+            panic!("only the ranked game is a draft one");
+        };
+        assert_eq!(ranked.game_id, players[0].game_id);
+
+        let quick = scored_players(&mut tx, ScoreScope::QuickMatch)
+            .await
+            .unwrap();
+        let quick: Vec<_> = quick.iter().map(|p| p.game_id).collect();
+        assert_eq!(quick, [players[1].game_id; 2]);
+    }
 }

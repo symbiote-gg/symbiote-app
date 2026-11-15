@@ -1,0 +1,11 @@
+.top {
+    stop-color: var(--rank-text, currentColor);
+}
+
+.middle {
+    stop-color: var(--rank, currentColor);
+}
+
+.base {
+    stop-color: color-mix(in oklab, var(--rank, currentColor), black 35%);
+}

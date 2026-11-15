@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import type { ButtonHTMLAttributes } from "react";
+import type { ComponentProps } from "react";
 
 import {
     type ButtonSize,
@@ -7,7 +7,7 @@ import {
     buttonClassName,
 } from "./class-names";
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends ComponentProps<"button"> {
     variant?: ButtonVariant;
     size?: ButtonSize;
 }

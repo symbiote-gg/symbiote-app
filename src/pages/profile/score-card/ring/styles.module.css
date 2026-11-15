@@ -1,0 +1,148 @@
+@reference "@/index.css";
+
+/* Unrated until a rank is set on it. */
+.root {
+    --rank: var(--color-line-strong);
+    --rank-text: var(--color-fg-faint);
+    @apply block h-auto w-full max-w-100 overflow-visible select-none;
+}
+
+.root[data-rank="bronze"],
+.name[data-rank="bronze"] {
+    --rank: var(--color-rank-bronze);
+    --rank-text: var(--color-rank-bronze-text);
+}
+
+.root[data-rank="silver"],
+.name[data-rank="silver"] {
+    --rank: var(--color-rank-silver);
+    --rank-text: var(--color-rank-silver-text);
+}
+
+.root[data-rank="gold"],
+.name[data-rank="gold"] {
+    --rank: var(--color-rank-gold);
+    --rank-text: var(--color-rank-gold-text);
+}
+
+.root[data-rank="platinum"],
+.name[data-rank="platinum"] {
+    --rank: var(--color-rank-platinum);
+    --rank-text: var(--color-rank-platinum-text);
+}
+
+.root[data-rank="diamond"],
+.name[data-rank="diamond"] {
+    --rank: var(--color-rank-diamond);
+    --rank-text: var(--color-rank-diamond-text);
+}
+
+.root[data-rank="master"],
+.name[data-rank="master"] {
+    --rank: var(--color-rank-master);
+    --rank-text: var(--color-rank-master-text);
+}
+
+.track,
+.fill,
+.burst {
+    fill: none;
+    stroke-linecap: round;
+}
+
+.track {
+    @apply stroke-surface-2;
+    stroke-width: 20px;
+}
+
+/* The loop writes the stroke widths of what it moves, which a rule here would
+   override. */
+.fill,
+.burst {
+    stroke: var(--rank);
+}
+
+.whiteSpark {
+    fill: white;
+}
+
+.spark {
+    fill: var(--rank-text);
+}
+
+.mote {
+    fill: var(--rank-text);
+}
+
+.deepMote {
+    fill: var(--rank);
+}
+
+.burst,
+.spark,
+.whiteSpark,
+.mote,
+.deepMote {
+    pointer-events: none;
+}
+
+.core {
+    @apply fill-surface;
+}
+
+.rim {
+    fill: none;
+    stroke: var(--rank);
+    stroke-width: 3px;
+}
+
+.pip {
+    @apply fill-line;
+}
+
+.lit {
+    fill: var(--sheen, var(--rank-text));
+}
+
+.facet {
+    fill: rgb(0 0 0 / 0.4);
+}
+
+.score {
+    @apply fill-fg font-display tabular-nums;
+    font-size: 120px;
+    font-weight: 800;
+    font-stretch: 75%;
+    text-anchor: middle;
+}
+
+.noScore {
+    @apply fill-fg-faint;
+}
+
+/* An Eyebrow's look, in the drawing's units. */
+.caption {
+    @apply fill-fg-muted font-sans font-semibold tracking-[0.15em] uppercase;
+    font-size: 13px;
+    text-anchor: middle;
+}
+
+/* A Skeleton's colour, in the drawing. */
+.bar {
+    @apply fill-line;
+}
+
+.gem {
+    @apply stroke-surface;
+    fill: var(--sheen, var(--rank));
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+
+.name {
+    @apply font-sans font-bold uppercase;
+    fill: var(--rank-text);
+    font-size: 22px;
+    letter-spacing: 4px;
+    text-anchor: middle;
+}

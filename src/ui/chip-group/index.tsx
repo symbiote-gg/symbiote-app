@@ -21,7 +21,7 @@ export function ChipDivider() {
 }
 
 export interface ChipButtonProps {
-    icon: ReactNode;
+    icon?: ReactNode;
     count?: number;
     pressed: boolean;
     accent?: "primary";
@@ -53,9 +53,11 @@ export function ChipButton({
             })}
             onClick={onClick}
         >
-            <span className={styles.icon} aria-hidden>
-                {icon}
-            </span>
+            {icon && (
+                <span className={styles.icon} aria-hidden>
+                    {icon}
+                </span>
+            )}
             {children}
             {count !== undefined && (
                 <span className={styles.count}>{count}</span>

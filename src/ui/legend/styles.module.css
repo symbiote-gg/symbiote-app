@@ -1,0 +1,33 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex flex-wrap gap-y-1;
+}
+
+.sm {
+    @apply gap-x-6;
+}
+
+.xs {
+    @apply gap-x-3;
+}
+
+.item {
+    @apply flex items-center;
+}
+
+.sm .item {
+    @apply gap-2;
+}
+
+.xs .item {
+    @apply gap-1.5;
+}
+
+.sm .swatch {
+    @apply h-2.5 w-4 rounded-sm;
+}
+
+.xs .swatch {
+    @apply size-2.5 rounded-xs;
+}

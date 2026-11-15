@@ -24,6 +24,24 @@
     --color-mythic: #5ee0f0;
     --color-quest: #ff9f45;
 
+    --color-rank-bronze: #c07a45;
+    --color-rank-bronze-text: #e0a274;
+    --color-rank-silver: #aab3c2;
+    --color-rank-silver-text: #d3d9e3;
+    --color-rank-gold: #e0b13c;
+    --color-rank-gold-text: #ffd27a;
+    --color-rank-platinum: #5fb8a8;
+    --color-rank-platinum-text: #a6e3d6;
+    --color-rank-diamond: #8f9bff;
+    --color-rank-diamond-text: #cfd4ff;
+    --color-rank-master: #d97bd0;
+    --color-rank-master-text: #f3c4ee;
+
+    --color-part-fighting: #e8579b;
+    --color-part-survival: #4cc38a;
+    --color-part-team-role: #9b6bff;
+    --color-part-map: #b5e655;
+
     --color-party-1: #ffe14d;
     --color-party-2: #4ade80;
     --color-party-3: #c084fc;

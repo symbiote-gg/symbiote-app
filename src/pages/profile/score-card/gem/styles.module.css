@@ -1,0 +1,9 @@
+@reference "@/index.css";
+
+.root {
+    fill: var(--sheen);
+}
+
+.facet {
+    fill: rgb(0 0 0 / 0.4);
+}

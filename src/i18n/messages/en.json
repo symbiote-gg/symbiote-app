@@ -44,6 +44,138 @@
             "cta": "All heroes"
         }
     },
+    "profile": {
+        "score": {
+            "title": "Symbiote score",
+            "subtitle": "Ranked against the other players in your replays.",
+            "pool": {
+                "label": "Compared against",
+                "detail": "Other players' games in your replays"
+            },
+            "method": {
+                "trigger": "How it's scored",
+                "title": "How your score works",
+                "subtitle": "Follow one Anduin game through the four steps.",
+                "steps": {
+                    "games": {
+                        "title": "Your games",
+                        "all": "Quick Match and draft games over 10 minutes count.",
+                        "draft": "Draft games over 10 minutes count.",
+                        "quickMatch": "Quick Match games over 10 minutes count."
+                    },
+                    "rate": {
+                        "title": "Each stat, made fair",
+                        "body": "Per minute, or as your share of the team, so a long game doesn't win by default."
+                    },
+                    "rank": {
+                        "title": "Ranked against others",
+                        "body": "The share of other players' games in your replays you beat, on the same hero. Rarely played heroes lean on their role instead."
+                    },
+                    "weight": {
+                        "title": "Weighted for your hero",
+                        "body": "Each stat counts as much as it matters on the hero, so healing weighs more on a healer. Your score is the average of your games: career across all of them, recent across the last {window}."
+                    }
+                },
+                "example": {
+                    "games": {
+                        "draft": "Draft, 22 min",
+                        "quickMatch": "Quick Match, 18 min",
+                        "aram": "ARAM",
+                        "short": "Draft, 8 min"
+                    },
+                    "rate": "Healing <mono>{total} in {minutes} min</mono> is <accent>{perMinute} per min</accent>",
+                    "rank": "Healing on Anduin",
+                    "beat": "beat {share}"
+                }
+            },
+            "unrated": {
+                "all": "{count, plural, one {# more game} other {# more games}} to get a score. Quick Match and draft games over 10 minutes count.",
+                "draft": "{count, plural, one {# more game} other {# more games}} to get a score. Draft games over 10 minutes count.",
+                "quickMatch": "{count, plural, one {# more game} other {# more games}} to get a score. Quick Match games over 10 minutes count.",
+                "thin": "Your replays don't have enough other players on your roles to compare with yet."
+            },
+            "scope": {
+                "label": "Mode",
+                "all": "All",
+                "clear": "Clear mode filter",
+                "draft": "Draft",
+                "quickMatch": "Quick Match"
+            },
+            "recent": "{count, plural, one {Last game} other {Last # games}}",
+            "outOf": "of 100",
+            "label": "Symbiote score {score} of 100, {rank}, {progress}",
+            "notEnough": "Not enough games",
+            "progress": "{toNext, plural, one {# point} other {# points}} to {next}",
+            "progressTop": "Top rating",
+            "ladder": {
+                "label": "Ratings",
+                "under": "Under {max}",
+                "between": "{min} to {max}",
+                "over": "{min} and up",
+                "passed": "Passed",
+                "here": "You are here",
+                "toGo": "{points} to go",
+                "unrated": "No score yet"
+            },
+            "rankUp": "Rank up, {rank}",
+            "rankDown": "Rank down, {rank}",
+            "points": "<b>{points}</b><of> / {max}</of>",
+            "spread": {
+                "yours": "Your game scores",
+                "theirs": "Their game scores",
+                "legend": {
+                    "marked": "Your score",
+                    "base": "Your games",
+                    "under": "Below",
+                    "over": "Above"
+                }
+            },
+            "careerGames": "Career games",
+            "careerDetail": "Counted in your score",
+            "tier": {
+                "exceptional": "Exceptional",
+                "standout": "Standout",
+                "aboveAverage": "Above average",
+                "average": "Average",
+                "belowAverage": "Below average",
+                "wellBelowAverage": "Well below average"
+            },
+            "ahead": "Ahead of {share} of players",
+            "history": {
+                "title": "Score over time",
+                "subtitle": "Your score after each game, against today's pool",
+                "best": "Best stretch",
+                "lowest": "Lowest stretch",
+                "games": "{count, plural, one {# game} other {# games}}",
+                "restDay": "Rest day",
+                "score": "Score",
+                "change": "Change",
+                "dayLabel": "{date}: score {score}",
+                "range": {
+                    "label": "Range",
+                    "3m": "3 months",
+                    "6m": "6 months",
+                    "1y": "1 year",
+                    "all": "All"
+                }
+            },
+            "heroes": {
+                "title": "Score by hero",
+                "subtitle": "Each hero scored against other players' games on it.",
+                "empty": "No heroes here yet",
+                "games": "{count, plural, one {# game} other {# games}}",
+                "fewGames": "Few games"
+            },
+            "compared": "{count, plural, one {# other {hero} game} other {# other {hero} games}}, and its role",
+            "comparedThin": "{count, plural, =0 {No other {hero} games, its role only} one {# other {hero} game, mostly its role} other {# other {hero} games, mostly its role}}",
+            "pillar": {
+                "fighting": "Fighting",
+                "survival": "Survival",
+                "teamRole": "Team role",
+                "map": "Map"
+            }
+        }
+    },
     "replays": {
         "title": "Replays",
         "refresh": "Refresh",

@@ -152,9 +152,11 @@ export function useAppear(
         if (decided.current === null) decided.current = appear?.() ?? false;
         if (!decided.current) return;
 
-        delay.current ??= nextStagger(
-            kind === "card" ? CARD_STAGGER : ROW_STAGGER,
-        );
+        if (delay.current === null) {
+            delay.current = nextStagger(
+                kind === "card" ? CARD_STAGGER : ROW_STAGGER,
+            );
+        }
         const wait = delay.current;
 
         const tweens = [kind === "card" ? pop(el, wait) : drop(el, wait)];

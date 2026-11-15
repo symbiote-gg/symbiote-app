@@ -3,7 +3,7 @@ import { ArrowRight, Database } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import { useFormatSize } from "@/hooks/useFormatSize";
-import { Eyebrow, Typography } from "@/ui";
+import { Eyebrow, Legend, Typography } from "@/ui";
 
 import styles from "./styles.module.css";
 
@@ -77,21 +77,13 @@ export function SizeProjection({
                     />
                 ))}
             </div>
-            <ul className={styles.legend}>
-                {shown.map((segment) => (
-                    <li key={segment.key} className={styles.legendItem}>
-                        <span
-                            className={classNames(
-                                styles.swatch,
-                                styles[segment.key],
-                            )}
-                        />
-                        <Typography size="sm" variant="tertiary">
-                            {t(`legend.${segment.key}`)}
-                        </Typography>
-                    </li>
-                ))}
-            </ul>
+            <Legend
+                items={shown.map((segment) => ({
+                    key: segment.key,
+                    label: t(`legend.${segment.key}`),
+                    swatch: styles[segment.key],
+                }))}
+            />
         </div>
     );
 }

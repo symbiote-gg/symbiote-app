@@ -43,11 +43,15 @@ export interface AwardPillsProps {
 }
 
 export function AwardPills({ awards, iconOnlyWhenNarrow }: AwardPillsProps) {
-    return awards.map((award) => (
-        <AwardPill
-            key={award.type}
-            award={award}
-            iconOnlyWhenNarrow={iconOnlyWhenNarrow}
-        />
-    ));
+    return (
+        <>
+            {awards.map((award) => (
+                <AwardPill
+                    key={award.type}
+                    award={award}
+                    iconOnlyWhenNarrow={iconOnlyWhenNarrow}
+                />
+            ))}
+        </>
+    );
 }

@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ComponentType, ReactNode, SVGProps } from "react";
 
 import { Eyebrow } from "../eyebrow";
 import { rolling } from "../rolling-number/rolling";
@@ -13,11 +13,16 @@ export type StatTileVariant = "row" | "panel";
 export interface StatTileProps {
     label: string;
     value: ReactNode;
-    accent?: "mvp" | "loss";
+    /** `tone` takes the value colour from `--tone`. */
+    accent?: "mvp" | "loss" | "tone";
     variant?: StatTileVariant;
-    icon?: LucideIcon;
+    icon?: LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
     detail?: ReactNode;
+    meta?: ReactNode;
+    footer?: ReactNode;
+    aside?: ReactNode;
     className?: string;
+    style?: CSSProperties;
 }
 
 export function StatTile({
@@ -27,20 +32,38 @@ export function StatTile({
     variant = "row",
     icon: Icon,
     detail,
+    meta,
+    footer,
+    aside,
     className,
+    style,
 }: StatTileProps) {
     const panel = variant === "panel";
+    const split = panel && !!aside;
 
-    return (
-        <div className={classNames(className, styles.root, styles[variant])}>
-            <div className={styles.head}>
-                {panel && Icon && (
-                    <span className={styles.badge}>
-                        <Icon aria-hidden />
-                    </span>
-                )}
-                <Eyebrow className={styles.label}>{label}</Eyebrow>
-            </div>
+    const head = (
+        <div className={styles.head}>
+            {panel && Icon && (
+                <span className={styles.badge}>
+                    <Icon aria-hidden />
+                </span>
+            )}
+            <Eyebrow className={styles.label}>{label}</Eyebrow>
+            {split && meta && (
+                <Typography
+                    size="xs"
+                    variant="tertiary"
+                    truncate
+                    className={styles.meta}
+                >
+                    {meta}
+                </Typography>
+            )}
+        </div>
+    );
+
+    const facts = (
+        <>
             <Typography
                 display={!panel}
                 mono={panel}
@@ -58,6 +81,29 @@ export function StatTile({
                 >
                     {detail}
                 </Typography>
+            )}
+            {panel && footer}
+        </>
+    );
+
+    return (
+        <div
+            className={classNames(
+                className,
+                styles.root,
+                styles[variant],
+                split && styles.split,
+            )}
+            style={style}
+        >
+            {head}
+            {split ? (
+                <div className={styles.columns}>
+                    <div className={styles.main}>{facts}</div>
+                    <div className={styles.aside}>{aside}</div>
+                </div>
+            ) : (
+                facts
             )}
         </div>
     );

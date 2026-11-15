@@ -16,12 +16,20 @@
     @apply size-4;
 }
 
+.icon {
+    @apply p-2.5;
+}
+
+.icon svg {
+    @apply size-5;
+}
+
 .primary {
     @apply bg-primary text-primary-ink hover:brightness-110 disabled:hover:brightness-100;
 }
 
 .secondary {
-    @apply border border-line bg-surface-2 text-fg hover:border-fg-muted/40 disabled:hover:border-line;
+    @apply border border-line bg-surface-2 text-fg hover:bg-tile-hover disabled:hover:bg-surface-2;
 }
 
 .link {

@@ -1,9 +1,10 @@
-import { useTranslations } from "use-intl";
-
-import { ComingSoon } from "@/components";
+import { Page } from "@/components";
+import { ScoreCard } from "./score-card";
 
 export function Profile() {
-    const t = useTranslations("nav");
-
-    return <ComingSoon title={t("profile")} />;
+    return (
+        <Page>
+            <ScoreCard />
+        </Page>
+    );
 }

@@ -15,7 +15,7 @@ use crate::types::role_performances::{
 };
 
 /// How much each stat counts toward a hero's score, up to 3.
-type Weights = &'static [(RoleStat, u8)];
+pub(crate) type Weights = &'static [(RoleStat, u8)];
 
 const ROLE_ORDER: [HeroRole; 6] = [
     HeroRole::Tank,
@@ -112,34 +112,65 @@ fn hero_weights(slug: &str) -> Option<Weights> {
     })
 }
 
+/// The hero's own weights by slug, or its role's.
+pub(crate) fn weights(slug: &str, role: HeroRole) -> Weights {
+    hero_weights(slug).unwrap_or_else(|| role_weights(role))
+}
+
 fn weights_for(player: &ReplayPlayerDetail, role: HeroRole) -> Weights {
-    hero_weights(&player.hero_slug).unwrap_or_else(|| role_weights(role))
+    weights(&player.hero_slug, role)
 }
 
 /// Each team's sums the team relative stats are read against, so a team's kill lead
 /// doesn't lift all its roles at once, nor a lost fight's damage sink them. A team's
 /// deaths are also the other team's kills.
 #[derive(Default)]
-struct TeamTotals {
-    deaths: [i64; 2],
-    damage_taken: [i64; 2],
-    teamfight_damage_taken: [i64; 2],
+pub(crate) struct TeamTotals {
+    pub deaths: [i64; 2],
+    pub damage_taken: [i64; 2],
+    pub teamfight_damage_taken: [i64; 2],
 }
 
-fn team_totals(players: &[ReplayPlayerDetail]) -> TeamTotals {
+/// A player as their team's sums read them.
+pub(crate) trait TeamMember {
+    fn team(&self) -> i64;
+    fn deaths(&self) -> Option<i64>;
+    fn damage_taken(&self) -> Option<i64>;
+    fn teamfight_damage_taken(&self) -> Option<i64>;
+}
+
+impl TeamMember for ReplayPlayerDetail {
+    fn team(&self) -> i64 {
+        self.team
+    }
+
+    fn deaths(&self) -> Option<i64> {
+        self.deaths
+    }
+
+    fn damage_taken(&self) -> Option<i64> {
+        self.damage_taken
+    }
+
+    fn teamfight_damage_taken(&self) -> Option<i64> {
+        self.teamfight_damage_taken
+    }
+}
+
+pub(crate) fn team_totals(players: &[impl TeamMember]) -> TeamTotals {
     let mut totals = TeamTotals::default();
     for player in players {
         let side = side(player);
-        totals.deaths[side] += player.deaths.unwrap_or(0);
-        totals.damage_taken[side] += player.damage_taken.unwrap_or(0);
-        totals.teamfight_damage_taken[side] += player.teamfight_damage_taken.unwrap_or(0);
+        totals.deaths[side] += player.deaths().unwrap_or(0);
+        totals.damage_taken[side] += player.damage_taken().unwrap_or(0);
+        totals.teamfight_damage_taken[side] += player.teamfight_damage_taken().unwrap_or(0);
     }
 
     totals
 }
 
-fn side(player: &ReplayPlayerDetail) -> usize {
-    usize::from(player.team == 1)
+pub(crate) fn side(player: &impl TeamMember) -> usize {
+    usize::from(player.team() == 1)
 }
 
 fn percent(part: i64, whole: i64) -> i64 {
@@ -186,16 +217,20 @@ fn value(player: &ReplayPlayerDetail, stat: RoleStat, totals: &TeamTotals) -> Op
     }
 }
 
-/// The stat as scored, unrounded. Death share adds a death to the hero and five to
-/// the team, pulling few deaths toward an even fifth so a team that barely died
-/// doesn't swing it, and keeping no deaths defined.
+/// A death added to the hero and five to the team, pulling few deaths toward an even
+/// fifth so a team that barely died doesn't swing it, and keeping no deaths defined.
+pub(crate) fn death_share(deaths: i64, team_deaths: i64) -> f64 {
+    (deaths + 1) as f64 / (team_deaths + 5) as f64
+}
+
+/// The stat as scored, unrounded.
 fn rate(player: &ReplayPlayerDetail, stat: RoleStat, totals: &TeamTotals) -> Option<f64> {
     match stat {
         KillParticipation | DamageTakenShare | TeamfightDamageTakenShare => {
             let (part, team) = team_part(player, stat, totals)?;
             (team > 0).then(|| part as f64 / team as f64)
         }
-        DeathShare => Some((player.deaths? + 1) as f64 / (totals.deaths[side(player)] + 5) as f64),
+        DeathShare => Some(death_share(player.deaths?, totals.deaths[side(player)])),
         _ => value(player, stat, totals).map(|v| v as f64),
     }
 }
@@ -306,25 +341,31 @@ fn score_hero(
     (hero, score)
 }
 
-/// Each part's slice of the hero's points, rounded by largest remainder so they
-/// sum to the rounded score rather than drifting a point off it.
+/// Each part's slice of the hero's points, summing to the rounded score.
 fn part_points(parts: &[ScorePart], total_weight: u32, score: f64) -> Vec<u8> {
     let raw: Vec<f64> = parts
         .iter()
         .map(|p| p.share * f64::from(p.weight) / f64::from(total_weight) * 100.0)
         .collect();
-    let mut points: Vec<u8> = raw.iter().map(|r| r.floor() as u8).collect();
 
-    let floored: u8 = points.iter().sum();
-    let leftover = usize::from(self::points(score).saturating_sub(floored));
+    round_to_total(&raw, points(score))
+}
+
+/// Rounds each value by largest remainder, so they sum to `total` rather than
+/// drifting a point off it.
+pub(crate) fn round_to_total(raw: &[f64], total: u8) -> Vec<u8> {
+    let mut rounded: Vec<u8> = raw.iter().map(|r| r.floor() as u8).collect();
+
+    let floored: u8 = rounded.iter().sum();
+    let leftover = usize::from(total.saturating_sub(floored));
 
     let mut by_remainder: Vec<usize> = (0..raw.len()).collect();
     by_remainder.sort_by(|&a, &b| (raw[b] - raw[b].floor()).total_cmp(&(raw[a] - raw[a].floor())));
     for &index in by_remainder.iter().take(leftover) {
-        points[index] += 1;
+        rounded[index] += 1;
     }
 
-    points
+    rounded
 }
 
 fn score_side(

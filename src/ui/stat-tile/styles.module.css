@@ -12,6 +12,37 @@
     @apply flex-col gap-2 rounded-lg border border-tile-line bg-surface-2 p-3;
 }
 
+.split {
+    container-type: inline-size;
+}
+
+.columns {
+    @apply flex items-end gap-6;
+}
+
+.main {
+    @apply flex min-w-0 shrink-0 flex-col gap-2 self-stretch;
+}
+
+.aside {
+    @apply hidden min-w-0 flex-1;
+}
+
+.meta {
+    @apply ml-auto hidden;
+}
+
+@container (min-width: 28.5rem) {
+    .main {
+        @apply basis-54;
+    }
+
+    .aside,
+    .meta {
+        @apply block;
+    }
+}
+
 .head {
     @apply flex min-w-0 shrink-0 items-center gap-2.5;
 }
@@ -61,4 +92,8 @@
 
 .root .loss {
     @apply text-loss;
+}
+
+.root .tone {
+    color: var(--tone);
 }

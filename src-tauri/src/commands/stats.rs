@@ -3,12 +3,22 @@ use tauri::State;
 
 use crate::error::Result;
 use crate::types::replay::Mode;
-use crate::types::stats::{MapStat, MostPlayedHeroes, ProfileSummary};
+use crate::types::stats::{MapStat, MostPlayedHeroes, ProfileScore, ProfileSummary, ScoreScope};
 
 /// Sums up the owner's results.
 #[tauri::command]
 pub async fn get_profile_summary(pool: State<'_, SqlitePool>) -> Result<ProfileSummary> {
     Ok(crate::db::stats::profile_summary(&pool).await?)
+}
+
+/// Scores the owner's latest games in the scope's modes against the other players
+/// in them.
+#[tauri::command]
+pub async fn get_profile_score(
+    pool: State<'_, SqlitePool>,
+    scope: ScoreScope,
+) -> Result<ProfileScore> {
+    Ok(crate::db::stats::profile_score(&pool, scope).await?)
 }
 
 const MAX_MOST_PLAYED_HEROES: i64 = 200;

@@ -56,15 +56,3 @@
         color-mix(in oklab, var(--color-primary) 25%, var(--color-bg)) 4px 8px
     );
 }
-
-.legend {
-    @apply flex flex-wrap gap-x-6 gap-y-1;
-}
-
-.legendItem {
-    @apply flex items-center gap-2;
-}
-
-.swatch {
-    @apply h-2.5 w-4 rounded-sm;
-}

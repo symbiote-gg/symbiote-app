@@ -1,0 +1,67 @@
+@reference "@/index.css";
+
+.root {
+    @apply @container;
+}
+
+.tiers {
+    @apply flex flex-col-reverse gap-2 @lg:grid @lg:grid-cols-[repeat(auto-fit,minmax(13rem,1fr))];
+}
+
+.tier {
+    @apply grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 rounded-lg border border-tile-line bg-surface-2 p-4;
+    --tier-rank: var(--rank);
+    --tier-rank-text: var(--rank-text);
+}
+
+.tier[data-state="current"] {
+    @apply bg-tile-hover;
+}
+
+.badge {
+    @apply flex flex-col items-center gap-2;
+}
+
+.gem {
+    @apply size-10 shrink-0;
+}
+
+/* Unreached ranks keep their hue, muted, so the ladder previews each one. The
+   copies on the tier avoid --rank mixing itself. */
+.tier[data-state="ahead"] .gem {
+    --rank: color-mix(in oklab, var(--tier-rank) 45%, var(--color-line-strong));
+    --rank-text: color-mix(
+        in oklab,
+        var(--tier-rank-text) 45%,
+        var(--color-fg-faint)
+    );
+}
+
+.pips {
+    @apply flex gap-1;
+}
+
+.pip {
+    @apply size-1 rounded-full;
+    background: var(--rank);
+}
+
+.tier[data-state="ahead"] .pip {
+    background: color-mix(
+        in oklab,
+        var(--tier-rank) 45%,
+        var(--color-line-strong)
+    );
+}
+
+.text {
+    @apply flex min-w-0 flex-col gap-1;
+}
+
+.root .name {
+    color: var(--rank-text);
+}
+
+.statusBar {
+    @apply w-16;
+}

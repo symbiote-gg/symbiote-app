@@ -1,0 +1,85 @@
+@reference "@/index.css";
+
+.panel {
+    @apply flex max-h-(--popover-max-height) w-lg max-w-[calc(100vw-16px)] flex-col gap-3 overflow-y-auto p-4;
+}
+
+.head {
+    @apply flex flex-col gap-0.5;
+}
+
+.steps {
+    @apply flex flex-col;
+}
+
+.step {
+    @apply grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3;
+}
+
+.marker {
+    @apply flex flex-col items-center;
+}
+
+.tile {
+    @apply flex size-10 shrink-0 items-center justify-center rounded-lg bg-surface text-accent;
+}
+
+.rail {
+    @apply my-2 w-px flex-1 bg-line;
+}
+
+.step:last-child .rail {
+    @apply hidden;
+}
+
+.text {
+    @apply flex min-w-0 flex-col gap-1 pb-5;
+}
+
+.step:last-child .text {
+    @apply pb-0;
+}
+
+.box {
+    @apply mt-1.5 rounded-md bg-surface px-3.5 py-3;
+}
+
+.chips {
+    @apply mt-1.5 flex flex-wrap gap-1.5;
+}
+
+.struck {
+    @apply text-fg-faint line-through;
+}
+
+.mono {
+    @apply font-mono text-fg;
+}
+
+.accent {
+    @apply text-accent;
+}
+
+.rank {
+    @apply flex flex-col gap-2;
+}
+
+.rankHead {
+    @apply flex items-baseline justify-between gap-3;
+}
+
+.meter {
+    @apply w-full;
+}
+
+.weights {
+    @apply flex flex-col gap-2;
+}
+
+.weight {
+    @apply grid grid-cols-[minmax(0,1fr)_5rem_2.5rem] items-center gap-3;
+}
+
+.share {
+    @apply text-right;
+}

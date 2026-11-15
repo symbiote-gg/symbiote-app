@@ -1,0 +1,83 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex flex-col gap-2;
+}
+
+.part {
+    @apply overflow-hidden rounded-lg border border-tile-line bg-surface-2;
+}
+
+.head {
+    @apply grid w-full grid-cols-[auto_6rem_minmax(0,1fr)_4.5rem_1rem] items-center gap-3 px-3 py-2.5 text-left;
+}
+
+.summary {
+    @apply cursor-pointer transition-colors hover:bg-tile-hover;
+}
+
+.summary:focus-visible {
+    @apply outline-3 -outline-offset-3 outline-primary-text;
+}
+
+.dot {
+    @apply size-2 shrink-0 rounded-full;
+    background: var(--tone);
+}
+
+.meter {
+    @apply w-full;
+}
+
+.points {
+    @apply font-semibold;
+}
+
+.max {
+    @apply text-fg-faint;
+}
+
+.value {
+    @apply text-right;
+}
+
+/* Flips at once: on a page with nothing else composited, a transform transition
+   makes WebKitGTK blink the page's overlay scrollbar. */
+.chevron {
+    @apply justify-self-end text-fg-muted;
+}
+
+.summary[aria-expanded="true"] .chevron {
+    @apply rotate-180;
+}
+
+.detail {
+    @apply flex flex-col gap-2.5 px-3 pt-1 pb-3;
+}
+
+/* Lines up with the pillar name: past the dot and its gap. */
+.caption {
+    @apply ml-5;
+}
+
+/* The header's dot, value and chevron widths, so the share sits under the
+   points and the label under the pillar name. */
+.stats {
+    @apply grid grid-cols-[0.5rem_max-content_minmax(0,1fr)_4.5rem_1rem] gap-x-3 gap-y-2;
+}
+
+.stat {
+    @apply col-span-full grid grid-cols-subgrid items-center;
+}
+
+.label {
+    @apply col-start-2;
+}
+
+.meterBar {
+    @apply block h-1.5 w-full rounded-full;
+}
+
+.valueBar {
+    @apply w-12;
+}
