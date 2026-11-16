@@ -5,15 +5,15 @@
 }
 
 .regular {
-    @apply max-h-72 w-72 rounded-lg bg-overlay p-3 shadow-[0_12px_32px_rgb(0_0_0/0.55)];
+    @apply max-h-72 w-72 rounded-lg bg-overlay p-3;
 }
 
 .compact {
-    @apply flex max-w-64 flex-col gap-0.5 rounded-md bg-overlay px-2.5 py-1.5 shadow-[0_6px_16px_rgb(0_0_0/0.5)];
+    @apply flex max-w-64 flex-col gap-0.5 rounded-md bg-overlay px-2.5 py-1.5;
 }
 
 .bare {
-    @apply rounded-lg bg-overlay shadow-[0_12px_32px_rgb(0_0_0/0.55)];
+    @apply rounded-lg bg-overlay;
 }
 
 .passive {

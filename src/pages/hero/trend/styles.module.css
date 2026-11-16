@@ -89,7 +89,7 @@
 }
 
 .panelHeader {
-    @apply flex items-center gap-3 border-b border-line px-3 py-2.5;
+    @apply flex items-center gap-3 px-3 py-2.5;
 }
 
 .panelChip {
@@ -97,7 +97,7 @@
 }
 
 .cells {
-    @apply grid grid-cols-2 divide-x divide-line;
+    @apply grid grid-cols-2;
 }
 
 .cell {
