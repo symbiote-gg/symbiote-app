@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .panel {
-    @apply rounded-md bg-side/8 px-3 py-2.5;
+    @apply rounded-md bg-side/12 px-3 py-2.5;
 }
 
 /* Zero specificity, so a variant's class can lay it out differently. */

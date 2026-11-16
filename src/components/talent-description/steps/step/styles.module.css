@@ -5,15 +5,15 @@
 }
 
 .quest {
-    @apply bg-quest/8 text-quest;
+    @apply bg-quest/12 text-quest;
 }
 
 .reward {
-    @apply bg-win/8 text-win;
+    @apply bg-win/12 text-win;
 }
 
 .mythic {
-    @apply bg-mythic/8 text-mythic;
+    @apply bg-mythic/12 text-mythic;
 }
 
 .label {

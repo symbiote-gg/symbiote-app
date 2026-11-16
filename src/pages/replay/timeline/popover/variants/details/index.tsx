@@ -57,7 +57,7 @@ interface DetailRowProps {
 function DetailRow({ label, value }: DetailRowProps) {
     return (
         <div className={styles.row}>
-            <Typography size="xs" variant="tertiary">
+            <Typography size="xs" variant="secondary">
                 {label}
             </Typography>
             {typeof value === "string" || typeof value === "number" ? (

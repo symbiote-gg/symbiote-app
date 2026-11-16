@@ -17,7 +17,7 @@
 }
 
 .nav {
-    @apply inline-flex size-7 cursor-pointer items-center justify-center rounded-md border border-line bg-surface-2 text-fg transition-colors hover:enabled:bg-tile-hover disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex size-7 cursor-pointer items-center justify-center rounded-md border border-overlay-line bg-overlay-hover text-fg transition-colors hover:enabled:bg-overlay-active disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 .nav svg {
@@ -41,7 +41,7 @@
 }
 
 .day:hover:enabled:not(.edge) {
-    @apply bg-row-hover;
+    @apply bg-overlay-hover;
 }
 
 .day:disabled {
@@ -53,11 +53,11 @@
 }
 
 .inside {
-    @apply w-full rounded-none bg-surface-2;
+    @apply w-full rounded-none bg-overlay-hover;
 }
 
 .day.inside:hover:enabled:not(.edge) {
-    @apply bg-tile-hover;
+    @apply bg-overlay-active;
 }
 
 .edge {

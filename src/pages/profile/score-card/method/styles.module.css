@@ -21,11 +21,11 @@
 }
 
 .tile {
-    @apply flex size-10 shrink-0 items-center justify-center rounded-lg bg-surface text-accent;
+    @apply flex size-10 shrink-0 items-center justify-center rounded-lg bg-overlay-inset text-accent;
 }
 
 .rail {
-    @apply my-2 w-px flex-1 bg-line;
+    @apply my-2 w-px flex-1 bg-overlay-line;
 }
 
 .step:last-child .rail {
@@ -41,7 +41,7 @@
 }
 
 .box {
-    @apply mt-1.5 rounded-md bg-surface px-3.5 py-3;
+    @apply mt-1.5 rounded-md bg-overlay-inset px-3.5 py-3;
 }
 
 .chips {

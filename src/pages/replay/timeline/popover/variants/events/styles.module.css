@@ -5,7 +5,7 @@
 }
 
 .row {
-    @apply col-span-full grid grid-cols-subgrid items-center rounded-md py-1.5 bg-side/8;
+    @apply col-span-full grid grid-cols-subgrid items-center rounded-md py-1.5 bg-side/12;
 }
 
 .row > :first-child {
@@ -17,11 +17,11 @@
 }
 
 .offset {
-    @apply font-mono text-xs text-fg-muted;
+    @apply font-mono text-xs text-fg/80;
 }
 
 .tile {
-    @apply flex size-8 items-center justify-center rounded-md bg-surface;
+    @apply flex size-8 items-center justify-center rounded-md bg-overlay-inset;
     color: var(--side, var(--color-fg-muted));
 }
 

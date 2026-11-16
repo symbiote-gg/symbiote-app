@@ -13,7 +13,7 @@
 }
 
 .row {
-    @apply col-span-full grid grid-cols-subgrid items-center rounded-md py-1.5 bg-side/8;
+    @apply col-span-full grid grid-cols-subgrid items-center rounded-md py-1.5 bg-side/12;
 }
 
 /* Inset with margins, not padding: WebKit leaves a subgrid's padding out of the
@@ -27,7 +27,7 @@
 }
 
 .offset {
-    @apply font-mono text-xs text-fg-muted;
+    @apply font-mono text-xs text-fg/80;
 }
 
 .noKiller {
@@ -43,7 +43,7 @@
 }
 
 .sword {
-    @apply size-4 justify-self-center text-fg-muted;
+    @apply size-4 justify-self-center text-fg/70;
 }
 
 /* The ring sits on a wrapper: on the filtered element itself, WebKit clips the
@@ -58,7 +58,7 @@
 }
 
 .structure {
-    @apply size-8 items-center justify-center rounded-md bg-surface text-fg-muted;
+    @apply size-8 items-center justify-center rounded-md bg-overlay-inset text-fg-muted;
 }
 
 .mine {

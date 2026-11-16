@@ -13,7 +13,7 @@
 }
 
 .crosshair {
-    @apply size-4 justify-self-center text-fg-muted;
+    @apply size-4 justify-self-center text-fg/70;
 }
 
 .towns {

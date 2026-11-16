@@ -9,5 +9,5 @@
 }
 
 .times {
-    @apply flex justify-between gap-4 font-mono text-[10px] text-fg-muted;
+    @apply flex justify-between gap-4 font-mono text-[10px] text-fg/80;
 }

@@ -2,13 +2,15 @@
 
 @theme {
     --color-bg: #0d0a13;
-    --color-surface: #15111d;
-    --color-surface-2: #201a2b;
-    --color-line: #2a2338;
-    --color-line-strong: #4a4060;
+    --color-surface: #191422;
+    --color-surface-2: #272132;
+    --color-line: #373046;
+    --color-line-strong: #544a69;
+    --color-overlay: #2f2a3b;
+    --color-overlay-line: #594f6e;
     --color-fg: #ede9f5;
     --color-fg-muted: #9a90ad;
-    --color-fg-faint: #6e6582;
+    --color-fg-faint: #786f8c;
 
     --color-primary: #7733ff;
     --color-primary-ink: #ffffff;
@@ -115,7 +117,9 @@
    `row-hover` is the hover of a row on a card, `tile-hover` of a raised tile
    on a card, both opaque because a translucent fade snaps in WebKitGTK.
    `tile-line` is a line on a solid `surface-2` tile, where plain `line`
-   fades. */
+   fades. `overlay-*` are the floating layer (popovers, menus), lifted above
+   `surface-2` so they never blend into the card or tiles under them.
+   `overlay-inset` is a sunken fill inside one. */
 @theme inline {
     --color-selected: color-mix(
         in oklab,
@@ -144,6 +148,21 @@
         in oklab,
         var(--color-line-strong) 30%,
         var(--color-line)
+    );
+    --color-overlay-hover: color-mix(
+        in oklab,
+        var(--color-overlay-line) 35%,
+        var(--color-overlay)
+    );
+    --color-overlay-active: color-mix(
+        in oklab,
+        var(--color-overlay-line) 60%,
+        var(--color-overlay)
+    );
+    --color-overlay-inset: color-mix(
+        in oklab,
+        var(--color-bg) 45%,
+        var(--color-overlay)
     );
 }
 

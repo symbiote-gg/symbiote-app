@@ -5,11 +5,11 @@
 }
 
 .head {
-    @apply shrink-0 border-b border-line p-2.5;
+    @apply shrink-0 border-b border-overlay-line p-2.5;
 }
 
 .search {
-    @apply flex items-center gap-2 rounded-md border border-line bg-bg px-2.5 py-2 transition-colors focus-within:border-line-strong;
+    @apply flex items-center gap-2 rounded-md border border-overlay-line bg-overlay-inset px-2.5 py-2 transition-colors focus-within:border-fg-faint;
 }
 
 .searchIcon {
@@ -37,7 +37,7 @@
 }
 
 .active {
-    @apply bg-surface-2;
+    @apply bg-overlay-hover;
 }
 
 .empty {

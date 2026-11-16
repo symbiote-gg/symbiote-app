@@ -1,20 +1,19 @@
 @reference "@/index.css";
 
 .panel {
-    @apply fixed z-50 overflow-auto border border-line;
+    @apply fixed z-50 overflow-auto border border-overlay-line;
 }
 
 .regular {
-    @apply max-h-72 w-72 rounded-lg bg-surface-2 p-3 shadow-xl;
+    @apply max-h-72 w-72 rounded-lg bg-overlay p-3 shadow-[0_12px_32px_rgb(0_0_0/0.55)];
 }
 
 .compact {
-    @apply flex max-w-64 flex-col gap-0.5 rounded-md bg-surface-2 px-2.5 py-1.5 shadow-lg;
+    @apply flex max-w-64 flex-col gap-0.5 rounded-md bg-overlay px-2.5 py-1.5 shadow-[0_6px_16px_rgb(0_0_0/0.5)];
 }
 
-/* Menus sit on a card's surface, so their hovered rows can use `surface-2`. */
 .bare {
-    @apply rounded-lg bg-surface shadow-xl;
+    @apply rounded-lg bg-overlay shadow-[0_12px_32px_rgb(0_0_0/0.55)];
 }
 
 .passive {

@@ -14,7 +14,7 @@
 
 .option:hover,
 .option:focus-visible {
-    @apply bg-surface-2;
+    @apply bg-overlay-hover;
 }
 
 .label {
