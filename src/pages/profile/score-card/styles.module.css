@@ -11,7 +11,7 @@
 .overview {
     --ring: 25rem;
     /* One collapsed part row plus half the gap between two: the lists' middle. */
-    --parts-half: 2.875rem;
+    --parts-half: 3rem;
     @apply grid items-start gap-x-8 gap-y-2 xl:grid-cols-[minmax(0,1fr)_var(--ring)_minmax(0,1fr)];
 }
 
@@ -20,11 +20,11 @@
 }
 
 .side {
-    @apply flex flex-col gap-2 xl:grid xl:grid-rows-[calc(var(--ring)/2-var(--parts-half))_auto] xl:gap-0;
+    @apply flex flex-col gap-3 xl:grid xl:grid-rows-[calc(var(--ring)/2-var(--parts-half))_auto] xl:gap-0;
 }
 
 .fact {
-    @apply xl:mb-2 xl:self-end;
+    @apply xl:mb-3 xl:self-end;
 }
 
 .live {

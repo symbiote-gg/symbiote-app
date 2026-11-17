@@ -210,11 +210,7 @@
             }
         },
         "card": {
-            "games": "{count, plural, one {# game} other {# games}}",
-            "kda": "KDA",
-            "heroDamage": "Hero dmg",
-            "healing": "Healing",
-            "damageTaken": "Taken"
+            "games": "{count, plural, one {# game} other {# games}}"
         }
     },
     "hero": {

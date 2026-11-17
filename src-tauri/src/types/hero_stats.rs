@@ -5,7 +5,7 @@ use sqlx::FromRow;
 use super::hero::HeroRole;
 use super::replay::AwardInfo;
 
-/// A hero the owner played, with their totals and per-game averages on it.
+/// A hero the owner played, with their totals on it.
 #[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HeroSummary {
@@ -19,9 +19,6 @@ pub struct HeroSummary {
     pub losses: i64,
     pub takedowns: i64,
     pub deaths: i64,
-    pub avg_hero_damage: Option<f64>,
-    pub avg_healing: Option<f64>,
-    pub avg_damage_taken: Option<f64>,
     pub last_played: DateTime<Utc>,
 }
 

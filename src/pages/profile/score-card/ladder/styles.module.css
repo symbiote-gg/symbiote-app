@@ -5,7 +5,7 @@
 }
 
 .tiers {
-    @apply flex flex-col-reverse gap-2 @lg:grid @lg:grid-cols-[repeat(auto-fit,minmax(13rem,1fr))];
+    @apply flex flex-col-reverse gap-3 @lg:grid @lg:grid-cols-[repeat(auto-fit,minmax(13rem,1fr))];
 }
 
 .tier {

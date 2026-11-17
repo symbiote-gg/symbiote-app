@@ -13,9 +13,6 @@ export type HeroSummary = {
     losses: number;
     takedowns: number;
     deaths: number;
-    avgHeroDamage: number | null;
-    avgHealing: number | null;
-    avgDamageTaken: number | null;
     lastPlayed: string;
 };
 

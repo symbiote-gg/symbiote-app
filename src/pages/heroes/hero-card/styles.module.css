@@ -2,7 +2,7 @@
 
 .root {
     --accent: var(--hero-accent, var(--color-primary-text));
-    @apply relative flex h-38 flex-col justify-between gap-4 overflow-hidden rounded-lg border border-tile-line bg-surface-2 bg-linear-150 from-accent/16 to-transparent to-55% px-4 pt-4 pb-3 transition-colors hover:bg-tile-hover;
+    @apply relative block overflow-hidden rounded-lg border border-tile-line bg-surface-2 bg-linear-150 from-accent/16 to-transparent to-55% p-4 transition-colors hover:bg-tile-hover;
 }
 
 .sweep {
@@ -33,16 +33,4 @@
 .result .pct {
     @apply text-3xl leading-none font-extrabold;
     font-stretch: 75%;
-}
-
-.foot {
-    @apply flex flex-col gap-3;
-}
-
-.stats {
-    @apply flex min-w-0 gap-6;
-}
-
-.foot .meter {
-    @apply w-full;
 }

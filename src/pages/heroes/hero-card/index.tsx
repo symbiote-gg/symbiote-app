@@ -5,10 +5,9 @@ import { Link } from "wouter";
 import type { HeroSummary } from "@/api/heroes";
 import { HeroPortrait } from "@/components";
 import { type AppearCheck, useAppear } from "@/hooks/useAppear";
-import { useFormatStat } from "@/hooks/useFormatStat";
 import { usePrefetchHero } from "@/hooks/usePrefetchHero";
-import { Meter, Stat, Typography, WinRate } from "@/ui";
-import { isJudged, kda, winRate } from "@/utils/hero-stats";
+import { Typography, WinRate } from "@/ui";
+import { isJudged, winRate } from "@/utils/hero-stats";
 
 import styles from "./styles.module.css";
 
@@ -20,7 +19,6 @@ export interface HeroCardProps {
 export function HeroCard({ hero, appear }: HeroCardProps) {
     const t = useTranslations("heroes.card");
     const roles = useTranslations("roles");
-    const { compact, kda: formatKda } = useFormatStat();
     const ref = useRef<HTMLAnchorElement>(null);
     const { onPointerEnter, onPointerLeave } = usePrefetchHero(hero.heroId);
 
@@ -31,13 +29,6 @@ export function HeroCard({ hero, appear }: HeroCardProps) {
 
     const rate = winRate(hero.wins, hero.losses);
     const neutral = !isJudged(hero.wins, hero.losses);
-
-    const roleStat =
-        hero.role === "tank"
-            ? { label: t("damageTaken"), value: hero.avgDamageTaken }
-            : hero.role === "healer" || hero.role === "support"
-              ? { label: t("healing"), value: hero.avgHealing }
-              : { label: t("heroDamage"), value: hero.avgHeroDamage };
 
     const accent = hero.accent
         ? ({ "--hero-accent": hero.accent } as CSSProperties)
@@ -80,21 +71,6 @@ export function HeroCard({ hero, appear }: HeroCardProps) {
                         {t("games", { count: hero.games })}
                     </Typography>
                 </div>
-            </div>
-            <div className={styles.foot}>
-                <dl className={styles.stats}>
-                    <Stat label={t("kda")} size="sm" inline>
-                        {formatKda(kda(hero.takedowns, hero.deaths))}
-                    </Stat>
-                    <Stat label={roleStat.label} size="sm" inline truncate>
-                        {compact(roleStat.value, { fixed: true })}
-                    </Stat>
-                </dl>
-                <Meter
-                    value={rate ?? 0}
-                    neutral={neutral}
-                    className={styles.meter}
-                />
             </div>
         </Link>
     );

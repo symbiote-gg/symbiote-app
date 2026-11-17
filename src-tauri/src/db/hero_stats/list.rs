@@ -19,9 +19,6 @@ pub async fn hero_list(pool: &SqlitePool, filters: &ReplayFilters) -> sqlx::Resu
              COALESCE(SUM(r.owner_win = 0), 0) AS losses,
              COALESCE(SUM(json_extract(orp.score, '$.Takedowns')), 0) AS takedowns,
              COALESCE(SUM(json_extract(orp.score, '$.Deaths')), 0) AS deaths,
-             AVG(json_extract(orp.score, '$.HeroDamage')) AS avg_hero_damage,
-             AVG(json_extract(orp.score, '$.Healing')) AS avg_healing,
-             AVG(json_extract(orp.score, '$.DamageTaken')) AS avg_damage_taken,
              MAX(r.timestamp) AS last_played
          FROM (SELECT * FROM replays_view WHERE 1 = 1",
     );
@@ -82,9 +79,6 @@ mod tests {
         assert_eq!(wizard.name, "Wizard");
         assert_eq!((wizard.games, wizard.wins, wizard.losses), (3, 1, 1));
         assert_eq!((wizard.takedowns, wizard.deaths), (14, 5));
-        assert_eq!(wizard.avg_hero_damage, Some(2000.0));
-        assert_eq!(wizard.avg_healing, Some(0.0));
-        assert_eq!(wizard.avg_damage_taken, None);
         assert_eq!(Some(wizard.last_played), DateTime::from_timestamp(400, 0));
 
         let tyrande = &list.heroes[1];

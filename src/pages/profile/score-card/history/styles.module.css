@@ -13,7 +13,7 @@
 }
 
 .tiles {
-    @apply grid gap-2 sm:grid-cols-3;
+    @apply grid gap-3 sm:grid-cols-3;
 }
 
 .chart {
