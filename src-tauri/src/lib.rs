@@ -10,8 +10,8 @@ use commands::settings::{
     preview_event_retention, set_event_retention,
 };
 use commands::stats::{
-    get_most_played_heroes, get_played_maps, get_played_modes, get_profile_score,
-    get_profile_summary,
+    get_most_played_heroes, get_played_maps, get_played_modes, get_profile_career,
+    get_profile_score, get_profile_summary,
 };
 use retention::EventRetention;
 use tauri::webview::PageLoadEvent;
@@ -116,6 +116,7 @@ pub fn run() {
             watch_replay,
             count_replays,
             get_profile_summary,
+            get_profile_career,
             get_profile_score,
             get_most_played_heroes,
             get_played_maps,

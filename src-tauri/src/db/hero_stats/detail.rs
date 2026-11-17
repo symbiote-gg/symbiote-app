@@ -35,7 +35,7 @@ pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option
         .await?;
     let cheap_deaths = CHEAP_DEATH_HEROES.contains(&slug.as_str());
 
-    let totals = totals(&mut tx, hero_id).await?;
+    let totals = totals(&mut tx, Some(hero_id)).await?;
     let awards = awards(&mut tx, hero_id).await?;
     let maps = maps(&mut tx, hero_id).await?;
     let talents = talents(&mut tx, hero_id).await?;
@@ -63,16 +63,23 @@ pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option
 /// Starts a query whose `FROM` is the owner's games on `hero_id`, as `r`, after
 /// `select`.
 fn hero_games(select: &str, hero_id: i64) -> QueryBuilder<Sqlite> {
+    owner_games(select, Some(hero_id))
+}
+
+/// Like [`hero_games`], over every hero when `hero_id` is `None`.
+fn owner_games(select: &str, hero_id: Option<i64>) -> QueryBuilder<Sqlite> {
     let mut query = QueryBuilder::new(select);
-    query
-        .push(" FROM (SELECT * FROM replays_view WHERE owner_hero_id = ")
-        .push_bind(hero_id)
-        .push(") r");
+    query.push(" FROM (SELECT * FROM replays_view");
+    if let Some(hero_id) = hero_id {
+        query.push(" WHERE owner_hero_id = ").push_bind(hero_id);
+    }
+    query.push(") r");
     query
 }
 
-async fn totals(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<HeroTotals> {
-    let mut query = hero_games(
+/// Sums up the owner's games on `hero_id`, or on every hero when it is `None`.
+pub async fn totals(conn: &mut SqliteConnection, hero_id: Option<i64>) -> sqlx::Result<HeroTotals> {
+    let mut query = owner_games(
         "WITH owner_games AS (
              SELECT r.owner_win, r.duration, r.timestamp, orp.score, orp.time_dead_secs,
                  SUM(json_extract(tp.score, '$.SoloKill')) AS team_kills,

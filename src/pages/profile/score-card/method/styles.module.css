@@ -1,9 +1,15 @@
 @reference "@/index.css";
 
-/* Set here, not inherited: the popover renders in a portal. */
 .panel {
-    --accent: var(--color-mythic);
     @apply flex max-h-(--popover-max-height) w-md max-w-[calc(100vw-16px)] flex-col gap-2.5 overflow-y-auto p-4;
+}
+
+/* Set here, not inherited: the popover renders in a portal. The card's rank
+   colour when rated, so the panel matches the ring. */
+.content {
+    --accent: var(--rank, var(--color-mythic));
+    --accent-text: var(--rank-text, var(--color-mythic));
+    @apply contents;
 }
 
 .trigger {
@@ -28,7 +34,8 @@
 }
 
 .label {
-    @apply flex items-center gap-1.5 text-accent;
+    @apply flex items-center gap-1.5;
+    color: var(--accent-text);
 }
 
 .icon {
@@ -46,7 +53,7 @@
 }
 
 .accent {
-    @apply text-accent;
+    color: var(--accent-text);
 }
 
 .weights {
@@ -82,6 +89,10 @@
 
 .points {
     @apply font-semibold text-fg;
+}
+
+.total .points {
+    color: var(--accent-text);
 }
 
 .max {

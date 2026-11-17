@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
 use super::hero::HeroRole;
+use super::hero_stats::HeroTotals;
 use super::role_performances::RoleStat;
 
 #[derive(Debug, Serialize)]
@@ -14,6 +15,19 @@ pub struct ProfileSummary {
     pub mvps: i64,
     pub main_role: Option<HeroRole>,
     pub recent: Vec<Option<bool>>,
+}
+
+/// The owner's career across every hero, for the profile header.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfileCareer {
+    /// `None` until the first replay is in.
+    pub name: Option<String>,
+    pub account_level: Option<i64>,
+    #[serde(flatten)]
+    pub totals: HeroTotals,
+    pub mvps: i64,
+    pub main_role: Option<HeroRole>,
 }
 
 #[derive(Debug, FromRow, Serialize)]

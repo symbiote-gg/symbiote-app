@@ -45,6 +45,10 @@
         }
     },
     "profile": {
+        "header": {
+            "roleMain": "{role} main",
+            "level": "Level {level}"
+        },
         "score": {
             "title": "Symbiote score",
             "subtitle": "Your {games, plural, one {<num>{games, number}</num> game} other {<num>{games, number}</num> games}}, ranked against {pool, plural, one {<num>{pool, number}</num> game} other {<num>{pool, number}</num> games}} from other players in your replays.",
@@ -188,35 +192,35 @@
             "games": "{count, plural, one {# game} other {# games}}"
         }
     },
+    "career": {
+        "winsSuffix": " wins",
+        "record": "<num>{wins}</num><win>W</win> <num>{losses}</num><loss>D</loss>",
+        "timePlayed": "Time played",
+        "playTime": "<num>{hours}</num><unit>h</unit> <num>{minutes}</num><unit>m</unit>",
+        "hours": "{hours}h {minutes}m",
+        "alive": "<b>{time}</b> alive",
+        "dead": "<b>{time}</b> dead",
+        "games": "Games",
+        "avgGame": "Avg game",
+        "kda": "KDA",
+        "mvps": "MVPs",
+        "camps": "Camps",
+        "perGameDetail": "{value} per game",
+        "kills": "Kills",
+        "assists": "Assists",
+        "deaths": "Deaths",
+        "heroDamage": "Hero damage",
+        "siegeDamage": "Siege damage",
+        "healing": "Healing",
+        "selfHealing": "Self healing",
+        "damageTaken": "Damage taken",
+        "xp": "Experience",
+        "globes": "Regen globes"
+    },
     "hero": {
         "back": "Heroes",
         "notFound": "This hero does not exist.",
         "noGames": "No games on {hero} yet.",
-        "career": {
-            "winsSuffix": " wins",
-            "record": "<num>{wins}</num><win>W</win> <num>{losses}</num><loss>D</loss>",
-            "timePlayed": "Time played",
-            "playTime": "<num>{hours}</num><unit>h</unit> <num>{minutes}</num><unit>m</unit>",
-            "hours": "{hours}h {minutes}m",
-            "alive": "<b>{time}</b> alive",
-            "dead": "<b>{time}</b> dead",
-            "games": "Games",
-            "avgGame": "Avg game",
-            "kda": "KDA",
-            "mvps": "MVPs",
-            "camps": "Camps",
-            "perGameDetail": "{value} per game",
-            "kills": "Kills",
-            "assists": "Assists",
-            "deaths": "Deaths",
-            "heroDamage": "Hero damage",
-            "siegeDamage": "Siege damage",
-            "healing": "Healing",
-            "selfHealing": "Self healing",
-            "damageTaken": "Damage taken",
-            "xp": "Experience",
-            "globes": "Regen globes"
-        },
         "trend": {
             "title": "Win rate over time",
             "subtitle": "Climbing or sliding? Your career win rate on {hero} over the last {days} days, over games played per day.",

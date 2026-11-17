@@ -1,10 +1,12 @@
-use sqlx::{QueryBuilder, Sqlite, SqlitePool};
+use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
 
+use crate::db::hero_stats;
 use crate::profile_score::{self, PlayerGame};
 use crate::types::hero::HeroRole;
 use crate::types::replay::Mode;
 use crate::types::stats::{
-    HeroStat, MapStat, MostPlayedHeroes, ProfileScore, ProfileSummary, ScoreScope, ScoredHero,
+    HeroStat, MapStat, MostPlayedHeroes, ProfileCareer, ProfileScore, ProfileSummary, ScoreScope,
+    ScoredHero,
 };
 
 /// How many of the latest results [`profile_summary`] returns.
@@ -24,27 +26,8 @@ pub async fn profile_summary(pool: &SqlitePool) -> sqlx::Result<ProfileSummary> 
     .fetch_one(&mut *tx)
     .await?;
 
-    let mvps: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*)
-         FROM replays r
-         JOIN games_players_awards a
-             ON a.game_id = r.game_id AND a.player_id = r.owner_player_id
-         WHERE a.award = 'mvp'",
-    )
-    .fetch_one(&mut *tx)
-    .await?;
-
-    let main_role: Option<HeroRole> = sqlx::query_scalar(
-        "SELECT h.role
-         FROM replays_view r
-         JOIN heroes h ON h.id = r.owner_hero_id
-         WHERE h.role IS NOT NULL
-         GROUP BY h.role
-         ORDER BY COUNT(*) DESC
-         LIMIT 1",
-    )
-    .fetch_optional(&mut *tx)
-    .await?;
+    let mvps = mvps(&mut tx).await?;
+    let main_role = main_role(&mut tx).await?;
 
     let recent: Vec<Option<bool>> = sqlx::query_scalar(
         "SELECT owner_win FROM replays_view ORDER BY timestamp DESC, id DESC LIMIT ?",
@@ -62,6 +45,67 @@ pub async fn profile_summary(pool: &SqlitePool) -> sqlx::Result<ProfileSummary> 
         main_role,
         recent,
     })
+}
+
+/// Sums up the owner's career across every hero, with who they play as.
+///
+/// All the figures are read from the same snapshot, so they agree with each other.
+pub async fn profile_career(pool: &SqlitePool) -> sqlx::Result<ProfileCareer> {
+    let mut tx = pool.begin().await?;
+
+    // The owner can play on several accounts; the header names the one with the most
+    // replays.
+    let identity: Option<(String, Option<i64>)> = sqlx::query_as(
+        "SELECT p.name, p.account_level
+         FROM replays r
+         JOIN players p ON p.id = r.owner_player_id
+         GROUP BY p.id
+         ORDER BY COUNT(*) DESC, p.id
+         LIMIT 1",
+    )
+    .fetch_optional(&mut *tx)
+    .await?;
+    let (name, account_level) = identity.unzip();
+
+    let totals = hero_stats::totals(&mut tx, None).await?;
+    let mvps = mvps(&mut tx).await?;
+    let main_role = main_role(&mut tx).await?;
+    tx.commit().await?;
+
+    Ok(ProfileCareer {
+        name,
+        account_level: account_level.flatten(),
+        totals,
+        mvps,
+        main_role,
+    })
+}
+
+async fn mvps(conn: &mut SqliteConnection) -> sqlx::Result<i64> {
+    sqlx::query_scalar(
+        "SELECT COUNT(*)
+         FROM replays r
+         JOIN games_players_awards a
+             ON a.game_id = r.game_id AND a.player_id = r.owner_player_id
+         WHERE a.award = 'mvp'",
+    )
+    .fetch_one(conn)
+    .await
+}
+
+/// The role the owner played the most games as.
+async fn main_role(conn: &mut SqliteConnection) -> sqlx::Result<Option<HeroRole>> {
+    sqlx::query_scalar(
+        "SELECT h.role
+         FROM replays_view r
+         JOIN heroes h ON h.id = r.owner_hero_id
+         WHERE h.role IS NOT NULL
+         GROUP BY h.role
+         ORDER BY COUNT(*) DESC
+         LIMIT 1",
+    )
+    .fetch_optional(conn)
+    .await
 }
 
 /// Every player of the games the profile score reads, a game's players together and
@@ -195,6 +239,71 @@ mod tests {
     use crate::db::test_utils::pool;
     use crate::types::player::Player;
     use crate::types::replay::NewReplayPlayer;
+
+    #[tokio::test]
+    async fn profile_career_starts_empty() {
+        let pool = pool().await;
+
+        let career = profile_career(&pool).await.unwrap();
+        assert_eq!(career.name, None);
+        assert_eq!(career.account_level, None);
+        assert_eq!(career.totals.games, 0);
+        assert_eq!(career.totals.total_duration, 0);
+        assert_eq!(career.mvps, 0);
+        assert_eq!(career.main_role, None);
+    }
+
+    #[tokio::test]
+    async fn profile_career_sums_every_account_and_names_the_most_played() {
+        let pool = pool().await;
+        let alt = |name: &str, timestamp| {
+            let mut game = hero_game(
+                name,
+                timestamp,
+                Mode::QuickMatch,
+                "cursed_hollow",
+                "Wizard",
+                false,
+            );
+            game.replay.owner_toon = "alt".to_owned();
+            game.players[0] = Player {
+                toon: "alt".to_owned(),
+                name: "Alt".to_owned(),
+                account_level: Some(812),
+            };
+            game.replay_players[0].toon = "alt".to_owned();
+            game.replay_players[0].awards = vec![];
+            game
+        };
+
+        for game in [
+            hero_game(
+                "main",
+                1000,
+                Mode::QuickMatch,
+                "cursed_hollow",
+                "Tyrande",
+                true,
+            ),
+            alt("alt-1", 2000),
+            alt("alt-2", 3000),
+        ] {
+            insert_bundle(&pool, game).await.unwrap();
+        }
+
+        let career = profile_career(&pool).await.unwrap();
+        assert_eq!(career.name.as_deref(), Some("Alt"));
+        assert_eq!(career.account_level, Some(812));
+        assert_eq!(
+            (
+                career.totals.games,
+                career.totals.wins,
+                career.totals.losses
+            ),
+            (3, 1, 2)
+        );
+        assert_eq!(career.mvps, 1);
+    }
 
     #[tokio::test]
     async fn scored_players_skip_other_modes_and_short_games() {

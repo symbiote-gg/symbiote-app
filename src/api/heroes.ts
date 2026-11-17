@@ -110,13 +110,8 @@ export type HeroBests = {
     winStreak: WinStreak | null;
 };
 
-export type HeroDetail = {
-    heroId: number;
-    name: string;
-    role: HeroRole | null;
-    portrait: string | null;
-    banner: string | null;
-    accent: string | null;
+/** The owner's results over a set of games, with what they average per game. */
+export type CareerTotals = {
     games: number;
     wins: number;
     losses: number;
@@ -154,6 +149,15 @@ export type HeroDetail = {
     /** Seconds across every game. */
     totalDuration: number;
     totalTimeDeadSecs: number;
+};
+
+export type HeroDetail = CareerTotals & {
+    heroId: number;
+    name: string;
+    role: HeroRole | null;
+    portrait: string | null;
+    banner: string | null;
+    accent: string | null;
     awards: AwardCount[];
     maps: MapRecord[];
     talents: TalentRecord[];

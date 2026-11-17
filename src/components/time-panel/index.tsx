@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
-import type { HeroDetail } from "@/api/heroes";
+import type { CareerTotals } from "@/api/heroes";
 import { useFormatStat } from "@/hooks/useFormatStat";
 import { Eyebrow, Meter, Stat, Typography, rollingChunks } from "@/ui";
 import { formatDuration } from "@/utils/dates";
@@ -27,40 +27,39 @@ const dead = (chunks: ReactNode) => (
 );
 
 export interface TimePanelProps {
-    hero: HeroDetail;
+    totals: CareerTotals;
+    mvps: number;
 }
 
-export function TimePanel({ hero }: TimePanelProps) {
-    const t = useTranslations("hero.career");
+export function TimePanel({ totals, mvps }: TimePanelProps) {
+    const t = useTranslations("career");
     const format = useFormatter();
     const { kda: formatKda } = useFormatStat();
 
-    const deadSecs = Math.min(hero.totalTimeDeadSecs, hero.totalDuration);
-    const aliveSecs = hero.totalDuration - deadSecs;
+    const deadSecs = Math.min(totals.totalTimeDeadSecs, totals.totalDuration);
+    const aliveSecs = totals.totalDuration - deadSecs;
     const aliveShare =
-        hero.totalDuration > 0 ? aliveSecs / hero.totalDuration : 0;
-
-    const mvps = hero.awards.find((award) => award.type === "mvp")?.count ?? 0;
+        totals.totalDuration > 0 ? aliveSecs / totals.totalDuration : 0;
 
     return (
         <div className={styles.root}>
             <Eyebrow className={styles.title}>{t("timePlayed")}</Eyebrow>
             <Typography display noWrap className={styles.total}>
                 {t.rich("playTime", {
-                    ...hoursAndMinutes(hero.totalDuration),
+                    ...hoursAndMinutes(totals.totalDuration),
                     num: rollingChunks,
                     unit,
                 })}
             </Typography>
             <dl className={styles.stats}>
-                <Stat label={t("games")}>{format.number(hero.games)}</Stat>
-                {hero.avgDuration !== null && (
+                <Stat label={t("games")}>{format.number(totals.games)}</Stat>
+                {totals.avgDuration !== null && (
                     <Stat label={t("avgGame")}>
-                        {formatDuration(hero.avgDuration)}
+                        {formatDuration(totals.avgDuration)}
                     </Stat>
                 )}
                 <Stat label={t("kda")}>
-                    {formatKda(kda(hero.takedowns, hero.deaths))}
+                    {formatKda(kda(totals.takedowns, totals.deaths))}
                 </Stat>
                 <Stat
                     label={t("mvps")}
@@ -95,3 +94,5 @@ export function TimePanel({ hero }: TimePanelProps) {
         </div>
     );
 }
+
+export { TimePanelSkeleton } from "./skeleton";

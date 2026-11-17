@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
+import type { CareerTotals } from "./heroes";
 import type { HeroRole, Mode, RoleStat } from "./replays";
 
 export type ProfileSummary = {
@@ -9,6 +10,14 @@ export type ProfileSummary = {
     mvps: number;
     mainRole: HeroRole | null;
     recent: (boolean | null)[];
+};
+
+export type ProfileCareer = CareerTotals & {
+    /** `null` until the first replay is in. */
+    name: string | null;
+    accountLevel: number | null;
+    mvps: number;
+    mainRole: HeroRole | null;
 };
 
 export type HeroStat = {
@@ -85,6 +94,9 @@ export type ProfileScore = {
 
 export const getProfileSummary = () =>
     invoke<ProfileSummary>("get_profile_summary");
+
+export const getProfileCareer = () =>
+    invoke<ProfileCareer>("get_profile_career");
 
 export type ScoreScope = "all" | "draft" | "quickMatch";
 

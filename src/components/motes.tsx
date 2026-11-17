@@ -20,6 +20,7 @@ interface Mote {
     age: number;
     alpha: number;
     tint: boolean;
+    color: number;
 }
 
 const between = (min: number, max: number) => min + Math.random() * (max - min);
@@ -54,7 +55,13 @@ function sprite(color: string, tint: boolean): HTMLCanvasElement {
     return canvas;
 }
 
-function spawn(mote: Mote, width: number, height: number, spread: boolean) {
+function spawn(
+    mote: Mote,
+    width: number,
+    height: number,
+    colors: number,
+    spread: boolean,
+) {
     mote.radius = between(0.6, 2);
     mote.rise = between(6, 14);
     mote.phase = between(0, Math.PI * 2);
@@ -63,6 +70,7 @@ function spawn(mote: Mote, width: number, height: number, spread: boolean) {
     mote.alpha = between(0.5, 0.9);
     mote.x = between(0, width);
     mote.tint = Math.random() < 1 / 3;
+    mote.color = Math.floor(Math.random() * colors);
 
     // A mote only rises about half the band in its life, so new ones appear
     // anywhere below the top third. On mount the band starts already populated.
@@ -78,12 +86,18 @@ function fade(mote: Mote): number {
     return 1;
 }
 
+const ACCENT = ["--accent"];
+
 export interface MotesProps {
-    accent: string | null;
+    /** Custom properties the motes pick their colour from at random, so one
+        listed twice comes up twice as often. */
+    colors?: readonly string[];
+    /** Redraws the motes when the accent they read changes. */
+    accent?: string | null;
     className?: string;
 }
 
-export function Motes({ accent, className }: MotesProps) {
+export function Motes({ colors = ACCENT, accent, className }: MotesProps) {
     const ref = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -91,13 +105,12 @@ export function Motes({ accent, className }: MotesProps) {
         const ctx = canvas?.getContext("2d");
         if (!canvas || !ctx) return;
 
-        const color = getComputedStyle(canvas)
-            .getPropertyValue("--accent")
-            .trim();
-        const sprites = {
-            plain: sprite(color, false),
-            tint: sprite(color, true),
-        };
+        const style = getComputedStyle(canvas);
+        const sprites = colors.map((name) => {
+            const color = style.getPropertyValue(name).trim();
+
+            return { plain: sprite(color, false), tint: sprite(color, true) };
+        });
 
         const motes: Mote[] = [];
         let width = 0;
@@ -114,7 +127,7 @@ export function Motes({ accent, className }: MotesProps) {
             motes.length = Math.min(motes.length, count);
             while (motes.length < count) {
                 const mote = {} as Mote;
-                spawn(mote, width, height, true);
+                spawn(mote, width, height, sprites.length, true);
                 motes.push(mote);
             }
         };
@@ -126,15 +139,17 @@ export function Motes({ accent, className }: MotesProps) {
                 mote.age += dt;
                 mote.y -= mote.rise * dt;
                 if (mote.age >= mote.life || mote.y < -mote.radius * 3) {
-                    spawn(mote, width, height, false);
+                    spawn(mote, width, height, sprites.length, false);
                 }
 
                 const size = mote.radius * 6;
                 const x = mote.x + Math.sin(mote.phase + mote.age) * mote.sway;
 
                 ctx.globalAlpha = mote.alpha * fade(mote);
+                const pair = sprites[mote.color];
+
                 ctx.drawImage(
-                    mote.tint ? sprites.tint : sprites.plain,
+                    mote.tint ? pair.tint : pair.plain,
                     x - size / 2,
                     mote.y - size / 2,
                     size,
@@ -225,7 +240,7 @@ export function Motes({ accent, className }: MotesProps) {
             document.removeEventListener("visibilitychange", sync);
             reduce.removeEventListener("change", sync);
         };
-    }, [accent]);
+    }, [colors, accent]);
 
     return <canvas aria-hidden ref={ref} className={className} />;
 }

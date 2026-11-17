@@ -12,9 +12,8 @@ import {
 } from "lucide-react";
 import { useTranslations } from "use-intl";
 
-import { BackLink } from "@/components";
+import { BackLink, TimePanelSkeleton } from "@/components";
 import { Skeleton, StatTile, Typography } from "@/ui";
-import { TimePanelSkeleton } from "./time-panel/skeleton";
 
 import styles from "./styles.module.css";
 
@@ -33,6 +32,7 @@ const TILES = [
 
 export function CareerSkeleton() {
     const t = useTranslations("hero");
+    const career = useTranslations("career");
 
     return (
         <header className={styles.root}>
@@ -70,7 +70,7 @@ export function CareerSkeleton() {
                             key={key}
                             variant="panel"
                             icon={icon}
-                            label={t(`career.${key}`)}
+                            label={career(key)}
                             value={<Skeleton />}
                             detail={<Skeleton className={styles.detailBar} />}
                         />

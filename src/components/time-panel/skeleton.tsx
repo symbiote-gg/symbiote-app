@@ -7,7 +7,7 @@ import styles from "./styles.module.css";
 const STATS = ["games", "avgGame", "kda", "mvps"] as const;
 
 export function TimePanelSkeleton() {
-    const t = useTranslations("hero.career");
+    const t = useTranslations("career");
 
     return (
         <div className={styles.root}>

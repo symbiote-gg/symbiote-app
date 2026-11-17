@@ -146,7 +146,7 @@ export function ScoreCard() {
                                 <Typography size="sm" variant="tertiary">
                                     {unrated(data)}
                                 </Typography>
-                                <Method scope={data.scope} />
+                                <Method scope={data.scope} score={null} />
                             </div>
                         </div>
                         <PartsEmpty className={styles.parts} />
@@ -177,7 +177,10 @@ export function ScoreCard() {
                                 <Typography size="sm" variant="tertiary">
                                     {progress(shown ?? data.career)}
                                 </Typography>
-                                <Method scope={data.scope} />
+                                <Method
+                                    scope={data.scope}
+                                    score={data.career}
+                                />
                             </div>
                             <span aria-live="polite" className={styles.live}>
                                 {announcement}

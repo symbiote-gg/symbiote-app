@@ -2,14 +2,17 @@ import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
 import type { HeroDetail } from "@/api/heroes";
-import { BackLink, HeroPortrait } from "@/components";
+import {
+    BackLink,
+    CareerTiles,
+    HeroPortrait,
+    Motes,
+    TimePanel,
+} from "@/components";
 import { useImageFallback } from "@/hooks/useImageFallback";
 import { Chip, Typography, WinRate, rollingChunks } from "@/ui";
-import { isJudged, winRate } from "@/utils/hero-stats";
+import { MIN_TEAM_SHARE, isJudged, winRate } from "@/utils/hero-stats";
 import { ROLE_ICONS } from "@/utils/role-icons";
-import { Motes } from "./motes";
-import { Tiles } from "./tiles";
-import { TimePanel } from "./time-panel";
 
 import styles from "./styles.module.css";
 
@@ -25,10 +28,14 @@ export interface CareerProps {
 
 export function Career({ hero }: CareerProps) {
     const t = useTranslations("hero");
+    const career = useTranslations("career");
     const roles = useTranslations("roles");
     const [failed, onError] = useImageFallback();
 
     const rate = winRate(hero.wins, hero.losses);
+    const mvps = hero.awards.find((award) => award.type === "mvp")?.count ?? 0;
+    const heals =
+        hero.shareHealing !== null && hero.shareHealing >= MIN_TEAM_SHARE;
 
     return (
         <header className={styles.root}>
@@ -80,11 +87,11 @@ export function Career({ hero }: CareerProps) {
                             <WinRate
                                 rate={rate}
                                 judged={isJudged(hero.wins, hero.losses)}
-                                suffix={t("career.winsSuffix")}
+                                suffix={career("winsSuffix")}
                             />
                         </Typography>
                         <Typography as="p" mono className={styles.record}>
-                            {t.rich("career.record", {
+                            {career.rich("record", {
                                 wins: hero.wins,
                                 losses: hero.losses,
                                 num: rollingChunks,
@@ -97,8 +104,12 @@ export function Career({ hero }: CareerProps) {
             </div>
             {hero.games > 0 && (
                 <div className={styles.body}>
-                    <TimePanel hero={hero} />
-                    <Tiles hero={hero} className={styles.tiles} />
+                    <TimePanel totals={hero} mvps={mvps} />
+                    <CareerTiles
+                        totals={hero}
+                        healing={heals ? "team" : "self"}
+                        className={styles.tiles}
+                    />
                 </div>
             )}
         </header>

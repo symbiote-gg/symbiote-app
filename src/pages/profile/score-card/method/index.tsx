@@ -13,6 +13,7 @@ import { useTranslations } from "use-intl";
 import type { ScoreScope } from "@/api/stats";
 import { useFormatStat } from "@/hooks/useFormatStat";
 import { Meter, Tooltip, Typography } from "@/ui";
+import { TIERS, rankTone, tierIndex } from "../tiers";
 import { EXAMPLE, PILLAR_MAXES, examplePoints } from "./example";
 
 import styles from "./styles.module.css";
@@ -44,9 +45,11 @@ const richMax = (chunks: ReactNode) => (
 
 export interface MethodProps {
     scope: ScoreScope;
+    /** `null` while unrated, which keeps the panel in the default accent. */
+    score: number | null;
 }
 
-export function Method({ scope }: MethodProps) {
+export function Method({ scope, score: career }: MethodProps) {
     const t = useTranslations("profile.score.method");
     const score = useTranslations("profile.score");
     const names = useTranslations("profile.score.pillar");
@@ -55,6 +58,8 @@ export function Method({ scope }: MethodProps) {
         step === "games"
             ? t(`steps.games.${scope}`)
             : t(`steps.${step}.body`, PILLAR_MAXES);
+
+    const rank = career === null ? null : TIERS[tierIndex(career)].rank;
 
     const maxes = EXAMPLE.pillars.map(({ pillar }) => PILLAR_MAXES[pillar]);
     const points = examplePoints(maxes);
@@ -140,7 +145,10 @@ export function Method({ scope }: MethodProps) {
     };
 
     const panel = (
-        <>
+        <div
+            className={styles.content}
+            style={rank ? rankTone(rank) : undefined}
+        >
             <div className={styles.head}>
                 <Typography weight="semibold">{t("title")}</Typography>
                 <Typography size="sm" variant="tertiary">
@@ -172,7 +180,7 @@ export function Method({ scope }: MethodProps) {
             <Typography size="xs" variant="tertiary">
                 {t("footnote")}
             </Typography>
-        </>
+        </div>
     );
 
     return (
