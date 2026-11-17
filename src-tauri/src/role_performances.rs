@@ -6,8 +6,9 @@ use std::cmp::Reverse;
 use crate::types::hero::HeroRole;
 use crate::types::replay::ReplayPlayerDetail;
 use crate::types::role_performances::RoleStat::{
-    self, DamageTakenShare, DeathShare, HardCc, Healing, HeroDamage, KillParticipation, Protection,
-    SiegeDamage, TeamfightDamageTakenShare, Xp,
+    self, DamageTakenShare, DeathShare, HardCc, Healing, HeroDamage, KillParticipation,
+    MercCaptures, Protection, SiegeDamage, TeamfightDamageTakenShare, TeamfightHeroDamageShare,
+    TimeDeadShare, Xp,
 };
 use crate::types::role_performances::{
     HeroScore, RolePerformance, RoleScore, ScorePart, Sides, StatAverage, StatColumn,
@@ -214,6 +215,8 @@ fn value(player: &ReplayPlayerDetail, stat: RoleStat, totals: &TeamTotals) -> Op
             (team > 0).then(|| percent(part, team))
         }
         DeathShare => Some(percent(player.deaths?, totals.deaths[side(player)])),
+        // No role is weighted on them here, only in the profile score.
+        TimeDeadShare | MercCaptures | TeamfightHeroDamageShare => None,
     }
 }
 
@@ -579,6 +582,9 @@ mod tests {
                 Protection => &mut player.protection,
                 KillParticipation => &mut player.takedowns,
                 DeathShare => &mut player.deaths,
+                TimeDeadShare | MercCaptures | TeamfightHeroDamageShare => {
+                    unreachable!("not a replay stat")
+                }
             };
             *field = Some(value);
         }

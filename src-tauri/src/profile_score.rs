@@ -8,13 +8,14 @@ use chrono::{DateTime, Utc};
 use sqlx::FromRow;
 
 use crate::role_performances::{
-    death_share, round_to_total, side, team_totals, weights, TeamMember, TeamTotals,
+    death_share, round_to_total, side, team_totals, TeamMember, TeamTotals, Weights,
 };
 use crate::types::hero::HeroRole;
 use crate::types::replay::Mode;
 use crate::types::role_performances::RoleStat::{
-    self, DamageTakenShare, DeathShare, HardCc, Healing, HeroDamage, KillParticipation, Protection,
-    SiegeDamage, TeamfightDamageTakenShare, Xp,
+    self, DamageTakenShare, DeathShare, HardCc, Healing, HeroDamage, KillParticipation,
+    MercCaptures, Protection, SiegeDamage, TeamfightDamageTakenShare, TeamfightHeroDamageShare,
+    TimeDeadShare, Xp,
 };
 use crate::types::stats::{
     HeroScoreRow, ProfileScore, ScorePillar, ScorePillarId, ScorePoint, ScoreScope, ScoreStat,
@@ -68,18 +69,75 @@ const PILLARS: [(ScorePillarId, &[RoleStat]); 4] = [
         ScorePillarId::Fighting,
         &[HeroDamage, KillParticipation, HardCc],
     ),
-    (ScorePillarId::Survival, &[DeathShare]),
+    (ScorePillarId::Survival, &[DeathShare, TimeDeadShare]),
     (
         ScorePillarId::TeamRole,
         &[
             Healing,
             Protection,
-            DamageTakenShare,
             TeamfightDamageTakenShare,
+            TeamfightHeroDamageShare,
         ],
     ),
-    (ScorePillarId::Map, &[Xp, SiegeDamage]),
+    (ScorePillarId::Map, &[Xp, SiegeDamage, MercCaptures]),
 ];
+
+/// Each pillar's share of a game, in [`PILLARS`] order. Survival is kept small so
+/// staying alive doesn't outscore doing anything while alive.
+const PILLAR_SHARES: [f64; 4] = [0.30, 0.15, 0.30, 0.25];
+
+/// A stat most of a hero's players never put a number on isn't in its kit, so it
+/// goes unscored rather than handing out a tie in the middle.
+const NOT_IN_KIT: f64 = 0.75;
+
+/// Each pillar's stats weighed against each other, in [`PILLARS`] order. A pillar's
+/// worth is fixed by [`PILLAR_SHARES`], so a role's key stats only lean within
+/// theirs. Kept apart from the replay's role weights, which score fewer stats.
+fn pillar_weights(slug: &str, role: HeroRole) -> [Weights; 4] {
+    let fighting: Weights = match role {
+        HeroRole::RangedAssassin | HeroRole::MeleeAssassin => {
+            &[(HeroDamage, 3), (KillParticipation, 2), (HardCc, 1)]
+        }
+        HeroRole::Tank => &[(HeroDamage, 1), (KillParticipation, 2), (HardCc, 2)],
+        _ => &[(HeroDamage, 2), (KillParticipation, 2), (HardCc, 1)],
+    };
+
+    let survival: Weights = match slug {
+        // Time dead adds up all three Vikings' timers, while scoreboard deaths
+        // only count full wipes.
+        "LostVikings" => &[(DeathShare, 1)],
+        _ => &[(DeathShare, 2), (TimeDeadShare, 1)],
+    };
+
+    let team_role: Weights = match slug {
+        "Abathur" => &[(Protection, 2), (Healing, 1)],
+        "Medivh" | "Zarya" => &[(Protection, 3), (Healing, 1)],
+        _ => match role {
+            // Bruisers too: their damage taken outside fights is mostly the solo
+            // lane, not soaking for the team.
+            HeroRole::Tank | HeroRole::Bruiser => {
+                &[(TeamfightDamageTakenShare, 3), (Protection, 1)]
+            }
+            HeroRole::Healer => &[(Healing, 3), (Protection, 1)],
+            HeroRole::RangedAssassin | HeroRole::MeleeAssassin => {
+                &[(TeamfightHeroDamageShare, 3), (Protection, 1)]
+            }
+            HeroRole::Support => &[(Protection, 1), (Healing, 1)],
+        },
+    };
+
+    let map: Weights = match slug {
+        // Most Abathur games take no camp, so captures would go unscored anyway.
+        "Abathur" => &[(Xp, 3), (SiegeDamage, 2)],
+        "Azmodan" | "LostVikings" | "Murky" | "Probius" | "Sylvanas" | "WitchDoctor" | "Zagara" => {
+            &[(Xp, 1), (SiegeDamage, 3), (MercCaptures, 1)]
+        }
+        _ if role == HeroRole::RangedAssassin => &[(Xp, 2), (SiegeDamage, 2), (MercCaptures, 1)],
+        _ => &[(Xp, 2), (SiegeDamage, 1), (MercCaptures, 1)],
+    };
+
+    [fighting, survival, team_role, map]
+}
 
 /// A player's game, in the order games were played, a game's players together.
 #[derive(Debug, Clone, FromRow)]
@@ -99,9 +157,12 @@ pub struct PlayerGame {
     pub healing: Option<i64>,
     pub damage_taken: Option<i64>,
     pub teamfight_damage_taken: Option<i64>,
+    pub teamfight_hero_damage: Option<i64>,
     pub xp: Option<i64>,
     pub hard_cc: Option<i64>,
     pub protection: Option<i64>,
+    pub time_dead_secs: Option<f64>,
+    pub merc_captures: Option<i64>,
     pub is_owner: bool,
     pub is_ai: bool,
 }
@@ -124,10 +185,46 @@ impl TeamMember for PlayerGame {
     }
 }
 
+/// A game's team sums, with the ones replay role scores don't read.
+struct GameTotals {
+    team: TeamTotals,
+    time_dead: [f64; 2],
+    teamfight_hero_damage: [i64; 2],
+}
+
+fn game_totals(game: &[PlayerGame]) -> GameTotals {
+    let mut time_dead = [0.0; 2];
+    let mut teamfight_hero_damage = [0; 2];
+    for player in game {
+        let side = side(player);
+        time_dead[side] += player.time_dead_secs.unwrap_or(0.0);
+        teamfight_hero_damage[side] += player.teamfight_hero_damage.unwrap_or(0);
+    }
+
+    GameTotals {
+        team: team_totals(game),
+        time_dead,
+        teamfight_hero_damage,
+    }
+}
+
+/// Seconds dead standing in for one death in [`time_dead_share`].
+const DEATH_SECS: f64 = 30.0;
+
+/// Like [`death_share`], with every player given one more death's worth of time.
+fn time_dead_share(secs: f64, team_secs: f64) -> f64 {
+    (secs + DEATH_SECS) / (team_secs + 5.0 * DEATH_SECS)
+}
+
+fn lower_is_better(stat: RoleStat) -> bool {
+    matches!(stat, DeathShare | TimeDeadShare)
+}
+
 /// The stat as ranked: raw stats per minute so game length doesn't count, the team
 /// relative ones as in a replay's role scores.
-fn rate(player: &PlayerGame, stat: RoleStat, totals: &TeamTotals) -> Option<f64> {
+fn rate(player: &PlayerGame, stat: RoleStat, totals: &GameTotals) -> Option<f64> {
     let side = side(player);
+    let team = &totals.team;
     let per_minute = |value: Option<i64>| {
         (player.duration > 0).then_some(value? as f64 * 60.0 / player.duration as f64)
     };
@@ -140,31 +237,33 @@ fn rate(player: &PlayerGame, stat: RoleStat, totals: &TeamTotals) -> Option<f64>
         Xp => per_minute(player.xp),
         HardCc => per_minute(player.hard_cc),
         Protection => per_minute(player.protection),
-        KillParticipation => share(player.takedowns, totals.deaths[1 - side]),
-        DamageTakenShare => share(player.damage_taken, totals.damage_taken[side]),
+        KillParticipation => share(player.takedowns, team.deaths[1 - side]),
+        // No pillar weighs it: team role reads damage taken in fights only.
+        DamageTakenShare => None,
         TeamfightDamageTakenShare => share(
             player.teamfight_damage_taken,
-            totals.teamfight_damage_taken[side],
+            team.teamfight_damage_taken[side],
         ),
-        DeathShare => Some(death_share(player.deaths?, totals.deaths[side])),
+        DeathShare => Some(death_share(player.deaths?, team.deaths[side])),
+        TimeDeadShare => Some(time_dead_share(
+            player.time_dead_secs?,
+            totals.time_dead[side],
+        )),
+        MercCaptures => per_minute(player.merc_captures),
+        TeamfightHeroDamageShare => share(
+            player.teamfight_hero_damage,
+            totals.teamfight_hero_damage[side],
+        ),
     }
 }
 
-const STATS: [RoleStat; 10] = [
-    HeroDamage,
-    SiegeDamage,
-    Healing,
-    DamageTakenShare,
-    TeamfightDamageTakenShare,
-    Xp,
-    HardCc,
-    Protection,
-    KillParticipation,
-    DeathShare,
-];
-
-// `pillars` keeps its sums at each stat's discriminant.
-const _: () = assert!(STATS.len() == DeathShare as usize + 1);
+/// `pillars` keeps its sums at each stat's discriminant. The match stops the build
+/// when a stat is added, so the count is checked with it.
+const STAT_COUNT: usize = match TeamfightHeroDamageShare {
+    HeroDamage | SiegeDamage | Healing | DamageTakenShare | TeamfightDamageTakenShare | Xp
+    | HardCc | Protection | KillParticipation | DeathShare | TimeDeadShare | MercCaptures
+    | TeamfightHeroDamageShare => TeamfightHeroDamageShare as usize + 1,
+};
 
 /// Other players' sorted rates, by hero and by role.
 #[derive(Default)]
@@ -179,11 +278,11 @@ struct Baselines {
 }
 
 impl Baselines {
-    fn add(&mut self, player: &PlayerGame, role: HeroRole, totals: &TeamTotals) {
+    fn add(&mut self, player: &PlayerGame, role: HeroRole, totals: &GameTotals) {
         *self.hero_games.entry(player.hero_id).or_default() += 1;
         self.hero_roles.insert(player.hero_id, role);
 
-        for stat in STATS {
+        for &stat in PILLARS.iter().flat_map(|(_, stats)| stats.iter()) {
             let Some(rate) = rate(player, stat, totals) else {
                 continue;
             };
@@ -237,18 +336,26 @@ impl Baselines {
             return None;
         }
 
+        let hero_rates = self.heroes.get(&(hero_id, stat));
+        let weight = self.hero_blend(hero_id, stat);
+
+        let zeros = weight * hero_rates.map_or(0.0, |rates| zero_share(rates))
+            + (1.0 - weight) * zero_share(role_rates);
+        if zeros > NOT_IN_KIT {
+            return None;
+        }
+
         let in_role = rank(role_rates, rate);
-        let blended = match self.heroes.get(&(hero_id, stat)) {
+        let blended = match hero_rates {
             Some(hero_rates) => {
                 let offset = self.kit_offsets.get(&(hero_id, stat)).copied();
                 let in_role = (in_role - offset.unwrap_or(0.0)).clamp(0.0, 1.0);
-                let weight = self.hero_blend(hero_id, stat);
                 weight * rank(hero_rates, rate) + (1.0 - weight) * in_role
             }
             None => in_role,
         };
 
-        Some(if stat == DeathShare {
+        Some(if lower_is_better(stat) {
             1.0 - blended
         } else {
             blended
@@ -270,6 +377,10 @@ fn rank(sorted: &[f64], rate: f64) -> f64 {
     (below + up_to) as f64 / (2 * sorted.len()) as f64
 }
 
+fn zero_share(sorted: &[f64]) -> f64 {
+    sorted.partition_point(|&r| r <= 0.0) as f64 / sorted.len() as f64
+}
+
 /// One of the owner's games: its score from 0 to 1 and each stat's weight in it
 /// with the percentile reached.
 struct ScoredGame {
@@ -285,26 +396,42 @@ struct ScoredGame {
 fn score_game(
     player: &PlayerGame,
     role: HeroRole,
-    totals: &TeamTotals,
+    totals: &GameTotals,
     baselines: &Baselines,
 ) -> Option<ScoredGame> {
-    let ranked: Vec<_> = weights(&player.hero_slug, role)
+    let ranked: Vec<(f64, Vec<_>)> = pillar_weights(&player.hero_slug, role)
         .iter()
-        .filter_map(|&(stat, weight)| {
-            let rate = rate(player, stat, totals)?;
-            let percentile = baselines.percentile(player.hero_id, role, stat, rate)?;
-            Some((stat, f64::from(weight), percentile))
+        .zip(PILLAR_SHARES)
+        .map(|(weights, share)| {
+            let stats = weights
+                .iter()
+                .filter_map(|&(stat, weight)| {
+                    let rate = rate(player, stat, totals)?;
+                    let percentile = baselines.percentile(player.hero_id, role, stat, rate)?;
+                    Some((stat, f64::from(weight), percentile))
+                })
+                .collect();
+            (share, stats)
         })
+        .filter(|(_, stats): &(f64, Vec<_>)| !stats.is_empty())
         .collect();
 
-    let total_weight: f64 = ranked.iter().map(|&(_, weight, _)| weight).sum();
-    if total_weight == 0.0 {
+    if ranked.is_empty() {
         return None;
     }
 
+    // The pillars left keep their shares scaled up to the whole game, each split
+    // among its stats by weight.
+    let total_share: f64 = ranked.iter().map(|&(share, _)| share).sum();
     let parts: Vec<_> = ranked
         .into_iter()
-        .map(|(stat, weight, percentile)| (stat, weight / total_weight, percentile))
+        .flat_map(|(share, stats)| {
+            let pillar_share = share / total_share;
+            let total_weight: f64 = stats.iter().map(|&(_, weight, _)| weight).sum();
+            stats.into_iter().map(move |(stat, weight, percentile)| {
+                (stat, pillar_share * weight / total_weight, percentile)
+            })
+        })
         .collect();
     let score = parts.iter().map(|&(_, weight, p)| weight * p).sum();
     let hero_weight = parts
@@ -347,7 +474,7 @@ fn pillars(games: &[ScoredGame], score: u8) -> Vec<ScorePillar> {
     let count = games.len() as f64;
 
     // Per stat: summed points, summed max, summed percentile, games it counted in.
-    let mut sums = [(0.0, 0.0, 0.0, 0usize); STATS.len()];
+    let mut sums = [(0.0, 0.0, 0.0, 0usize); STAT_COUNT];
     for game in games {
         for &(stat, weight, percentile) in &game.parts {
             let sum = &mut sums[stat as usize];
@@ -442,21 +569,19 @@ fn hero_rows(
 pub fn compute(players: &[PlayerGame], heroes: Vec<ScoredHero>) -> ProfileScore {
     let games: Vec<_> = players.chunk_by(|a, b| a.game_id == b.game_id).collect();
 
-    let totals: Vec<_> = games.iter().map(|&game| team_totals(game)).collect();
+    let totals: Vec<_> = games.iter().map(|&game| game_totals(game)).collect();
 
     let mut baselines = Baselines::default();
-    let mut others = Vec::new();
+    let mut baseline_players = 0;
     for (game, totals) in games.iter().zip(&totals) {
         for player in game.iter().filter(|p| !p.is_owner && !p.is_ai) {
             if let Some(role) = player.hero_role {
                 baselines.add(player, role, totals);
-                others.push((player, role, totals));
+                baseline_players += 1;
             }
         }
     }
     baselines.sort();
-
-    let baseline_players = others.len();
 
     let scored: Vec<_> = games
         .iter()
@@ -472,17 +597,6 @@ pub fn compute(players: &[PlayerGame], heroes: Vec<ScoredHero>) -> ProfileScore 
     let latest = &scored[scored.len().saturating_sub(WINDOW)..];
     let career = mean_points(&scored);
 
-    // Their games scored the same way, each also in the baselines it ranks against.
-    let pool: Vec<_> = if career.is_some() {
-        others
-            .iter()
-            .filter_map(|(player, role, totals)| {
-                score_game(player, *role, totals, &baselines).map(|game| game.score)
-            })
-            .collect()
-    } else {
-        Vec::new()
-    };
     let eligible_games = players
         .iter()
         .filter(|p| p.is_owner && p.hero_role.is_some())
@@ -506,33 +620,8 @@ pub fn compute(players: &[PlayerGame], heroes: Vec<ScoredHero>) -> ProfileScore 
             Vec::new()
         },
         history: history(&scored),
-        spread: if career.is_some() {
-            spread(scored.iter().map(|game| game.score))
-        } else {
-            Vec::new()
-        },
-        pool_spread: spread(pool.into_iter()),
     }
 }
-
-/// Scores counted into 5 point bins from 0 to 100, empty for no scores.
-fn spread(scores: impl Iterator<Item = f64>) -> Vec<u32> {
-    let mut bins = vec![0; SPREAD_BINS];
-    let mut any = false;
-    for score in scores {
-        let bin = ((score * SPREAD_BINS as f64) as usize).min(SPREAD_BINS - 1);
-        bins[bin] += 1;
-        any = true;
-    }
-
-    if any {
-        bins
-    } else {
-        Vec::new()
-    }
-}
-
-const SPREAD_BINS: usize = 20;
 
 fn mean_score(games: &[ScoredGame]) -> f64 {
     games.iter().map(|game| game.score).sum::<f64>() / games.len() as f64
@@ -743,9 +832,80 @@ mod tests {
             assert!((least - 1e-9..=most + 1e-9).contains(&pillar.percentile));
         }
 
-        // Hero damage 3, kill participation 2, death share 2, siege damage 1.
-        assert_eq!(stat(&score, HeroDamage).max, 38);
-        assert_eq!(stat(&score, SiegeDamage).max, 12);
+        // No team role stats, so Fighting 30, Survival 15 and Map 25 scale up to
+        // 100: hero damage 3 and kill participation 2 in Fighting, death share
+        // alone in Survival, siege in Map.
+        assert_eq!(stat(&score, HeroDamage).max, 26);
+        assert_eq!(stat(&score, KillParticipation).max, 17);
+        assert_eq!(stat(&score, DeathShare).max, 21);
+    }
+
+    #[test]
+    fn pillars_weigh_their_share() {
+        let mut players = games(12, |_| 30_000);
+        for player in &mut players {
+            player.time_dead_secs = Some(60.0);
+            player.merc_captures = Some(2);
+            player.protection = Some(1_000);
+        }
+
+        let score = compute(&players, heroes());
+        let maxes: Vec<_> = score.pillars.iter().map(|p| p.max).collect();
+        assert_eq!(maxes, [30, 15, 30, 25]);
+        assert_eq!(stat(&score, DeathShare).max, 10);
+        assert_eq!(stat(&score, TimeDeadShare).max, 5);
+    }
+
+    #[test]
+    fn lost_vikings_survive_on_deaths_alone() {
+        let [_, survival, ..] = pillar_weights("LostVikings", HeroRole::Support);
+        assert_eq!(survival, &[(DeathShare, 1)]);
+    }
+
+    #[test]
+    fn a_stat_outside_the_kit_goes_unscored() {
+        let mut baselines = Baselines::default();
+        let role = HeroRole::RangedAssassin;
+        let mostly_zero = (0..40).map(|i| if i < 35 { 0.0 } else { 100.0 }).collect();
+        baselines.roles.insert((role, Healing), mostly_zero);
+
+        assert_eq!(baselines.percentile(JAINA, role, Healing, 50.0), None);
+
+        // A hero whose players do heal outweighs the role.
+        baselines
+            .heroes
+            .insert((JAINA, Healing), vec![100.0; 4 * BLEND_SAMPLES as usize]);
+        assert!(baselines.percentile(JAINA, role, Healing, 50.0).is_some());
+    }
+
+    #[test]
+    fn less_time_dead_ranks_higher() {
+        let mut players = games(12, |_| 30_000);
+        for player in &mut players {
+            player.time_dead_secs = Some(if player.is_owner { 0.0 } else { 90.0 });
+        }
+
+        let score = compute(&players, heroes());
+        assert_eq!(stat(&score, TimeDeadShare).percentile, 1.0);
+    }
+
+    #[test]
+    fn teamfight_damage_is_read_against_the_team() {
+        // The owner does the same teamfight damage as both enemies, but carries a
+        // team that barely did any.
+        let mut players = games(12, |_| 30_000);
+        for game in players.chunks_mut(5) {
+            for (index, player) in game.iter_mut().enumerate() {
+                player.teamfight_hero_damage = Some(if index == 0 || index > 2 {
+                    10_000
+                } else {
+                    1_000
+                });
+            }
+        }
+
+        let score = compute(&players, heroes());
+        assert_eq!(stat(&score, TeamfightHeroDamageShare).percentile, 1.0);
     }
 
     #[test]
@@ -788,30 +948,6 @@ mod tests {
         assert_eq!((score.games, score.career), (MIN_GAMES - 1, None));
         assert_eq!((score.margin, score.career_margin), (None, None));
         assert!(score.pillars.is_empty() && score.heroes.is_empty() && score.history.is_empty());
-        assert!(score.spread.is_empty() && score.pool_spread.is_empty());
-    }
-
-    #[test]
-    fn the_spreads_count_every_scored_game() {
-        let players = games(MIN_GAMES as i64 + 5, |id| 20_000 + id * 1_000);
-
-        let score = compute(&players, heroes());
-        assert_eq!(score.spread.len(), SPREAD_BINS);
-        assert_eq!(
-            score.spread.iter().sum::<u32>() as usize,
-            score.career_games
-        );
-        assert_eq!(
-            score.pool_spread.iter().sum::<u32>() as usize,
-            score.baseline_players
-        );
-    }
-
-    #[test]
-    fn a_full_score_lands_in_the_last_bin() {
-        assert_eq!(spread([1.0, 0.0, 0.05].into_iter())[SPREAD_BINS - 1], 1);
-        assert_eq!(spread([1.0, 0.0, 0.05].into_iter())[..2], [1, 1]);
-        assert!(spread(std::iter::empty()).is_empty());
     }
 
     #[test]

@@ -1,23 +1,15 @@
 @reference "@/index.css";
 
 .root {
-    @apply flex flex-col gap-3;
+    @apply grid gap-3 sm:grid-cols-2;
 }
 
 .part {
-    @apply overflow-hidden rounded-lg border border-tile-line bg-surface-2;
+    @apply flex flex-col gap-4 rounded-lg border border-tile-line bg-surface-2 p-4;
 }
 
 .head {
-    @apply grid w-full grid-cols-[auto_6rem_minmax(0,1fr)_4.5rem_1rem] items-center gap-3 px-3 py-2.5 text-left;
-}
-
-.summary {
-    @apply cursor-pointer transition-colors hover:bg-tile-hover;
-}
-
-.summary:focus-visible {
-    @apply outline-3 -outline-offset-3 outline-primary-text;
+    @apply flex items-center gap-3;
 }
 
 .dot {
@@ -25,59 +17,53 @@
     background: var(--tone);
 }
 
+.total {
+    @apply ml-auto;
+}
+
 .meter {
     @apply w-full;
 }
 
 .points {
-    @apply font-semibold;
+    @apply font-semibold text-fg;
 }
 
 .max {
     @apply text-fg-faint;
 }
 
+/* A stat's track is as long as its share of the heaviest stat's points, with a
+   floor so a one-point stat still reads as a bar. */
+.track {
+    @apply block;
+    width: max(calc(var(--spacing) * 3), calc(100% * var(--weight)));
+}
+
 .value {
     @apply text-right;
 }
 
-/* Flips at once: on a page with nothing else composited, a transform transition
-   makes WebKitGTK blink the page's overlay scrollbar. */
-.chevron {
-    @apply justify-self-end text-fg-muted;
-}
-
-.summary[aria-expanded="true"] .chevron {
-    @apply rotate-180;
-}
-
-.detail {
-    @apply flex flex-col gap-2.5 px-3 pt-1 pb-3;
-}
-
-/* Lines up with the pillar name: past the dot and its gap. */
-.caption {
-    @apply ml-5;
-}
-
-/* The header's dot, value and chevron widths, so the share sits under the
-   points and the label under the pillar name. */
 .stats {
-    @apply grid grid-cols-[0.5rem_max-content_minmax(0,1fr)_4.5rem_1rem] gap-x-3 gap-y-2;
+    @apply grid grid-cols-[max-content_minmax(0,1fr)_auto] gap-x-4 gap-y-2.5;
 }
 
 .stat {
     @apply col-span-full grid grid-cols-subgrid items-center;
 }
 
-.label {
-    @apply col-start-2;
-}
-
 .meterBar {
     @apply block h-1.5 w-full rounded-full;
 }
 
+.statBar {
+    @apply block h-1 w-full rounded-full;
+}
+
+.labelBar {
+    @apply w-28;
+}
+
 .valueBar {
-    @apply w-12;
+    @apply w-14;
 }

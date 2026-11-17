@@ -93,10 +93,6 @@ pub struct ProfileScore {
     /// being the score. Every point ranks against today's players, so new games
     /// shift past ones too.
     pub history: Vec<ScorePoint>,
-    /// The scored games counted into 5 point bins, empty while unrated.
-    pub spread: Vec<u32>,
-    /// The other players' games, scored the same way, counted into the same bins.
-    pub pool_spread: Vec<u32>,
 }
 
 #[derive(Debug, Serialize)]

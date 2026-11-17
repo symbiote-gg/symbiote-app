@@ -47,51 +47,43 @@
     "profile": {
         "score": {
             "title": "Symbiote score",
-            "subtitle": "Ranked against the other players in your replays.",
-            "pool": {
-                "label": "Compared against",
-                "detail": "Other players' games in your replays"
-            },
+            "subtitle": "Your {games, plural, one {<num>{games, number}</num> game} other {<num>{games, number}</num> games}}, ranked against {pool, plural, one {<num>{pool, number}</num> game} other {<num>{pool, number}</num> games}} from other players in your replays.",
+            "subtitleEmpty": "Ranked against the other players in your replays.",
             "method": {
                 "trigger": "How it's scored",
                 "title": "How your score works",
-                "subtitle": "Follow one Anduin game through the four steps.",
+                "subtitle": "One Anduin game, start to finish.",
                 "steps": {
                     "games": {
-                        "title": "Your games",
-                        "all": "Quick Match and draft games over 10 minutes count.",
-                        "draft": "Draft games over 10 minutes count.",
-                        "quickMatch": "Quick Match games over 10 minutes count."
+                        "label": "Counts",
+                        "all": "Quick Match and draft games over 10 minutes.",
+                        "draft": "Draft games over 10 minutes.",
+                        "quickMatch": "Quick Match games over 10 minutes."
                     },
                     "rate": {
-                        "title": "Each stat, made fair",
-                        "body": "Per minute, or as your share of the team, so a long game doesn't win by default."
+                        "label": "Made fair",
+                        "body": "Per minute or as a share of the team, so long games don't win by default."
                     },
                     "rank": {
-                        "title": "Ranked against others",
-                        "body": "The share of other players' games in your replays you beat, on the same hero. Rarely played heroes lean on their role instead."
+                        "label": "Ranked",
+                        "body": "Against other Anduin games in your replays, or the role's when the hero is rare."
                     },
                     "weight": {
-                        "title": "Weighted for your hero",
-                        "body": "Each stat counts as much as it matters on the hero, so healing weighs more on a healer. Your score is the average of your games: career across all of them, recent across the last {window}."
+                        "label": "Points",
+                        "body": "Fighting is worth {fighting} of 100, team role {teamRole}, map {map} and survival {survival}, each split among its stats by how much they matter on the hero. A part with no stat for the hero hands its points to the rest. You earn it by the share you beat."
                     }
                 },
                 "example": {
-                    "games": {
-                        "draft": "Draft, 22 min",
-                        "quickMatch": "Quick Match, 18 min",
-                        "aram": "ARAM",
-                        "short": "Draft, 8 min"
-                    },
                     "rate": "Healing <mono>{total} in {minutes} min</mono> is <accent>{perMinute} per min</accent>",
-                    "rank": "Healing on Anduin",
-                    "beat": "beat {share}"
-                }
+                    "rank": "Healing <accent>beat {share}</accent>",
+                    "total": "This game"
+                },
+                "footnote": "Your score averages your games, so a stat's max is its average worth across them."
             },
             "unrated": {
-                "all": "{count, plural, one {# more game} other {# more games}} to get a score. Quick Match and draft games over 10 minutes count.",
-                "draft": "{count, plural, one {# more game} other {# more games}} to get a score. Draft games over 10 minutes count.",
-                "quickMatch": "{count, plural, one {# more game} other {# more games}} to get a score. Quick Match games over 10 minutes count.",
+                "all": "Unlocks in {count, plural, one {# more Quick Match or draft game} other {# more Quick Match or draft games}}.",
+                "draft": "Unlocks in {count, plural, one {# more draft game} other {# more draft games}}.",
+                "quickMatch": "Unlocks in {count, plural, one {# more Quick Match game} other {# more Quick Match games}}.",
                 "thin": "Your replays don't have enough other players on your roles to compare with yet."
             },
             "scope": {
@@ -111,27 +103,11 @@
                 "label": "Ratings",
                 "under": "Under {max}",
                 "between": "{min} to {max}",
-                "over": "{min} and up",
-                "passed": "Passed",
-                "here": "You are here",
-                "toGo": "{points} to go",
-                "unrated": "No score yet"
+                "over": "{min} and up"
             },
             "rankUp": "Rank up, {rank}",
             "rankDown": "Rank down, {rank}",
             "points": "<b>{points}</b><of> / {max}</of>",
-            "spread": {
-                "yours": "Your game scores",
-                "theirs": "Their game scores",
-                "legend": {
-                    "marked": "Your score",
-                    "base": "Your games",
-                    "under": "Below",
-                    "over": "Above"
-                }
-            },
-            "careerGames": "Career games",
-            "careerDetail": "Counted in your score",
             "tier": {
                 "exceptional": "Exceptional",
                 "standout": "Standout",
@@ -140,7 +116,6 @@
                 "belowAverage": "Below average",
                 "wellBelowAverage": "Well below average"
             },
-            "ahead": "Ahead of {share} of players",
             "history": {
                 "title": "Score over time",
                 "subtitle": "Your score after each game, against today's pool",
@@ -661,7 +636,10 @@
                 "hardCc": "Hard CC on heroes",
                 "protection": "Damage prevented on allies",
                 "killParticipation": "Kill participation",
-                "deathShare": "Share of team deaths"
+                "deathShare": "Share of team deaths",
+                "timeDeadShare": "Share of team time dead",
+                "mercCaptures": "Merc camps captured",
+                "teamfightHeroDamageShare": "Share of team hero damage in fights"
             },
             "statPhrase": {
                 "heroDamage": "<b>{value}</b> hero damage",
@@ -673,7 +651,10 @@
                 "hardCc": "<b>{value}</b> hard CC on heroes",
                 "protection": "<b>{value}</b> damage prevented on allies",
                 "killParticipation": "<b>{value}</b> kill participation",
-                "deathShare": "<b>{value}</b> of the team's deaths"
+                "deathShare": "<b>{value}</b> of the team's deaths",
+                "timeDeadShare": "<b>{value}</b> of the team's time dead",
+                "mercCaptures": "<b>{value}</b> merc camps captured",
+                "teamfightHeroDamageShare": "<b>{value}</b> of the team's hero damage in fights"
             }
         },
         "deathMap": {

@@ -81,8 +81,6 @@ export type ProfileScore = {
     pillars: ScorePillar[];
     heroes: HeroScoreRow[];
     history: ScorePoint[];
-    spread: number[];
-    poolSpread: number[];
 };
 
 export const getProfileSummary = () =>

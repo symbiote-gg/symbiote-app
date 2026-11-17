@@ -348,7 +348,10 @@ export type RoleStat =
     | "hardCc"
     | "protection"
     | "killParticipation"
-    | "deathShare";
+    | "deathShare"
+    | "timeDeadShare"
+    | "mercCaptures"
+    | "teamfightHeroDamageShare";
 
 export type RoleVerdict = "ally" | "enemy" | "even";
 

@@ -1,29 +1,26 @@
 @reference "@/index.css";
 
 .root {
-    @apply @container;
-}
-
-.tiers {
-    @apply flex flex-col-reverse gap-3 @lg:grid @lg:grid-cols-[repeat(auto-fit,minmax(13rem,1fr))];
+    @apply grid grid-cols-2 gap-x-1.5 gap-y-5 sm:grid-cols-3 xl:grid-cols-6;
 }
 
 .tier {
-    @apply grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 rounded-lg border border-tile-line bg-surface-2 p-4;
+    @apply flex min-w-0 flex-col gap-3;
+    --accent: var(--rank);
     --tier-rank: var(--rank);
     --tier-rank-text: var(--rank-text);
 }
 
-.tier[data-state="current"] {
-    @apply bg-tile-hover;
+.segment {
+    @apply w-full;
 }
 
-.badge {
-    @apply flex flex-col items-center gap-2;
+.label {
+    @apply flex min-w-0 items-center gap-2.5;
 }
 
 .gem {
-    @apply size-10 shrink-0;
+    @apply size-5 shrink-0;
 }
 
 /* Unreached ranks keep their hue, muted, so the ladder previews each one. The
@@ -37,31 +34,18 @@
     );
 }
 
-.pips {
-    @apply flex gap-1;
-}
-
-.pip {
-    @apply size-1 rounded-full;
-    background: var(--rank);
-}
-
-.tier[data-state="ahead"] .pip {
-    background: color-mix(
-        in oklab,
-        var(--tier-rank) 45%,
-        var(--color-line-strong)
-    );
-}
-
 .text {
-    @apply flex min-w-0 flex-col gap-1;
+    @apply flex min-w-0 flex-col;
 }
 
-.root .name {
-    color: var(--rank-text);
+.tier .name {
+    color: var(--tier-rank-text);
 }
 
-.statusBar {
-    @apply w-16;
+.tier[data-state="ahead"] .name {
+    color: color-mix(
+        in oklab,
+        var(--tier-rank-text) 45%,
+        var(--color-fg-faint)
+    );
 }

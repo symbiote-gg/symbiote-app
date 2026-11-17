@@ -1,40 +1,103 @@
 import classNames from "classnames";
-import { ChevronDown } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
-import type { ScorePillar } from "@/api/stats";
-import { useFormatStat } from "@/hooks/useFormatStat";
-import { Collapse, Meter, Typography } from "@/ui";
+import type { RoleStat } from "@/api/replays";
+import type { ScorePillar, ScorePillarId } from "@/api/stats";
+import { Meter, Typography } from "@/ui";
+import { PILLAR_IDS, PILLAR_STATS } from "../pillars";
 import { pillarTone } from "../tones";
 
 import styles from "./styles.module.css";
 
-const richPoints = (chunks: ReactNode) => (
+// Only the part's total carries `data-points`: the ring's count-up writes into it.
+const richTotal = (chunks: ReactNode) => (
     <span className={styles.points} data-points>
         {chunks}
     </span>
+);
+
+const richPoints = (chunks: ReactNode) => (
+    <span className={styles.points}>{chunks}</span>
 );
 
 const richMax = (chunks: ReactNode) => (
     <span className={styles.max}>{chunks}</span>
 );
 
-interface PartProps {
-    pillar: ScorePillar;
+interface PartHeadProps {
+    id: ScorePillarId;
+    total: ReactNode;
+    className?: string;
 }
 
-function Part({ pillar }: PartProps) {
+function PartHead({ id, total, className }: PartHeadProps) {
     const t = useTranslations("profile.score");
+
+    return (
+        <div className={styles.head}>
+            <span className={styles.dot} />
+            <Typography as="span" weight="semibold" truncate>
+                {t(`pillar.${id}`)}
+            </Typography>
+            <Typography
+                as="span"
+                size="lg"
+                mono
+                noWrap
+                className={classNames(styles.total, className)}
+            >
+                {total}
+            </Typography>
+        </div>
+    );
+}
+
+interface StatRowProps {
+    stat: RoleStat;
+    weight: number;
+    value: number;
+    children: ReactNode;
+    className?: string;
+}
+
+function StatRow({ stat, weight, value, children, className }: StatRowProps) {
     const names = useTranslations("replay.rolePerformances.stat");
-    const { percent } = useFormatStat();
-    const [open, setOpen] = useState(false);
 
-    const onToggle = () => {
-        setOpen((value) => !value);
-    };
+    return (
+        <li className={styles.stat}>
+            <Typography as="span" size="sm" variant="secondary" noWrap>
+                {names(stat)}
+            </Typography>
+            <span
+                className={styles.track}
+                style={{ "--weight": weight } as CSSProperties}
+            >
+                <Meter value={value} color="accent" className={styles.meter} />
+            </span>
+            <Typography
+                as="span"
+                size="sm"
+                variant="secondary"
+                mono
+                noWrap
+                className={classNames(styles.value, className)}
+            >
+                {children}
+            </Typography>
+        </li>
+    );
+}
 
-    // Heaviest first: the order is the only sign of a stat's weight in its part.
+interface PartProps {
+    pillar: ScorePillar;
+    heaviest: number;
+}
+
+function Part({ pillar, heaviest }: PartProps) {
+    const t = useTranslations("profile.score");
+
+    // Heaviest first, as the track lengths already show.
     const stats = [...pillar.stats].sort((a, b) => b.max - a.max);
 
     return (
@@ -43,92 +106,95 @@ function Part({ pillar }: PartProps) {
             style={pillarTone(pillar.id)}
             data-pillar={pillar.id}
         >
-            <button
-                type="button"
-                aria-expanded={open}
-                className={classNames(styles.head, styles.summary)}
-                onClick={onToggle}
-            >
-                <span className={styles.dot} />
-                <Typography as="span" size="sm" weight="semibold" truncate>
-                    {t(`pillar.${pillar.id}`)}
-                </Typography>
-                <Meter
-                    value={pillar.points / pillar.max}
-                    color="accent"
-                    size="md"
-                    className={styles.meter}
-                />
-                <Typography
-                    as="span"
-                    size="sm"
-                    mono
-                    noWrap
-                    className={styles.value}
-                >
-                    {t.rich("points", {
-                        points: pillar.points,
-                        max: pillar.max,
-                        b: richPoints,
-                        of: richMax,
-                    })}
-                </Typography>
-                <ChevronDown size={16} className={styles.chevron} />
-            </button>
-            <Collapse open={open}>
-                <div className={styles.detail}>
-                    <Typography
-                        size="xs"
-                        variant="tertiary"
-                        className={styles.caption}
+            <PartHead
+                id={pillar.id}
+                total={t.rich("points", {
+                    points: pillar.points,
+                    max: pillar.max,
+                    b: richTotal,
+                    of: richMax,
+                })}
+            />
+            <Meter
+                value={pillar.points / pillar.max}
+                color="accent"
+                size="md"
+                className={styles.meter}
+            />
+            <ul className={styles.stats}>
+                {stats.map((stat) => (
+                    <StatRow
+                        key={stat.stat}
+                        stat={stat.stat}
+                        weight={stat.max / heaviest}
+                        value={stat.points / stat.max}
                     >
-                        {t("ahead", { share: percent(pillar.percentile) })}
-                    </Typography>
-                    <ul className={styles.stats}>
-                        {stats.map((stat) => (
-                            <li key={stat.stat} className={styles.stat}>
-                                <Typography
-                                    as="span"
-                                    size="sm"
-                                    variant="secondary"
-                                    noWrap
-                                    className={styles.label}
-                                >
-                                    {names(stat.stat)}
-                                </Typography>
-                                <Meter
-                                    value={stat.percentile}
-                                    color="accent"
-                                    className={styles.meter}
-                                />
-                                <Typography
-                                    as="span"
-                                    size="sm"
-                                    variant="secondary"
-                                    mono
-                                    noWrap
-                                    className={styles.value}
-                                >
-                                    {percent(stat.percentile)}
-                                </Typography>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            </Collapse>
+                        {t.rich("points", {
+                            points: stat.points,
+                            max: stat.max,
+                            b: richPoints,
+                            of: richMax,
+                        })}
+                    </StatRow>
+                ))}
+            </ul>
         </li>
     );
 }
 
 export interface PartsProps {
     pillars: ScorePillar[];
+    className?: string;
 }
 
-export function Parts({ pillars }: PartsProps) {
+export function Parts({ pillars, className }: PartsProps) {
+    // One scale across every part, so a stat's track is as long as its points
+    // are worth anywhere on the card.
+    const heaviest = Math.max(
+        1,
+        ...pillars.flatMap((pillar) => pillar.stats.map((stat) => stat.max)),
+    );
+
     return (
-        <ul className={styles.root}>
+        <ul className={classNames(styles.root, className)}>
             {pillars.map((pillar) => (
-                <Part key={pillar.id} pillar={pillar} />
+                <Part key={pillar.id} pillar={pillar} heaviest={heaviest} />
+            ))}
+        </ul>
+    );
+}
+
+export interface PartsEmptyProps {
+    className?: string;
+}
+
+/** The parts before there is a score: every stat that will count, unfilled. */
+export function PartsEmpty({ className }: PartsEmptyProps) {
+    return (
+        <ul className={classNames(styles.root, className)}>
+            {PILLAR_IDS.map((id) => (
+                <li key={id} className={styles.part} style={pillarTone(id)}>
+                    <PartHead id={id} total="-" className={styles.max} />
+                    <Meter
+                        value={0}
+                        color="accent"
+                        size="md"
+                        className={styles.meter}
+                    />
+                    <ul className={styles.stats}>
+                        {PILLAR_STATS[id].map((stat) => (
+                            <StatRow
+                                key={stat}
+                                stat={stat}
+                                weight={1}
+                                value={0}
+                                className={styles.max}
+                            >
+                                -
+                            </StatRow>
+                        ))}
+                    </ul>
+                </li>
             ))}
         </ul>
     );

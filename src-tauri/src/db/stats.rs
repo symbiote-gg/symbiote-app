@@ -81,6 +81,7 @@ async fn scored_players(
              json_extract(gp.score, '$.Healing') AS healing,
              json_extract(gp.score, '$.DamageTaken') AS damage_taken,
              json_extract(gp.score, '$.TeamfightDamageTaken') AS teamfight_damage_taken,
+             json_extract(gp.score, '$.TeamfightHeroDamage') AS teamfight_hero_damage,
              json_extract(gp.score, '$.ExperienceContribution') AS xp,
              CASE WHEN json_extract(gp.score, '$.TimeStunningEnemyHeroes') IS NULL
                      AND json_extract(gp.score, '$.TimeRootingEnemyHeroes') IS NULL
@@ -91,6 +92,8 @@ async fn scored_players(
                      + COALESCE(json_extract(gp.score, '$.TimeSilencingEnemyHeroes'), 0)
              END AS hard_cc,
              json_extract(gp.score, '$.ProtectionGivenToAllies') AS protection,
+             gp.time_dead_secs,
+             json_extract(gp.score, '$.MercCampCaptures') AS merc_captures,
              EXISTS (
                  SELECT 1 FROM replays r
                  WHERE r.game_id = g.id AND r.owner_player_id = gp.player_id

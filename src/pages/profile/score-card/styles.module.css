@@ -4,27 +4,22 @@
     @apply flex flex-col gap-8 px-gutter pb-6;
 }
 
-.unrated {
-    @apply flex flex-col items-center gap-1 text-center;
-}
-
+/* The ring with its progress, then the parts it is made of. */
 .overview {
-    --ring: 25rem;
-    /* One collapsed part row plus half the gap between two: the lists' middle. */
-    --parts-half: 3rem;
-    @apply grid items-start gap-x-8 gap-y-2 xl:grid-cols-[minmax(0,1fr)_var(--ring)_minmax(0,1fr)];
+    --ring: 18rem;
+    @apply grid items-center gap-6 xl:grid-cols-[var(--ring)_minmax(0,1fr)];
 }
 
 .rating {
-    @apply order-first flex flex-col items-center gap-1 pb-6 text-center xl:order-none xl:pb-0;
+    @apply flex flex-col items-center gap-1 text-center;
 }
 
-.side {
-    @apply flex flex-col gap-3 xl:grid xl:grid-rows-[calc(var(--ring)/2-var(--parts-half))_auto] xl:gap-0;
+.caption {
+    @apply flex items-center justify-center gap-1.5;
 }
 
-.fact {
-    @apply xl:mb-3 xl:self-end;
+.parts {
+    @apply w-full;
 }
 
 .live {

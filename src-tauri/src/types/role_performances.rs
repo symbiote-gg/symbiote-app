@@ -2,7 +2,8 @@ use serde::Serialize;
 
 use crate::types::hero::HeroRole;
 
-/// Declared in the order a role's stats are listed on one line, death share last.
+/// Declared in the order a role's stats are listed on one line, death share last of
+/// the replay's. The profile score alone reads the ones after it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum RoleStat {
@@ -20,6 +21,11 @@ pub enum RoleStat {
     KillParticipation,
     /// Deaths as a percent of the team's deaths.
     DeathShare,
+    /// Time spent dead as a share of the team's.
+    TimeDeadShare,
+    MercCaptures,
+    /// Hero damage in teamfights as a share of the team's.
+    TeamfightHeroDamageShare,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

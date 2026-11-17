@@ -17,7 +17,7 @@ use crate::types::replay::{
 };
 
 /// Score screen stats kept per player; the parser emits ~130, mostly unused or zero.
-const SCORE_KEYS: [&str; 18] = [
+const SCORE_KEYS: [&str; 19] = [
     "SoloKill",
     "Deaths",
     "Assists",
@@ -29,6 +29,7 @@ const SCORE_KEYS: [&str; 18] = [
     "SelfHealing",
     "DamageTaken",
     "TeamfightDamageTaken",
+    "TeamfightHeroDamage",
     "ExperienceContribution",
     "TimeStunningEnemyHeroes",
     "TimeRootingEnemyHeroes",

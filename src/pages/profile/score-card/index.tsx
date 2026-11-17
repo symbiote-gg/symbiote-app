@@ -1,8 +1,8 @@
-import { Gamepad2, Gauge, Users } from "lucide-react";
+import { Gamepad2, Gauge } from "lucide-react";
 import { useRef, useState } from "react";
-import { useFormatter, useTranslations } from "use-intl";
+import { useTranslations } from "use-intl";
 
-import type { ScorePillarId, ScoreScope } from "@/api/stats";
+import type { ScoreScope } from "@/api/stats";
 import { useLastShownScore } from "@/hooks/useLastShownScore";
 import { useProfileScore } from "@/hooks/useProfileScore";
 import {
@@ -10,17 +10,16 @@ import {
     CardHeader,
     ErrorMessage,
     Select,
-    StatTile,
     Typography,
+    rollingChunks,
 } from "@/ui";
 import { HeroTiers } from "./heroes";
 import { History } from "./history";
 import { Ladder } from "./ladder";
 import { Method } from "./method";
-import { Parts } from "./parts";
+import { Parts, PartsEmpty } from "./parts";
 import { ScoreRing } from "./ring";
 import { BodySkeleton } from "./skeleton";
-import { Spread, SpreadLegend } from "./spread";
 import { type ScoreTier, TIERS, tierProgress } from "./tiers";
 
 import styles from "./styles.module.css";
@@ -29,12 +28,8 @@ type ModeScope = Exclude<ScoreScope, "all">;
 
 const SCOPES: readonly ModeScope[] = ["draft", "quickMatch"];
 
-// The rest stand right of the ring. A part without a weighted stat isn't sent.
-const LEFT_PILLARS: readonly ScorePillarId[] = ["fighting", "survival"];
-
 export function ScoreCard() {
     const t = useTranslations("profile.score");
-    const format = useFormatter();
     const [scope, setScope] = useState<ScoreScope>("all");
     const [announcement, setAnnouncement] = useState("");
     const overview = useRef<HTMLDivElement>(null);
@@ -114,13 +109,15 @@ export function ScoreCard() {
             <CardHeader
                 icon={Gauge}
                 title={t("title")}
-                addon={
-                    <Method
-                        scope={data?.scope ?? scope}
-                        recent={data?.window}
-                    />
+                subtitle={
+                    data && data.career !== null
+                        ? t.rich("subtitle", {
+                              games: data.careerGames,
+                              pool: data.baselinePlayers,
+                              num: rollingChunks,
+                          })
+                        : t("subtitleEmpty")
                 }
-                subtitle={t("subtitle")}
                 action={
                     <Select
                         icon={<Gamepad2 />}
@@ -138,46 +135,27 @@ export function ScoreCard() {
                 !error && <BodySkeleton />
             ) : data.career === null ? (
                 <div className={styles.body}>
-                    <Ladder score={null} />
-                    <div className={styles.unrated}>
-                        <ScoreRing
-                            value={null}
-                            pillars={data.pillars}
-                            label={t("notEnough")}
-                        />
-                        <Typography size="sm" variant="tertiary">
-                            {unrated(data)}
-                        </Typography>
+                    <div className={styles.overview}>
+                        <div className={styles.rating}>
+                            <ScoreRing
+                                value={null}
+                                pillars={data.pillars}
+                                label={t("notEnough")}
+                            />
+                            <div className={styles.caption}>
+                                <Typography size="sm" variant="tertiary">
+                                    {unrated(data)}
+                                </Typography>
+                                <Method scope={data.scope} />
+                            </div>
+                        </div>
+                        <PartsEmpty className={styles.parts} />
                     </div>
+                    <Ladder score={null} />
                 </div>
             ) : (
                 <div className={styles.body}>
-                    <Ladder score={shown ?? data.career} />
                     <div ref={overview} className={styles.overview}>
-                        <div className={styles.side}>
-                            <StatTile
-                                variant="panel"
-                                icon={Gamepad2}
-                                label={t("careerGames")}
-                                value={format.number(data.careerGames)}
-                                detail={t("careerDetail")}
-                                meta={t("spread.yours")}
-                                footer={<SpreadLegend tone="single" />}
-                                aside={
-                                    <Spread
-                                        bins={data.spread}
-                                        marker={data.career}
-                                        tone="single"
-                                    />
-                                }
-                                className={styles.fact}
-                            />
-                            <Parts
-                                pillars={data.pillars.filter((pillar) =>
-                                    LEFT_PILLARS.includes(pillar.id),
-                                )}
-                            />
-                        </div>
                         <div className={styles.rating}>
                             <ScoreRing
                                 key={data.scope}
@@ -195,39 +173,23 @@ export function ScoreCard() {
                                     progress: progress(data.career),
                                 })}
                             />
-                            <Typography size="sm" variant="tertiary">
-                                {progress(shown ?? data.career)}
-                            </Typography>
+                            <div className={styles.caption}>
+                                <Typography size="sm" variant="tertiary">
+                                    {progress(shown ?? data.career)}
+                                </Typography>
+                                <Method scope={data.scope} />
+                            </div>
                             <span aria-live="polite" className={styles.live}>
                                 {announcement}
                             </span>
                         </div>
-                        <div className={styles.side}>
-                            <StatTile
-                                variant="panel"
-                                icon={Users}
-                                label={t("pool.label")}
-                                value={format.number(data.baselinePlayers)}
-                                detail={t("pool.detail")}
-                                meta={t("spread.theirs")}
-                                footer={<SpreadLegend tone="split" />}
-                                aside={
-                                    <Spread
-                                        bins={data.poolSpread}
-                                        marker={data.career}
-                                        tone="split"
-                                    />
-                                }
-                                className={styles.fact}
-                            />
-                            <Parts
-                                pillars={data.pillars.filter(
-                                    (pillar) =>
-                                        !LEFT_PILLARS.includes(pillar.id),
-                                )}
-                            />
-                        </div>
+                        <Parts
+                            key={data.scope}
+                            pillars={data.pillars}
+                            className={styles.parts}
+                        />
                     </div>
+                    <Ladder key={data.scope} score={shown ?? data.career} />
                     <History
                         points={data.history}
                         score={data.score}
