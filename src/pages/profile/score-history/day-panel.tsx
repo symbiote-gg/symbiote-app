@@ -2,7 +2,7 @@ import { useFormatter, useTranslations } from "use-intl";
 
 import { Chip, Eyebrow, Typography } from "@/ui";
 import { usePlayedDate } from "@/utils/dates";
-import { TIERS, rankTone, tierIndex } from "../tiers";
+import { TIERS, rankTone, tierIndex } from "../score-card/tiers";
 import type { ScoreDay } from "./days";
 
 import styles from "./styles.module.css";

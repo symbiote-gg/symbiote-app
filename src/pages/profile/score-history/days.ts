@@ -2,21 +2,21 @@ import dayjs, { type Dayjs } from "dayjs";
 
 import type { ScorePoint } from "@/api/stats";
 
+export type Range = "3m" | "6m" | "1y" | "all";
+
+export const RECENT: readonly Range[] = ["3m", "6m", "1y"];
+
 export type ScoreDay = {
     day: Dayjs;
-    /** Where the day sits on the axis, clipped to it, in ms. */
     from: number;
     to: number;
     games: number;
-    /** The score after the day's last game, or carried from before. */
     score: number;
-    /** The score at the end of the day before, `null` before the first one. */
     previous: number | null;
 };
 
 const time = (point: ScorePoint) => new Date(point.timestamp).getTime();
 
-/** Every day on the axis from the first score on, rest days included. */
 export function scoreDays(points: ScorePoint[], start: number, end: number) {
     const days: ScoreDay[] = [];
     let next = 0;

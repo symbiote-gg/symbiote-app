@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { Eyebrow } from "../eyebrow";
 import { rolling } from "../rolling-number/rolling";
@@ -10,29 +10,34 @@ import styles from "./styles.module.css";
 export interface StatProps {
     label: ReactNode;
     children: ReactNode;
+    note?: ReactNode;
     size?: "sm" | "lg";
     mono?: boolean;
     truncate?: boolean;
     inline?: boolean;
     className?: string;
     valueClassName?: string;
+    style?: CSSProperties;
 }
 
 export function Stat({
     label,
     children,
+    note,
     size = "lg",
     mono = true,
     truncate,
     inline,
     className,
     valueClassName,
+    style,
 }: StatProps) {
     return (
         <div
             className={classNames(className, styles.root, {
                 [styles.inline]: inline,
             })}
+            style={style}
         >
             <Eyebrow as="dt" truncate>
                 {label}
@@ -51,6 +56,17 @@ export function Stat({
                 )}
             >
                 {rolling(children)}
+                {note && (
+                    <Typography
+                        as="span"
+                        size="xs"
+                        weight="regular"
+                        variant="tertiary"
+                        className={styles.note}
+                    >
+                        {note}
+                    </Typography>
+                )}
             </Typography>
         </div>
     );

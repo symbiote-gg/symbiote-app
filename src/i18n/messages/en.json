@@ -122,7 +122,7 @@
             },
             "history": {
                 "title": "Score over time",
-                "subtitle": "Your score after each game, against today's pool",
+                "subtitle": "Your score after each game, against today's pool.",
                 "best": "Best stretch",
                 "lowest": "Lowest stretch",
                 "games": "{count, plural, one {# game} other {# games}}",

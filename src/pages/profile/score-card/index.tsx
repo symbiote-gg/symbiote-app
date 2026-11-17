@@ -14,7 +14,6 @@ import {
     rollingChunks,
 } from "@/ui";
 import { HeroTiers } from "./heroes";
-import { History } from "./history";
 import { Ladder } from "./ladder";
 import { Method } from "./method";
 import { Parts, PartsEmpty } from "./parts";
@@ -28,9 +27,13 @@ type ModeScope = Exclude<ScoreScope, "all">;
 
 const SCOPES: readonly ModeScope[] = ["draft", "quickMatch"];
 
-export function ScoreCard() {
+export interface ScoreCardProps {
+    scope: ScoreScope;
+    onScopeChange: (scope: ScoreScope) => void;
+}
+
+export function ScoreCard({ scope, onScopeChange }: ScoreCardProps) {
     const t = useTranslations("profile.score");
-    const [scope, setScope] = useState<ScoreScope>("all");
     const [announcement, setAnnouncement] = useState("");
     const overview = useRef<HTMLDivElement>(null);
     const { data, error } = useProfileScore(scope);
@@ -79,7 +82,7 @@ export function ScoreCard() {
         settle(up ? TIERS[index].from : TIERS[index + 1].from - 1);
     };
 
-    const onScope = (value: ModeScope | null) => setScope(value ?? "all");
+    const onScope = (value: ModeScope | null) => onScopeChange(value ?? "all");
 
     const scopes = SCOPES.map((value) => ({
         value,
@@ -107,6 +110,7 @@ export function ScoreCard() {
     return (
         <Card>
             <CardHeader
+                size="sm"
                 icon={Gauge}
                 title={t("title")}
                 subtitle={
@@ -193,11 +197,6 @@ export function ScoreCard() {
                         />
                     </div>
                     <Ladder key={data.scope} score={shown ?? data.career} />
-                    <History
-                        points={data.history}
-                        score={data.score}
-                        games={data.games}
-                    />
                     <HeroTiers heroes={data.heroes} />
                 </div>
             )}

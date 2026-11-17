@@ -24,3 +24,7 @@
 .value.lg {
     @apply text-xl;
 }
+
+.note {
+    @apply ml-2 font-sans;
+}

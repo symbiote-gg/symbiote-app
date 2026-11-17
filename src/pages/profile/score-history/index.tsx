@@ -1,14 +1,25 @@
 import { History as HistoryIcon } from "lucide-react";
-import { type CSSProperties, type MouseEvent, useId, useState } from "react";
+import { type MouseEvent, useId, useState } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
-import type { ScorePoint } from "@/api/stats";
-import { ChipButton, ChipDivider, ChipGroup, StatTile, Typography } from "@/ui";
+import type { ScorePoint, ScoreScope } from "@/api/stats";
+import { useProfileScore } from "@/hooks/useProfileScore";
+import {
+    Card,
+    CardHeader,
+    ChipButton,
+    ChipDivider,
+    ChipGroup,
+    ErrorMessage,
+    Stat,
+    Typography,
+} from "@/ui";
 import { usePlayedDate } from "@/utils/dates";
-import { GemIcon } from "../gem";
-import { TIERS, rankTone, tierIndex, tierRange } from "../tiers";
-import { type ScoreDay, scoreDays } from "./days";
+import { GemIcon } from "../score-card/gem";
+import { TIERS, rankTone, tierIndex, tierRange } from "../score-card/tiers";
+import { RECENT, type Range, type ScoreDay, scoreDays } from "./days";
 import { Hits } from "./hits";
+import { HistorySkeleton } from "./skeleton";
 
 import styles from "./styles.module.css";
 
@@ -16,12 +27,6 @@ import styles from "./styles.module.css";
 const PAD = 5;
 
 const TOP = 100;
-
-export interface HistoryProps {
-    points: ScorePoint[];
-    score: number | null;
-    games: number;
-}
 
 const time = (point: ScorePoint) => new Date(point.timestamp).getTime();
 
@@ -73,11 +78,6 @@ function dateTicks(start: number, end: number) {
     return { unit: "month" as DateUnit, ticks };
 }
 
-/** The dates the axis spans: the picked range, or the games themselves. */
-type Range = "3m" | "6m" | "1y" | "all";
-
-const RECENT: readonly Range[] = ["3m", "6m", "1y"];
-
 const RANGE_MONTHS: Record<Exclude<Range, "all">, number> = {
     "3m": 3,
     "6m": 6,
@@ -99,7 +99,48 @@ function span(points: ScorePoint[], range: Range) {
     return { start, end: Math.max(end, start + DAY) };
 }
 
-export function History({ points, score, games }: HistoryProps) {
+/** The point with the highest score, or the lowest, the latest one on a tie. */
+function extreme(
+    points: ScorePoint[],
+    pick: (a: number, b: number) => boolean,
+) {
+    return points.reduce<ScorePoint | null>(
+        (found, point) =>
+            !found || !pick(found.score, point.score) ? point : found,
+        null,
+    );
+}
+
+const tierText = (score: number) => rankTone(TIERS[tierIndex(score)].rank);
+
+export interface ScoreHistoryProps {
+    scope: ScoreScope;
+}
+
+export function ScoreHistory({ scope }: ScoreHistoryProps) {
+    const { data, error } = useProfileScore(scope);
+
+    if (error) return <ErrorMessage error={error} />;
+    if (!data) return <HistorySkeleton />;
+    if (data.career === null) return null;
+
+    return (
+        <History points={data.history} score={data.score} games={data.games} />
+    );
+}
+
+interface HistoryProps {
+    points: ScorePoint[];
+    score: number | null;
+    games: number;
+}
+
+interface StatValue {
+    score: number;
+    note: string;
+}
+
+function History({ points, score, games }: HistoryProps) {
     const t = useTranslations("profile.score");
     const format = useFormatter();
     const playedDate = usePlayedDate();
@@ -108,9 +149,8 @@ export function History({ points, score, games }: HistoryProps) {
 
     const axis = span(points, range);
     const shown = points.filter((point) => time(point) >= axis.start);
-    const scores = shown.map((point) => point.score);
-    const best = scores.length ? Math.max(...scores) : null;
-    const lowest = scores.length ? Math.min(...scores) : null;
+    const best = extreme(shown, (found, score) => found > score);
+    const lowest = extreme(shown, (found, score) => found < score);
 
     const onRangeClick = (e: MouseEvent<HTMLButtonElement>) =>
         setRange(e.currentTarget.value as Range);
@@ -146,54 +186,69 @@ export function History({ points, score, games }: HistoryProps) {
             year: year ? "numeric" : undefined,
         });
 
-    const stretch = (label: string, value: number | null) => (
-        <StatTile
-            variant="panel"
+    const stat = (label: string, value: StatValue | null) => (
+        <Stat
             label={label}
-            value={value ?? "-"}
-            icon={value === null ? undefined : GemIcon}
-            accent={value === null ? undefined : "tone"}
-
-            style={value === null ? undefined : tileTone(value)}
-        />
+            note={value?.note}
+            style={value ? tierText(value.score) : undefined}
+            valueClassName={value ? styles.value : undefined}
+        >
+            {value?.score ?? "-"}
+        </Stat>
     );
 
+    const dated = (point: ScorePoint | null) =>
+        point && {
+            score: point.score,
+            note: format.dateTime(new Date(point.timestamp), {
+                month: "short",
+                year: "numeric",
+            }),
+        };
+
     return (
-        <div className={styles.root}>
-            <div className={styles.header}>
-                <div className={styles.heading}>
-                    <Typography size="lg" weight="semibold">
-                        {t("history.title")}
-                    </Typography>
-                    <Typography size="sm" variant="tertiary">
-                        {t("history.subtitle")}
-                    </Typography>
-                </div>
-                <ChipGroup label={t("history.range.label")}>
-                    {RECENT.map(chip)}
-                    <ChipDivider />
-                    {chip("all")}
-                </ChipGroup>
-            </div>
-            <div className={styles.tiles}>
-                <StatTile
-                    variant="panel"
-                    icon={HistoryIcon}
-                    label={t("recent", { count: games })}
-                    value={score ?? "-"}
-                />
-                {stretch(t("history.best"), best)}
-                {stretch(t("history.lowest"), lowest)}
-            </div>
-            <Chart
-                id={id}
-                points={shown}
-                days={days}
-                dayLabels={dayLabels}
-                {...axis}
-                formatDate={formatDate}
+        <Card>
+            <CardHeader
+                size="sm"
+                icon={HistoryIcon}
+                title={t("history.title")}
+                subtitle={t("history.subtitle")}
+                action={
+                    <div className={styles.actions}>
+                        <dl className={styles.stats}>
+                            {stat(
+                                t("recent", { count: games }),
+                                score === null
+                                    ? null
+                                    : {
+                                          score,
+                                          note: t(
+                                              `tier.${TIERS[tierIndex(score)].tier}`,
+                                          ),
+                                      },
+                            )}
+                            {stat(t("history.best"), dated(best))}
+                            {stat(t("history.lowest"), dated(lowest))}
+                        </dl>
+                        <ChipGroup label={t("history.range.label")}>
+                            {RECENT.map(chip)}
+                            <ChipDivider />
+                            {chip("all")}
+                        </ChipGroup>
+                    </div>
+                }
             />
-        </div>
+            <div className={styles.body}>
+                <Chart
+                    id={id}
+                    points={shown}
+                    days={days}
+                    dayLabels={dayLabels}
+                    {...axis}
+                    formatDate={formatDate}
+                />
+            </div>
+        </Card>
     );
 }
 
@@ -244,15 +299,6 @@ function curve(points: ScorePoint[], start: number, end: number) {
         return { moment, score: at(moment) };
     });
 }
-
-const tierText = (score: number) => rankTone(TIERS[tierIndex(score)].rank);
-
-const tileTone = (score: number) =>
-    ({
-        ...tierText(score),
-        "--card-icon": "var(--rank)",
-        "--tone": "var(--rank-text)",
-    }) as CSSProperties;
 
 interface ChartProps {
     id: string;
@@ -355,17 +401,16 @@ function Chart({
         <div className={styles.chart}>
             <div className={styles.ticks}>
                 {ticks.map((tick) => (
-                    <Typography
+                    <span
                         key={tick}
-                        as="span"
-                        size="xs"
-                        variant="tertiary"
-                        mono
                         className={styles.tick}
-                        style={{ top: `${y(tick)}%` }}
+                        style={{ ...tierText(tick), top: `${y(tick)}%` }}
                     >
-                        {tick}
-                    </Typography>
+                        <GemIcon className={styles.tickGem} />
+                        <Typography as="span" size="xs" variant="tertiary" mono>
+                            {tick}
+                        </Typography>
+                    </span>
                 ))}
             </div>
             <div className={styles.plot}>
