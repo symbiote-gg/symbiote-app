@@ -15,11 +15,11 @@ import {
     Typography,
 } from "@/ui";
 import { usePlayedDate } from "@/utils/dates";
-import { GemIcon } from "../score-card/gem";
 import { TIERS, rankTone, tierIndex, tierRange } from "../score-card/tiers";
 import { RECENT, type Range, type ScoreDay, scoreDays } from "./days";
 import { Hits } from "./hits";
 import { HistorySkeleton } from "./skeleton";
+import { Ticks } from "./ticks";
 
 import styles from "./styles.module.css";
 
@@ -377,10 +377,6 @@ function Chart({
         ];
     });
 
-    const ticks = TIERS.slice(1)
-        .map(({ from }) => from)
-        .filter((from) => from >= low && from <= high);
-
     const bands = TIERS.map((step, index) => {
         const { min, max } = tierRange(index);
 
@@ -399,20 +395,7 @@ function Chart({
 
     return (
         <div className={styles.chart}>
-            <div className={styles.ticks}>
-                {ticks.map((tick) => (
-                    <span
-                        key={tick}
-                        className={styles.tick}
-                        style={{ ...tierText(tick), top: `${y(tick)}%` }}
-                    >
-                        <GemIcon className={styles.tickGem} />
-                        <Typography as="span" size="xs" variant="tertiary" mono>
-                            {tick}
-                        </Typography>
-                    </span>
-                ))}
-            </div>
+            <Ticks low={low} high={high} />
             <div className={styles.plot}>
                 <svg
                     viewBox="0 0 100 100"

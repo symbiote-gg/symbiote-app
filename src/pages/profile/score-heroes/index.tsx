@@ -1,5 +1,4 @@
 import { ChartScatter } from "lucide-react";
-import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import type { HeroScoreRow, ScoreScope } from "@/api/stats";
@@ -17,6 +16,7 @@ import {
     swarm,
 } from "./swarm";
 import { TierBars } from "./tier-bars";
+import { usePlotWidth } from "./use-plot-width";
 
 import styles from "./styles.module.css";
 
@@ -40,22 +40,7 @@ interface HeroesProps {
 
 function Heroes({ heroes }: HeroesProps) {
     const t = useTranslations("profile.score.heroes");
-    const plot = useRef<HTMLDivElement>(null);
-    const [width, setWidth] = useState(0);
-
-    useLayoutEffect(() => {
-        const element = plot.current;
-        if (!element) return;
-
-        const onResize = () => setWidth(element.clientWidth);
-
-        onResize();
-
-        const observer = new ResizeObserver(onResize);
-        observer.observe(element);
-
-        return () => observer.disconnect();
-    }, []);
+    const { ref: plot, width } = usePlotWidth();
 
     const ends = axis(heroes.map((hero) => hero.score));
     const x = (score: number) => position(score, width, ends);

@@ -141,8 +141,8 @@
                 "subtitle": "{few, plural, =0 {All {count} heroes you've played, one dot each at its score.} other {All {count} heroes you've played, one dot each at its score. Heroes under {min} games are small grey dots.}}",
                 "dotLabel": "{hero}: score {score}, {games, plural, one {# game} other {# games}}",
                 "gamesCount": "{count, plural, one {# game} other {# games}}",
-                "pool": "{count, plural, =0 {Role only, no other games to compare} one {# other game to compare} other {# other games to compare}}",
-                "smallPool": "{count, plural, =0 {Small pool, role only} one {Small pool, # other game to compare} other {Small pool, # other games to compare}}"
+                "pool": "{count, plural, =0 {Role only} one {vs # other game} other {vs # other games}}",
+                "smallPool": "{count, plural, =0 {Role only} other {Small pool of #}}"
             },
             "pillar": {
                 "fighting": "Fighting",
@@ -218,6 +218,11 @@
         "back": "Heroes",
         "notFound": "This hero does not exist.",
         "noGames": "No games on {hero} yet.",
+        "score": {
+            "suffix": " score",
+            "pool": "{count, plural, =0 {vs the role only} one {vs # other {hero} game} other {vs # other {hero} games}}",
+            "smallPool": "{count, plural, =0 {Small pool, vs the role only} one {Small pool, vs # other {hero} game} other {Small pool, vs # other {hero} games}}"
+        },
         "trend": {
             "title": "Win rate over time",
             "subtitle": "Climbing or sliding? Your career win rate on {hero} over the last {days} days, over games played per day.",

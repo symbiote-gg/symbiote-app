@@ -9,17 +9,16 @@ import { Chip, Meter, Typography } from "@/ui";
 import { GemIcon } from "../score-card/gem";
 import { TIERS, rankTone, tierIndex } from "../score-card/tiers";
 import { pillarTone } from "../score-card/tones";
+import { THIN_HERO_WEIGHT } from "./swarm";
 
 import styles from "./styles.module.css";
 
-// Under half, most of the comparison is against the hero's role.
-const THIN_HERO_WEIGHT = 0.5;
-
 export interface HeroPanelProps {
     hero: HeroScoreRow;
+    hideHeader?: boolean;
 }
 
-export function HeroPanel({ hero }: HeroPanelProps) {
+export function HeroPanel({ hero, hideHeader }: HeroPanelProps) {
     const t = useTranslations("profile.score");
     const { percent } = useFormatStat();
 
@@ -32,37 +31,45 @@ export function HeroPanel({ hero }: HeroPanelProps) {
 
     return (
         <div className={styles.panel} style={rankTone(rank)}>
-            <div className={styles.panelHeader}>
-                <HeroPortrait
-                    name={hero.name}
-                    portrait={hero.portrait}
-                    size="lg"
-                    className={styles.portrait}
-                />
-                <div className={styles.identity}>
-                    <Typography size="lg" weight="semibold" truncate>
-                        {hero.name}
-                    </Typography>
-                    <Chip
-                        size="sm"
-                        tone="rank"
-                        leading={
-                            <GemIcon className={styles.panelGem} aria-hidden />
-                        }
+            {!hideHeader && (
+                <div className={styles.panelHeader}>
+                    <HeroPortrait
+                        name={hero.name}
+                        portrait={hero.portrait}
+                        size="lg"
+                        className={styles.portrait}
+                    />
+                    <div className={styles.identity}>
+                        <Typography size="lg" weight="semibold" truncate>
+                            {hero.name}
+                        </Typography>
+                        <Chip
+                            size="sm"
+                            tone="rank"
+                            leading={
+                                <GemIcon
+                                    className={styles.panelGem}
+                                    aria-hidden
+                                />
+                            }
+                        >
+                            {t(`tier.${tier}`)}
+                        </Chip>
+                    </div>
+                    <Typography
+                        as="span"
+                        size="xl2"
+                        weight="semibold"
+                        mono
+                        className={classNames(
+                            styles.panelScore,
+                            styles.rankText,
+                        )}
                     >
-                        {t(`tier.${tier}`)}
-                    </Chip>
+                        {hero.score}
+                    </Typography>
                 </div>
-                <Typography
-                    as="span"
-                    size="xl2"
-                    weight="semibold"
-                    mono
-                    className={classNames(styles.panelScore, styles.rankText)}
-                >
-                    {hero.score}
-                </Typography>
-            </div>
+            )}
             <ul className={styles.pillars}>
                 {pillars.map((pillar) => (
                     <li

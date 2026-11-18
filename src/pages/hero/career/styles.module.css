@@ -102,6 +102,40 @@
     @apply text-2xl leading-none font-semibold;
 }
 
+.scoreTrigger {
+    @apply self-start;
+}
+
+.score {
+    @apply flex shrink-0 flex-col gap-2;
+}
+
+.popover {
+    @apply w-auto max-w-80 min-w-72 p-0;
+}
+
+.score .value {
+    @apply rounded-md text-5xl leading-none font-extrabold uppercase;
+    color: var(--rank-text);
+    font-stretch: 75%;
+}
+
+.score .suffix {
+    @apply text-2xl;
+}
+
+.score .meta {
+    @apply flex items-center gap-2;
+}
+
+.score .gem {
+    @apply size-3.5 shrink-0;
+}
+
+.score .poolIcon {
+    @apply size-4 shrink-0 text-warn;
+}
+
 .win,
 .loss {
     @apply ml-0.5 text-sm;
@@ -141,6 +175,18 @@
 
 .recordBar {
     @apply w-28;
+}
+
+.scoreBar {
+    @apply w-44;
+}
+
+.chipBar {
+    @apply h-7 w-28;
+}
+
+.poolBar {
+    @apply w-48;
 }
 
 .detailBar {

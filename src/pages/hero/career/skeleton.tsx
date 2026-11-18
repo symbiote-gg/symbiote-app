@@ -61,6 +61,7 @@ export function CareerSkeleton() {
                         <Skeleton className={styles.recordBar} />
                     </Typography>
                 </div>
+                <ScoreSkeleton />
             </div>
             <div className={styles.body}>
                 <TimePanelSkeleton />
@@ -78,5 +79,19 @@ export function CareerSkeleton() {
                 </div>
             </div>
         </header>
+    );
+}
+
+export function ScoreSkeleton() {
+    return (
+        <div className={styles.score}>
+            <Typography as="p" display className={styles.value}>
+                <Skeleton className={styles.scoreBar} />
+            </Typography>
+            <div className={styles.meta}>
+                <Skeleton className={styles.chipBar} />
+                <Skeleton className={styles.poolBar} />
+            </div>
+        </div>
     );
 }

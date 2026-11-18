@@ -135,8 +135,8 @@
     @apply size-3.5 shrink-0 text-warn;
 }
 
-.plotBar {
-    @apply absolute inset-0 size-full rounded-lg;
+.ghostDot {
+    @apply absolute -translate-x-1/2 rounded-full;
 }
 
 .subtitleBar {

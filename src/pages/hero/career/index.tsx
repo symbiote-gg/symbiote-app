@@ -13,6 +13,7 @@ import { useImageFallback } from "@/hooks/useImageFallback";
 import { Chip, Typography, WinRate, rollingChunks } from "@/ui";
 import { MIN_TEAM_SHARE, isJudged, winRate } from "@/utils/hero-stats";
 import { ROLE_ICONS } from "@/utils/role-icons";
+import { HeroScore } from "./score";
 
 import styles from "./styles.module.css";
 
@@ -101,6 +102,7 @@ export function Career({ hero }: CareerProps) {
                         </Typography>
                     </div>
                 )}
+                <HeroScore heroId={hero.heroId} hero={hero.name} />
             </div>
             {hero.games > 0 && (
                 <div className={styles.body}>

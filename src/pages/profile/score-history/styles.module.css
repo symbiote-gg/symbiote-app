@@ -74,8 +74,26 @@
     @apply absolute top-0 -translate-x-1/2 leading-none;
 }
 
-.plotBar {
-    @apply absolute inset-0 size-full rounded-lg;
+.ghostTop {
+    stop-color: var(--color-line);
+    stop-opacity: 0.6;
+}
+
+.ghostBottom {
+    stop-color: var(--color-line);
+    stop-opacity: 0;
+}
+
+.line .ghostStroke {
+    stroke: var(--color-line);
+}
+
+.ghostEnd {
+    --rank: var(--color-line);
+}
+
+.labelBar {
+    @apply w-9;
 }
 
 .statBar {
