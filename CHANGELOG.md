@@ -10,6 +10,11 @@ and this project adheres to
 
 ### Added
 
+- Add the Symbiote score to the profile page, with a score card, a score over
+  time card and a score by hero card.
+- Add a career header to the profile page.
+- Show the Symbiote score in the hero page header.
+- Add skeleton loadings to the hero, replay and profile pages.
 - Animate new replays in the lists, hero cards and map cards as they appear.
 - Add a particle effect to the hero page header.
 - Animate the role performances rows when expanding and collapsing them.
@@ -64,6 +69,12 @@ and this project adheres to
 
 ### Changed
 
+- Replace the battleground images with minimap SVGs.
+- Redesign the navigation bar.
+- Redesign the hero cards, making them less noisy.
+- Redesign the replays filters.
+- Improve the deaths map card.
+- Improve the theme colors contrast between layers, overlays and hovers.
 - Move the kill log right below the scoreboard in the replay detail page, hiding
   it when the replay events were purged.
 - Bump frontend dependencies.
@@ -97,6 +108,7 @@ and this project adheres to
 
 ### Fixed
 
+- Fix the hero card animation issues.
 - Fix the recent replay card not updating when watched replays are ingested.
 - Fix missing icons for a few older talents.
 - Improve the award icons quality.
