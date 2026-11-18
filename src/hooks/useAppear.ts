@@ -5,7 +5,6 @@ import {
     CARD_STAGGER,
     EASE_SETTLE_CURVE,
     EASE_SWEEP_CURVE,
-    ENTER_MS,
     REVEAL_MS,
     ROW_STAGGER,
     TRAVEL_MS,
@@ -93,11 +92,11 @@ function drop(el: HTMLElement, delay: number): Tween {
     return tween(
         el,
         ["transform", "filter"],
-        ENTER_MS,
+        TRAVEL_MS,
         delay,
         EASE_SETTLE_CURVE,
         (progress) => {
-            el.style.transform = `translateY(${lerp(-10, 0, progress)}px)`;
+            el.style.transform = `translateY(${lerp(-16, 0, progress)}px)`;
             el.style.filter = `brightness(${lerp(0.5, 1, progress)})`;
         },
     );
