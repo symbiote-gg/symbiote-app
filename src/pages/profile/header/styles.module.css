@@ -34,7 +34,7 @@
 }
 
 .identity {
-    @apply flex min-w-0 flex-col gap-9 px-gutter pt-11 pb-9 @4xl/career:flex-row @4xl/career:items-center @4xl/career:justify-between @4xl/career:gap-10;
+    @apply flex min-w-0 flex-col gap-9 px-gutter pt-6 pb-9 @4xl/career:flex-row @4xl/career:items-center @4xl/career:justify-between @4xl/career:gap-10;
 }
 
 .player {
