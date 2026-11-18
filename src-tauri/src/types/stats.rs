@@ -149,6 +149,7 @@ pub struct HeroScoreRow {
     /// How much of the comparison is against the hero's players, the rest being
     /// against its role's, from 0 to 1.
     pub hero_weight: f64,
+    pub pillars: Vec<ScorePillar>,
 }
 
 #[derive(Debug, FromRow)]

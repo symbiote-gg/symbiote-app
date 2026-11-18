@@ -1,7 +1,8 @@
 import { useFormatter, useTranslations } from "use-intl";
 
-import { Chip, Eyebrow, Typography } from "@/ui";
+import { Chip, Typography } from "@/ui";
 import { usePlayedDate } from "@/utils/dates";
+import { GemIcon } from "../score-card/gem";
 import { TIERS, rankTone, tierIndex } from "../score-card/tiers";
 import type { ScoreDay } from "./days";
 
@@ -12,57 +13,51 @@ export interface DayPanelProps {
 }
 
 export function DayPanel({ day }: DayPanelProps) {
-    const t = useTranslations("profile.score.history");
+    const t = useTranslations("profile.score");
     const format = useFormatter();
     const playedDate = usePlayedDate();
 
     const rest = day.games === 0;
-    const { rank } = TIERS[tierIndex(day.score)];
-    const change = day.previous === null ? null : day.score - day.previous;
+    const { rank, tier } = TIERS[tierIndex(day.score)];
+    const change = day.previous === null ? 0 : day.score - day.previous;
 
     return (
-        <>
+        <div className={styles.panel} style={rankTone(rank)}>
             <div className={styles.panelHeader}>
                 <Typography size="base" weight="semibold" noWrap>
                     {playedDate(day.day.format("YYYY-MM-DD"))}
                 </Typography>
+                <Typography as="span" size="sm" variant="tertiary" noWrap>
+                    {rest
+                        ? t("history.restDay")
+                        : t("history.games", { count: day.games })}
+                </Typography>
+            </div>
+
+            <div className={styles.valueRow}>
+                <Typography
+                    as="span"
+                    size="xl2"
+                    weight="semibold"
+                    mono
+                    className={styles.value}
+                >
+                    {day.score}
+                </Typography>
+                {change !== 0 && (
+                    <Chip size="sm" tone={change > 0 ? "win" : "loss"}>
+                        {format.number(change, { signDisplay: "exceptZero" })}
+                    </Chip>
+                )}
                 <Chip
                     size="sm"
-                    tone={rest ? "neutral" : "primary"}
-                    uppercase
-                    className={styles.panelChip}
+                    tone="rank"
+                    leading={<GemIcon className={styles.tierGem} aria-hidden />}
+                    className={styles.tierChip}
                 >
-                    {rest ? t("restDay") : t("games", { count: day.games })}
+                    {t(`tier.${tier}`)}
                 </Chip>
             </div>
-            <div className={styles.cells}>
-                <div className={styles.cell} style={rankTone(rank)}>
-                    <Eyebrow as="span" noWrap>
-                        {t("score")}
-                    </Eyebrow>
-                    <Typography
-                        as="span"
-                        size="lg"
-                        weight="semibold"
-                        mono
-                        className={styles.score}
-                    >
-                        {day.score}
-                    </Typography>
-                </div>
-                <div className={styles.cell}>
-                    <Eyebrow as="span" noWrap>
-                        {t("change")}
-                    </Eyebrow>
-                    <Typography as="span" size="lg" weight="semibold" mono>
-                        {change === null
-                            ? "-"
-                            : format.number(change, {
-                                  signDisplay: "exceptZero",
-                              })}
-                    </Typography>
-                </div>
-            </div>
-        </>
+        </div>
     );
 }

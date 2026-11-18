@@ -260,8 +260,18 @@ fn rate(player: &PlayerGame, stat: RoleStat, totals: &GameTotals) -> Option<f64>
 /// `pillars` keeps its sums at each stat's discriminant. The match stops the build
 /// when a stat is added, so the count is checked with it.
 const STAT_COUNT: usize = match TeamfightHeroDamageShare {
-    HeroDamage | SiegeDamage | Healing | DamageTakenShare | TeamfightDamageTakenShare | Xp
-    | HardCc | Protection | KillParticipation | DeathShare | TimeDeadShare | MercCaptures
+    HeroDamage
+    | SiegeDamage
+    | Healing
+    | DamageTakenShare
+    | TeamfightDamageTakenShare
+    | Xp
+    | HardCc
+    | Protection
+    | KillParticipation
+    | DeathShare
+    | TimeDeadShare
+    | MercCaptures
     | TeamfightHeroDamageShare => TeamfightHeroDamageShare as usize + 1,
 };
 
@@ -470,7 +480,7 @@ fn cap_points(points: &mut [u8], maxes: &[u8], raw: &[f64]) {
     }
 }
 
-fn pillars(games: &[ScoredGame], score: u8) -> Vec<ScorePillar> {
+fn pillars(games: &[&ScoredGame], score: u8) -> Vec<ScorePillar> {
     let count = games.len() as f64;
 
     // Per stat: summed points, summed max, summed percentile, games it counted in.
@@ -533,29 +543,30 @@ fn hero_rows(
     heroes: Vec<ScoredHero>,
     baselines: &Baselines,
 ) -> Vec<HeroScoreRow> {
-    // Per hero: games, summed score, summed hero weight.
-    let mut by_hero: HashMap<i64, (usize, f64, f64)> = HashMap::new();
+    let mut by_hero: HashMap<i64, Vec<&ScoredGame>> = HashMap::new();
     for game in games {
-        let (count, total, weight) = by_hero.entry(game.hero_id).or_default();
-        *count += 1;
-        *total += game.score;
-        *weight += game.hero_weight;
+        by_hero.entry(game.hero_id).or_default().push(game);
     }
 
     let mut rows: Vec<_> = heroes
         .into_iter()
         .filter_map(|hero| {
-            let &(games, total, weight) = by_hero.get(&hero.id)?;
+            let hero_games = by_hero.get(&hero.id)?;
+
+            let count = hero_games.len() as f64;
+            let score = points(hero_games.iter().map(|game| game.score).sum::<f64>() / count);
+            let weight = hero_games.iter().map(|game| game.hero_weight).sum::<f64>() / count;
 
             Some(HeroScoreRow {
                 hero_id: hero.id,
                 name: hero.name,
                 role: hero.role,
                 portrait: hero.portrait,
-                games,
-                score: points(total / games as f64),
+                games: hero_games.len(),
+                score,
                 hero_samples: baselines.hero_games(hero.id),
-                hero_weight: weight / games as f64,
+                hero_weight: weight,
+                pillars: pillars(hero_games, score),
             })
         })
         .collect();
@@ -613,7 +624,9 @@ pub fn compute(players: &[PlayerGame], heroes: Vec<ScoredHero>) -> ProfileScore 
         baseline_players,
         min_games: MIN_GAMES,
         window: WINDOW,
-        pillars: career.map_or_else(Vec::new, |career| pillars(&scored, career)),
+        pillars: career.map_or_else(Vec::new, |career| {
+            pillars(&scored.iter().collect::<Vec<_>>(), career)
+        }),
         heroes: if career.is_some() {
             hero_rows(&scored, heroes, &baselines)
         } else {
@@ -838,6 +851,29 @@ mod tests {
         assert_eq!(stat(&score, HeroDamage).max, 26);
         assert_eq!(stat(&score, KillParticipation).max, 17);
         assert_eq!(stat(&score, DeathShare).max, 21);
+    }
+
+    #[test]
+    fn hero_points_sum_to_the_hero_score() {
+        let mut players = games(23, |id| 24_000 + id * 700);
+        for player in players
+            .iter_mut()
+            .filter(|p| p.is_owner && p.game_id % 3 == 0)
+        {
+            player.hero_id = VALLA;
+            player.hero_slug = "Valla".to_owned();
+        }
+
+        let score = compute(&players, heroes());
+        assert_eq!(score.heroes.len(), 2);
+
+        for hero in &score.heroes {
+            assert_eq!(
+                hero.pillars.iter().map(|p| p.points).sum::<u8>(),
+                hero.score
+            );
+            assert_eq!(hero.pillars.iter().map(|p| p.max).sum::<u8>(), 100);
+        }
     }
 
     #[test]

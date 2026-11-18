@@ -69,6 +69,7 @@ export type HeroScoreRow = {
     score: number;
     heroSamples: number;
     heroWeight: number;
+    pillars: ScorePillar[];
 };
 
 export type ScorePoint = {

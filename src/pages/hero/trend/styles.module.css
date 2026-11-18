@@ -84,24 +84,25 @@
     @apply relative block h-full w-full outline-none;
 }
 
+/* Grows past the stock width rather than wrapping a label. */
 .popover {
-    @apply p-0;
+    @apply w-auto min-w-72 p-0;
+}
+
+.panel {
+    @apply flex flex-col gap-3 p-4;
 }
 
 .panelHeader {
-    @apply flex items-center gap-3 px-3 py-2.5;
+    @apply flex items-baseline justify-between gap-6;
 }
 
-.panelChip {
-    @apply ml-auto;
+.valueRow {
+    @apply flex items-center gap-3;
 }
 
-.cells {
-    @apply grid grid-cols-2;
-}
-
-.cell {
-    @apply flex min-w-0 flex-col items-start gap-1 px-3 py-2.5;
+.panel .value {
+    @apply text-4xl leading-none;
 }
 
 .record {

@@ -44,6 +44,12 @@
     @apply border-mvp/40 bg-mvp/15 text-mvp;
 }
 
+.rank {
+    border-color: color-mix(in oklab, var(--rank) 40%, transparent);
+    background: color-mix(in oklab, var(--rank) 15%, transparent);
+    color: var(--rank-text);
+}
+
 .uppercase {
     @apply tracking-wider;
 }

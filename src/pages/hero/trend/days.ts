@@ -12,6 +12,7 @@ export type Day = {
     rate: number | null;
     /** The rate carried over from the last rated day, matching the line's value here. */
     carried: number | null;
+    previous: number | null;
 };
 
 export function fillDays(points: TrendPoint[]): Day[] {
@@ -27,6 +28,7 @@ export function fillDays(points: TrendPoint[]): Day[] {
         const day = end.subtract(TREND_DAYS - 1 - index, "day");
         const point = byDay.get(day.format("YYYY-MM-DD"));
 
+        const previous = carried;
         carried = point?.rate ?? carried;
 
         return {
@@ -36,6 +38,7 @@ export function fillDays(points: TrendPoint[]): Day[] {
             losses: point?.losses ?? 0,
             rate: point?.rate ?? null,
             carried,
+            previous,
         };
     });
 }

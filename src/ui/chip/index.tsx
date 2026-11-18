@@ -9,7 +9,16 @@ import styles from "./styles.module.css";
 export type ChipSize = "sm" | "md";
 
 export type ChipTone =
-    "neutral" | "primary" | "win" | "loss" | "quest" | "warn" | "side" | "mvp";
+    | "neutral"
+    | "primary"
+    | "win"
+    | "loss"
+    | "quest"
+    | "warn"
+    | "side"
+    | "mvp"
+    // Reads `--rank` and `--rank-text` from an ancestor's `rankTone()`.
+    | "rank";
 
 export interface ChipProps {
     icon?: LucideIcon;

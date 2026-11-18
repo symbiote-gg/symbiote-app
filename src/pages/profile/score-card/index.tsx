@@ -13,7 +13,6 @@ import {
     Typography,
     rollingChunks,
 } from "@/ui";
-import { HeroTiers } from "./heroes";
 import { Ladder } from "./ladder";
 import { Method } from "./method";
 import { Parts, PartsEmpty } from "./parts";
@@ -197,7 +196,6 @@ export function ScoreCard({ scope, onScopeChange }: ScoreCardProps) {
                         />
                     </div>
                     <Ladder key={data.scope} score={shown ?? data.career} />
-                    <HeroTiers heroes={data.heroes} />
                 </div>
             )}
         </Card>

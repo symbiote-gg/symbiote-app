@@ -1,5 +1,4 @@
 import { Skeleton, Typography } from "@/ui";
-import { HeroTiersSkeleton } from "./heroes/skeleton";
 import { Ladder } from "./ladder";
 import { PartsSkeleton } from "./parts/skeleton";
 import { RingSkeleton } from "./ring";
@@ -22,7 +21,6 @@ export function BodySkeleton() {
                 />
             </div>
             <Ladder score={null} />
-            <HeroTiersSkeleton />
         </div>
     );
 }

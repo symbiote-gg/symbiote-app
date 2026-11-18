@@ -1,0 +1,144 @@
+@reference "@/index.css";
+
+.body {
+    @apply flex flex-col gap-4 px-gutter pb-6;
+}
+
+.plot {
+    @apply relative min-w-0;
+}
+
+.dots {
+    @apply absolute inset-0;
+}
+
+/* No transitions: WebKitGTK hides the page's overlay scrollbar while one runs. */
+.dot {
+    @apply absolute flex -translate-x-1/2 cursor-pointer items-center justify-center rounded-full;
+    background: color-mix(
+        in oklab,
+        var(--color-fg-muted) 40%,
+        var(--color-surface)
+    );
+}
+
+.dot:hover,
+.dot[data-active] {
+    background: color-mix(
+        in oklab,
+        var(--color-fg-muted) 75%,
+        var(--color-surface)
+    );
+}
+
+.dot:focus-visible {
+    @apply outline-3 outline-primary-text;
+}
+
+.portrait {
+    box-shadow: 0 0 0 2px var(--rank);
+}
+
+.tiers {
+    @apply grid grid-cols-6 gap-x-1.5;
+}
+
+/* Spaced like the score card ladder. */
+.tier {
+    @apply flex min-w-0 flex-col gap-3;
+}
+
+.bar {
+    @apply h-1.5 rounded-full;
+    background: var(--rank);
+}
+
+.tierLabel {
+    @apply flex min-w-0 items-center gap-2.5;
+}
+
+.gem {
+    @apply size-5 shrink-0;
+}
+
+.tierText {
+    @apply flex min-w-0 flex-col;
+}
+
+.tierName {
+    color: var(--rank-text);
+}
+
+/* Grows past the stock width rather than wrapping a name. */
+.popover {
+    @apply w-auto min-w-72 max-w-80 p-0;
+}
+
+.panel {
+    @apply flex flex-col gap-4 p-4;
+}
+
+.panelHeader {
+    @apply flex items-center gap-3;
+}
+
+.identity {
+    @apply flex min-w-0 flex-col items-start gap-1;
+}
+
+.panelGem {
+    @apply size-3.5 shrink-0;
+}
+
+.panel .rankText {
+    color: var(--rank-text);
+}
+
+.panel .panelScore {
+    @apply ml-auto pl-2 text-4xl leading-none;
+}
+
+.pillars {
+    @apply grid grid-cols-[max-content_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1;
+}
+
+.pillar {
+    @apply col-span-full grid grid-cols-subgrid items-center;
+}
+
+.pillarName {
+    @apply flex items-center gap-2.5;
+}
+
+.pillarDot {
+    @apply size-2 shrink-0 rounded-full;
+    background: var(--tone);
+}
+
+.pillarMeter {
+    @apply w-full;
+}
+
+.pillarPoints {
+    @apply text-right;
+}
+
+.panelFooter {
+    @apply flex items-center justify-between gap-4;
+}
+
+.pool {
+    @apply flex items-center gap-1.5;
+}
+
+.poolIcon {
+    @apply size-3.5 shrink-0 text-warn;
+}
+
+.plotBar {
+    @apply absolute inset-0 size-full rounded-lg;
+}
+
+.subtitleBar {
+    @apply w-96 max-w-full;
+}
