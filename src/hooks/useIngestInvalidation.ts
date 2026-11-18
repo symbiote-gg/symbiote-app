@@ -1,12 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
+import { type IngestProgress, watchIngestProgress } from "@/api/ingest";
 import {
     REPLAY_LISTS_KEY,
     type ReplayListData,
     STANDOUTS_KEY,
     applyIngested,
     isDefaultList,
+    profileScoreQuery,
     replayQuery,
 } from "@/api/queries";
 import {
@@ -15,6 +17,7 @@ import {
     type ReplaySort,
     subscribeIngest,
 } from "@/api/replays";
+import { toPhase } from "./useIngestProgress";
 
 const FLUSH_MS = 1000;
 // Stats scan every stored replay, so refreshing them on each flush slows ingestion down.
@@ -39,6 +42,21 @@ export function useIngestInvalidation() {
         let statsTimer: ReturnType<typeof setTimeout> | undefined;
         let filteredTimer: ReturnType<typeof setTimeout> | undefined;
         let filteredAt = 0;
+        let ingesting = true;
+
+        // Scoring reads every game, so it starts before a page asks for it, but only
+        // once the ingest and its last stats refresh are over, or it would slow the
+        // ingest down for a score that is stale by its end. Only the scope every page
+        // header reads, as each one is a full scan.
+        const warmScore = () => {
+            const pending =
+                batch.length > 0 ||
+                flushTimer !== undefined ||
+                statsTimer !== undefined;
+            if (ingesting || pending) return;
+
+            queryClient.prefetchQuery(profileScoreQuery("all"));
+        };
 
         // Invalidating mid-fetch would either restart it, starving slow queries while
         // replays stream in, or join it and miss the replays stored since it started.
@@ -49,6 +67,7 @@ export function useIngestInvalidation() {
             }
             statsTimer = undefined;
             queryClient.invalidateQueries({ queryKey: STATS_KEY });
+            warmScore();
         };
 
         const refreshFiltered = () => {
@@ -110,13 +129,20 @@ export function useIngestInvalidation() {
             }
         };
 
+        const onProgress = (progress: IngestProgress) => {
+            ingesting = toPhase(progress) !== null;
+            warmScore();
+        };
+
         const unsubscribe = subscribeIngest(onIngested);
+        const unwatch = watchIngestProgress(onProgress);
 
         // The ingester starts before the frontend subscribes, so a list or stats fetched
         // meanwhile can miss replays that were never streamed to patch them in.
         const onSubscribed = () => {
             queryClient.invalidateQueries({ queryKey: REPLAY_LISTS_KEY });
             queryClient.invalidateQueries({ queryKey: STATS_KEY });
+            warmScore();
         };
         unsubscribe.then(onSubscribed);
 
@@ -125,6 +151,7 @@ export function useIngestInvalidation() {
             clearTimeout(statsTimer);
             clearTimeout(filteredTimer);
             unsubscribe.then((fn) => fn());
+            unwatch();
         };
     }, [queryClient]);
 }

@@ -57,7 +57,7 @@ pub async fn get_standouts_input(
              h.slug AS hero_slug, h.role AS hero_role,
              orp.slot AS owner_slot, orp.team AS ally_team,
              orp.time_dead_secs AS owner_time_dead,
-             CAST(json_extract(orp.score, '$.MinionDamage') AS REAL) AS owner_minion_damage
+             CAST(orp.minion_damage AS REAL) AS owner_minion_damage
          FROM replays_view r
          JOIN heroes h ON h.id = r.owner_hero_id
          JOIN games_players orp
@@ -77,7 +77,7 @@ pub async fn get_standouts_input(
     let candidates = sqlx::query_as::<_, CandidateRow>(
         "SELECT r.id, r.duration, orp.slot AS owner_slot, orp.team AS ally_team,
              orp.time_dead_secs AS owner_time_dead,
-             CAST(json_extract(orp.score, '$.MinionDamage') AS REAL) AS owner_minion_damage
+             CAST(orp.minion_damage AS REAL) AS owner_minion_damage
          FROM replays_view r
          JOIN games_players orp
              ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
@@ -175,6 +175,7 @@ mod tests {
     use crate::db::test_utils::pool;
     use crate::types::hero::Hero;
     use crate::types::replay::NewReplayBundle;
+    use crate::types::replay::NewScore;
 
     /// A game with one death event, lasting `game_loops / 16` seconds.
     fn game(game_id: &str, timestamp: i64, game_loops: i64) -> NewReplayBundle {
@@ -210,7 +211,10 @@ mod tests {
         insert(&pool, game("newest", 300, 32_000)).await;
         let mut dead = game("middle", 200, 16_000);
         dead.replay_players[0].time_dead_secs = Some(42.0);
-        dead.replay_players[0].score = serde_json::json!({ "MinionDamage": 15000 });
+        dead.replay_players[0].score = NewScore {
+            minion_damage: Some(15000),
+            ..Default::default()
+        };
         insert(&pool, dead).await;
         let current = insert(&pool, game("current", 400, 48_000)).await;
 

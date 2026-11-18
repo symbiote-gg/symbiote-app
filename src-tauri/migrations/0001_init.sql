@@ -139,7 +139,25 @@ CREATE TABLE "games_players" (
 	"time_on_fire_secs" REAL CHECK ("time_on_fire_secs" >= 0),
 	"upvotes" INTEGER NOT NULL DEFAULT 0 CHECK ("upvotes" >= 0),
 	"party" INTEGER CHECK ("party" BETWEEN 1 AND 5),
-	"score" BLOB NOT NULL CHECK (json_valid("score", 8)),
+	"kills" INTEGER CHECK ("kills" >= 0),
+	"deaths" INTEGER CHECK ("deaths" >= 0),
+	"assists" INTEGER CHECK ("assists" >= 0),
+	"takedowns" INTEGER CHECK ("takedowns" >= 0),
+	"hero_damage" INTEGER CHECK ("hero_damage" >= 0),
+	"siege_damage" INTEGER CHECK ("siege_damage" >= 0),
+	"minion_damage" INTEGER CHECK ("minion_damage" >= 0),
+	"healing" INTEGER CHECK ("healing" >= 0),
+	"self_healing" INTEGER CHECK ("self_healing" >= 0),
+	"damage_taken" INTEGER CHECK ("damage_taken" >= 0),
+	"teamfight_damage_taken" INTEGER CHECK ("teamfight_damage_taken" >= 0),
+	"teamfight_hero_damage" INTEGER CHECK ("teamfight_hero_damage" >= 0),
+	"xp_contribution" INTEGER CHECK ("xp_contribution" >= 0),
+	"time_stunning" INTEGER CHECK ("time_stunning" >= 0),
+	"time_rooting" INTEGER CHECK ("time_rooting" >= 0),
+	"time_silencing" INTEGER CHECK ("time_silencing" >= 0),
+	"protection" INTEGER CHECK ("protection" >= 0),
+	"regen_globes" INTEGER CHECK ("regen_globes" >= 0),
+	"merc_camp_captures" INTEGER CHECK ("merc_camp_captures" >= 0),
 	PRIMARY KEY("game_id", "player_id"),
 	FOREIGN KEY ("game_id") REFERENCES "games"("id")
 	ON UPDATE NO ACTION ON DELETE CASCADE,
@@ -151,8 +169,6 @@ CREATE TABLE "games_players" (
 ) STRICT;
 
 CREATE INDEX "games_players_hero_id_idx" ON "games_players" ("hero_id", "player_id", "game_id");
-
-CREATE INDEX "games_players_hero_damage_idx" ON "games_players" ("game_id", "team", COALESCE(json_extract("score", '$.HeroDamage'), 0));
 
 CREATE TABLE "games_players_talents" (
 	"game_id" INTEGER NOT NULL,

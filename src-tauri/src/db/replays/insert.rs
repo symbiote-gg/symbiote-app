@@ -4,7 +4,7 @@ use sqlx::types::Json;
 use sqlx::{Connection, QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
 
 use crate::db::{awards, chunk_rows, event_kinds, heroes, maps, parties, players, talents};
-use crate::types::replay::{NewEvent, NewReplayBundle, NewReplayPlayer, NewTalent};
+use crate::types::replay::{NewEvent, NewReplayBundle, NewReplayPlayer, NewScore, NewTalent};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InsertOutcome {
@@ -317,29 +317,34 @@ async fn insert_players(
             ))
         })
         .collect::<sqlx::Result<Vec<_>>>()?;
-    for chunk in rows.chunks(chunk_rows(10)) {
-        QueryBuilder::<Sqlite>::new(
-            "INSERT INTO games_players (game_id, player_id, slot, team, hero_id,
-                 time_dead_secs, time_on_fire_secs, upvotes, party, score) ",
-        )
-        .push_values(chunk, |mut row, (player, player_id, hero_id)| {
-            row.push_bind(game_id)
-                .push_bind(*player_id)
-                .push_bind(player.slot)
-                .push_bind(player.team)
-                .push_bind(*hero_id)
-                .push_bind(player.time_dead_secs)
-                .push_bind(player.time_on_fire_secs)
-                .push_bind(player.upvotes)
-                .push_bind(player.party)
-                .push("jsonb(")
-                .push_bind_unseparated(Json(&player.score))
-                .push_unseparated(")");
-        })
-        .build()
-        .persistent(false)
-        .execute(&mut *conn)
-        .await?;
+
+    let insert = format!(
+        "INSERT INTO games_players (game_id, player_id, slot, team, hero_id,
+             time_dead_secs, time_on_fire_secs, upvotes, party, {}) ",
+        NewScore::COLUMNS.join(", ")
+    );
+
+    for chunk in rows.chunks(chunk_rows(9 + NewScore::COLUMNS.len())) {
+        QueryBuilder::<Sqlite>::new(insert.as_str())
+            .push_values(chunk, |mut row, (player, player_id, hero_id)| {
+                row.push_bind(game_id)
+                    .push_bind(*player_id)
+                    .push_bind(player.slot)
+                    .push_bind(player.team)
+                    .push_bind(*hero_id)
+                    .push_bind(player.time_dead_secs)
+                    .push_bind(player.time_on_fire_secs)
+                    .push_bind(player.upvotes)
+                    .push_bind(player.party);
+
+                for stat in player.score.values() {
+                    row.push_bind(stat);
+                }
+            })
+            .build()
+            .persistent(false)
+            .execute(&mut *conn)
+            .await?;
     }
     Ok(())
 }

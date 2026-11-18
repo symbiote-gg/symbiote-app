@@ -34,7 +34,7 @@ async fn count_filtered(
 
 /// The owner's hero damage, over a row of `replays_view`. The only sort key that can be
 /// null.
-const OWNER_HERO_DAMAGE: &str = "(SELECT json_extract(score, '$.HeroDamage')
+const OWNER_HERO_DAMAGE: &str = "(SELECT hero_damage
      FROM games_players
      WHERE game_id = replays_view.game_id AND player_id = replays_view.owner_player_id)";
 
@@ -98,11 +98,11 @@ fn list_rows_query(
              COALESCE(m.name, r.map) AS map_name, m.loading_screen AS map_loading_screen,
              r.owner_player_id, r.owner_slot, r.owner_team, r.owner_win, r.duration, r.is_new,
              h.name AS hero_name, h.role AS hero_role, h.portrait AS hero_portrait,
-             json_extract(orp.score, '$.SoloKill') AS owner_kills,
-             json_extract(orp.score, '$.Deaths') AS owner_deaths,
-             json_extract(orp.score, '$.Assists') AS owner_assists,
-             json_extract(orp.score, '$.Takedowns') AS owner_takedowns,
-             json_extract(orp.score, '$.HeroDamage') AS owner_hero_damage
+             orp.kills AS owner_kills,
+             orp.deaths AS owner_deaths,
+             orp.assists AS owner_assists,
+             orp.takedowns AS owner_takedowns,
+             orp.hero_damage AS owner_hero_damage
          FROM (SELECT *, {key} AS sort_key FROM replays_view WHERE 1 = 1",
         key = sort_key(sort.column),
     ));
@@ -253,7 +253,7 @@ mod tests {
     use crate::db::replays::test_utils::*;
     use crate::db::test_utils::pool;
     use crate::types::hero::HeroRole;
-    use crate::types::replay::Mode;
+    use crate::types::replay::{Mode, NewScore};
 
     fn cursor(replay: &ReplayWithPlayers) -> ReplayCursor {
         ReplayCursor {
@@ -449,7 +449,10 @@ mod tests {
         game.replay.game_key = hex(game_id);
         game.replay.timestamp = DateTime::from_timestamp(timestamp, 0).unwrap();
         if let Some(hero_damage) = hero_damage {
-            game.replay_players[0].score = serde_json::json!({ "HeroDamage": hero_damage });
+            game.replay_players[0].score = NewScore {
+                hero_damage: Some(hero_damage),
+                ..Default::default()
+            };
         }
         insert_bundle(pool, game).await.unwrap();
     }

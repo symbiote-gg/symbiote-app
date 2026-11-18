@@ -81,13 +81,16 @@ fn owner_games(select: &str, hero_id: Option<i64>) -> QueryBuilder<Sqlite> {
 pub async fn totals(conn: &mut SqliteConnection, hero_id: Option<i64>) -> sqlx::Result<HeroTotals> {
     let mut query = owner_games(
         "WITH owner_games AS (
-             SELECT r.owner_win, r.duration, r.timestamp, orp.score, orp.time_dead_secs,
-                 SUM(json_extract(tp.score, '$.SoloKill')) AS team_kills,
-                 SUM(json_extract(tp.score, '$.HeroDamage')) AS team_hero_damage,
-                 SUM(json_extract(tp.score, '$.SiegeDamage')) AS team_siege_damage,
-                 SUM(json_extract(tp.score, '$.DamageTaken')) AS team_damage_taken,
-                 SUM(json_extract(tp.score, '$.Healing')) AS team_healing,
-                 SUM(json_extract(tp.score, '$.ExperienceContribution')) AS team_xp",
+             SELECT r.owner_win, r.duration, r.timestamp, orp.time_dead_secs,
+                 orp.kills, orp.deaths, orp.assists, orp.takedowns, orp.hero_damage,
+                 orp.siege_damage, orp.healing, orp.self_healing, orp.damage_taken, orp.xp_contribution,
+                 orp.regen_globes, orp.merc_camp_captures,
+                 SUM(tp.kills) AS team_kills,
+                 SUM(tp.hero_damage) AS team_hero_damage,
+                 SUM(tp.siege_damage) AS team_siege_damage,
+                 SUM(tp.damage_taken) AS team_damage_taken,
+                 SUM(tp.healing) AS team_healing,
+                 SUM(tp.xp_contribution) AS team_xp",
         hero_id,
     );
     // Shares average each game's share, so a zero team total drops that game out. Team
@@ -101,39 +104,39 @@ pub async fn totals(conn: &mut SqliteConnection, hero_id: Option<i64>) -> sqlx::
          SELECT COUNT(*) AS games,
              COALESCE(SUM(owner_win = 1), 0) AS wins,
              COALESCE(SUM(owner_win = 0), 0) AS losses,
-             COALESCE(SUM(json_extract(score, '$.Takedowns')), 0) AS takedowns,
-             COALESCE(SUM(json_extract(score, '$.Deaths')), 0) AS deaths,
-             COALESCE(SUM(json_extract(score, '$.SoloKill')), 0) AS kills,
-             COALESCE(SUM(json_extract(score, '$.Assists')), 0) AS assists,
-             COALESCE(SUM(json_extract(score, '$.HeroDamage')), 0) AS hero_damage,
-             COALESCE(SUM(json_extract(score, '$.SiegeDamage')), 0) AS siege_damage,
-             COALESCE(SUM(json_extract(score, '$.Healing')), 0) AS healing,
-             COALESCE(SUM(json_extract(score, '$.SelfHealing')), 0) AS self_healing,
-             COALESCE(SUM(json_extract(score, '$.DamageTaken')), 0) AS damage_taken,
-             COALESCE(SUM(json_extract(score, '$.ExperienceContribution')), 0) AS xp,
-             COALESCE(SUM(json_extract(score, '$.RegenGlobes')), 0) AS globes,
-             COALESCE(SUM(json_extract(score, '$.MercCampCaptures')), 0) AS camps,
-             AVG(json_extract(score, '$.SoloKill')) AS avg_kills,
-             AVG(json_extract(score, '$.Deaths')) AS avg_deaths,
-             AVG(json_extract(score, '$.Assists')) AS avg_assists,
-             AVG(json_extract(score, '$.HeroDamage')) AS avg_hero_damage,
-             AVG(json_extract(score, '$.SiegeDamage')) AS avg_siege_damage,
-             AVG(json_extract(score, '$.Healing')) AS avg_healing,
-             AVG(json_extract(score, '$.SelfHealing')) AS avg_self_healing,
-             AVG(json_extract(score, '$.DamageTaken')) AS avg_damage_taken,
-             AVG(json_extract(score, '$.ExperienceContribution')) AS avg_xp,
+             COALESCE(SUM(takedowns), 0) AS takedowns,
+             COALESCE(SUM(deaths), 0) AS deaths,
+             COALESCE(SUM(kills), 0) AS kills,
+             COALESCE(SUM(assists), 0) AS assists,
+             COALESCE(SUM(hero_damage), 0) AS hero_damage,
+             COALESCE(SUM(siege_damage), 0) AS siege_damage,
+             COALESCE(SUM(healing), 0) AS healing,
+             COALESCE(SUM(self_healing), 0) AS self_healing,
+             COALESCE(SUM(damage_taken), 0) AS damage_taken,
+             COALESCE(SUM(xp_contribution), 0) AS xp,
+             COALESCE(SUM(regen_globes), 0) AS globes,
+             COALESCE(SUM(merc_camp_captures), 0) AS camps,
+             AVG(kills) AS avg_kills,
+             AVG(deaths) AS avg_deaths,
+             AVG(assists) AS avg_assists,
+             AVG(hero_damage) AS avg_hero_damage,
+             AVG(siege_damage) AS avg_siege_damage,
+             AVG(healing) AS avg_healing,
+             AVG(self_healing) AS avg_self_healing,
+             AVG(damage_taken) AS avg_damage_taken,
+             AVG(xp_contribution) AS avg_xp,
              AVG(time_dead_secs) AS avg_time_dead_secs,
-             AVG(MIN(1.0, json_extract(score, '$.Takedowns') * 1.0 / NULLIF(team_kills, 0)))
+             AVG(MIN(1.0, takedowns * 1.0 / NULLIF(team_kills, 0)))
                  AS kill_participation,
-             AVG(json_extract(score, '$.HeroDamage') * 1.0 / NULLIF(team_hero_damage, 0))
+             AVG(hero_damage * 1.0 / NULLIF(team_hero_damage, 0))
                  AS share_hero_damage,
-             AVG(json_extract(score, '$.SiegeDamage') * 1.0 / NULLIF(team_siege_damage, 0))
+             AVG(siege_damage * 1.0 / NULLIF(team_siege_damage, 0))
                  AS share_siege_damage,
-             AVG(json_extract(score, '$.DamageTaken') * 1.0 / NULLIF(team_damage_taken, 0))
+             AVG(damage_taken * 1.0 / NULLIF(team_damage_taken, 0))
                  AS share_damage_taken,
-             AVG(json_extract(score, '$.Healing') * 1.0 / NULLIF(team_healing, 0))
+             AVG(healing * 1.0 / NULLIF(team_healing, 0))
                  AS share_healing,
-             AVG(json_extract(score, '$.ExperienceContribution') * 1.0 / NULLIF(team_xp, 0))
+             AVG(xp_contribution * 1.0 / NULLIF(team_xp, 0))
                  AS share_xp,
              AVG(duration) AS avg_duration,
              COALESCE(SUM(duration), 0) AS total_duration,
@@ -260,12 +263,12 @@ const fn highest(value: &'static str) -> BestBy {
     }
 }
 
-const MOST_HERO_DAMAGE: BestBy = highest("json_extract(orp.score, '$.HeroDamage')");
-const MOST_SIEGE_DAMAGE: BestBy = highest("json_extract(orp.score, '$.SiegeDamage')");
-const MOST_HEALING: BestBy = highest("json_extract(orp.score, '$.Healing')");
-const MOST_DAMAGE_TAKEN: BestBy = highest("json_extract(orp.score, '$.DamageTaken')");
-const MOST_XP: BestBy = highest("json_extract(orp.score, '$.ExperienceContribution')");
-const MOST_TAKEDOWNS: BestBy = highest("json_extract(orp.score, '$.Takedowns')");
+const MOST_HERO_DAMAGE: BestBy = highest("orp.hero_damage");
+const MOST_SIEGE_DAMAGE: BestBy = highest("orp.siege_damage");
+const MOST_HEALING: BestBy = highest("orp.healing");
+const MOST_DAMAGE_TAKEN: BestBy = highest("orp.damage_taken");
+const MOST_XP: BestBy = highest("orp.xp_contribution");
+const MOST_TAKEDOWNS: BestBy = highest("orp.takedowns");
 const FASTEST_WIN: BestBy = BestBy {
     value: "r.duration",
     condition: " AND r.owner_win = 1",
@@ -273,7 +276,7 @@ const FASTEST_WIN: BestBy = BestBy {
     zero: false,
 };
 const FEWEST_DEATHS_WIN: BestBy = BestBy {
-    value: "json_extract(orp.score, '$.Deaths')",
+    value: "orp.deaths",
     condition: " AND r.owner_win = 1",
     lowest: true,
     zero: true,
@@ -341,7 +344,7 @@ async fn best(
 /// Returns the owner's game on `hero_id` with the most kills, with its line. Ties go
 /// to the latest game.
 async fn best_game(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Option<HeroGame>> {
-    let value = "json_extract(orp.score, '$.SoloKill')";
+    let value = "orp.kills";
     let tail = format!(
         " WHERE {value} > 0
          ORDER BY {value} DESC, r.timestamp DESC, r.id DESC
@@ -371,11 +374,10 @@ async fn hero_game(
     let mut query = hero_games(
         "SELECT r.id AS replay_id, COALESCE(m.name, r.map) AS map, m.loading_screen,
              r.timestamp, r.duration, r.owner_win,
-             CAST(COALESCE(json_extract(orp.score, '$.SoloKill'), 0) AS INTEGER) AS kills,
-             CAST(COALESCE(json_extract(orp.score, '$.Deaths'), 0) AS INTEGER) AS deaths,
-             CAST(COALESCE(json_extract(orp.score, '$.Assists'), 0) AS INTEGER) AS assists,
-             CAST(COALESCE(json_extract(orp.score, '$.HeroDamage'), 0) AS INTEGER)
-                 AS hero_damage",
+             COALESCE(orp.kills, 0) AS kills,
+             COALESCE(orp.deaths, 0) AS deaths,
+             COALESCE(orp.assists, 0) AS assists,
+             COALESCE(orp.hero_damage, 0) AS hero_damage",
         hero_id,
     );
     query
@@ -465,14 +467,13 @@ fn longest_streak(results: &[(Option<bool>, DateTime<Utc>)]) -> Option<WinStreak
 #[cfg(test)]
 mod tests {
     use chrono::DateTime;
-    use serde_json::json;
 
     use super::*;
     use crate::db::replays::test_utils::{hero_game, insert_bundle};
     use crate::db::test_utils::pool;
     use crate::types::hero::Hero;
     use crate::types::player::Player;
-    use crate::types::replay::{Mode, NewReplayBundle, NewReplayPlayer, NewTalent};
+    use crate::types::replay::{Mode, NewReplayBundle, NewReplayPlayer, NewScore, NewTalent};
 
     fn talent(tier: i64, slug: &str) -> NewTalent {
         NewTalent {
@@ -484,12 +485,24 @@ mod tests {
 
     async fn insert_games(pool: &SqlitePool) -> i64 {
         let mut a = hero_game("a", 400, Mode::Aram, "braxis_holdout", "Wizard", true);
-        a.replay_players[0].score = json!({"SoloKill": 4, "Takedowns": 10, "Deaths": 2, "HeroDamage": 1000, "RegenGlobes": 5});
+        a.replay_players[0].score = NewScore {
+            kills: Some(4),
+            takedowns: Some(10),
+            deaths: Some(2),
+            hero_damage: Some(1000),
+            regen_globes: Some(5),
+            ..Default::default()
+        };
         a.replay_players[0].time_dead_secs = Some(30.0);
         a.replay_players[0].talents = vec![talent(1, "spark"), talent(2, "flare")];
         let mut b = hero_game("b", 300, Mode::QuickMatch, "cursed_hollow", "Wizard", false);
-        b.replay_players[0].score =
-            json!({"SoloKill": 2, "Takedowns": 4, "Deaths": 3, "HeroDamage": 3000});
+        b.replay_players[0].score = NewScore {
+            kills: Some(2),
+            takedowns: Some(4),
+            deaths: Some(3),
+            hero_damage: Some(3000),
+            ..Default::default()
+        };
         b.replay_players[0].awards = vec!["most_kills".to_owned()];
         b.replay_players[0].talents = vec![talent(1, "spark"), talent(2, "blink")];
         let mut c = hero_game("c", 200, Mode::QuickMatch, "cursed_hollow", "Wizard", true);
@@ -590,23 +603,44 @@ mod tests {
         let pool = pool().await;
 
         let mut a = hero_game("a", 200, Mode::QuickMatch, "cursed_hollow", "Wizard", true);
-        a.replay_players[0].score = json!({
-            "SoloKill": 2, "Takedowns": 6, "HeroDamage": 1000, "Healing": 0,
-            "ExperienceContribution": 500,
-        });
+        a.replay_players[0].score = NewScore {
+            kills: Some(2),
+            takedowns: Some(6),
+            hero_damage: Some(1000),
+            healing: Some(0),
+            xp_contribution: Some(500),
+            ..Default::default()
+        };
         with_player(&mut a, "ally", 0, "Knight");
-        a.replay_players[1].score = json!({
-            "SoloKill": 2, "HeroDamage": 3000, "Healing": 0, "ExperienceContribution": 1500,
-        });
+        a.replay_players[1].score = NewScore {
+            kills: Some(2),
+            hero_damage: Some(3000),
+            healing: Some(0),
+            xp_contribution: Some(1500),
+            ..Default::default()
+        };
         with_player(&mut a, "enemy", 1, "Rogue");
-        a.replay_players[2].score = json!({
-            "SoloKill": 10, "HeroDamage": 9000, "Healing": 5000, "ExperienceContribution": 9000,
-        });
+        a.replay_players[2].score = NewScore {
+            kills: Some(10),
+            hero_damage: Some(9000),
+            healing: Some(5000),
+            xp_contribution: Some(9000),
+            ..Default::default()
+        };
 
         let mut b = hero_game("b", 100, Mode::QuickMatch, "cursed_hollow", "Wizard", false);
-        b.replay_players[0].score = json!({"SoloKill": 1, "Takedowns": 2, "HeroDamage": 1000});
+        b.replay_players[0].score = NewScore {
+            kills: Some(1),
+            takedowns: Some(2),
+            hero_damage: Some(1000),
+            ..Default::default()
+        };
         with_player(&mut b, "ally", 0, "Knight");
-        b.replay_players[1].score = json!({"SoloKill": 3, "HeroDamage": 1000});
+        b.replay_players[1].score = NewScore {
+            kills: Some(3),
+            hero_damage: Some(1000),
+            ..Default::default()
+        };
 
         for game in [a, b] {
             insert_bundle(&pool, game).await.unwrap();
@@ -660,16 +694,28 @@ mod tests {
         let pool = pool().await;
 
         let mut a = hero_game("a", 300, Mode::QuickMatch, "braxis_holdout", "Wizard", true);
-        a.replay_players[0].score = json!({
-            "Deaths": 1, "Healing": 0, "DamageTaken": 40000, "ExperienceContribution": 9000,
-        });
+        a.replay_players[0].score = NewScore {
+            deaths: Some(1),
+            healing: Some(0),
+            damage_taken: Some(40000),
+            xp_contribution: Some(9000),
+            ..Default::default()
+        };
         let mut b = hero_game("b", 200, Mode::QuickMatch, "cursed_hollow", "Wizard", true);
-        b.replay_players[0].score = json!({
-            "Deaths": 0, "Healing": 0, "DamageTaken": 20000, "ExperienceContribution": 12000,
-        });
+        b.replay_players[0].score = NewScore {
+            deaths: Some(0),
+            healing: Some(0),
+            damage_taken: Some(20000),
+            xp_contribution: Some(12000),
+            ..Default::default()
+        };
         // A deathless loss is not a deathless win.
         let mut c = hero_game("c", 400, Mode::QuickMatch, "cursed_hollow", "Wizard", false);
-        c.replay_players[0].score = json!({"Deaths": 0, "Healing": 0});
+        c.replay_players[0].score = NewScore {
+            deaths: Some(0),
+            healing: Some(0),
+            ..Default::default()
+        };
 
         for game in [a, b, c] {
             insert_bundle(&pool, game).await.unwrap();
@@ -699,7 +745,10 @@ mod tests {
         let pool = pool().await;
 
         let mut game = hero_game("a", 300, Mode::QuickMatch, "braxis_holdout", "Murky", true);
-        game.replay_players[0].score = json!({"Deaths": 0});
+        game.replay_players[0].score = NewScore {
+            deaths: Some(0),
+            ..Default::default()
+        };
         insert_bundle(&pool, game).await.unwrap();
 
         let murky = sqlx::query_scalar("SELECT id FROM heroes WHERE slug = 'Murky'")
@@ -733,7 +782,12 @@ mod tests {
         let pool = pool().await;
         let wizard = insert_games(&pool).await;
         let mut e = hero_game("e", 500, Mode::QuickMatch, "cursed_hollow", "Wizard", false);
-        e.replay_players[0].score = json!({"SoloKill": 1, "Deaths": 5, "Assists": 3});
+        e.replay_players[0].score = NewScore {
+            kills: Some(1),
+            deaths: Some(5),
+            assists: Some(3),
+            ..Default::default()
+        };
         insert_bundle(&pool, e).await.unwrap();
         let e = replay_id(&pool, "e").await;
 
@@ -813,7 +867,7 @@ mod tests {
             upvotes: 0,
             party: None,
             xp: None,
-            score: json!({}),
+            score: NewScore::default(),
             talents: vec![],
             awards: vec![],
         });

@@ -62,7 +62,7 @@ export function HistorySkeleton() {
                 size="sm"
                 icon={HistoryIcon}
                 title={t("history.title")}
-                subtitle={t("history.subtitle")}
+                subtitle={t("history.subtitle", { window: RECENT_GAMES })}
                 action={
                     <div className={styles.actions}>
                         <dl className={styles.stats}>

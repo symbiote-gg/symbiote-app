@@ -60,26 +60,26 @@ pub async fn get_detail(
     detail.players = sqlx::query_as::<_, ReplayPlayerDetail>(
         "SELECT rp.player_id, p.name, rp.slot, rp.team, rp.hero_id, h.slug AS hero_slug,
              h.name AS hero_name, h.role AS hero_role, h.portrait AS hero_portrait,
-             json_extract(rp.score, '$.SoloKill') AS kills,
-             json_extract(rp.score, '$.Assists') AS assists,
-             json_extract(rp.score, '$.Deaths') AS deaths,
-             json_extract(rp.score, '$.Takedowns') AS takedowns,
-             json_extract(rp.score, '$.HeroDamage') AS hero_damage,
-             json_extract(rp.score, '$.SiegeDamage') AS siege_damage,
-             json_extract(rp.score, '$.Healing') AS healing,
-             json_extract(rp.score, '$.SelfHealing') AS self_healing,
-             json_extract(rp.score, '$.DamageTaken') AS damage_taken,
-             json_extract(rp.score, '$.TeamfightDamageTaken') AS teamfight_damage_taken,
-             json_extract(rp.score, '$.ExperienceContribution') AS xp,
-             CASE WHEN json_extract(rp.score, '$.TimeStunningEnemyHeroes') IS NULL
-                     AND json_extract(rp.score, '$.TimeRootingEnemyHeroes') IS NULL
-                     AND json_extract(rp.score, '$.TimeSilencingEnemyHeroes') IS NULL
+             rp.kills AS kills,
+             rp.assists AS assists,
+             rp.deaths AS deaths,
+             rp.takedowns AS takedowns,
+             rp.hero_damage AS hero_damage,
+             rp.siege_damage AS siege_damage,
+             rp.healing AS healing,
+             rp.self_healing AS self_healing,
+             rp.damage_taken AS damage_taken,
+             rp.teamfight_damage_taken AS teamfight_damage_taken,
+             rp.xp_contribution AS xp,
+             CASE WHEN rp.time_stunning IS NULL
+                     AND rp.time_rooting IS NULL
+                     AND rp.time_silencing IS NULL
                  THEN NULL
-                 ELSE COALESCE(json_extract(rp.score, '$.TimeStunningEnemyHeroes'), 0)
-                     + COALESCE(json_extract(rp.score, '$.TimeRootingEnemyHeroes'), 0)
-                     + COALESCE(json_extract(rp.score, '$.TimeSilencingEnemyHeroes'), 0)
+                 ELSE COALESCE(rp.time_stunning, 0)
+                     + COALESCE(rp.time_rooting, 0)
+                     + COALESCE(rp.time_silencing, 0)
              END AS hard_cc,
-             json_extract(rp.score, '$.ProtectionGivenToAllies') AS protection,
+             rp.protection AS protection,
              rp.time_dead_secs AS time_dead,
              rp.time_on_fire_secs AS time_on_fire, rp.upvotes, rp.party
          FROM games_players rp
@@ -251,7 +251,7 @@ mod tests {
     use crate::db::replays::{get_list_row, InsertOutcome};
     use crate::db::test_utils::pool;
     use crate::types::player::Player;
-    use crate::types::replay::NewReplayPlayer;
+    use crate::types::replay::{NewReplayPlayer, NewScore};
 
     #[tokio::test]
     async fn detail_joins_the_map_and_player_stats() {
@@ -261,7 +261,13 @@ mod tests {
             .await
             .unwrap();
         let mut known = bundle("a", 1000);
-        known.replay_players[0].score = serde_json::json!({ "SoloKill": 7, "HeroDamage": 70100, "DamageTaken": 52300, "SelfHealing": 8400 });
+        known.replay_players[0].score = NewScore {
+            kills: Some(7),
+            hero_damage: Some(70100),
+            damage_taken: Some(52300),
+            self_healing: Some(8400),
+            ..Default::default()
+        };
         known.replay_players[0].upvotes = 3;
         known.replay_players[0].party = Some(2);
         known.replay_players[0].slot = 7;
@@ -302,7 +308,11 @@ mod tests {
     async fn detail_sums_teams_and_owner_kill_participation() {
         let pool = pool().await;
         let mut game = bundle("a", 1000);
-        game.replay_players[0].score = serde_json::json!({ "SoloKill": 2, "Assists": 1 });
+        game.replay_players[0].score = NewScore {
+            kills: Some(2),
+            assists: Some(1),
+            ..Default::default()
+        };
         game.players.push(Player {
             toon: "enemy".to_owned(),
             name: "Enemy".to_owned(),
@@ -318,7 +328,11 @@ mod tests {
             upvotes: 0,
             party: None,
             xp: None,
-            score: serde_json::json!({ "SoloKill": 1, "Deaths": 4 }),
+            score: NewScore {
+                kills: Some(1),
+                deaths: Some(4),
+                ..Default::default()
+            },
             talents: vec![],
             awards: vec![],
         });
@@ -378,7 +392,7 @@ mod tests {
             upvotes: 0,
             party: None,
             xp: Some(serde_json::json!({ "hero": 41700.0, "minion": 7600.0 })),
-            score: serde_json::json!({}),
+            score: NewScore::default(),
             talents: vec![],
             awards: vec![],
         });

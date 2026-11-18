@@ -125,7 +125,12 @@ export function ScoreHistory({ scope }: ScoreHistoryProps) {
     if (data.career === null) return null;
 
     return (
-        <History points={data.history} score={data.score} games={data.games} />
+        <History
+            points={data.history}
+            score={data.score}
+            games={data.games}
+            rolling={data.window}
+        />
     );
 }
 
@@ -133,6 +138,7 @@ interface HistoryProps {
     points: ScorePoint[];
     score: number | null;
     games: number;
+    rolling: number;
 }
 
 interface StatValue {
@@ -140,7 +146,7 @@ interface StatValue {
     note: string;
 }
 
-function History({ points, score, games }: HistoryProps) {
+function History({ points, score, games, rolling }: HistoryProps) {
     const t = useTranslations("profile.score");
     const format = useFormatter();
     const playedDate = usePlayedDate();
@@ -212,7 +218,7 @@ function History({ points, score, games }: HistoryProps) {
                 size="sm"
                 icon={HistoryIcon}
                 title={t("history.title")}
-                subtitle={t("history.subtitle")}
+                subtitle={t("history.subtitle", { window: rolling })}
                 action={
                     <div className={styles.actions}>
                         <dl className={styles.stats}>

@@ -8,7 +8,10 @@ export type IngestPhase = {
     total: number;
 };
 
-function toPhase({ importing, updating }: IngestProgress): IngestPhase | null {
+export function toPhase({
+    importing,
+    updating,
+}: IngestProgress): IngestPhase | null {
     if (importing.total > 0) return { kind: "importing", ...importing };
     if (updating.total > 0) return { kind: "updating", ...updating };
 

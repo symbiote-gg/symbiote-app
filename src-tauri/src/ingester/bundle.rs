@@ -4,6 +4,7 @@ use std::path::Path;
 use chrono::DateTime;
 use heck::ToSnakeCase;
 use hots_replay_parser::summary::{GameMode, ReplaySummary};
+use indexmap::IndexMap;
 use serde::Serialize;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -13,31 +14,8 @@ use crate::types::hero::Hero;
 use crate::types::map::MapFact;
 use crate::types::player::Player;
 use crate::types::replay::{
-    Mode, NewEvent, NewReplay, NewReplayBundle, NewReplayPlayer, NewTalent,
+    Mode, NewEvent, NewReplay, NewReplayBundle, NewReplayPlayer, NewScore, NewTalent,
 };
-
-/// Score screen stats kept per player; the parser emits ~130, mostly unused or zero.
-const SCORE_KEYS: [&str; 19] = [
-    "SoloKill",
-    "Deaths",
-    "Assists",
-    "Takedowns",
-    "HeroDamage",
-    "SiegeDamage",
-    "MinionDamage",
-    "Healing",
-    "SelfHealing",
-    "DamageTaken",
-    "TeamfightDamageTaken",
-    "TeamfightHeroDamage",
-    "ExperienceContribution",
-    "TimeStunningEnemyHeroes",
-    "TimeRootingEnemyHeroes",
-    "TimeSilencingEnemyHeroes",
-    "ProtectionGivenToAllies",
-    "RegenGlobes",
-    "MercCampCaptures",
-];
 
 /// Talent tiers in a game. The parser numbers picks in order, so any extra pick would
 /// fail the schema's tier check and is dropped instead.
@@ -284,13 +262,31 @@ fn owner_toon(path: &Path) -> Option<String> {
         .map(|name| name.to_string_lossy().into_owned())
 }
 
-fn score<'a>(score: impl IntoIterator<Item = (&'a String, &'a i64)>) -> serde_json::Value {
-    score
-        .into_iter()
-        .filter(|(key, _)| SCORE_KEYS.contains(&key.as_str()))
-        .map(|(key, value)| (key.clone(), (*value).into()))
-        .collect::<serde_json::Map<_, _>>()
-        .into()
+/// The score screen stats kept; the parser emits ~130, mostly unused or zero.
+fn score(score: &IndexMap<String, i64>) -> NewScore {
+    let stat = |key: &str| score.get(key).copied();
+
+    NewScore {
+        kills: stat("SoloKill"),
+        deaths: stat("Deaths"),
+        assists: stat("Assists"),
+        takedowns: stat("Takedowns"),
+        hero_damage: stat("HeroDamage"),
+        siege_damage: stat("SiegeDamage"),
+        minion_damage: stat("MinionDamage"),
+        healing: stat("Healing"),
+        self_healing: stat("SelfHealing"),
+        damage_taken: stat("DamageTaken"),
+        teamfight_damage_taken: stat("TeamfightDamageTaken"),
+        teamfight_hero_damage: stat("TeamfightHeroDamage"),
+        xp_contribution: stat("ExperienceContribution"),
+        time_stunning: stat("TimeStunningEnemyHeroes"),
+        time_rooting: stat("TimeRootingEnemyHeroes"),
+        time_silencing: stat("TimeSilencingEnemyHeroes"),
+        protection: stat("ProtectionGivenToAllies"),
+        regen_globes: stat("RegenGlobes"),
+        merc_camp_captures: stat("MercCampCaptures"),
+    }
 }
 
 /// Rounds every float in `value` to [`FLOAT_DECIMALS`], turning the ones that come out
@@ -514,15 +510,24 @@ mod tests {
     }
 
     #[test]
-    fn score_keeps_only_the_read_stats() {
-        let raw = [
+    fn score_maps_parser_keys() {
+        let raw = IndexMap::from([
             ("HeroDamage".to_owned(), 85611),
             ("EndOfMatchAwardMVPBoolean".to_owned(), 1),
             ("Deaths".to_owned(), 0),
-        ];
+            ("SoloKill".to_owned(), 7),
+            ("ExperienceContribution".to_owned(), 12040),
+        ]);
+
         assert_eq!(
-            score(raw.iter().map(|(key, value)| (key, value))),
-            serde_json::json!({ "HeroDamage": 85611, "Deaths": 0 })
+            score(&raw),
+            NewScore {
+                hero_damage: Some(85611),
+                deaths: Some(0),
+                kills: Some(7),
+                xp_contribution: Some(12040),
+                ..Default::default()
+            }
         );
     }
 }

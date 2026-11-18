@@ -5,7 +5,7 @@ use sqlx::SqlitePool;
 use super::{hash_status, insert_bundles, HashStatus, InsertOutcome};
 use crate::types::hero::Hero;
 use crate::types::player::Player;
-use crate::types::replay::{Mode, NewEvent, NewReplay, NewReplayBundle, NewReplayPlayer};
+use crate::types::replay::{Mode, NewEvent, NewReplay, NewReplayBundle, NewReplayPlayer, NewScore};
 
 /// The ingest version replays are stored at; a stale one is stored below it. It differs
 /// from the real [`INGEST_VERSION`](crate::ingester::INGEST_VERSION), so behavior that
@@ -64,7 +64,7 @@ pub fn bundle(name: &str, game_loops: i64) -> NewReplayBundle {
             upvotes: 0,
             party: None,
             xp: None,
-            score: serde_json::json!({}),
+            score: NewScore::default(),
             talents: vec![],
             awards: vec!["mvp".to_owned()],
         }],
@@ -157,7 +157,7 @@ pub fn recorded_by(name: &str, owner: &str, game_loops: i64) -> NewReplayBundle 
         upvotes: 0,
         party: None,
         xp: None,
-        score: serde_json::json!({}),
+        score: NewScore::default(),
         talents: vec![],
         awards: vec![],
     });

@@ -51,7 +51,7 @@
         },
         "score": {
             "title": "Symbiote score",
-            "subtitle": "Your {games, plural, one {<num>{games, number}</num> game} other {<num>{games, number}</num> games}}, ranked against {pool, plural, one {<num>{pool, number}</num> game} other {<num>{pool, number}</num> games}} from other players in your replays.",
+            "subtitle": "Career score over your {games, plural, one {<num>{games, number}</num> game} other {<num>{games, number}</num> games}}, ranked against {pool, plural, one {<num>{pool, number}</num> game} other {<num>{pool, number}</num> games}} from other players in your replays.",
             "subtitleEmpty": "Ranked against the other players in your replays.",
             "method": {
                 "trigger": "How it's scored",
@@ -122,7 +122,7 @@
             },
             "history": {
                 "title": "Score over time",
-                "subtitle": "Your score after each game, against today's pool.",
+                "subtitle": "Your score over the last {window, plural, one {# game} other {# games}} after each game, against today's pool.",
                 "best": "Best",
                 "lowest": "Lowest",
                 "games": "{count, plural, one {# game} other {# games}}",

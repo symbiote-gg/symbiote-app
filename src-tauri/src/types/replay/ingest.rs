@@ -34,9 +34,83 @@ pub struct NewReplayPlayer {
     pub upvotes: i64,
     pub party: Option<i64>,
     pub xp: Option<serde_json::Value>,
-    pub score: serde_json::Value,
+    pub score: NewScore,
     pub talents: Vec<NewTalent>,
     pub awards: Vec<String>,
+}
+
+/// A player's scoreboard stats, `None` for the ones the replay lacks.
+#[derive(Debug, Default, PartialEq)]
+pub struct NewScore {
+    pub kills: Option<i64>,
+    pub deaths: Option<i64>,
+    pub assists: Option<i64>,
+    pub takedowns: Option<i64>,
+    pub hero_damage: Option<i64>,
+    pub siege_damage: Option<i64>,
+    pub minion_damage: Option<i64>,
+    pub healing: Option<i64>,
+    pub self_healing: Option<i64>,
+    pub damage_taken: Option<i64>,
+    pub teamfight_damage_taken: Option<i64>,
+    pub teamfight_hero_damage: Option<i64>,
+    pub xp_contribution: Option<i64>,
+    pub time_stunning: Option<i64>,
+    pub time_rooting: Option<i64>,
+    pub time_silencing: Option<i64>,
+    pub protection: Option<i64>,
+    pub regen_globes: Option<i64>,
+    pub merc_camp_captures: Option<i64>,
+}
+
+impl NewScore {
+    /// The `games_players` columns the stats are stored in, in the order of
+    /// [`values`](Self::values).
+    pub const COLUMNS: [&str; 19] = [
+        "kills",
+        "deaths",
+        "assists",
+        "takedowns",
+        "hero_damage",
+        "siege_damage",
+        "minion_damage",
+        "healing",
+        "self_healing",
+        "damage_taken",
+        "teamfight_damage_taken",
+        "teamfight_hero_damage",
+        "xp_contribution",
+        "time_stunning",
+        "time_rooting",
+        "time_silencing",
+        "protection",
+        "regen_globes",
+        "merc_camp_captures",
+    ];
+
+    pub fn values(&self) -> [Option<i64>; 19] {
+        [
+            self.kills,
+            self.deaths,
+            self.assists,
+            self.takedowns,
+            self.hero_damage,
+            self.siege_damage,
+            self.minion_damage,
+            self.healing,
+            self.self_healing,
+            self.damage_taken,
+            self.teamfight_damage_taken,
+            self.teamfight_hero_damage,
+            self.xp_contribution,
+            self.time_stunning,
+            self.time_rooting,
+            self.time_silencing,
+            self.protection,
+            self.regen_globes,
+            self.merc_camp_captures,
+        ]
+    }
 }
 
 #[derive(Debug)]

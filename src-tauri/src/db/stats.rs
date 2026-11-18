@@ -118,26 +118,26 @@ async fn scored_players(
     let mut query = QueryBuilder::<Sqlite>::new(
         "SELECT g.id AS game_id, g.timestamp, g.duration, gp.team, gp.hero_id, h.slug AS hero_slug,
              h.role AS hero_role,
-             json_extract(gp.score, '$.Takedowns') AS takedowns,
-             json_extract(gp.score, '$.Deaths') AS deaths,
-             json_extract(gp.score, '$.HeroDamage') AS hero_damage,
-             json_extract(gp.score, '$.SiegeDamage') AS siege_damage,
-             json_extract(gp.score, '$.Healing') AS healing,
-             json_extract(gp.score, '$.DamageTaken') AS damage_taken,
-             json_extract(gp.score, '$.TeamfightDamageTaken') AS teamfight_damage_taken,
-             json_extract(gp.score, '$.TeamfightHeroDamage') AS teamfight_hero_damage,
-             json_extract(gp.score, '$.ExperienceContribution') AS xp,
-             CASE WHEN json_extract(gp.score, '$.TimeStunningEnemyHeroes') IS NULL
-                     AND json_extract(gp.score, '$.TimeRootingEnemyHeroes') IS NULL
-                     AND json_extract(gp.score, '$.TimeSilencingEnemyHeroes') IS NULL
+             gp.takedowns AS takedowns,
+             gp.deaths AS deaths,
+             gp.hero_damage AS hero_damage,
+             gp.siege_damage AS siege_damage,
+             gp.healing AS healing,
+             gp.damage_taken AS damage_taken,
+             gp.teamfight_damage_taken AS teamfight_damage_taken,
+             gp.teamfight_hero_damage AS teamfight_hero_damage,
+             gp.xp_contribution AS xp,
+             CASE WHEN gp.time_stunning IS NULL
+                     AND gp.time_rooting IS NULL
+                     AND gp.time_silencing IS NULL
                  THEN NULL
-                 ELSE COALESCE(json_extract(gp.score, '$.TimeStunningEnemyHeroes'), 0)
-                     + COALESCE(json_extract(gp.score, '$.TimeRootingEnemyHeroes'), 0)
-                     + COALESCE(json_extract(gp.score, '$.TimeSilencingEnemyHeroes'), 0)
+                 ELSE COALESCE(gp.time_stunning, 0)
+                     + COALESCE(gp.time_rooting, 0)
+                     + COALESCE(gp.time_silencing, 0)
              END AS hard_cc,
-             json_extract(gp.score, '$.ProtectionGivenToAllies') AS protection,
+             gp.protection AS protection,
              gp.time_dead_secs,
-             json_extract(gp.score, '$.MercCampCaptures') AS merc_captures,
+             gp.merc_camp_captures AS merc_captures,
              EXISTS (
                  SELECT 1 FROM replays r
                  WHERE r.game_id = g.id AND r.owner_player_id = gp.player_id
@@ -238,7 +238,7 @@ mod tests {
     use crate::db::replays::test_utils::*;
     use crate::db::test_utils::pool;
     use crate::types::player::Player;
-    use crate::types::replay::NewReplayPlayer;
+    use crate::types::replay::{NewReplayPlayer, NewScore};
 
     #[tokio::test]
     async fn profile_career_starts_empty() {
@@ -330,7 +330,11 @@ mod tests {
             upvotes: 0,
             party: None,
             xp: None,
-            score: serde_json::json!({ "HeroDamage": 40_000, "TimeRootingEnemyHeroes": 12 }),
+            score: NewScore {
+                hero_damage: Some(40_000),
+                time_rooting: Some(12),
+                ..Default::default()
+            },
             talents: vec![],
             awards: vec![],
         });

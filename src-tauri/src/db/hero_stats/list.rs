@@ -17,8 +17,8 @@ pub async fn hero_list(pool: &SqlitePool, filters: &ReplayFilters) -> sqlx::Resu
              COUNT(*) AS games,
              COALESCE(SUM(r.owner_win = 1), 0) AS wins,
              COALESCE(SUM(r.owner_win = 0), 0) AS losses,
-             COALESCE(SUM(json_extract(orp.score, '$.Takedowns')), 0) AS takedowns,
-             COALESCE(SUM(json_extract(orp.score, '$.Deaths')), 0) AS deaths,
+             COALESCE(SUM(orp.takedowns), 0) AS takedowns,
+             COALESCE(SUM(orp.deaths), 0) AS deaths,
              MAX(r.timestamp) AS last_played
          FROM (SELECT * FROM replays_view WHERE 1 = 1",
     );
@@ -43,20 +43,30 @@ pub async fn hero_list(pool: &SqlitePool, filters: &ReplayFilters) -> sqlx::Resu
 #[cfg(test)]
 mod tests {
     use chrono::DateTime;
-    use serde_json::json;
 
     use super::*;
     use crate::db::replays::insert_bundles;
     use crate::db::replays::test_utils::hero_game;
     use crate::db::test_utils::pool;
     use crate::types::replay::Mode;
+    use crate::types::replay::NewScore;
 
     async fn insert_games(pool: &SqlitePool) {
         let mut a = hero_game("a", 400, Mode::Aram, "braxis_holdout", "Wizard", true);
-        a.replay_players[0].score =
-            json!({"Takedowns": 10, "Deaths": 2, "HeroDamage": 1000, "Healing": 0});
+        a.replay_players[0].score = NewScore {
+            takedowns: Some(10),
+            deaths: Some(2),
+            hero_damage: Some(1000),
+            healing: Some(0),
+            ..Default::default()
+        };
         let mut b = hero_game("b", 300, Mode::QuickMatch, "cursed_hollow", "Wizard", false);
-        b.replay_players[0].score = json!({"Takedowns": 4, "Deaths": 3, "HeroDamage": 3000});
+        b.replay_players[0].score = NewScore {
+            takedowns: Some(4),
+            deaths: Some(3),
+            hero_damage: Some(3000),
+            ..Default::default()
+        };
         let mut c = hero_game("c", 200, Mode::QuickMatch, "cursed_hollow", "Wizard", true);
         c.replay.winner_team = None;
         let d = hero_game("d", 100, Mode::QuickMatch, "cursed_hollow", "Tyrande", true);
