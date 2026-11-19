@@ -6,7 +6,7 @@ use crate::types::replay::Mode;
 use crate::types::settings::SessionStart;
 use crate::types::stats::{
     MapStat, MostPlayedHeroes, PartySize, ProfileBests, ProfileCareer, ProfileScore, RecentForm,
-    ScoreScope, SessionRecord,
+    RoleRecord, ScoreScope, SessionRecord,
 };
 
 /// Sums up the owner's career across every hero.
@@ -25,6 +25,15 @@ pub async fn get_profile_bests(pool: State<'_, SqlitePool>) -> Result<ProfileBes
 #[tauri::command]
 pub async fn get_party_sizes(pool: State<'_, SqlitePool>) -> Result<Vec<PartySize>> {
     Ok(crate::db::stats::party_sizes(&pool).await?)
+}
+
+/// Returns the owner's games in the scope's modes by role.
+#[tauri::command]
+pub async fn get_role_records(
+    pool: State<'_, SqlitePool>,
+    scope: ScoreScope,
+) -> Result<Vec<RoleRecord>> {
+    Ok(crate::db::stats::role_records(&pool, scope).await?)
 }
 
 /// Scores the owner's latest games in the scope's modes against the other players

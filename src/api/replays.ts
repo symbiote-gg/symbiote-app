@@ -20,6 +20,15 @@ export type HeroRole =
     | "melee_assassin"
     | "ranged_assassin";
 
+export const HERO_ROLES: readonly HeroRole[] = [
+    "tank",
+    "bruiser",
+    "healer",
+    "support",
+    "melee_assassin",
+    "ranged_assassin",
+];
+
 export type ReplayPlayer = {
     playerId: number;
     name: string;

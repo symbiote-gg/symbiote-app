@@ -1,18 +1,9 @@
 import { Swords } from "lucide-react";
 import { useTranslations } from "use-intl";
 
-import type { HeroRole } from "@/api/replays";
+import { HERO_ROLES, type HeroRole } from "@/api/replays";
 import { ALL_HEROES, useMostPlayedHeroes } from "@/hooks/useMostPlayedHeroes";
 import { MultiSelect } from "@/ui";
-
-const ROLES: readonly HeroRole[] = [
-    "tank",
-    "bruiser",
-    "healer",
-    "support",
-    "melee_assassin",
-    "ranged_assassin",
-];
 
 export interface RoleFilterProps {
     value: readonly HeroRole[];
@@ -24,7 +15,7 @@ export function RoleFilter({ value, onChange }: RoleFilterProps) {
     const roles = useTranslations("roles");
     const { data } = useMostPlayedHeroes(ALL_HEROES);
 
-    const options = ROLES.filter((role) =>
+    const options = HERO_ROLES.filter((role) =>
         data?.heroes.some((hero) => hero.role === role),
     ).map((role) => ({ value: role, label: roles(role) }));
 

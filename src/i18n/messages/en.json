@@ -41,7 +41,7 @@
             "avgPartial": "{scored} of {games} games scored",
             "empty": {
                 "title": "No games yet",
-                "body": "Games you finish while the app is open show up here, with what they changed."
+                "body": "Play a game with the app open to start a session. Your win rate, score and streaks are tracked against your career."
             }
         }
     },
@@ -78,6 +78,12 @@
                 "4": "4 stack",
                 "5": "5 stack"
             },
+            "games": "{count, plural, one {# game} other {# games}}"
+        },
+        "roles": {
+            "title": "Roles",
+            "subtitle": "Win rate and games for each role you play.",
+            "notPlayed": "Not played",
             "games": "{count, plural, one {# game} other {# games}}"
         },
         "recentForm": {

@@ -54,6 +54,16 @@ pub struct PartySize {
     pub losses: i64,
 }
 
+/// The owner's games as heroes of `role`.
+#[derive(Debug, FromRow, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoleRecord {
+    pub role: HeroRole,
+    pub games: i64,
+    pub wins: i64,
+    pub losses: i64,
+}
+
 #[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MapStat {

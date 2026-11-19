@@ -28,6 +28,13 @@ export type PartySize = {
     losses: number;
 };
 
+export type RoleRecord = {
+    role: HeroRole;
+    games: number;
+    wins: number;
+    losses: number;
+};
+
 export type HeroStat = {
     heroId: number;
     name: string;
@@ -117,6 +124,9 @@ export const getProfileBests = () => invoke<ProfileBests>("get_profile_bests");
 export const getPartySizes = () => invoke<PartySize[]>("get_party_sizes");
 
 export type ScoreScope = "all" | "draft" | "quickMatch";
+
+export const getRoleRecords = (scope: ScoreScope) =>
+    invoke<RoleRecord[]>("get_role_records", { scope });
 
 export type FormAxis =
     | "heroDamage"

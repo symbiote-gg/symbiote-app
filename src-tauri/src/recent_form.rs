@@ -30,15 +30,6 @@ const AXES: [FormAxis; 6] = [
     FormAxis::Camps,
 ];
 
-const ROLES: [HeroRole; 6] = [
-    HeroRole::Tank,
-    HeroRole::Bruiser,
-    HeroRole::Healer,
-    HeroRole::Support,
-    HeroRole::MeleeAssassin,
-    HeroRole::RangedAssassin,
-];
-
 /// Every stat an axis reads, for any hero.
 const STATS: [RoleStat; 7] = [
     RoleStat::HeroDamage,
@@ -238,7 +229,7 @@ pub fn compute(players: &[PlayerGame], now: DateTime<Utc>) -> RecentForm {
         .map(|game| score_game(game, &baselines))
         .collect();
 
-    let roles = ROLES
+    let roles = HeroRole::ALL
         .into_iter()
         .map(|role| RoleForm {
             role,

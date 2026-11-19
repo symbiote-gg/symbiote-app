@@ -20,6 +20,17 @@ pub enum HeroRole {
     RangedAssassin,
 }
 
+impl HeroRole {
+    pub const ALL: [HeroRole; 6] = [
+        HeroRole::Tank,
+        HeroRole::Bruiser,
+        HeroRole::Healer,
+        HeroRole::Support,
+        HeroRole::MeleeAssassin,
+        HeroRole::RangedAssassin,
+    ];
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct HeroFact {
     #[serde(rename = "id")]

@@ -1,4 +1,4 @@
-import { CalendarClock, Hexagon, Shield } from "lucide-react";
+import { CalendarClock, Hexagon, Swords } from "lucide-react";
 import { useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -49,7 +49,7 @@ export function RecentForm({ scope }: RecentFormProps) {
                 subtitle={data && t("subtitle", { weeks })}
                 action={
                     <Select
-                        icon={<Shield />}
+                        icon={<Swords />}
                         label={t("role.label")}
                         options={options}
                         value={roleForm ? roleForm.role : null}

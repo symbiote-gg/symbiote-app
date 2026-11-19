@@ -6,6 +6,7 @@ import { ProfileBests } from "./bests";
 import { ProfileHeader } from "./header";
 import { PartySize } from "./party-size";
 import { RecentForm } from "./recent-form";
+import { Roles } from "./roles";
 import { ScoreCard } from "./score-card";
 import { ScoreHeroes } from "./score-heroes";
 import { ScoreHistory } from "./score-history";
@@ -23,8 +24,11 @@ export function Profile() {
             <ScoreCard scope={scope} onScopeChange={setScope} />
             <ScoreHistory scope={scope} />
             <div className={styles.grid}>
-                <div className={styles.half}>
+                <div className={styles.wide}>
                     <RecentForm scope={scope} />
+                </div>
+                <div className={styles.narrow}>
+                    <Roles scope={scope} />
                 </div>
             </div>
             <ScoreHeroes scope={scope} />

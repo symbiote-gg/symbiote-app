@@ -7,7 +7,7 @@ use crate::types::hero::HeroRole;
 use crate::types::replay::Mode;
 use crate::types::stats::{
     HeroStat, MapStat, MostPlayedHeroes, PartySize, ProfileBests, ProfileCareer, ProfileScore,
-    RecentForm, ScoreScope, ScoredHero, SessionGame, SessionHero, SessionRecord,
+    RecentForm, RoleRecord, ScoreScope, ScoredHero, SessionGame, SessionHero, SessionRecord,
 };
 
 /// Sums up the owner's career across every hero, with who they play as.
@@ -333,6 +333,49 @@ pub async fn party_sizes(pool: &SqlitePool) -> sqlx::Result<Vec<PartySize>> {
     Ok(sizes)
 }
 
+/// Returns the owner's games in the scope's modes by role, roles they never played
+/// included with no games.
+pub async fn role_records(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<Vec<RoleRecord>> {
+    let mut query = QueryBuilder::<Sqlite>::new(
+        "SELECT h.role,
+             COUNT(*) AS games,
+             COALESCE(SUM(r.owner_win = 1), 0) AS wins,
+             COALESCE(SUM(r.owner_win = 0), 0) AS losses
+         FROM replays_view r
+         JOIN heroes h ON h.id = r.owner_hero_id
+         WHERE h.role IS NOT NULL AND r.mode IN (",
+    );
+
+    let mut modes = query.separated(", ");
+    for &mode in profile_score::modes(scope) {
+        modes.push_bind(mode);
+    }
+
+    let played = query
+        .push(") GROUP BY h.role")
+        .build_query_as::<RoleRecord>()
+        .fetch_all(pool)
+        .await?;
+
+    let mut records: Vec<_> = HeroRole::ALL
+        .into_iter()
+        .map(|role| RoleRecord {
+            role,
+            games: 0,
+            wins: 0,
+            losses: 0,
+        })
+        .collect();
+
+    for record in played {
+        if let Some(slot) = records.iter_mut().find(|slot| slot.role == record.role) {
+            *slot = record;
+        }
+    }
+
+    Ok(records)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -479,6 +522,62 @@ mod tests {
                 (3, 0, 0, 0),
                 (4, 0, 0, 0),
                 (5, 0, 0, 0)
+            ]
+        );
+    }
+
+    #[tokio::test]
+    async fn role_records_count_the_scopes_games_by_role() {
+        let pool = pool().await;
+        let game = |name: &str, timestamp, mode, hero: &str, win| {
+            hero_game(name, timestamp, mode, "cursed_hollow", hero, win)
+        };
+
+        for game in [
+            game("tank-won", 1000, Mode::QuickMatch, "Muradin", true),
+            game("tank-lost", 2000, Mode::StormLeague, "Muradin", false),
+            game("healer-won", 3000, Mode::QuickMatch, "Tyrande", true),
+            game("healer-aram", 4000, Mode::Aram, "Tyrande", false),
+            game("no-role", 5000, Mode::QuickMatch, "Wizard", true),
+        ] {
+            insert_bundle(&pool, game).await.unwrap();
+        }
+
+        sqlx::query(
+            "UPDATE heroes SET role = 'tank' WHERE slug = 'Muradin';
+             UPDATE heroes SET role = 'healer' WHERE slug = 'Tyrande';",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+
+        let read = |records: Vec<RoleRecord>| -> Vec<_> {
+            records
+                .into_iter()
+                .map(|record| (record.role, record.games, record.wins, record.losses))
+                .collect()
+        };
+
+        assert_eq!(
+            read(role_records(&pool, ScoreScope::All).await.unwrap()),
+            [
+                (HeroRole::Tank, 2, 1, 1),
+                (HeroRole::Bruiser, 0, 0, 0),
+                (HeroRole::Healer, 1, 1, 0),
+                (HeroRole::Support, 0, 0, 0),
+                (HeroRole::MeleeAssassin, 0, 0, 0),
+                (HeroRole::RangedAssassin, 0, 0, 0),
+            ]
+        );
+        assert_eq!(
+            read(role_records(&pool, ScoreScope::Draft).await.unwrap()),
+            [
+                (HeroRole::Tank, 1, 0, 1),
+                (HeroRole::Bruiser, 0, 0, 0),
+                (HeroRole::Healer, 0, 0, 0),
+                (HeroRole::Support, 0, 0, 0),
+                (HeroRole::MeleeAssassin, 0, 0, 0),
+                (HeroRole::RangedAssassin, 0, 0, 0),
             ]
         );
     }
