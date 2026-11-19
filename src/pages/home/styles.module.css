@@ -1,7 +1,7 @@
 @reference "@/index.css";
 
 .grid {
-    @apply grid items-stretch gap-stack lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,27rem)] lg:grid-rows-1;
+    @apply grid items-stretch gap-stack lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(26rem,36rem)] lg:grid-rows-1;
 }
 
 .side {

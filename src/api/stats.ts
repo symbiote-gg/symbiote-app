@@ -3,15 +3,6 @@ import { invoke } from "@tauri-apps/api/core";
 import type { CareerTotals } from "./heroes";
 import type { HeroRole, Mode, RoleStat } from "./replays";
 
-export type ProfileSummary = {
-    games: number;
-    wins: number;
-    losses: number;
-    mvps: number;
-    mainRole: HeroRole | null;
-    recent: (boolean | null)[];
-};
-
 export type ProfileCareer = CareerTotals & {
     /** `null` until the first replay is in. */
     name: string | null;
@@ -69,11 +60,17 @@ export type HeroScoreRow = {
     score: number;
     heroSamples: number;
     heroWeight: number;
+    sessionChange: number | null;
     pillars: ScorePillar[];
 };
 
 export type ScorePoint = {
     timestamp: string;
+    score: number;
+};
+
+export type GameScore = {
+    gameId: number;
     score: number;
 };
 
@@ -84,6 +81,8 @@ export type ProfileScore = {
     career: number | null;
     careerMargin: number | null;
     careerGames: number;
+    sessionChange: number | null;
+    sessionGames: GameScore[];
     eligibleGames: number;
     baselinePlayers: number;
     minGames: number;
@@ -93,9 +92,6 @@ export type ProfileScore = {
     history: ScorePoint[];
 };
 
-export const getProfileSummary = () =>
-    invoke<ProfileSummary>("get_profile_summary");
-
 export const getProfileCareer = () =>
     invoke<ProfileCareer>("get_profile_career");
 
@@ -103,6 +99,44 @@ export type ScoreScope = "all" | "draft" | "quickMatch";
 
 export const getProfileScore = (scope: ScoreScope) =>
     invoke<ProfileScore>("get_profile_score", { scope });
+
+export type SessionHero = {
+    heroId: number;
+    name: string;
+    portrait: string | null;
+    accent: string | null;
+    games: number;
+    wins: number;
+    losses: number;
+    careerWins: number;
+    careerLosses: number;
+};
+
+export type SessionGame = {
+    replayId: number;
+    gameId: number;
+    timestamp: string;
+    heroId: number;
+    hero: string;
+    portrait: string | null;
+    map: string;
+    win: boolean | null;
+    mvp: boolean;
+};
+
+export type SessionRecord = {
+    started: string;
+    wins: number;
+    losses: number;
+    duration: number;
+    careerWins: number;
+    careerLosses: number;
+    heroes: SessionHero[];
+    games: SessionGame[];
+};
+
+export const getSessionRecord = () =>
+    invoke<SessionRecord>("get_session_record");
 
 export const getMostPlayedHeroes = (limit: number) =>
     invoke<MostPlayedHeroes>("get_most_played_heroes", { limit });

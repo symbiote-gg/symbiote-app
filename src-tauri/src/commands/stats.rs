@@ -3,15 +3,10 @@ use tauri::State;
 
 use crate::error::Result;
 use crate::types::replay::Mode;
+use crate::types::settings::SessionStart;
 use crate::types::stats::{
-    MapStat, MostPlayedHeroes, ProfileCareer, ProfileScore, ProfileSummary, ScoreScope,
+    MapStat, MostPlayedHeroes, ProfileCareer, ProfileScore, ScoreScope, SessionRecord,
 };
-
-/// Sums up the owner's results.
-#[tauri::command]
-pub async fn get_profile_summary(pool: State<'_, SqlitePool>) -> Result<ProfileSummary> {
-    Ok(crate::db::stats::profile_summary(&pool).await?)
-}
 
 /// Sums up the owner's career across every hero.
 #[tauri::command]
@@ -24,9 +19,19 @@ pub async fn get_profile_career(pool: State<'_, SqlitePool>) -> Result<ProfileCa
 #[tauri::command]
 pub async fn get_profile_score(
     pool: State<'_, SqlitePool>,
+    session: State<'_, SessionStart>,
     scope: ScoreScope,
 ) -> Result<ProfileScore> {
-    Ok(crate::db::stats::profile_score(&pool, scope).await?)
+    Ok(crate::db::stats::profile_score(&pool, scope, session.0).await?)
+}
+
+/// Sums up the owner's games ended since the app was opened.
+#[tauri::command]
+pub async fn get_session_record(
+    pool: State<'_, SqlitePool>,
+    session: State<'_, SessionStart>,
+) -> Result<SessionRecord> {
+    Ok(crate::db::stats::session_record(&pool, session.0).await?)
 }
 
 const MAX_MOST_PLAYED_HEROES: i64 = 200;

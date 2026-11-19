@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
 
 use crate::db::hero_stats;
@@ -5,47 +6,9 @@ use crate::profile_score::{self, PlayerGame};
 use crate::types::hero::HeroRole;
 use crate::types::replay::Mode;
 use crate::types::stats::{
-    HeroStat, MapStat, MostPlayedHeroes, ProfileCareer, ProfileScore, ProfileSummary, ScoreScope,
-    ScoredHero,
+    HeroStat, MapStat, MostPlayedHeroes, ProfileCareer, ProfileScore, ScoreScope, ScoredHero,
+    SessionGame, SessionHero, SessionRecord,
 };
-
-/// How many of the latest results [`profile_summary`] returns.
-const RECENT_GAMES: i64 = 20;
-
-/// Sums up the owner's results.
-///
-/// All the figures are read from the same snapshot, so they agree with each other.
-pub async fn profile_summary(pool: &SqlitePool) -> sqlx::Result<ProfileSummary> {
-    let mut tx = pool.begin().await?;
-    let (games, wins, losses): (i64, i64, i64) = sqlx::query_as(
-        "SELECT COUNT(*),
-             COALESCE(SUM(owner_win = 1), 0),
-             COALESCE(SUM(owner_win = 0), 0)
-         FROM replays_view",
-    )
-    .fetch_one(&mut *tx)
-    .await?;
-
-    let mvps = mvps(&mut tx).await?;
-    let main_role = main_role(&mut tx).await?;
-
-    let recent: Vec<Option<bool>> = sqlx::query_scalar(
-        "SELECT owner_win FROM replays_view ORDER BY timestamp DESC, id DESC LIMIT ?",
-    )
-    .bind(RECENT_GAMES)
-    .fetch_all(&mut *tx)
-    .await?;
-    tx.commit().await?;
-
-    Ok(ProfileSummary {
-        games,
-        wins,
-        losses,
-        mvps,
-        main_role,
-        recent,
-    })
-}
 
 /// Sums up the owner's career across every hero, with who they play as.
 ///
@@ -166,7 +129,11 @@ async fn scored_players(
 
 /// Scores the owner's latest games in the scope's modes against the other players
 /// in them.
-pub async fn profile_score(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<ProfileScore> {
+pub async fn profile_score(
+    pool: &SqlitePool,
+    scope: ScoreScope,
+    session_start: DateTime<Utc>,
+) -> sqlx::Result<ProfileScore> {
     let mut tx = pool.begin().await?;
     let players = scored_players(&mut tx, scope).await?;
     let heroes = sqlx::query_as::<_, ScoredHero>("SELECT id, name, role, portrait FROM heroes")
@@ -174,7 +141,76 @@ pub async fn profile_score(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result
         .await?;
     tx.commit().await?;
 
-    Ok(profile_score::compute(&players, heroes))
+    Ok(profile_score::compute(&players, heroes, session_start))
+}
+
+/// The owner's games ended since `session_start`, by hero and one by one, beside
+/// the career they add to.
+///
+/// All the figures are read from the same snapshot, so they agree with each other.
+pub async fn session_record(
+    pool: &SqlitePool,
+    session_start: DateTime<Utc>,
+) -> sqlx::Result<SessionRecord> {
+    let start = session_start.timestamp();
+    let mut tx = pool.begin().await?;
+
+    let (career_wins, career_losses): (i64, i64) = sqlx::query_as(
+        "SELECT COALESCE(SUM(owner_win = 1), 0), COALESCE(SUM(owner_win = 0), 0)
+         FROM replays_view",
+    )
+    .fetch_one(&mut *tx)
+    .await?;
+
+    let heroes = sqlx::query_as::<_, SessionHero>(
+        "SELECT h.id AS hero_id, h.name, h.portrait, h.accent,
+             SUM(r.timestamp + r.duration >= ?1) AS games,
+             COALESCE(SUM(r.owner_win = 1 AND r.timestamp + r.duration >= ?1), 0) AS wins,
+             COALESCE(SUM(r.owner_win = 0 AND r.timestamp + r.duration >= ?1), 0) AS losses,
+             COALESCE(SUM(r.owner_win = 1), 0) AS career_wins,
+             COALESCE(SUM(r.owner_win = 0), 0) AS career_losses
+         FROM replays_view r
+         JOIN heroes h ON h.id = r.owner_hero_id
+         GROUP BY h.id
+         HAVING games > 0
+         ORDER BY games DESC, h.name",
+    )
+    .bind(start)
+    .fetch_all(&mut *tx)
+    .await?;
+
+    let games = sqlx::query_as::<_, SessionGame>(
+        "SELECT r.id AS replay_id, r.game_id, r.timestamp, r.duration,
+             h.id AS hero_id, h.name AS hero, h.portrait,
+             COALESCE(m.name, r.map) AS map,
+             r.owner_win AS win,
+             EXISTS (
+                 SELECT 1 FROM games_players_awards a
+                 WHERE a.game_id = r.game_id
+                     AND a.player_id = r.owner_player_id
+                     AND a.award = 'mvp'
+             ) AS mvp
+         FROM replays_view r
+         JOIN heroes h ON h.id = r.owner_hero_id
+         LEFT JOIN maps m ON m.id = r.map
+         WHERE r.timestamp + r.duration >= ?
+         ORDER BY r.timestamp DESC, r.id DESC",
+    )
+    .bind(start)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+
+    Ok(SessionRecord {
+        started: session_start,
+        wins: heroes.iter().map(|hero| hero.wins).sum(),
+        losses: heroes.iter().map(|hero| hero.losses).sum(),
+        duration: games.iter().map(|game| game.duration).sum(),
+        career_wins,
+        career_losses,
+        heroes,
+        games,
+    })
 }
 
 /// Returns the `limit` heroes the owner played the most, with how many heroes they
@@ -303,6 +339,82 @@ mod tests {
             (3, 1, 2)
         );
         assert_eq!(career.mvps, 1);
+    }
+
+    #[tokio::test]
+    async fn session_record_counts_games_ended_since_the_start() {
+        let pool = pool().await;
+        let game = |name: &str, timestamp, hero: &str, win| {
+            let mut game = hero_game(
+                name,
+                timestamp,
+                Mode::QuickMatch,
+                "cursed_hollow",
+                hero,
+                win,
+            );
+            game.replay.duration = 600;
+            game
+        };
+        let mut other = game("other", 7000, "Tyrande", true);
+        other.replay_players[0].awards = vec![];
+
+        for game in [
+            game("earlier", 1000, "Wizard", true),
+            // Started before the session and ended in it.
+            game("running", 4500, "Wizard", false),
+            game("later", 6000, "Wizard", true),
+            other,
+        ] {
+            insert_bundle(&pool, game).await.unwrap();
+        }
+
+        let start = DateTime::from_timestamp(5000, 0).unwrap();
+        let record = session_record(&pool, start).await.unwrap();
+        assert_eq!(record.started, start);
+        assert_eq!((record.wins, record.losses), (2, 1));
+        assert_eq!((record.career_wins, record.career_losses), (3, 1));
+        assert_eq!(record.duration, 3 * 600);
+
+        let heroes: Vec<_> = record
+            .heroes
+            .iter()
+            .map(|hero| {
+                (
+                    hero.name.as_str(),
+                    hero.games,
+                    (hero.wins, hero.losses),
+                    (hero.career_wins, hero.career_losses),
+                )
+            })
+            .collect();
+        assert_eq!(
+            heroes,
+            [
+                ("Wizard", 2, (1, 1), (2, 1)),
+                ("Tyrande", 1, (1, 0), (1, 0))
+            ]
+        );
+
+        let games: Vec<_> = record
+            .games
+            .iter()
+            .map(|game| (game.hero.as_str(), game.win, game.mvp))
+            .collect();
+        assert_eq!(
+            games,
+            [
+                ("Tyrande", Some(true), false),
+                ("Wizard", Some(true), true),
+                ("Wizard", Some(false), true),
+            ]
+        );
+
+        let none = session_record(&pool, DateTime::<Utc>::MAX_UTC)
+            .await
+            .unwrap();
+        assert!(none.heroes.is_empty() && none.games.is_empty());
+        assert_eq!((none.career_wins, none.career_losses), (3, 1));
     }
 
     #[tokio::test]

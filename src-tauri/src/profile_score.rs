@@ -4,7 +4,7 @@
 
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, TimeDelta, Utc};
 use sqlx::FromRow;
 
 use crate::role_performances::{
@@ -18,8 +18,8 @@ use crate::types::role_performances::RoleStat::{
     TimeDeadShare, Xp,
 };
 use crate::types::stats::{
-    HeroScoreRow, ProfileScore, ScorePillar, ScorePillarId, ScorePoint, ScoreScope, ScoreStat,
-    ScoredHero,
+    GameScore, HeroScoreRow, ProfileScore, ScorePillar, ScorePillarId, ScorePoint, ScoreScope,
+    ScoreStat, ScoredHero,
 };
 
 /// The modes played five against five on a full map. ARAM's single lane inflates
@@ -394,7 +394,9 @@ fn zero_share(sorted: &[f64]) -> f64 {
 /// One of the owner's games: its score from 0 to 1 and each stat's weight in it
 /// with the percentile reached.
 struct ScoredGame {
+    game_id: i64,
     timestamp: DateTime<Utc>,
+    ended: DateTime<Utc>,
     hero_id: i64,
     score: f64,
     /// The share of the game's ranking done against the hero's players.
@@ -450,7 +452,9 @@ fn score_game(
         .sum();
 
     Some(ScoredGame {
+        game_id: player.game_id,
         timestamp: player.timestamp,
+        ended: player.timestamp + TimeDelta::seconds(player.duration),
         hero_id: player.hero_id,
         score,
         hero_weight,
@@ -542,6 +546,7 @@ fn hero_rows(
     games: &[ScoredGame],
     heroes: Vec<ScoredHero>,
     baselines: &Baselines,
+    session_start: DateTime<Utc>,
 ) -> Vec<HeroScoreRow> {
     let mut by_hero: HashMap<i64, Vec<&ScoredGame>> = HashMap::new();
     for game in games {
@@ -566,6 +571,7 @@ fn hero_rows(
                 score,
                 hero_samples: baselines.hero_games(hero.id),
                 hero_weight: weight,
+                session_change: session_change(hero_games, session_start, 1),
                 pillars: pillars(hero_games, score),
             })
         })
@@ -577,7 +583,12 @@ fn hero_rows(
 
 /// Scores the owner's games against the other players in `players`: the career
 /// broken down into its parts and heroes, and the latest games' score beside it.
-pub fn compute(players: &[PlayerGame], heroes: Vec<ScoredHero>) -> ProfileScore {
+/// Games ended since `session_start` are the session's.
+pub fn compute(
+    players: &[PlayerGame],
+    heroes: Vec<ScoredHero>,
+    session_start: DateTime<Utc>,
+) -> ProfileScore {
     let games: Vec<_> = players.chunk_by(|a, b| a.game_id == b.game_id).collect();
 
     let totals: Vec<_> = games.iter().map(|&game| game_totals(game)).collect();
@@ -607,6 +618,7 @@ pub fn compute(players: &[PlayerGame], heroes: Vec<ScoredHero>) -> ProfileScore 
 
     let latest = &scored[scored.len().saturating_sub(WINDOW)..];
     let career = mean_points(&scored);
+    let career_games: Vec<_> = scored.iter().collect();
 
     let eligible_games = players
         .iter()
@@ -620,15 +632,22 @@ pub fn compute(players: &[PlayerGame], heroes: Vec<ScoredHero>) -> ProfileScore 
         career,
         career_margin: margin(&scored),
         career_games: scored.len(),
+        session_change: session_change(&career_games, session_start, MIN_GAMES),
+        session_games: scored
+            .iter()
+            .filter(|game| game.ended >= session_start)
+            .map(|game| GameScore {
+                game_id: game.game_id,
+                score: points(game.score),
+            })
+            .collect(),
         eligible_games,
         baseline_players,
         min_games: MIN_GAMES,
         window: WINDOW,
-        pillars: career.map_or_else(Vec::new, |career| {
-            pillars(&scored.iter().collect::<Vec<_>>(), career)
-        }),
+        pillars: career.map_or_else(Vec::new, |career| pillars(&career_games, career)),
         heroes: if career.is_some() {
-            hero_rows(&scored, heroes, &baselines)
+            hero_rows(&scored, heroes, &baselines, session_start)
         } else {
             Vec::new()
         },
@@ -638,6 +657,32 @@ pub fn compute(players: &[PlayerGame], heroes: Vec<ScoredHero>) -> ProfileScore 
 
 fn mean_score(games: &[ScoredGame]) -> f64 {
     games.iter().map(|game| game.score).sum::<f64>() / games.len() as f64
+}
+
+/// The points the games ended since `session_start` moved the games' score by.
+/// `None` without any of them, or with fewer than `min_games` before them. Both
+/// scores rank against the same players, so only the session's games move it.
+fn session_change(
+    games: &[&ScoredGame],
+    session_start: DateTime<Utc>,
+    min_games: usize,
+) -> Option<f64> {
+    let before: Vec<f64> = games
+        .iter()
+        .filter(|game| game.ended < session_start)
+        .map(|game| game.score)
+        .collect();
+
+    if before.len() == games.len() || before.len() < min_games {
+        return None;
+    }
+
+    let now = games.iter().map(|game| game.score).sum::<f64>() / games.len() as f64;
+    let earlier = before.iter().sum::<f64>() / before.len() as f64;
+
+    // In points, to a tenth: finer than the score's own whole points, as a session
+    // seldom moves a long career by a whole one.
+    Some(((now - earlier) * 1000.0).round() / 10.0)
 }
 
 /// The games' mean score, once there are enough of them to rate.
@@ -682,6 +727,8 @@ mod tests {
 
     const JAINA: i64 = 1;
     const VALLA: i64 = 2;
+
+    const NO_SESSION: DateTime<Utc> = DateTime::<Utc>::MAX_UTC;
 
     /// A ranged assassin in a ten minute game, so damage per minute is a tenth of it.
     fn assassin(game_id: i64, team: i64, hero_id: i64, hero_damage: i64) -> PlayerGame {
@@ -758,7 +805,7 @@ mod tests {
             game[1].hero_damage = Some(500_000);
         }
 
-        let score = compute(&players, heroes());
+        let score = compute(&players, heroes(), NO_SESSION);
         assert_eq!(stat(&score, HeroDamage).percentile, 1.0);
         assert_eq!(score.baseline_players, 12 * 3);
     }
@@ -820,7 +867,7 @@ mod tests {
             game[0].deaths = Some(0);
         }
 
-        let score = compute(&players, heroes());
+        let score = compute(&players, heroes(), NO_SESSION);
         assert_eq!(stat(&score, DeathShare).percentile, 1.0);
     }
 
@@ -828,7 +875,7 @@ mod tests {
     fn points_sum_to_the_score() {
         let players = games(23, |id| 24_000 + id * 700);
 
-        let score = compute(&players, heroes());
+        let score = compute(&players, heroes(), NO_SESSION);
         let total: u8 = score.pillars.iter().map(|p| p.points).sum();
         assert_eq!(Some(total), score.score);
         assert_eq!(score.pillars.iter().map(|p| p.max).sum::<u8>(), 100);
@@ -864,7 +911,7 @@ mod tests {
             player.hero_slug = "Valla".to_owned();
         }
 
-        let score = compute(&players, heroes());
+        let score = compute(&players, heroes(), NO_SESSION);
         assert_eq!(score.heroes.len(), 2);
 
         for hero in &score.heroes {
@@ -885,7 +932,7 @@ mod tests {
             player.protection = Some(1_000);
         }
 
-        let score = compute(&players, heroes());
+        let score = compute(&players, heroes(), NO_SESSION);
         let maxes: Vec<_> = score.pillars.iter().map(|p| p.max).collect();
         assert_eq!(maxes, [30, 15, 30, 25]);
         assert_eq!(stat(&score, DeathShare).max, 10);
@@ -921,7 +968,7 @@ mod tests {
             player.time_dead_secs = Some(if player.is_owner { 0.0 } else { 90.0 });
         }
 
-        let score = compute(&players, heroes());
+        let score = compute(&players, heroes(), NO_SESSION);
         assert_eq!(stat(&score, TimeDeadShare).percentile, 1.0);
     }
 
@@ -940,7 +987,7 @@ mod tests {
             }
         }
 
-        let score = compute(&players, heroes());
+        let score = compute(&players, heroes(), NO_SESSION);
         assert_eq!(stat(&score, TeamfightHeroDamageShare).percentile, 1.0);
     }
 
@@ -957,7 +1004,9 @@ mod tests {
             scores
                 .iter()
                 .map(|&score| ScoredGame {
+                    game_id: 0,
                     timestamp: DateTime::UNIX_EPOCH,
+                    ended: DateTime::UNIX_EPOCH,
                     hero_id: JAINA,
                     score,
                     hero_weight: 0.0,
@@ -978,8 +1027,46 @@ mod tests {
     }
 
     #[test]
+    fn the_session_change_is_what_its_games_moved() {
+        let start = DateTime::from_timestamp(5_000, 0).unwrap();
+        let mut players = games(MIN_GAMES as i64 + 2, |id| {
+            if id > MIN_GAMES as i64 {
+                90_000
+            } else {
+                10_000
+            }
+        });
+        for player in players.iter_mut().filter(|p| p.game_id > MIN_GAMES as i64) {
+            player.timestamp = DateTime::from_timestamp(10_000, 0).unwrap();
+        }
+
+        let score = compute(&players, heroes(), start);
+        let change = score.session_change.unwrap();
+        assert!(change > 0.0);
+        assert_eq!(change, (change * 10.0).round() / 10.0);
+        assert_eq!(score.heroes[0].session_change, score.session_change);
+
+        let session: Vec<_> = score.session_games.iter().map(|g| g.game_id).collect();
+        assert_eq!(session, [MIN_GAMES as i64 + 1, MIN_GAMES as i64 + 2]);
+
+        let none = compute(&players, heroes(), NO_SESSION);
+        assert_eq!(none.session_change, None);
+        assert!(none.session_games.is_empty());
+        assert_eq!(none.heroes[0].session_change, None);
+
+        // Every game is the session's: nothing before them to move from.
+        let all = compute(&players, heroes(), DateTime::UNIX_EPOCH);
+        assert_eq!(all.session_change, None);
+        assert_eq!(all.heroes[0].session_change, None);
+    }
+
+    #[test]
     fn too_few_games_go_unrated() {
-        let score = compute(&games(MIN_GAMES as i64 - 1, |_| 30_000), heroes());
+        let score = compute(
+            &games(MIN_GAMES as i64 - 1, |_| 30_000),
+            heroes(),
+            NO_SESSION,
+        );
         assert_eq!(score.score, None);
         assert_eq!((score.games, score.career), (MIN_GAMES - 1, None));
         assert_eq!((score.margin, score.career_margin), (None, None));
@@ -994,7 +1081,7 @@ mod tests {
             .flat_map(|game| game[..2].to_vec())
             .collect();
 
-        let score = compute(&players, heroes());
+        let score = compute(&players, heroes(), NO_SESSION);
         assert_eq!(
             (score.eligible_games, score.career_games),
             (MIN_GAMES + 2, 0)
@@ -1010,7 +1097,7 @@ mod tests {
             |id| if id <= 10 { 90_000 } else { 1_000 },
         );
 
-        let score = compute(&players, heroes());
+        let score = compute(&players, heroes(), NO_SESSION);
         assert_eq!((score.games, score.career_games), (WINDOW, WINDOW + 10));
         assert!(stat(&score, HeroDamage).percentile > 0.0);
         assert!(score.career > score.score);
@@ -1048,7 +1135,7 @@ mod tests {
             .filter(|p| !p.is_owner && p.siege_damage.is_some())
             .count();
 
-        let score = compute(&players, heroes());
+        let score = compute(&players, heroes(), NO_SESSION);
         let [valla] = &score.heroes[..] else {
             panic!("the owner only played Valla");
         };

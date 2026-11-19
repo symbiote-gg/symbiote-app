@@ -1,7 +1,6 @@
 import { Page } from "@/components";
-import { HeroesCard } from "./heroes-card";
-import { ProfileCard } from "./profile-card";
 import { RecentReplaysCard } from "./recent-replays-card";
+import { SessionCard } from "./session-card";
 
 import styles from "./styles.module.css";
 
@@ -11,8 +10,7 @@ export function Home() {
             <div className={styles.grid}>
                 <RecentReplaysCard />
                 <div className={styles.side}>
-                    <ProfileCard />
-                    <HeroesCard />
+                    <SessionCard />
                 </div>
             </div>
         </Page>

@@ -6,17 +6,6 @@ use super::hero::HeroRole;
 use super::hero_stats::HeroTotals;
 use super::role_performances::RoleStat;
 
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ProfileSummary {
-    pub games: i64,
-    pub wins: i64,
-    pub losses: i64,
-    pub mvps: i64,
-    pub main_role: Option<HeroRole>,
-    pub recent: Vec<Option<bool>>,
-}
-
 /// The owner's career across every hero, for the profile header.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -92,6 +81,11 @@ pub struct ProfileScore {
     pub career: Option<u8>,
     pub career_margin: Option<u8>,
     pub career_games: usize,
+    /// The points, to a tenth, this session's games moved `career` by, `None` without any or
+    /// when the career wasn't rated before them.
+    pub session_change: Option<f64>,
+    /// This session's scored games, in the order played.
+    pub session_games: Vec<GameScore>,
     /// The owner's games on a hero with a role, scored or not: those short of
     /// players to rank against go unscored.
     pub eligible_games: usize,
@@ -149,7 +143,66 @@ pub struct HeroScoreRow {
     /// How much of the comparison is against the hero's players, the rest being
     /// against its role's, from 0 to 1.
     pub hero_weight: f64,
+    /// The points, to a tenth, this session's games moved `score` by, `None` without any or
+    /// on a hero first played in them.
+    pub session_change: Option<f64>,
     pub pillars: Vec<ScorePillar>,
+}
+
+/// The owner's games ended since the app was opened, with the career they add to.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionRecord {
+    pub started: DateTime<Utc>,
+    pub wins: i64,
+    pub losses: i64,
+    /// The session's games' lengths summed, in seconds.
+    pub duration: i64,
+    /// Over every game, the session's included.
+    pub career_wins: i64,
+    pub career_losses: i64,
+    /// The heroes played in the session, the most played first.
+    pub heroes: Vec<SessionHero>,
+    /// Newest first.
+    pub games: Vec<SessionGame>,
+}
+
+#[derive(Debug, FromRow, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionHero {
+    pub hero_id: i64,
+    pub name: String,
+    pub portrait: Option<String>,
+    pub accent: Option<String>,
+    pub games: i64,
+    pub wins: i64,
+    pub losses: i64,
+    pub career_wins: i64,
+    pub career_losses: i64,
+}
+
+#[derive(Debug, FromRow, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionGame {
+    pub replay_id: i64,
+    pub game_id: i64,
+    pub timestamp: DateTime<Utc>,
+    #[serde(skip)]
+    pub duration: i64,
+    pub hero_id: i64,
+    pub hero: String,
+    pub portrait: Option<String>,
+    pub map: String,
+    pub win: Option<bool>,
+    pub mvp: bool,
+}
+
+/// What one of the owner's games scored out of 100.
+#[derive(Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GameScore {
+    pub game_id: i64,
+    pub score: u8,
 }
 
 #[derive(Debug, FromRow)]

@@ -7,3 +7,23 @@
 .withAction {
     @apply flex flex-col items-center gap-3 px-gutter py-10;
 }
+
+.filled {
+    @apply flex flex-1 flex-col items-center justify-center gap-2 px-gutter py-12 text-center;
+}
+
+.badge {
+    @apply mb-2 flex size-16 items-center justify-center rounded-full ring-1;
+}
+
+.badge.muted {
+    @apply bg-surface-2 text-fg-muted ring-line;
+}
+
+.badge.win {
+    @apply bg-win/15 text-win ring-win/40;
+}
+
+.glyph {
+    @apply size-7;
+}

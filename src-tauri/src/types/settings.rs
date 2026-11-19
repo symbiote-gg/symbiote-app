@@ -40,6 +40,10 @@ pub struct DatabaseStats {
 #[derive(Debug)]
 pub struct ReplaysFolder(pub Option<PathBuf>);
 
+/// When the app was opened: games ended since are this session's.
+#[derive(Debug, Clone, Copy)]
+pub struct SessionStart(pub DateTime<Utc>);
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplaysFolderStats {

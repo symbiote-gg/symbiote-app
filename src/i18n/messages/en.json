@@ -21,27 +21,28 @@
             "all": "All replays",
             "empty": "No replays yet. Play a game and it shows up here."
         },
-        "profile": {
-            "title": "Profile",
-            "subtitle": "All your heroes, one scoreboard.",
-            "last": "Last {count} games",
+        "session": {
+            "title": "This session",
+            "since": "Since {time}",
+            "subtitle": "You played {games, plural, one {# game} other {# games}} in {hours, plural, =0 {} other {#h }}{minutes}m.",
+            "career": "Career",
             "winRate": "Win rate",
-            "mainRole": "Main role",
+            "noChange": "No change",
+            "heroes": "Heroes",
+            "heroScore": "Score",
+            "thisSession": "Session",
+            "winStreak": "Win streak",
+            "lossStreak": "Loss streak",
+            "inARow": "In a row",
             "mvps": "MVPs",
-            "record": "<num>{wins}</num><win>W</win> <num>{losses}</num><loss>D</loss>",
-            "empty": "Your stats show up after your first game.",
-            "cta": "View profile"
-        },
-        "heroes": {
-            "title": "Heroes",
-            "played": "{played} of {total} played.",
-            "empty": "No heroes played yet.",
-            "columns": {
-                "hero": "Hero",
-                "winRate": "Win rate",
-                "games": "Games"
-            },
-            "cta": "All heroes"
+            "mvpDetail": "In {games, plural, one {# game} other {# games}}",
+            "avgScore": "Avg score",
+            "careerScore": "Career {score}",
+            "avgPartial": "{scored} of {games} games scored",
+            "empty": {
+                "title": "No games yet",
+                "body": "Games you finish while the app is open show up here, with what they changed."
+            }
         }
     },
     "profile": {

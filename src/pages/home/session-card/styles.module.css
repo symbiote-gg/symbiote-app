@@ -1,0 +1,109 @@
+@reference "@/index.css";
+
+/* Fits the side column on wide screens, so only the hero list scrolls. */
+.root {
+    @apply shrink-0 lg:min-h-0 lg:flex-1 lg:shrink;
+}
+
+.body {
+    @apply flex min-h-0 flex-1 flex-col gap-6 px-gutter pb-6;
+}
+
+.record {
+    @apply shrink-0 text-3xl leading-none font-extrabold;
+}
+
+.win,
+.loss {
+    @apply ml-0.5;
+}
+
+.record .win,
+.record .loss {
+    @apply text-sm;
+}
+
+.win {
+    @apply text-win;
+}
+
+.loss {
+    @apply text-loss;
+}
+
+.section {
+    @apply flex flex-col gap-3;
+}
+
+.career {
+    @apply grid grid-cols-2 gap-3;
+}
+
+.session {
+    @apply grid grid-cols-3 gap-3;
+}
+
+.winTone {
+    --tone: var(--color-win);
+}
+
+.lossTone {
+    --tone: var(--color-loss);
+}
+
+.valueRow {
+    @apply inline-flex items-center gap-3;
+}
+
+.valueBar,
+.detailBar {
+    @apply w-20;
+}
+
+.scoreBar {
+    @apply w-8;
+}
+
+.score {
+    --tone: var(--rank-text);
+    --card-icon: var(--rank);
+}
+
+.heroes {
+    @apply min-h-0 flex-1;
+}
+
+.tiles {
+    @apply flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain;
+}
+
+.tile {
+    --accent: var(--hero-accent, var(--color-primary-text));
+    @apply grid grid-cols-[auto_minmax(0,1fr)_8.5rem_5.5rem] items-center gap-x-5 rounded-lg border border-tile-line bg-surface-2 bg-linear-150 from-accent/16 to-transparent to-55% p-4 transition-colors hover:bg-tile-hover;
+}
+
+.tile .portrait {
+    @apply ring-2 ring-accent ring-offset-2 ring-offset-surface-2;
+}
+
+.names {
+    @apply flex min-w-0 flex-col;
+}
+
+.figure {
+    @apply flex flex-col gap-1.5;
+}
+
+.value {
+    @apply flex items-center gap-2;
+}
+
+.figure .number,
+.figure .ranked {
+    @apply text-2xl leading-none font-extrabold;
+    font-stretch: 75%;
+}
+
+.figure .ranked {
+    color: var(--rank-text);
+}

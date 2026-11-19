@@ -126,7 +126,7 @@ function useDayAtTime() {
     };
 }
 
-const TIME_FORMAT = {
+export const TIME_FORMAT = {
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",

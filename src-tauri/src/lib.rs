@@ -11,12 +11,12 @@ use commands::settings::{
 };
 use commands::stats::{
     get_most_played_heroes, get_played_maps, get_played_modes, get_profile_career,
-    get_profile_score, get_profile_summary,
+    get_profile_score, get_session_record,
 };
 use retention::EventRetention;
 use tauri::webview::PageLoadEvent;
 use tauri::Manager;
-use types::settings::ReplaysFolder;
+use types::settings::{ReplaysFolder, SessionStart};
 
 mod commands;
 mod db;
@@ -92,6 +92,7 @@ pub fn run() {
                 retention::purge_expired(&purge_app, &purge_pool).await;
             });
             app.manage(pool);
+            app.manage(SessionStart(chrono::Utc::now()));
             app.manage(ingester::IngestSubscribers::default());
             app.manage(ingester::Progress::default());
             let dir = accounts_dir(app.handle());
@@ -115,9 +116,9 @@ pub fn run() {
             mark_replay_as_seen,
             watch_replay,
             count_replays,
-            get_profile_summary,
             get_profile_career,
             get_profile_score,
+            get_session_record,
             get_most_played_heroes,
             get_played_maps,
             get_played_modes,

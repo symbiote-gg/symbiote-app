@@ -4,4 +4,5 @@ export * from "./profile-score";
 export * from "./replay";
 export * from "./replay-list";
 export * from "./replay-list-cache";
+export * from "./session";
 export * from "./settings";

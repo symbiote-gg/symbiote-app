@@ -28,26 +28,6 @@
     @apply text-fg-muted;
 }
 
-.empty {
-    @apply flex flex-1 flex-col items-center justify-center gap-2 px-gutter py-12 text-center;
-}
-
-.emptyIcon {
-    @apply mb-2 flex size-16 items-center justify-center rounded-full ring-1;
-}
-
-.emptyIcon.muted {
-    @apply bg-surface-2 text-fg-muted ring-line;
-}
-
-.emptyIcon.win {
-    @apply bg-win/15 text-win ring-win/40;
-}
-
-.emptyIconGlyph {
-    @apply size-7;
-}
-
 .columns {
     @apply grid grid-cols-[4rem_minmax(0,1fr)_7.5rem_8rem] items-center gap-x-4;
 }
