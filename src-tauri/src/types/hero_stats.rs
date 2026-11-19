@@ -139,6 +139,10 @@ pub struct TrendPoint {
 pub struct HeroBest {
     pub replay_id: i64,
     pub value: f64,
+    /// Only set on bests across heroes.
+    #[sqlx(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hero: Option<String>,
     /// The map's name.
     pub map: String,
     pub timestamp: DateTime<Utc>,

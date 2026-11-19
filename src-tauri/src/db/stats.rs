@@ -6,8 +6,8 @@ use crate::profile_score::{self, PlayerGame};
 use crate::types::hero::HeroRole;
 use crate::types::replay::Mode;
 use crate::types::stats::{
-    HeroStat, MapStat, MostPlayedHeroes, ProfileCareer, ProfileScore, ScoreScope, ScoredHero,
-    SessionGame, SessionHero, SessionRecord,
+    HeroStat, MapStat, MostPlayedHeroes, ProfileBests, ProfileCareer, ProfileScore, ScoreScope,
+    ScoredHero, SessionGame, SessionHero, SessionRecord,
 };
 
 /// Sums up the owner's career across every hero, with who they play as.
@@ -42,6 +42,15 @@ pub async fn profile_career(pool: &SqlitePool) -> sqlx::Result<ProfileCareer> {
         mvps,
         main_role,
     })
+}
+
+/// Returns the owner's bests across every hero, all read from the same snapshot.
+pub async fn profile_bests(pool: &SqlitePool) -> sqlx::Result<ProfileBests> {
+    let mut tx = pool.begin().await?;
+    let bests = hero_stats::profile_bests(&mut tx).await?;
+    tx.commit().await?;
+
+    Ok(bests)
 }
 
 async fn mvps(conn: &mut SqliteConnection) -> sqlx::Result<i64> {

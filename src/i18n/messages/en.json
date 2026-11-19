@@ -45,10 +45,28 @@
             }
         }
     },
+    "bests": {
+        "heroDamage": "Most hero damage",
+        "siegeDamage": "Most siege damage",
+        "healing": "Most healing",
+        "damageTaken": "Most damage taken",
+        "xp": "Most XP contribution",
+        "fewestDeathsWin": "Fewest deaths in a win",
+        "winStreak": "Longest win streak",
+        "meta": "{map}, {date}",
+        "heroMeta": "{hero} on {map}, {date}",
+        "streak": "games in a row, until {date}",
+        "fastestWin": "Fastest win",
+        "takedowns": "Most takedowns"
+    },
     "profile": {
         "header": {
             "roleMain": "{role} main",
             "level": "Level {level}"
+        },
+        "bests": {
+            "title": "Personal bests",
+            "subtitle": "Your best games across every hero and map. These are the numbers to beat."
         },
         "score": {
             "title": "Symbiote score",
@@ -271,18 +289,7 @@
         },
         "bests": {
             "title": "Personal bests",
-            "subtitle": "The numbers to beat on {hero}.",
-            "heroDamage": "Most hero damage",
-            "siegeDamage": "Most siege damage",
-            "healing": "Most healing",
-            "damageTaken": "Most damage taken",
-            "xp": "Most XP contribution",
-            "fewestDeathsWin": "Fewest deaths in a win",
-            "winStreak": "Longest win streak",
-            "meta": "{map}, {date}",
-            "streak": "games in a row, until {date}",
-            "fastestWin": "Fastest win",
-            "takedowns": "Most takedowns"
+            "subtitle": "The numbers to beat on {hero}."
         },
         "maps": {
             "title": "Maps",

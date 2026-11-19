@@ -5,6 +5,7 @@ export * from "./award-icon";
 export * from "./award-pill";
 export * from "./award-tooltip";
 export * from "./back-link";
+export * from "./best-tiles";
 export * from "./career-tiles";
 export * from "./coming-soon";
 export * from "./date-filter";

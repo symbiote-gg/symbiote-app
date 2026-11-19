@@ -5,13 +5,19 @@ use crate::error::Result;
 use crate::types::replay::Mode;
 use crate::types::settings::SessionStart;
 use crate::types::stats::{
-    MapStat, MostPlayedHeroes, ProfileCareer, ProfileScore, ScoreScope, SessionRecord,
+    MapStat, MostPlayedHeroes, ProfileBests, ProfileCareer, ProfileScore, ScoreScope, SessionRecord,
 };
 
 /// Sums up the owner's career across every hero.
 #[tauri::command]
 pub async fn get_profile_career(pool: State<'_, SqlitePool>) -> Result<ProfileCareer> {
     Ok(crate::db::stats::profile_career(&pool).await?)
+}
+
+/// Returns the owner's bests across every hero.
+#[tauri::command]
+pub async fn get_profile_bests(pool: State<'_, SqlitePool>) -> Result<ProfileBests> {
+    Ok(crate::db::stats::profile_bests(&pool).await?)
 }
 
 /// Scores the owner's latest games in the scope's modes against the other players

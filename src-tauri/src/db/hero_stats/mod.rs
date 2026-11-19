@@ -3,5 +3,5 @@
 mod detail;
 mod list;
 
-pub use detail::{hero_detail, totals};
+pub use detail::{hero_detail, profile_bests, totals};
 pub use list::hero_list;

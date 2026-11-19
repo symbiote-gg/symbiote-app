@@ -6,6 +6,7 @@ use crate::types::hero_stats::{
     AwardCount, GameLength, HeroBest, HeroBests, HeroDetail, HeroGame, HeroInfo, HeroTotals,
     MapRecord, TalentRecord, TrendPoint, WinStreak,
 };
+use crate::types::stats::ProfileBests;
 
 /// The trend covers this many days, ending on the day of the hero's last game.
 const TREND_DAYS: i64 = 90;
@@ -269,6 +270,14 @@ const MOST_HEALING: BestBy = highest("orp.healing");
 const MOST_DAMAGE_TAKEN: BestBy = highest("orp.damage_taken");
 const MOST_XP: BestBy = highest("orp.xp_contribution");
 const MOST_TAKEDOWNS: BestBy = highest("orp.takedowns");
+/// Healing on healers only, so a player who never heals gets no best from a stray
+/// talent. Needs the `h` join, so only for bests across heroes.
+const MOST_HEALER_HEALING: BestBy = BestBy {
+    value: "orp.healing",
+    condition: " AND h.role = 'healer'",
+    lowest: false,
+    zero: false,
+};
 const FASTEST_WIN: BestBy = BestBy {
     value: "r.duration",
     condition: " AND r.owner_win = 1",
@@ -289,6 +298,8 @@ async fn bests(
     hero_id: i64,
     cheap_deaths: bool,
 ) -> sqlx::Result<HeroBests> {
+    let hero_id = Some(hero_id);
+
     let fewest_deaths_win = if cheap_deaths {
         None
     } else {
@@ -308,11 +319,24 @@ async fn bests(
     })
 }
 
-/// Returns the owner's game on `hero_id` with the best positive value, or the best
-/// non-negative one when zero counts. Ties go to the latest game.
+/// Like [`bests`], over every hero.
+pub async fn profile_bests(conn: &mut SqliteConnection) -> sqlx::Result<ProfileBests> {
+    Ok(ProfileBests {
+        hero_damage: best(conn, None, &MOST_HERO_DAMAGE).await?,
+        siege_damage: best(conn, None, &MOST_SIEGE_DAMAGE).await?,
+        healing: best(conn, None, &MOST_HEALER_HEALING).await?,
+        win_streak: win_streak(conn, None).await?,
+        fastest_win: best(conn, None, &FASTEST_WIN).await?,
+        takedowns: best(conn, None, &MOST_TAKEDOWNS).await?,
+    })
+}
+
+/// Returns the owner's game on `hero_id`, or on any hero when it is `None`, with the
+/// best positive value, or the best non-negative one when zero counts. Ties go to the
+/// latest game.
 async fn best(
     conn: &mut SqliteConnection,
-    hero_id: i64,
+    hero_id: Option<i64>,
     by: &BestBy,
 ) -> sqlx::Result<Option<HeroBest>> {
     let BestBy {
@@ -321,16 +345,25 @@ async fn best(
         lowest,
         zero,
     } = by;
-    let mut query = hero_games(
+    // Across heroes, the game names its hero.
+    let (hero, heroes) = match hero_id {
+        Some(_) => ("", ""),
+        None => (
+            ", h.name AS hero",
+            " JOIN heroes h ON h.id = r.owner_hero_id",
+        ),
+    };
+
+    let mut query = owner_games(
         &format!(
-            "SELECT r.id AS replay_id, CAST({value} AS REAL) AS value,
+            "SELECT r.id AS replay_id, CAST({value} AS REAL) AS value{hero},
                  COALESCE(m.name, r.map) AS map, r.timestamp"
         ),
         hero_id,
     );
     query.push(format!(
         " JOIN games_players orp
-             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
+             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id{heroes}
          LEFT JOIN maps m ON m.id = r.map
          WHERE {value} {} 0{condition}
          ORDER BY value {}, r.timestamp DESC, r.id DESC
@@ -427,8 +460,13 @@ async fn lengths(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<
         .collect())
 }
 
-async fn win_streak(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Option<WinStreak>> {
-    let mut query = hero_games("SELECT r.owner_win, r.timestamp", hero_id);
+/// Returns the owner's longest win streak on `hero_id`, or across every hero when it is
+/// `None`.
+async fn win_streak(
+    conn: &mut SqliteConnection,
+    hero_id: Option<i64>,
+) -> sqlx::Result<Option<WinStreak>> {
+    let mut query = owner_games("SELECT r.owner_win, r.timestamp", hero_id);
     query.push(" ORDER BY r.timestamp, r.id");
     let results: Vec<(Option<bool>, DateTime<Utc>)> =
         query.build_query_as().fetch_all(conn).await?;
@@ -738,6 +776,62 @@ mod tests {
         );
         assert_eq!(best(&bests.xp), Some((b, 12000.0, "cursed_hollow")));
         assert_eq!(best(&bests.healing), None);
+    }
+
+    #[tokio::test]
+    async fn finds_the_owners_bests_across_heroes() {
+        let pool = pool().await;
+
+        let mut a = hero_game("a", 100, Mode::QuickMatch, "braxis_holdout", "Wizard", true);
+        a.replay_players[0].score = NewScore {
+            siege_damage: Some(3000),
+            hero_damage: Some(5000),
+            // A stray heal off a healer is no healing best.
+            healing: Some(9000),
+            ..Default::default()
+        };
+        a.replay.duration = 900;
+        let mut b = hero_game("b", 200, Mode::QuickMatch, "cursed_hollow", "Tyrande", true);
+        b.replay_players[0].score = NewScore {
+            siege_damage: Some(7000),
+            hero_damage: Some(2000),
+            healing: Some(4000),
+            ..Default::default()
+        };
+        b.replay.duration = 600;
+        // A shorter loss is no fastest win.
+        let mut c = hero_game("c", 300, Mode::QuickMatch, "cursed_hollow", "Wizard", false);
+        c.replay.duration = 300;
+
+        for game in [a, b, c] {
+            insert_bundle(&pool, game).await.unwrap();
+        }
+        sqlx::query("UPDATE heroes SET role = 'healer' WHERE slug = 'Tyrande'")
+            .execute(&pool)
+            .await
+            .unwrap();
+        let a = replay_id(&pool, "a").await;
+        let b = replay_id(&pool, "b").await;
+
+        let mut conn = pool.acquire().await.unwrap();
+        let bests = profile_bests(&mut conn).await.unwrap();
+        let hero = |best: &Option<HeroBest>| best.as_ref().and_then(|best| best.hero.clone());
+
+        assert_eq!(
+            best(&bests.siege_damage),
+            Some((b, 7000.0, "cursed_hollow"))
+        );
+        assert_eq!(hero(&bests.siege_damage).as_deref(), Some("Tyrande"));
+
+        assert_eq!(
+            best(&bests.hero_damage),
+            Some((a, 5000.0, "braxis_holdout"))
+        );
+        assert_eq!(hero(&bests.hero_damage).as_deref(), Some("Wizard"));
+
+        assert_eq!(best(&bests.healing), Some((b, 4000.0, "cursed_hollow")));
+        assert_eq!(best(&bests.fastest_win), Some((b, 600.0, "cursed_hollow")));
+        assert_eq!(bests.win_streak.map(|streak| streak.games), Some(2));
     }
 
     #[tokio::test]

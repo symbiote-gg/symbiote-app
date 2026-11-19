@@ -62,6 +62,8 @@ export type TrendPoint = {
 export type HeroBest = {
     replayId: number;
     value: number;
+    /** Only set on bests across heroes. */
+    hero?: string;
     /** The map's name. */
     map: string;
     timestamp: string;

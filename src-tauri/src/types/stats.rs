@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
 use super::hero::HeroRole;
-use super::hero_stats::HeroTotals;
+use super::hero_stats::{HeroBest, HeroTotals, WinStreak};
 use super::role_performances::RoleStat;
 
 /// The owner's career across every hero, for the profile header.
@@ -17,6 +17,19 @@ pub struct ProfileCareer {
     pub totals: HeroTotals,
     pub mvps: i64,
     pub main_role: Option<HeroRole>,
+}
+
+/// The owner's bests across every hero.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfileBests {
+    pub hero_damage: Option<HeroBest>,
+    pub siege_damage: Option<HeroBest>,
+    pub healing: Option<HeroBest>,
+    pub win_streak: Option<WinStreak>,
+    /// The shortest win, its length in seconds as the value.
+    pub fastest_win: Option<HeroBest>,
+    pub takedowns: Option<HeroBest>,
 }
 
 #[derive(Debug, FromRow, Serialize)]

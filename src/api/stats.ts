@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import type { CareerTotals } from "./heroes";
+import type { CareerTotals, HeroBest, WinStreak } from "./heroes";
 import type { HeroRole, Mode, RoleStat } from "./replays";
 
 export type ProfileCareer = CareerTotals & {
@@ -9,6 +9,16 @@ export type ProfileCareer = CareerTotals & {
     accountLevel: number | null;
     mvps: number;
     mainRole: HeroRole | null;
+};
+
+export type ProfileBests = {
+    heroDamage: HeroBest | null;
+    siegeDamage: HeroBest | null;
+    healing: HeroBest | null;
+    winStreak: WinStreak | null;
+    /** The shortest win, its length in seconds as the value. */
+    fastestWin: HeroBest | null;
+    takedowns: HeroBest | null;
 };
 
 export type HeroStat = {
@@ -94,6 +104,8 @@ export type ProfileScore = {
 
 export const getProfileCareer = () =>
     invoke<ProfileCareer>("get_profile_career");
+
+export const getProfileBests = () => invoke<ProfileBests>("get_profile_bests");
 
 export type ScoreScope = "all" | "draft" | "quickMatch";
 
