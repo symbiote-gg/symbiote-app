@@ -4,6 +4,7 @@ import type { ScoreScope } from "@/api/stats";
 import { Page } from "@/components";
 import { ProfileBests } from "./bests";
 import { ProfileHeader } from "./header";
+import { PartySize } from "./party-size";
 import { ScoreCard } from "./score-card";
 import { ScoreHeroes } from "./score-heroes";
 import { ScoreHistory } from "./score-history";
@@ -15,6 +16,7 @@ export function Profile() {
         <Page>
             <ProfileHeader />
             <ProfileBests />
+            <PartySize />
             <ScoreCard scope={scope} onScopeChange={setScope} />
             <ScoreHistory scope={scope} />
             <ScoreHeroes scope={scope} />

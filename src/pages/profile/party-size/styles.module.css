@@ -1,0 +1,46 @@
+@reference "@/index.css";
+
+.tiles {
+    @apply grid grid-cols-2 gap-3 px-gutter pb-6 md:grid-cols-3 xl:grid-cols-5;
+}
+
+.tile {
+    @apply flex min-w-0 flex-col gap-3 rounded-lg border border-tile-line bg-surface-2 p-4;
+}
+
+.few {
+    @apply sparse;
+}
+
+.head {
+    @apply flex min-w-0 items-center justify-between gap-2;
+}
+
+.dots {
+    @apply flex shrink-0 gap-1 text-accent;
+}
+
+.dots svg {
+    @apply size-2 fill-current;
+}
+
+.figures {
+    @apply flex min-w-0 items-baseline gap-2;
+}
+
+.tile .rate {
+    @apply text-3xl leading-none font-extrabold;
+    font-stretch: 75%;
+}
+
+.tile .meter {
+    @apply w-full;
+}
+
+.labelBar {
+    @apply w-16;
+}
+
+.rateBar {
+    @apply w-24;
+}

@@ -21,6 +21,13 @@ export type ProfileBests = {
     takedowns: HeroBest | null;
 };
 
+export type PartySize = {
+    size: 1 | 2 | 3 | 4 | 5;
+    games: number;
+    wins: number;
+    losses: number;
+};
+
 export type HeroStat = {
     heroId: number;
     name: string;
@@ -106,6 +113,8 @@ export const getProfileCareer = () =>
     invoke<ProfileCareer>("get_profile_career");
 
 export const getProfileBests = () => invoke<ProfileBests>("get_profile_bests");
+
+export const getPartySizes = () => invoke<PartySize[]>("get_party_sizes");
 
 export type ScoreScope = "all" | "draft" | "quickMatch";
 

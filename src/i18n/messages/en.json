@@ -68,6 +68,18 @@
             "title": "Personal bests",
             "subtitle": "Your best games across every hero and map. These are the numbers to beat."
         },
+        "partySize": {
+            "title": "Party size",
+            "subtitle": "How many of your games you played alone or in a party, and how they went.",
+            "sizes": {
+                "1": "Solo",
+                "2": "Duo",
+                "3": "3 stack",
+                "4": "4 stack",
+                "5": "5 stack"
+            },
+            "games": "{count, plural, one {# game} other {# games}}"
+        },
         "score": {
             "title": "Symbiote score",
             "subtitle": "Career score over your {games, plural, one {<num>{games, number}</num> game} other {<num>{games, number}</num> games}}, ranked against {pool, plural, one {<num>{pool, number}</num> game} other {<num>{pool, number}</num> games}} from other players in your replays.",

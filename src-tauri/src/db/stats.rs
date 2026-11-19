@@ -6,8 +6,8 @@ use crate::profile_score::{self, PlayerGame};
 use crate::types::hero::HeroRole;
 use crate::types::replay::Mode;
 use crate::types::stats::{
-    HeroStat, MapStat, MostPlayedHeroes, ProfileBests, ProfileCareer, ProfileScore, ScoreScope,
-    ScoredHero, SessionGame, SessionHero, SessionRecord,
+    HeroStat, MapStat, MostPlayedHeroes, PartySize, ProfileBests, ProfileCareer, ProfileScore,
+    ScoreScope, ScoredHero, SessionGame, SessionHero, SessionRecord,
 };
 
 /// Sums up the owner's career across every hero, with who they play as.
@@ -277,6 +277,49 @@ pub async fn played_maps(pool: &SqlitePool) -> sqlx::Result<Vec<MapStat>> {
     .await
 }
 
+const MAX_PARTY: i64 = 5;
+
+/// Returns the owner's games by party size, from solo to a full stack, sizes they never
+/// played at included with no games.
+pub async fn party_sizes(pool: &SqlitePool) -> sqlx::Result<Vec<PartySize>> {
+    // The parser numbers each game's parties itself, so the owner's party is the team
+    // mates sharing their number in that game.
+    let played = sqlx::query_as::<_, PartySize>(
+        "SELECT CASE WHEN r.owner_party_num IS NULL THEN 1 ELSE (
+                 SELECT COUNT(*) FROM games_players gp
+                 WHERE gp.game_id = r.game_id AND gp.team = r.owner_team
+                     AND gp.party = r.owner_party_num)
+             END AS size,
+             COUNT(*) AS games,
+             COALESCE(SUM(r.owner_win = 1), 0) AS wins,
+             COALESCE(SUM(r.owner_win = 0), 0) AS losses
+         FROM replays_view r
+         GROUP BY size",
+    )
+    .fetch_all(pool)
+    .await?;
+
+    let mut sizes: Vec<_> = (1..=MAX_PARTY)
+        .map(|size| PartySize {
+            size,
+            games: 0,
+            wins: 0,
+            losses: 0,
+        })
+        .collect();
+
+    for party in played {
+        if let Some(slot) = usize::try_from(party.size - 1)
+            .ok()
+            .and_then(|index| sizes.get_mut(index))
+        {
+            *slot = party;
+        }
+    }
+
+    Ok(sizes)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -348,6 +391,83 @@ mod tests {
             (3, 1, 2)
         );
         assert_eq!(career.mvps, 1);
+    }
+
+    #[tokio::test]
+    async fn party_sizes_count_the_owners_party_on_their_team() {
+        let pool = pool().await;
+        let player = |toon: &str, slot, team, party| NewReplayPlayer {
+            toon: toon.to_owned(),
+            slot,
+            team,
+            hero_slug: "Wizard".to_owned(),
+            time_dead_secs: None,
+            time_on_fire_secs: None,
+            upvotes: 0,
+            party,
+            xp: None,
+            score: NewScore::default(),
+            talents: vec![],
+            awards: vec![],
+        };
+        let duo = |name: &str, timestamp, win| {
+            let mut game = hero_game(
+                name,
+                timestamp,
+                Mode::QuickMatch,
+                "cursed_hollow",
+                "Wizard",
+                win,
+            );
+            game.replay_players[0].party = Some(1);
+            for (toon, slot, team, party) in [
+                ("mate", 2, 0, Some(1)),
+                ("enemy-1", 6, 1, Some(2)),
+                ("enemy-2", 7, 1, Some(2)),
+            ] {
+                game.players.push(Player {
+                    toon: toon.to_owned(),
+                    name: toon.to_owned(),
+                    account_level: None,
+                });
+                game.replay_players.push(player(toon, slot, team, party));
+            }
+            game
+        };
+        let mut undecided = duo("undecided", 3000, true);
+        undecided.replay.winner_team = None;
+
+        for game in [
+            hero_game(
+                "solo",
+                1000,
+                Mode::QuickMatch,
+                "cursed_hollow",
+                "Wizard",
+                false,
+            ),
+            duo("duo-won", 2000, true),
+            undecided,
+        ] {
+            insert_bundle(&pool, game).await.unwrap();
+        }
+
+        let sizes: Vec<_> = party_sizes(&pool)
+            .await
+            .unwrap()
+            .iter()
+            .map(|party| (party.size, party.games, party.wins, party.losses))
+            .collect();
+        assert_eq!(
+            sizes,
+            [
+                (1, 1, 0, 1),
+                (2, 2, 1, 0),
+                (3, 0, 0, 0),
+                (4, 0, 0, 0),
+                (5, 0, 0, 0)
+            ]
+        );
     }
 
     #[tokio::test]

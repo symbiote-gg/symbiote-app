@@ -208,12 +208,13 @@ CREATE TABLE "games_players_awards" (
 CREATE INDEX "games_players_awards_award_idx" ON "games_players_awards" ("award");
 
 -- A replay as its owner saw it: the owner's file, with the game's facts and the owner's
--- hero, slot, team and result.
+-- hero, slot, team, party number and result.
 CREATE VIEW "replays_view" AS
 SELECT r."id", r."hash", r."path", r."game_id", r."owner_player_id", r."owner_party_id",
 	r."ingest_date", r."ingest_version", r."reparse", r."is_new",
 	g."timestamp", g."mode", g."map", g."duration", g."gates_open_loop",
 	orp."hero_id" AS "owner_hero_id", orp."slot" AS "owner_slot", orp."team" AS "owner_team",
+	orp."party" AS "owner_party_num",
 	CASE WHEN g."winner_team" IS NULL THEN NULL ELSE orp."team" = g."winner_team" END AS "owner_win"
 FROM "replays" r
 JOIN "games" g ON g."id" = r."game_id"
