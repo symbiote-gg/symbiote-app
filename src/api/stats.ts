@@ -118,6 +118,42 @@ export const getPartySizes = () => invoke<PartySize[]>("get_party_sizes");
 
 export type ScoreScope = "all" | "draft" | "quickMatch";
 
+export type FormAxis =
+    | "heroDamage"
+    | "siegeDamage"
+    | "xp"
+    | "killParticipation"
+    | "survival"
+    | "camps";
+
+export type FormAxisRow = {
+    axis: FormAxis;
+    /** From 0 to 100, 50 being the owner's usual game. */
+    recent: number | null;
+    previous: number | null;
+};
+
+export type FormWindows = {
+    recentGames: number;
+    previousGames: number;
+    axes: FormAxisRow[];
+};
+
+export type RoleForm = FormWindows & {
+    role: HeroRole;
+};
+
+export type RecentForm = {
+    all: FormWindows;
+    roles: RoleForm[];
+    minGames: number;
+    minBaselineGames: number;
+    windowDays: number;
+};
+
+export const getRecentForm = (scope: ScoreScope) =>
+    invoke<RecentForm>("get_recent_form", { scope });
+
 export const getProfileScore = (scope: ScoreScope) =>
     invoke<ProfileScore>("get_profile_score", { scope });
 

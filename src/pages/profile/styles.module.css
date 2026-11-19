@@ -1,0 +1,13 @@
+@reference "@/index.css";
+
+.grid {
+    @apply grid grid-cols-12 gap-stack;
+}
+
+.grid > * {
+    @apply col-span-12 flex min-w-0 flex-col *:flex-1;
+}
+
+.half {
+    @apply xl:col-span-6;
+}

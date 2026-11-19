@@ -235,3 +235,53 @@ pub struct ScoredHero {
     pub role: Option<HeroRole>,
     pub portrait: Option<String>,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum FormAxis {
+    HeroDamage,
+    SiegeDamage,
+    Xp,
+    KillParticipation,
+    Survival,
+    Camps,
+}
+
+/// An axis from 0 to 100, 50 being the owner's usual game. `None` with too few games
+/// in the window, or none putting a number on it.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FormAxisRow {
+    pub axis: FormAxis,
+    pub recent: Option<u8>,
+    pub previous: Option<u8>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FormWindows {
+    pub recent_games: usize,
+    pub previous_games: usize,
+    pub axes: Vec<FormAxisRow>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoleForm {
+    pub role: HeroRole,
+    #[serde(flatten)]
+    pub form: FormWindows,
+}
+
+/// The owner's last weeks against the weeks before, across roles and by role.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecentForm {
+    pub all: FormWindows,
+    /// Only the roles with enough recent games to rate.
+    pub roles: Vec<RoleForm>,
+    pub min_games: usize,
+    /// Games a role needs before its usual game is known.
+    pub min_baseline_games: usize,
+    pub window_days: i64,
+}

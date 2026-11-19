@@ -88,7 +88,7 @@ const PILLAR_SHARES: [f64; 4] = [0.30, 0.15, 0.30, 0.25];
 
 /// A stat most of a hero's players never put a number on isn't in its kit, so it
 /// goes unscored rather than handing out a tie in the middle.
-const NOT_IN_KIT: f64 = 0.75;
+pub(crate) const NOT_IN_KIT: f64 = 0.75;
 
 /// Each pillar's stats weighed against each other, in [`PILLARS`] order. A pillar's
 /// worth is fixed by [`PILLAR_SHARES`], so a role's key stats only lean within
@@ -100,13 +100,6 @@ fn pillar_weights(slug: &str, role: HeroRole) -> [Weights; 4] {
         }
         HeroRole::Tank => &[(HeroDamage, 1), (KillParticipation, 2), (HardCc, 2)],
         _ => &[(HeroDamage, 2), (KillParticipation, 2), (HardCc, 1)],
-    };
-
-    let survival: Weights = match slug {
-        // Time dead adds up all three Vikings' timers, while scoreboard deaths
-        // only count full wipes.
-        "LostVikings" => &[(DeathShare, 1)],
-        _ => &[(DeathShare, 2), (TimeDeadShare, 1)],
     };
 
     let team_role: Weights = match slug {
@@ -136,7 +129,16 @@ fn pillar_weights(slug: &str, role: HeroRole) -> [Weights; 4] {
         _ => &[(Xp, 2), (SiegeDamage, 1), (MercCaptures, 1)],
     };
 
-    [fighting, survival, team_role, map]
+    [fighting, survival_weights(slug), team_role, map]
+}
+
+pub(crate) fn survival_weights(slug: &str) -> Weights {
+    match slug {
+        // Time dead adds up all three Vikings' timers, while scoreboard deaths
+        // only count full wipes.
+        "LostVikings" => &[(DeathShare, 1)],
+        _ => &[(DeathShare, 2), (TimeDeadShare, 1)],
+    }
 }
 
 /// A player's game, in the order games were played, a game's players together.
@@ -186,13 +188,13 @@ impl TeamMember for PlayerGame {
 }
 
 /// A game's team sums, with the ones replay role scores don't read.
-struct GameTotals {
+pub(crate) struct GameTotals {
     team: TeamTotals,
     time_dead: [f64; 2],
     teamfight_hero_damage: [i64; 2],
 }
 
-fn game_totals(game: &[PlayerGame]) -> GameTotals {
+pub(crate) fn game_totals(game: &[PlayerGame]) -> GameTotals {
     let mut time_dead = [0.0; 2];
     let mut teamfight_hero_damage = [0; 2];
     for player in game {
@@ -216,13 +218,13 @@ fn time_dead_share(secs: f64, team_secs: f64) -> f64 {
     (secs + DEATH_SECS) / (team_secs + 5.0 * DEATH_SECS)
 }
 
-fn lower_is_better(stat: RoleStat) -> bool {
+pub(crate) fn lower_is_better(stat: RoleStat) -> bool {
     matches!(stat, DeathShare | TimeDeadShare)
 }
 
 /// The stat as ranked: raw stats per minute so game length doesn't count, the team
 /// relative ones as in a replay's role scores.
-fn rate(player: &PlayerGame, stat: RoleStat, totals: &GameTotals) -> Option<f64> {
+pub(crate) fn rate(player: &PlayerGame, stat: RoleStat, totals: &GameTotals) -> Option<f64> {
     let side = side(player);
     let team = &totals.team;
     let per_minute = |value: Option<i64>| {
@@ -373,21 +375,21 @@ impl Baselines {
     }
 }
 
-fn hero_weight(samples: usize) -> f64 {
+pub(crate) fn hero_weight(samples: usize) -> f64 {
     let samples = samples as f64;
     samples / (samples + BLEND_SAMPLES)
 }
 
 /// The share of `sorted` under the rate, ties counting half so a rate everyone
 /// shares sits in the middle.
-fn rank(sorted: &[f64], rate: f64) -> f64 {
+pub(crate) fn rank(sorted: &[f64], rate: f64) -> f64 {
     let below = sorted.partition_point(|&r| r < rate);
     let up_to = sorted.partition_point(|&r| r <= rate);
 
     (below + up_to) as f64 / (2 * sorted.len()) as f64
 }
 
-fn zero_share(sorted: &[f64]) -> f64 {
+pub(crate) fn zero_share(sorted: &[f64]) -> f64 {
     sorted.partition_point(|&r| r <= 0.0) as f64 / sorted.len() as f64
 }
 

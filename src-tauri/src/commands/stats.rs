@@ -5,8 +5,8 @@ use crate::error::Result;
 use crate::types::replay::Mode;
 use crate::types::settings::SessionStart;
 use crate::types::stats::{
-    MapStat, MostPlayedHeroes, PartySize, ProfileBests, ProfileCareer, ProfileScore, ScoreScope,
-    SessionRecord,
+    MapStat, MostPlayedHeroes, PartySize, ProfileBests, ProfileCareer, ProfileScore, RecentForm,
+    ScoreScope, SessionRecord,
 };
 
 /// Sums up the owner's career across every hero.
@@ -36,6 +36,12 @@ pub async fn get_profile_score(
     scope: ScoreScope,
 ) -> Result<ProfileScore> {
     Ok(crate::db::stats::profile_score(&pool, scope, session.0).await?)
+}
+
+/// Compares the owner's last four weeks in the scope's modes with the four before.
+#[tauri::command]
+pub async fn get_recent_form(pool: State<'_, SqlitePool>, scope: ScoreScope) -> Result<RecentForm> {
+    Ok(crate::db::stats::recent_form(&pool, scope, chrono::Utc::now()).await?)
 }
 
 /// Sums up the owner's games ended since the app was opened.

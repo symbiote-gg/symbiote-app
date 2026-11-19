@@ -1,0 +1,84 @@
+@reference "@/index.css";
+
+.root {
+    @apply flex flex-col;
+}
+
+.body {
+    @apply px-gutter pb-6;
+}
+
+.chart {
+    @apply relative mx-auto w-full max-w-xl;
+    aspect-ratio: 5 / 4;
+}
+
+.plot {
+    @apply absolute inset-0 size-full overflow-visible;
+}
+
+.ring {
+    @apply fill-none stroke-line;
+    stroke-width: 1;
+}
+
+.ring.usual {
+    @apply stroke-line-strong;
+}
+
+.spoke {
+    @apply stroke-line;
+    stroke-width: 1;
+}
+
+.previous {
+    @apply fill-fg-muted stroke-fg-muted;
+    fill-opacity: 0.12;
+    stroke-opacity: 0.6;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+}
+
+.recent {
+    @apply fill-accent stroke-accent;
+    fill-opacity: 0.2;
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+}
+
+.dot {
+    @apply fill-accent;
+}
+
+.label {
+    @apply absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 text-center;
+}
+
+.figures {
+    @apply flex items-baseline gap-2;
+}
+
+.label .value {
+    @apply text-3xl leading-none font-extrabold;
+    font-stretch: 75%;
+}
+
+.valueBar {
+    @apply w-10;
+}
+
+.up {
+    @apply text-win;
+}
+
+.flat {
+    @apply text-fg-faint;
+}
+
+.down {
+    @apply text-warn;
+}
+
+.drop {
+    @apply text-loss;
+}

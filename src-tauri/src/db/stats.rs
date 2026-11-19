@@ -7,7 +7,7 @@ use crate::types::hero::HeroRole;
 use crate::types::replay::Mode;
 use crate::types::stats::{
     HeroStat, MapStat, MostPlayedHeroes, PartySize, ProfileBests, ProfileCareer, ProfileScore,
-    ScoreScope, ScoredHero, SessionGame, SessionHero, SessionRecord,
+    RecentForm, ScoreScope, ScoredHero, SessionGame, SessionHero, SessionRecord,
 };
 
 /// Sums up the owner's career across every hero, with who they play as.
@@ -151,6 +151,19 @@ pub async fn profile_score(
     tx.commit().await?;
 
     Ok(profile_score::compute(&players, heroes, session_start))
+}
+
+/// The owner's games in the scope's modes in the four weeks up to `now` against the
+/// four before, ranked among their own games.
+pub async fn recent_form(
+    pool: &SqlitePool,
+    scope: ScoreScope,
+    now: DateTime<Utc>,
+) -> sqlx::Result<RecentForm> {
+    let mut conn = pool.acquire().await?;
+    let players = scored_players(&mut conn, scope).await?;
+
+    Ok(crate::recent_form::compute(&players, now))
 }
 
 /// The owner's games ended since `session_start`, by hero and one by one, beside

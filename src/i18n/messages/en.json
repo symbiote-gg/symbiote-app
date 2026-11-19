@@ -80,6 +80,29 @@
             },
             "games": "{count, plural, one {# game} other {# games}}"
         },
+        "recentForm": {
+            "title": "Recent form",
+            "subtitle": "How your last {weeks} weeks compare with the {weeks} weeks before. 50 is your usual game.",
+            "role": {
+                "label": "Role",
+                "all": "All roles",
+                "clear": "Show all roles"
+            },
+            "axes": {
+                "heroDamage": "Hero dmg",
+                "siegeDamage": "Siege dmg",
+                "xp": "XP",
+                "killParticipation": "Kill part.",
+                "survival": "Survival",
+                "camps": "Camps"
+            },
+            "empty": {
+                "title": "Not enough recent games",
+                "body": "Play {count, plural, one {# game} other {# games}} within {weeks} weeks to compare them with your usual game.",
+                "noBaseline": "Your usual game in a role is known after {count, plural, one {# game} other {# games}} in it."
+            },
+            "noValue": "-"
+        },
         "score": {
             "title": "Symbiote score",
             "subtitle": "Career score over your {games, plural, one {<num>{games, number}</num> game} other {<num>{games, number}</num> games}}, ranked against {pool, plural, one {<num>{pool, number}</num> game} other {<num>{pool, number}</num> games}} from other players in your replays.",
