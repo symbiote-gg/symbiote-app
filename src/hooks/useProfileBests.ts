@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getProfileBests } from "@/api/stats";
+import { type ScoreScope, getProfileBests } from "@/api/stats";
 
-export function useProfileBests() {
+export function useProfileBests(scope: ScoreScope) {
     return useQuery({
-        queryKey: ["stats", "profile-bests"],
+        queryKey: ["stats", "profile-bests", scope],
         gcTime: Infinity,
-        queryFn: getProfileBests,
+        queryFn: () => getProfileBests(scope),
     });
 }

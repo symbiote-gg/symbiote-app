@@ -44,10 +44,11 @@ pub async fn profile_career(pool: &SqlitePool) -> sqlx::Result<ProfileCareer> {
     })
 }
 
-/// Returns the owner's bests across every hero, all read from the same snapshot.
-pub async fn profile_bests(pool: &SqlitePool) -> sqlx::Result<ProfileBests> {
+/// Returns the owner's bests in the scope's modes across every hero, all read from the
+/// same snapshot.
+pub async fn profile_bests(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<ProfileBests> {
     let mut tx = pool.begin().await?;
-    let bests = hero_stats::profile_bests(&mut tx).await?;
+    let bests = hero_stats::profile_bests(&mut tx, scope).await?;
     tx.commit().await?;
 
     Ok(bests)
@@ -292,12 +293,12 @@ pub async fn played_maps(pool: &SqlitePool) -> sqlx::Result<Vec<MapStat>> {
 
 const MAX_PARTY: i64 = 5;
 
-/// Returns the owner's games by party size, from solo to a full stack, sizes they never
-/// played at included with no games.
-pub async fn party_sizes(pool: &SqlitePool) -> sqlx::Result<Vec<PartySize>> {
+/// Returns the owner's games in the scope's modes by party size, from solo to a full
+/// stack, sizes they never played at included with no games.
+pub async fn party_sizes(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<Vec<PartySize>> {
     // The parser numbers each game's parties itself, so the owner's party is the team
     // mates sharing their number in that game.
-    let played = sqlx::query_as::<_, PartySize>(
+    let mut query = QueryBuilder::<Sqlite>::new(
         "SELECT CASE WHEN r.owner_party_num IS NULL THEN 1 ELSE (
                  SELECT COUNT(*) FROM games_players gp
                  WHERE gp.game_id = r.game_id AND gp.team = r.owner_team
@@ -307,10 +308,19 @@ pub async fn party_sizes(pool: &SqlitePool) -> sqlx::Result<Vec<PartySize>> {
              COALESCE(SUM(r.owner_win = 1), 0) AS wins,
              COALESCE(SUM(r.owner_win = 0), 0) AS losses
          FROM replays_view r
-         GROUP BY size",
-    )
-    .fetch_all(pool)
-    .await?;
+         WHERE r.mode IN (",
+    );
+
+    let mut modes = query.separated(", ");
+    for &mode in profile_score::modes(scope) {
+        modes.push_bind(mode);
+    }
+
+    let played = query
+        .push(") GROUP BY size")
+        .build_query_as::<PartySize>()
+        .fetch_all(pool)
+        .await?;
 
     let mut sizes: Vec<_> = (1..=MAX_PARTY)
         .map(|size| PartySize {
@@ -508,7 +518,7 @@ mod tests {
             insert_bundle(&pool, game).await.unwrap();
         }
 
-        let sizes: Vec<_> = party_sizes(&pool)
+        let sizes: Vec<_> = party_sizes(&pool, ScoreScope::All)
             .await
             .unwrap()
             .iter()
@@ -523,6 +533,36 @@ mod tests {
                 (4, 0, 0, 0),
                 (5, 0, 0, 0)
             ]
+        );
+    }
+
+    #[tokio::test]
+    async fn party_sizes_count_the_scopes_games() {
+        let pool = pool().await;
+        let game = |name: &str, timestamp, mode, win| {
+            hero_game(name, timestamp, mode, "cursed_hollow", "Wizard", win)
+        };
+
+        for game in [
+            game("quick", 1000, Mode::QuickMatch, true),
+            game("draft", 2000, Mode::StormLeague, false),
+            game("aram", 3000, Mode::Aram, true),
+        ] {
+            insert_bundle(&pool, game).await.unwrap();
+        }
+
+        let solo = |sizes: Vec<PartySize>| {
+            let solo = &sizes[0];
+            (solo.size, solo.games, solo.wins, solo.losses)
+        };
+
+        assert_eq!(
+            solo(party_sizes(&pool, ScoreScope::All).await.unwrap()),
+            (1, 2, 1, 1)
+        );
+        assert_eq!(
+            solo(party_sizes(&pool, ScoreScope::Draft).await.unwrap()),
+            (1, 1, 0, 1)
         );
     }
 

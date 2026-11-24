@@ -19,8 +19,8 @@ export function Profile() {
     return (
         <Page>
             <ProfileHeader />
-            <ProfileBests />
-            <PartySize />
+            <ProfileBests scope={scope} />
+            <PartySize scope={scope} />
             <ScoreCard scope={scope} onScopeChange={setScope} />
             <ScoreHistory scope={scope} />
             <div className={styles.grid}>

@@ -15,16 +15,23 @@ pub async fn get_profile_career(pool: State<'_, SqlitePool>) -> Result<ProfileCa
     Ok(crate::db::stats::profile_career(&pool).await?)
 }
 
-/// Returns the owner's bests across every hero.
+/// Returns the owner's bests in the scope's modes across every hero.
 #[tauri::command]
-pub async fn get_profile_bests(pool: State<'_, SqlitePool>) -> Result<ProfileBests> {
-    Ok(crate::db::stats::profile_bests(&pool).await?)
+pub async fn get_profile_bests(
+    pool: State<'_, SqlitePool>,
+    scope: ScoreScope,
+) -> Result<ProfileBests> {
+    Ok(crate::db::stats::profile_bests(&pool, scope).await?)
 }
 
-/// Returns the owner's games by party size, from solo to a full stack.
+/// Returns the owner's games in the scope's modes by party size, from solo to a full
+/// stack.
 #[tauri::command]
-pub async fn get_party_sizes(pool: State<'_, SqlitePool>) -> Result<Vec<PartySize>> {
-    Ok(crate::db::stats::party_sizes(&pool).await?)
+pub async fn get_party_sizes(
+    pool: State<'_, SqlitePool>,
+    scope: ScoreScope,
+) -> Result<Vec<PartySize>> {
+    Ok(crate::db::stats::party_sizes(&pool, scope).await?)
 }
 
 /// Returns the owner's games in the scope's modes by role.

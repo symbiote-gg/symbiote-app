@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getPartySizes } from "@/api/stats";
+import { type ScoreScope, getPartySizes } from "@/api/stats";
 
-export function usePartySizes() {
+export function usePartySizes(scope: ScoreScope) {
     return useQuery({
-        queryKey: ["stats", "party-sizes"],
+        queryKey: ["stats", "party-sizes", scope],
         gcTime: Infinity,
-        queryFn: getPartySizes,
+        queryFn: () => getPartySizes(scope),
     });
 }

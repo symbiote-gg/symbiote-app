@@ -119,11 +119,13 @@ export type ProfileScore = {
 export const getProfileCareer = () =>
     invoke<ProfileCareer>("get_profile_career");
 
-export const getProfileBests = () => invoke<ProfileBests>("get_profile_bests");
-
-export const getPartySizes = () => invoke<PartySize[]>("get_party_sizes");
-
 export type ScoreScope = "all" | "draft" | "quickMatch";
+
+export const getProfileBests = (scope: ScoreScope) =>
+    invoke<ProfileBests>("get_profile_bests", { scope });
+
+export const getPartySizes = (scope: ScoreScope) =>
+    invoke<PartySize[]>("get_party_sizes", { scope });
 
 export const getRoleRecords = (scope: ScoreScope) =>
     invoke<RoleRecord[]>("get_role_records", { scope });

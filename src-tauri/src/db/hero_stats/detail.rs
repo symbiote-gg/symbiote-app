@@ -1,12 +1,14 @@
 use chrono::{DateTime, Utc};
 use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
 
+use crate::profile_score;
 use crate::standouts::CHEAP_DEATH_HEROES;
 use crate::types::hero_stats::{
     AwardCount, GameLength, HeroBest, HeroBests, HeroDetail, HeroGame, HeroInfo, HeroTotals,
     MapRecord, TalentRecord, TrendPoint, WinStreak,
 };
-use crate::types::stats::ProfileBests;
+use crate::types::replay::Mode;
+use crate::types::stats::{ProfileBests, ScoreScope};
 
 /// The trend covers this many days, ending on the day of the hero's last game.
 const TREND_DAYS: i64 = 90;
@@ -64,16 +66,28 @@ pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option
 /// Starts a query whose `FROM` is the owner's games on `hero_id`, as `r`, after
 /// `select`.
 fn hero_games(select: &str, hero_id: i64) -> QueryBuilder<Sqlite> {
-    owner_games(select, Some(hero_id))
+    owner_games(select, Some(hero_id), None)
 }
 
-/// Like [`hero_games`], over every hero when `hero_id` is `None`.
-fn owner_games(select: &str, hero_id: Option<i64>) -> QueryBuilder<Sqlite> {
+/// Like [`hero_games`], over every hero when `hero_id` is `None`, and only in `modes`
+/// when given.
+fn owner_games(select: &str, hero_id: Option<i64>, modes: Option<&[Mode]>) -> QueryBuilder<Sqlite> {
     let mut query = QueryBuilder::new(select);
-    query.push(" FROM (SELECT * FROM replays_view");
+    query.push(" FROM (SELECT * FROM replays_view WHERE 1");
+
     if let Some(hero_id) = hero_id {
-        query.push(" WHERE owner_hero_id = ").push_bind(hero_id);
+        query.push(" AND owner_hero_id = ").push_bind(hero_id);
     }
+
+    if let Some(modes) = modes {
+        query.push(" AND mode IN (");
+        let mut list = query.separated(", ");
+        for &mode in modes {
+            list.push_bind(mode);
+        }
+        query.push(")");
+    }
+
     query.push(") r");
     query
 }
@@ -93,6 +107,7 @@ pub async fn totals(conn: &mut SqliteConnection, hero_id: Option<i64>) -> sqlx::
                  SUM(tp.healing) AS team_healing,
                  SUM(tp.xp_contribution) AS team_xp",
         hero_id,
+        None,
     );
     // Shares average each game's share, so a zero team total drops that game out. Team
     // kills sum the scoreboard's SoloKill: tracker kills miss Leoric's killer and enemy
@@ -303,40 +318,46 @@ async fn bests(
     let fewest_deaths_win = if cheap_deaths {
         None
     } else {
-        best(conn, hero_id, &FEWEST_DEATHS_WIN).await?
+        best(conn, hero_id, None, &FEWEST_DEATHS_WIN).await?
     };
 
     Ok(HeroBests {
-        hero_damage: best(conn, hero_id, &MOST_HERO_DAMAGE).await?,
-        siege_damage: best(conn, hero_id, &MOST_SIEGE_DAMAGE).await?,
-        healing: best(conn, hero_id, &MOST_HEALING).await?,
-        damage_taken: best(conn, hero_id, &MOST_DAMAGE_TAKEN).await?,
-        xp: best(conn, hero_id, &MOST_XP).await?,
-        takedowns: best(conn, hero_id, &MOST_TAKEDOWNS).await?,
-        fastest_win: best(conn, hero_id, &FASTEST_WIN).await?,
+        hero_damage: best(conn, hero_id, None, &MOST_HERO_DAMAGE).await?,
+        siege_damage: best(conn, hero_id, None, &MOST_SIEGE_DAMAGE).await?,
+        healing: best(conn, hero_id, None, &MOST_HEALING).await?,
+        damage_taken: best(conn, hero_id, None, &MOST_DAMAGE_TAKEN).await?,
+        xp: best(conn, hero_id, None, &MOST_XP).await?,
+        takedowns: best(conn, hero_id, None, &MOST_TAKEDOWNS).await?,
+        fastest_win: best(conn, hero_id, None, &FASTEST_WIN).await?,
         fewest_deaths_win,
-        win_streak: win_streak(conn, hero_id).await?,
+        win_streak: win_streak(conn, hero_id, None).await?,
     })
 }
 
 /// Like [`bests`], over every hero.
-pub async fn profile_bests(conn: &mut SqliteConnection) -> sqlx::Result<ProfileBests> {
+pub async fn profile_bests(
+    conn: &mut SqliteConnection,
+    scope: ScoreScope,
+) -> sqlx::Result<ProfileBests> {
+    let modes = Some(profile_score::modes(scope));
+
     Ok(ProfileBests {
-        hero_damage: best(conn, None, &MOST_HERO_DAMAGE).await?,
-        siege_damage: best(conn, None, &MOST_SIEGE_DAMAGE).await?,
-        healing: best(conn, None, &MOST_HEALER_HEALING).await?,
-        win_streak: win_streak(conn, None).await?,
-        fastest_win: best(conn, None, &FASTEST_WIN).await?,
-        takedowns: best(conn, None, &MOST_TAKEDOWNS).await?,
+        hero_damage: best(conn, None, modes, &MOST_HERO_DAMAGE).await?,
+        siege_damage: best(conn, None, modes, &MOST_SIEGE_DAMAGE).await?,
+        healing: best(conn, None, modes, &MOST_HEALER_HEALING).await?,
+        win_streak: win_streak(conn, None, modes).await?,
+        fastest_win: best(conn, None, modes, &FASTEST_WIN).await?,
+        takedowns: best(conn, None, modes, &MOST_TAKEDOWNS).await?,
     })
 }
 
-/// Returns the owner's game on `hero_id`, or on any hero when it is `None`, with the
-/// best positive value, or the best non-negative one when zero counts. Ties go to the
+/// Returns the owner's game on `hero_id`, or on any hero when it is `None`, in `modes`
+/// when given, with the best positive value, or the best non-negative one when zero counts. Ties go to the
 /// latest game.
 async fn best(
     conn: &mut SqliteConnection,
     hero_id: Option<i64>,
+    modes: Option<&[Mode]>,
     by: &BestBy,
 ) -> sqlx::Result<Option<HeroBest>> {
     let BestBy {
@@ -360,6 +381,7 @@ async fn best(
                  COALESCE(m.name, r.map) AS map, r.timestamp"
         ),
         hero_id,
+        modes,
     );
     query.push(format!(
         " JOIN games_players orp
@@ -461,12 +483,13 @@ async fn lengths(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<
 }
 
 /// Returns the owner's longest win streak on `hero_id`, or across every hero when it is
-/// `None`.
+/// `None`, in `modes` when given.
 async fn win_streak(
     conn: &mut SqliteConnection,
     hero_id: Option<i64>,
+    modes: Option<&[Mode]>,
 ) -> sqlx::Result<Option<WinStreak>> {
-    let mut query = owner_games("SELECT r.owner_win, r.timestamp", hero_id);
+    let mut query = owner_games("SELECT r.owner_win, r.timestamp", hero_id, modes);
     query.push(" ORDER BY r.timestamp, r.id");
     let results: Vec<(Option<bool>, DateTime<Utc>)> =
         query.build_query_as().fetch_all(conn).await?;
@@ -511,7 +534,7 @@ mod tests {
     use crate::db::test_utils::pool;
     use crate::types::hero::Hero;
     use crate::types::player::Player;
-    use crate::types::replay::{Mode, NewReplayBundle, NewReplayPlayer, NewScore, NewTalent};
+    use crate::types::replay::{NewReplayBundle, NewReplayPlayer, NewScore, NewTalent};
 
     fn talent(tier: i64, slug: &str) -> NewTalent {
         NewTalent {
@@ -814,7 +837,7 @@ mod tests {
         let b = replay_id(&pool, "b").await;
 
         let mut conn = pool.acquire().await.unwrap();
-        let bests = profile_bests(&mut conn).await.unwrap();
+        let bests = profile_bests(&mut conn, ScoreScope::All).await.unwrap();
         let hero = |best: &Option<HeroBest>| best.as_ref().and_then(|best| best.hero.clone());
 
         assert_eq!(
@@ -832,6 +855,46 @@ mod tests {
         assert_eq!(best(&bests.healing), Some((b, 4000.0, "cursed_hollow")));
         assert_eq!(best(&bests.fastest_win), Some((b, 600.0, "cursed_hollow")));
         assert_eq!(bests.win_streak.map(|streak| streak.games), Some(2));
+    }
+
+    #[tokio::test]
+    async fn keeps_the_bests_across_heroes_to_the_scopes_modes() {
+        let pool = pool().await;
+        let game = |name: &str, timestamp, mode, hero_damage, win| {
+            let mut game = hero_game(name, timestamp, mode, "cursed_hollow", "Wizard", win);
+            game.replay_players[0].score = NewScore {
+                hero_damage: Some(hero_damage),
+                ..Default::default()
+            };
+            game
+        };
+
+        for game in [
+            game("draft", 100, Mode::StormLeague, 2000, true),
+            game("quick", 200, Mode::QuickMatch, 5000, true),
+            game("aram", 300, Mode::Aram, 9000, true),
+            game("draft-again", 400, Mode::StormLeague, 1000, true),
+        ] {
+            insert_bundle(&pool, game).await.unwrap();
+        }
+        let draft = replay_id(&pool, "draft").await;
+        let quick = replay_id(&pool, "quick").await;
+
+        let mut conn = pool.acquire().await.unwrap();
+        let all = profile_bests(&mut conn, ScoreScope::All).await.unwrap();
+        let drafts = profile_bests(&mut conn, ScoreScope::Draft).await.unwrap();
+
+        assert_eq!(
+            best(&all.hero_damage),
+            Some((quick, 5000.0, "cursed_hollow"))
+        );
+        assert_eq!(all.win_streak.map(|streak| streak.games), Some(3));
+
+        assert_eq!(
+            best(&drafts.hero_damage),
+            Some((draft, 2000.0, "cursed_hollow"))
+        );
+        assert_eq!(drafts.win_streak.map(|streak| streak.games), Some(2));
     }
 
     #[tokio::test]
