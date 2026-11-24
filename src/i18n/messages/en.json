@@ -19,7 +19,10 @@
             "title": "Recent replays",
             "subtitle": "{count, plural, one {Last # game} other {Last # games}}.",
             "all": "All replays",
-            "empty": "No replays yet. Play a game and it shows up here."
+            "empty": {
+                "title": "No replays yet",
+                "body": "Your games show up here as soon as they finish."
+            }
         },
         "session": {
             "title": "This session",
@@ -216,17 +219,31 @@
         "title": "Replays",
         "refresh": "Refresh",
         "count": "{count, plural, one {<num>{count, number}</num> game} other {<num>{count, number}</num> games}}.",
+        "empty": {
+            "title": "No replays yet",
+            "body": "Every game you play is listed here."
+        },
+        "clearFilters": "Clear filters",
         "filters": {
             "label": "Filters",
             "clear": "Clear {count} filters",
-            "empty": "No replays match these filters."
+            "empty": {
+                "title": "No matches",
+                "body": "No replays match these filters."
+            }
         }
     },
     "heroes": {
         "title": "Heroes",
         "played": "{played} of {total} played.",
-        "empty": "No heroes played yet.",
-        "noMatches": "No heroes match these filters.",
+        "empty": {
+            "title": "No heroes played yet",
+            "body": "Each hero you play gets a card here."
+        },
+        "noMatches": {
+            "title": "No matches",
+            "body": "No heroes match these filters."
+        },
         "clearFilters": "Clear filters",
         "filters": {
             "label": "Filters",

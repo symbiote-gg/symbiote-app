@@ -1,12 +1,6 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import classNames from "classnames";
-import {
-    type ReactNode,
-    type RefObject,
-    type UIEvent,
-    useEffect,
-    useRef,
-} from "react";
+import { type RefObject, type UIEvent, useEffect, useRef } from "react";
 
 import type { Replay } from "@/api/replays";
 import { ReplayRow } from "@/components";
@@ -29,7 +23,6 @@ export interface ListProps {
     isFetchingNextPage: boolean;
     fetchNextPage: () => void;
     onScroll: (e: UIEvent<HTMLDivElement>) => void;
-    children?: ReactNode;
 }
 
 export function List({
@@ -43,7 +36,6 @@ export function List({
     isFetchingNextPage,
     fetchNextPage,
     onScroll,
-    children,
 }: ListProps) {
     const known = useRef<Set<number> | null>(null);
 
@@ -93,7 +85,6 @@ export function List({
 
     return (
         <CardBody ref={ref} onScroll={onScroll}>
-            {children}
             <div
                 ref={virtualizer.containerRef}
                 className={classNames(styles.track, {

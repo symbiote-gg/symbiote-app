@@ -1,4 +1,4 @@
-import { ShieldUser } from "lucide-react";
+import { SearchX, ShieldUser } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -50,6 +50,7 @@ export function Heroes() {
         onFiltersChange({ ...NO_FILTERS, sort: filters.sort });
 
     const empty = !!data && !isPlaceholderData && heroes.length === 0;
+    const noMatches = empty && isFiltered(filters);
 
     return (
         <Page fill>
@@ -67,24 +68,30 @@ export function Heroes() {
                 {error && (
                     <ErrorMessage error={error} className={styles.error} />
                 )}
-                <CardBody className={styles.body}>
-                    {empty && isFiltered(filters) ? (
-                        <EmptyState
-                            action={
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={onClearFilters}
-                                >
-                                    {t("clearFilters")}
-                                </Button>
-                            }
-                        >
-                            {t("noMatches")}
-                        </EmptyState>
-                    ) : empty ? (
-                        <EmptyState>{t("empty")}</EmptyState>
-                    ) : (
+                {empty && !error && noMatches && (
+                    <EmptyState
+                        icon={SearchX}
+                        title={t("noMatches.title")}
+                        action={
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={onClearFilters}
+                            >
+                                {t("clearFilters")}
+                            </Button>
+                        }
+                    >
+                        {t("noMatches.body")}
+                    </EmptyState>
+                )}
+                {empty && !error && !noMatches && (
+                    <EmptyState icon={ShieldUser} title={t("empty.title")}>
+                        {t("empty.body")}
+                    </EmptyState>
+                )}
+                {!empty && (
+                    <CardBody className={styles.body}>
                         <ul
                             className={styles.grid}
                             aria-busy={isPlaceholderData}
@@ -95,8 +102,8 @@ export function Heroes() {
                                 </li>
                             ))}
                         </ul>
-                    )}
-                </CardBody>
+                    </CardBody>
+                )}
             </Card>
         </Page>
     );

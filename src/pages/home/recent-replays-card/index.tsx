@@ -44,7 +44,11 @@ export function RecentReplaysCard() {
             />
             {error && <ErrorMessage error={error} />}
             {replays?.length === 0 ? (
-                <EmptyState>{t("empty")}</EmptyState>
+                !error && (
+                    <EmptyState icon={Clapperboard} title={t("empty.title")}>
+                        {t("empty.body")}
+                    </EmptyState>
+                )
             ) : (
                 <>
                     <ReplayListHeader />

@@ -1,4 +1,4 @@
-import { Clapperboard } from "lucide-react";
+import { Clapperboard, SearchX } from "lucide-react";
 import {
     type UIEvent,
     useLayoutEffect,
@@ -93,8 +93,8 @@ export function Replays() {
 
     const onClearFilters = () => onFiltersChange(NO_FILTERS);
 
-    const noMatches =
-        !!data && !isPlaceholderData && total === 0 && isFiltered(filters);
+    const empty = !!data && !isPlaceholderData && total === 0;
+    const noMatches = empty && isFiltered(filters);
 
     return (
         <Page fill>
@@ -123,39 +123,49 @@ export function Replays() {
                 {error && (
                     <ErrorMessage error={error} className={styles.error} />
                 )}
-                <ReplayListHeader
-                    wide
-                    sort={sort}
-                    onSortChange={onSortChange}
-                />
-                <List
-                    ref={scroller}
-                    replays={replays}
-                    total={total}
-                    stale={isPlaceholderData}
-                    appear={appear}
-                    initialOffset={saved.offset}
-                    hasNextPage={hasNextPage}
-                    isFetchingNextPage={isFetchingNextPage}
-                    fetchNextPage={fetchNextPage}
-                    onScroll={onScroll}
-                >
-                    {noMatches && (
-                        <EmptyState
-                            action={
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={onClearFilters}
-                                >
-                                    {t("filters.clear")}
-                                </Button>
-                            }
-                        >
-                            {t("filters.empty")}
-                        </EmptyState>
-                    )}
-                </List>
+                {empty && !error && noMatches && (
+                    <EmptyState
+                        icon={SearchX}
+                        title={t("filters.empty.title")}
+                        action={
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={onClearFilters}
+                            >
+                                {t("clearFilters")}
+                            </Button>
+                        }
+                    >
+                        {t("filters.empty.body")}
+                    </EmptyState>
+                )}
+                {empty && !error && !noMatches && (
+                    <EmptyState icon={Clapperboard} title={t("empty.title")}>
+                        {t("empty.body")}
+                    </EmptyState>
+                )}
+                {!empty && (
+                    <>
+                        <ReplayListHeader
+                            wide
+                            sort={sort}
+                            onSortChange={onSortChange}
+                        />
+                        <List
+                            ref={scroller}
+                            replays={replays}
+                            total={total}
+                            stale={isPlaceholderData}
+                            appear={appear}
+                            initialOffset={saved.offset}
+                            hasNextPage={hasNextPage}
+                            isFetchingNextPage={isFetchingNextPage}
+                            fetchNextPage={fetchNextPage}
+                            onScroll={onScroll}
+                        />
+                    </>
+                )}
             </Card>
         </Page>
     );
