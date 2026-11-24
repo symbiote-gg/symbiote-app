@@ -26,6 +26,11 @@
     @apply xl:col-span-4;
 }
 
+/* Heroes short of rated games have no score history to show. */
+.scoreHistory:empty {
+    @apply hidden;
+}
+
 .teamShare {
     @apply xl:col-span-6;
 }

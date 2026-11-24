@@ -2,6 +2,7 @@
 //! weighted on ranked among the same hero's players, and among its role's when few
 //! played the hero, then averaged into points that sum to a score out of 100.
 
+use std::borrow::Borrow;
 use std::collections::HashMap;
 
 use chrono::{DateTime, TimeDelta, Utc};
@@ -18,8 +19,8 @@ use crate::types::role_performances::RoleStat::{
     TimeDeadShare, Xp,
 };
 use crate::types::stats::{
-    GameScore, HeroScoreRow, ProfileScore, ScorePillar, ScorePillarId, ScorePoint, ScoreScope,
-    ScoreStat, ScoredHero,
+    GameScore, HeroScoreRow, PillarMax, ProfileScore, ScorePillar, ScorePillarId, ScorePoint,
+    ScoreScope, ScoreStat, ScoredHero,
 };
 
 /// The modes played five against five on a full map. ARAM's single lane inflates
@@ -575,6 +576,7 @@ fn hero_rows(
                 hero_weight: weight,
                 session_change: session_change(hero_games, session_start, 1),
                 pillars: pillars(hero_games, score),
+                history: history(hero_games),
             })
         })
         .collect();
@@ -648,6 +650,14 @@ pub fn compute(
         min_games: MIN_GAMES,
         window: WINDOW,
         pillars: career.map_or_else(Vec::new, |career| pillars(&career_games, career)),
+        pillar_maxes: PILLARS
+            .iter()
+            .zip(PILLAR_SHARES)
+            .map(|(&(id, _), share)| PillarMax {
+                id,
+                max: (share * 100.0).round() as u8,
+            })
+            .collect(),
         heroes: if career.is_some() {
             hero_rows(&scored, heroes, &baselines, session_start)
         } else {
@@ -657,8 +667,8 @@ pub fn compute(
     }
 }
 
-fn mean_score(games: &[ScoredGame]) -> f64 {
-    games.iter().map(|game| game.score).sum::<f64>() / games.len() as f64
+fn mean_score<G: Borrow<ScoredGame>>(games: &[G]) -> f64 {
+    games.iter().map(|game| game.borrow().score).sum::<f64>() / games.len() as f64
 }
 
 /// The points the games ended since `session_start` moved the games' score by.
@@ -688,7 +698,7 @@ fn session_change(
 }
 
 /// The games' mean score, once there are enough of them to rate.
-fn mean_points(games: &[ScoredGame]) -> Option<u8> {
+fn mean_points<G: Borrow<ScoredGame>>(games: &[G]) -> Option<u8> {
     (games.len() >= MIN_GAMES).then(|| points(mean_score(games)))
 }
 
@@ -711,12 +721,12 @@ fn margin(games: &[ScoredGame]) -> Option<u8> {
 }
 
 /// The score as it stood after each game, over the window ending on it.
-fn history(games: &[ScoredGame]) -> Vec<ScorePoint> {
+fn history<G: Borrow<ScoredGame>>(games: &[G]) -> Vec<ScorePoint> {
     (MIN_GAMES..=games.len())
         .filter_map(|end| {
             let latest = &games[end.saturating_sub(WINDOW)..end];
             Some(ScorePoint {
-                timestamp: latest.last()?.timestamp,
+                timestamp: latest.last()?.borrow().timestamp,
                 score: mean_points(latest)?,
             })
         })
@@ -1118,6 +1128,52 @@ mod tests {
         assert_eq!((jaina.games, jaina.hero_samples), (WINDOW + 10, 0));
         assert_eq!(jaina.hero_weight, 0.0);
         assert_eq!(Some(jaina.score), score.career);
+    }
+
+    #[test]
+    fn the_pillar_maxes_sum_to_100_unrated() {
+        let score = compute(&games(1, |_| 1_000), heroes(), NO_SESSION);
+
+        assert_eq!(score.career, None);
+        assert_eq!(
+            score
+                .pillar_maxes
+                .iter()
+                .map(|pillar| pillar.max)
+                .sum::<u8>(),
+            100
+        );
+    }
+
+    #[test]
+    fn a_hero_history_follows_its_games_alone() {
+        // Jaina on the odd games, out-damaging everyone, and Valla on a few even ones.
+        let players: Vec<_> = (1..=40)
+            .flat_map(|id| {
+                let mut players = game(id, if id % 2 == 1 { 90_000 } else { 1_000 });
+                if id % 2 == 0 && id <= 10 {
+                    players[0].hero_id = VALLA;
+                    players[0].hero_slug = "Valla".to_owned();
+                }
+
+                players
+            })
+            .collect();
+
+        let score = compute(&players, heroes(), NO_SESSION);
+        let hero = |id| score.heroes.iter().find(|hero| hero.hero_id == id).unwrap();
+
+        let jaina = hero(JAINA);
+        assert_eq!(jaina.history.len(), jaina.games - MIN_GAMES + 1);
+
+        // Fewer games than the window, so the latest point spans all of Jaina's.
+        assert_eq!(
+            jaina.history.last().map(|point| point.score),
+            Some(jaina.score)
+        );
+
+        let valla = hero(VALLA);
+        assert_eq!((valla.games, valla.history.len()), (5, 0));
     }
 
     #[test]

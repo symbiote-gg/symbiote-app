@@ -149,7 +149,11 @@ export function ScoreCard({ scope, onScopeChange }: ScoreCardProps) {
                                 <Typography size="sm" variant="tertiary">
                                     {unrated(data)}
                                 </Typography>
-                                <Method scope={data.scope} score={null} />
+                                <Method
+                                    scope={data.scope}
+                                    score={null}
+                                    maxes={data.pillarMaxes}
+                                />
                             </div>
                         </div>
                         <PartsEmpty className={styles.parts} />
@@ -183,6 +187,7 @@ export function ScoreCard({ scope, onScopeChange }: ScoreCardProps) {
                                 <Method
                                     scope={data.scope}
                                     score={data.career}
+                                    maxes={data.pillarMaxes}
                                 />
                             </div>
                             <span aria-live="polite" className={styles.live}>

@@ -15,6 +15,7 @@ import { GameLength } from "./game-length";
 import { Games } from "./games";
 import { GamesSkeleton } from "./games/skeleton";
 import { Maps } from "./maps";
+import { HeroScoreHistory } from "./score-history";
 import { Talents } from "./talents";
 import { TeamShare } from "./team-share";
 import { Trend } from "./trend";
@@ -84,6 +85,12 @@ export function HeroDetail() {
                                 <Games hero={hero} />
                             </div>
                         )}
+                        <div className={styles.scoreHistory}>
+                            <HeroScoreHistory
+                                heroId={hero.heroId}
+                                hero={hero.name}
+                            />
+                        </div>
                         <div className={styles.talents}>
                             <Talents talents={hero.talents} />
                         </div>

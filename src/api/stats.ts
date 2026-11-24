@@ -75,6 +75,11 @@ export type ScorePillar = {
     stats: ScoreStat[];
 };
 
+export type PillarMax = {
+    id: ScorePillarId;
+    max: number;
+};
+
 export type HeroScoreRow = {
     heroId: number;
     name: string;
@@ -86,6 +91,7 @@ export type HeroScoreRow = {
     heroWeight: number;
     sessionChange: number | null;
     pillars: ScorePillar[];
+    history: ScorePoint[];
 };
 
 export type ScorePoint = {
@@ -112,6 +118,7 @@ export type ProfileScore = {
     minGames: number;
     window: number;
     pillars: ScorePillar[];
+    pillarMaxes: PillarMax[];
     heroes: HeroScoreRow[];
     history: ScorePoint[];
 };

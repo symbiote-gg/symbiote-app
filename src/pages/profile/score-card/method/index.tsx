@@ -1,115 +1,64 @@
-import classNames from "classnames";
 import {
     ChartColumn,
     Gamepad2,
     Info,
     type LucideIcon,
+    RefreshCw,
     Scale,
     Timer,
 } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
-import type { ScoreScope } from "@/api/stats";
-import { useFormatStat } from "@/hooks/useFormatStat";
+import type { PillarMax, ScoreScope } from "@/api/stats";
 import { Meter, Tooltip, Typography } from "@/ui";
 import { TIERS, rankTone, tierIndex } from "../tiers";
-import { EXAMPLE, PILLAR_MAXES, examplePoints } from "./example";
 
 import styles from "./styles.module.css";
 
-type Step = "games" | "rate" | "rank" | "weight";
+type Step = "games" | "rate" | "rank" | "weight" | "live";
 
 const STEPS: { step: Step; icon: LucideIcon }[] = [
     { step: "games", icon: Gamepad2 },
     { step: "rate", icon: Timer },
     { step: "rank", icon: ChartColumn },
     { step: "weight", icon: Scale },
+    { step: "live", icon: RefreshCw },
 ];
-
-const richMono = (chunks: ReactNode) => (
-    <span className={styles.mono}>{chunks}</span>
-);
-
-const richAccent = (chunks: ReactNode) => (
-    <span className={classNames(styles.mono, styles.accent)}>{chunks}</span>
-);
-
-const richPoints = (chunks: ReactNode) => (
-    <span className={styles.points}>{chunks}</span>
-);
-
-const richMax = (chunks: ReactNode) => (
-    <span className={styles.max}>{chunks}</span>
-);
 
 export interface MethodProps {
     scope: ScoreScope;
     /** `null` while unrated, which keeps the panel in the default accent. */
     score: number | null;
+    maxes: PillarMax[];
 }
 
-export function Method({ scope, score: career }: MethodProps) {
+export function Method({ scope, score: career, maxes }: MethodProps) {
     const t = useTranslations("profile.score.method");
-    const score = useTranslations("profile.score");
     const names = useTranslations("profile.score.pillar");
-    const { compact, percent } = useFormatStat();
     const body = (step: Step) =>
-        step === "games"
-            ? t(`steps.games.${scope}`)
-            : t(`steps.${step}.body`, PILLAR_MAXES);
+        step === "games" ? t(`steps.games.${scope}`) : t(`steps.${step}.body`);
 
     const rank = career === null ? null : TIERS[tierIndex(career)].rank;
 
-    const maxes = EXAMPLE.pillars.map(({ pillar }) => PILLAR_MAXES[pillar]);
-    const points = examplePoints(maxes);
-    const total = points.reduce((sum, value) => sum + value, 0);
+    const heaviest = Math.max(...maxes.map(({ max }) => max));
 
-    const pointsOf = (value: number, max: number) =>
-        score.rich("points", {
-            points: value,
-            max,
-            b: richPoints,
-            of: richMax,
-        });
-
-    const examples: Partial<Record<Step, ReactNode>> = {
-        rate: (
-            <Typography size="sm" variant="secondary">
-                {t.rich("example.rate", {
-                    total: compact(EXAMPLE.healing),
-                    minutes: EXAMPLE.minutes,
-                    perMinute: compact(EXAMPLE.healing / EXAMPLE.minutes),
-                    mono: richMono,
-                    accent: richAccent,
-                })}
-            </Typography>
-        ),
-        rank: (
-            <Typography size="sm" variant="secondary">
-                {t.rich("example.rank", {
-                    share: percent(EXAMPLE.healingBeat),
-                    accent: richAccent,
-                })}
-            </Typography>
-        ),
+    const lists: Partial<Record<Step, ReactNode>> = {
         weight: (
             <ul className={styles.weights}>
-                {EXAMPLE.pillars.map(({ pillar }, index) => (
-                    <li key={pillar} className={styles.weight}>
+                {maxes.map(({ id, max }) => (
+                    <li key={id} className={styles.weight}>
                         <Typography size="sm" variant="secondary" truncate>
-                            {names(pillar)}
+                            {names(id)}
                         </Typography>
                         <span
                             className={styles.track}
                             style={
-                                {
-                                    "--weight": maxes[index] / maxes[0],
-                                } as CSSProperties
+                                { "--weight": max / heaviest } as CSSProperties
                             }
                         >
                             <Meter
-                                value={points[index] / maxes[index]}
+                                value={1}
                                 color="accent"
                                 size="md"
                                 className={styles.meter}
@@ -122,24 +71,10 @@ export function Method({ scope, score: career }: MethodProps) {
                             noWrap
                             className={styles.value}
                         >
-                            {pointsOf(points[index], maxes[index])}
+                            {max}
                         </Typography>
                     </li>
                 ))}
-                <li className={classNames(styles.weight, styles.total)}>
-                    <Typography size="sm" weight="semibold">
-                        {t("example.total")}
-                    </Typography>
-                    <Typography
-                        as="span"
-                        size="sm"
-                        mono
-                        noWrap
-                        className={styles.value}
-                    >
-                        {pointsOf(total, 100)}
-                    </Typography>
-                </li>
             </ul>
         ),
     };
@@ -173,7 +108,7 @@ export function Method({ scope, score: career }: MethodProps) {
                         <Typography size="sm" variant="secondary">
                             {body(step)}
                         </Typography>
-                        {examples[step]}
+                        {lists[step]}
                     </section>
                 ))}
             </div>

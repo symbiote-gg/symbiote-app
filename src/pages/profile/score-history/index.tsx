@@ -118,6 +118,7 @@ export interface ScoreHistoryProps {
 }
 
 export function ScoreHistory({ scope }: ScoreHistoryProps) {
+    const t = useTranslations("profile.score.history");
     const { data, error } = useProfileScore(scope);
 
     if (error) return <ErrorMessage error={error} />;
@@ -125,20 +126,20 @@ export function ScoreHistory({ scope }: ScoreHistoryProps) {
     if (data.career === null) return null;
 
     return (
-        <History
+        <ScoreHistoryCard
             points={data.history}
             score={data.score}
             games={data.games}
-            rolling={data.window}
+            subtitle={t("subtitle", { window: data.window })}
         />
     );
 }
 
-interface HistoryProps {
+export interface ScoreHistoryCardProps {
     points: ScorePoint[];
     score: number | null;
     games: number;
-    rolling: number;
+    subtitle: string;
 }
 
 interface StatValue {
@@ -146,7 +147,12 @@ interface StatValue {
     note: string;
 }
 
-function History({ points, score, games, rolling }: HistoryProps) {
+export function ScoreHistoryCard({
+    points,
+    score,
+    games,
+    subtitle,
+}: ScoreHistoryCardProps) {
     const t = useTranslations("profile.score");
     const format = useFormatter();
     const playedDate = usePlayedDate();
@@ -192,9 +198,14 @@ function History({ points, score, games, rolling }: HistoryProps) {
             year: year ? "numeric" : undefined,
         });
 
-    const stat = (label: string, value: StatValue | null) => (
+    const stat = (
+        label: string,
+        value: StatValue | null,
+        className?: string,
+    ) => (
         <Stat
             label={label}
+            className={className}
             note={value?.note}
             style={value ? tierText(value.score) : undefined}
             valueClassName={value ? styles.value : undefined}
@@ -218,7 +229,7 @@ function History({ points, score, games, rolling }: HistoryProps) {
                 size="sm"
                 icon={HistoryIcon}
                 title={t("history.title")}
-                subtitle={t("history.subtitle", { window: rolling })}
+                subtitle={subtitle}
                 action={
                     <div className={styles.actions}>
                         <dl className={styles.stats}>
@@ -233,8 +244,12 @@ function History({ points, score, games, rolling }: HistoryProps) {
                                           ),
                                       },
                             )}
-                            {stat(t("history.best"), dated(best))}
-                            {stat(t("history.lowest"), dated(lowest))}
+                            {stat(t("history.best"), dated(best), styles.dated)}
+                            {stat(
+                                t("history.lowest"),
+                                dated(lowest),
+                                styles.dated,
+                            )}
                         </dl>
                         <ChipGroup label={t("history.range.label")}>
                             {RECENT.map(chip)}

@@ -48,14 +48,6 @@
     text-box: trim-both cap alphabetic;
 }
 
-.mono {
-    @apply font-mono text-fg;
-}
-
-.accent {
-    color: var(--accent-text);
-}
-
 .weights {
     @apply mt-1 grid grid-cols-[minmax(0,1fr)_5rem_auto] gap-x-3 gap-y-2;
 }
@@ -75,26 +67,6 @@
     width: max(calc(var(--spacing) * 3), calc(100% * var(--weight)));
 }
 
-.total {
-    @apply mt-1;
-}
-
-.total .value {
-    @apply col-start-3;
-}
-
 .value {
     @apply text-right;
-}
-
-.points {
-    @apply font-semibold text-fg;
-}
-
-.total .points {
-    color: var(--accent-text);
-}
-
-.max {
-    @apply text-fg-faint;
 }

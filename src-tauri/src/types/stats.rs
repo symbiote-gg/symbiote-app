@@ -128,6 +128,8 @@ pub struct ProfileScore {
     pub window: usize,
     /// Over every scored game: their points sum to `career` and their maxes to 100.
     pub pillars: Vec<ScorePillar>,
+    /// Each pillar's fixed share of a game, rated or not.
+    pub pillar_maxes: Vec<PillarMax>,
     /// Over every scored game.
     pub heroes: Vec<HeroScoreRow>,
     /// The score after each game since the first rated one, oldest first, the last
@@ -140,6 +142,12 @@ pub struct ProfileScore {
 pub struct ScorePoint {
     pub timestamp: DateTime<Utc>,
     pub score: u8,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PillarMax {
+    pub id: ScorePillarId,
+    pub max: u8,
 }
 
 #[derive(Debug, Serialize)]
@@ -180,6 +188,8 @@ pub struct HeroScoreRow {
     /// on a hero first played in them.
     pub session_change: Option<f64>,
     pub pillars: Vec<ScorePillar>,
+    /// As `ProfileScore::history`, over the hero's games alone.
+    pub history: Vec<ScorePoint>,
 }
 
 /// The owner's games ended since the app was opened, with the career they add to.

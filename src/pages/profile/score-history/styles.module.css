@@ -13,6 +13,11 @@
     @apply flex flex-wrap gap-x-8 gap-y-4;
 }
 
+/* Fits "100 May 2026", so a new range doesn't resize the stats and shift the row. */
+.dated {
+    @apply min-w-26;
+}
+
 .stats .value {
     color: var(--rank-text);
 }

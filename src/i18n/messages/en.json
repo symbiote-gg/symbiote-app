@@ -119,7 +119,7 @@
             "method": {
                 "trigger": "How it's scored",
                 "title": "How your score works",
-                "subtitle": "One Anduin game, start to finish.",
+                "subtitle": "Every game, scored the same way.",
                 "steps": {
                     "games": {
                         "label": "Counts",
@@ -129,23 +129,22 @@
                     },
                     "rate": {
                         "label": "Made fair",
-                        "body": "Per minute or as a share of the team, so long games don't win by default."
+                        "body": "Stats are read per minute or as a share of your team, so long games don't win by default."
                     },
                     "rank": {
                         "label": "Ranked",
-                        "body": "Against other Anduin games in your replays, or the role's when the hero is rare."
+                        "body": "Each stat against other players on the same hero in your replays, or on its role when the hero is rare. You earn the share you beat."
                     },
                     "weight": {
                         "label": "Points",
-                        "body": "Fighting is worth {fighting} of 100, team role {teamRole}, map {map} and survival {survival}, each split among its stats by how much they matter on the hero. A part with no stat for the hero hands its points to the rest. You earn it by the share you beat."
+                        "body": "Each part is split among the hero's stats by how much they matter on it. A part with no stat for the hero hands its points to the rest."
+                    },
+                    "live": {
+                        "label": "Live",
+                        "body": "Nothing is locked in. Every new replay brings new players to rank against, so past games and scores can shift a little."
                     }
                 },
-                "example": {
-                    "rate": "Healing <mono>{total} in {minutes} min</mono> is <accent>{perMinute} per min</accent>",
-                    "rank": "Healing <accent>beat {share}</accent>",
-                    "total": "This game"
-                },
-                "footnote": "Your score averages your games, so a stat's max is its average worth across them."
+                "footnote": "Your score is the average of your games. A stat is worth more on some heroes than others, so the max shown for it is its average across the games you played."
             },
             "unrated": {
                 "all": "Unlocks in {count, plural, one {# more Quick Match or draft game} other {# more Quick Match or draft games}}.",
@@ -185,7 +184,7 @@
             },
             "history": {
                 "title": "Score over time",
-                "subtitle": "Your score over the last {window, plural, one {# game} other {# games}} after each game, against today's pool.",
+                "subtitle": "Your score over the last {window, plural, one {# game} other {# games}}, after each game. Past points can shift as new replays add players to rank against.",
                 "best": "Best",
                 "lowest": "Lowest",
                 "games": "{count, plural, one {# game} other {# games}}",
@@ -296,9 +295,12 @@
         "notFound": "This hero does not exist.",
         "noGames": "No games on {hero} yet.",
         "score": {
-            "suffix": " score",
+            "suffix": " career score",
             "pool": "{count, plural, =0 {vs the role only} one {vs # {hero} player} other {vs # {hero} players}}",
             "smallPool": "{count, plural, =0 {Small pool, vs the role only} one {Small pool, vs # {hero} player} other {Small pool, vs # {hero} players}}"
+        },
+        "scoreHistory": {
+            "subtitle": "Your {hero} score over the last {window, plural, one {# game} other {# games}}, after each game. Past points can shift as new replays add players to rank against."
         },
         "trend": {
             "title": "Win rate over time",
