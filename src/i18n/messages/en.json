@@ -297,8 +297,8 @@
         "noGames": "No games on {hero} yet.",
         "score": {
             "suffix": " score",
-            "pool": "{count, plural, =0 {vs the role only} one {vs # other {hero} game} other {vs # other {hero} games}}",
-            "smallPool": "{count, plural, =0 {Small pool, vs the role only} one {Small pool, vs # other {hero} game} other {Small pool, vs # other {hero} games}}"
+            "pool": "{count, plural, =0 {vs the role only} one {vs # {hero} player} other {vs # {hero} players}}",
+            "smallPool": "{count, plural, =0 {Small pool, vs the role only} one {Small pool, vs # {hero} player} other {Small pool, vs # {hero} players}}"
         },
         "trend": {
             "title": "Win rate over time",
