@@ -17,6 +17,7 @@ export interface StatTileProps {
     accent?: "mvp" | "loss" | "tone";
     variant?: StatTileVariant;
     icon?: LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
+    iconSize?: "md" | "lg";
     detail?: ReactNode;
     meta?: ReactNode;
     footer?: ReactNode;
@@ -31,6 +32,7 @@ export function StatTile({
     accent,
     variant = "row",
     icon: Icon,
+    iconSize = "md",
     detail,
     meta,
     footer,
@@ -43,12 +45,27 @@ export function StatTile({
 
     const head = (
         <div className={styles.head}>
-            {panel && Icon && (
-                <span className={styles.badge}>
+            {Icon && (
+                <span
+                    className={classNames(styles.badge, {
+                        [styles.large]: iconSize === "lg",
+                    })}
+                >
                     <Icon aria-hidden />
                 </span>
             )}
-            <Eyebrow className={styles.label}>{label}</Eyebrow>
+            {panel ? (
+                <Eyebrow className={styles.label}>{label}</Eyebrow>
+            ) : (
+                <div className={styles.names}>
+                    <Eyebrow className={styles.label}>{label}</Eyebrow>
+                    {detail && (
+                        <Typography size="xs" variant="tertiary" truncate>
+                            {detail}
+                        </Typography>
+                    )}
+                </div>
+            )}
             {split && meta && (
                 <Typography
                     size="xs"

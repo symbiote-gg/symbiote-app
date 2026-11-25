@@ -3872,6 +3872,8 @@ name = "symbiote-app"
 version = "0.2.0"
 dependencies = [
  "chrono",
+ "gdkx11",
+ "gtk",
  "heck 0.5.0",
  "hots-replay-parser",
  "indexmap 2.14.2",

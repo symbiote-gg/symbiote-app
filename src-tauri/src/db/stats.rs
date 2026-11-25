@@ -3,11 +3,13 @@ use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
 
 use crate::db::hero_stats;
 use crate::profile_score::{self, PlayerGame};
+use crate::session_bests::{self, BestGame};
 use crate::types::hero::HeroRole;
 use crate::types::replay::Mode;
 use crate::types::stats::{
     HeroStat, MapStat, MostPlayedHeroes, PartySize, ProfileBests, ProfileCareer, ProfileScore,
-    RecentForm, RoleRecord, ScoreScope, ScoredHero, SessionGame, SessionHero, SessionRecord,
+    RecentForm, RoleRecord, ScoreScope, ScoredHero, SessionBest, SessionGame, SessionHero,
+    SessionRecord,
 };
 
 /// Sums up the owner's career across every hero, with who they play as.
@@ -236,6 +238,43 @@ pub async fn session_record(
     })
 }
 
+/// Returns the bests the owner beat with the games ended since `session_start`.
+pub async fn session_bests(
+    pool: &SqlitePool,
+    session_start: DateTime<Utc>,
+) -> sqlx::Result<Vec<SessionBest>> {
+    let start = session_start.timestamp();
+    let mut tx = pool.begin().await?;
+
+    // Skips reading the whole career while no game was played yet.
+    let played: bool = sqlx::query_scalar(
+        "SELECT EXISTS (SELECT 1 FROM replays_view WHERE timestamp + duration >= ?)",
+    )
+    .bind(start)
+    .fetch_one(&mut *tx)
+    .await?;
+    if !played {
+        return Ok(Vec::new());
+    }
+
+    let games = sqlx::query_as::<_, BestGame>(
+        "SELECT r.id AS replay_id, h.id AS hero_id, h.name AS hero, h.slug AS hero_slug,
+             h.role = 'healer' AS healer, r.mode, r.timestamp, r.duration, r.owner_win AS win,
+             orp.hero_damage, orp.siege_damage, orp.healing, orp.damage_taken,
+             orp.xp_contribution AS xp, orp.takedowns, orp.deaths
+         FROM replays_view r
+         JOIN heroes h ON h.id = r.owner_hero_id
+         JOIN games_players orp
+             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
+         ORDER BY r.timestamp, r.id",
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+
+    Ok(session_bests::compute(&games, session_start))
+}
+
 /// Returns the `limit` heroes the owner played the most, with how many heroes they
 /// played overall.
 pub async fn most_played_heroes(pool: &SqlitePool, limit: i64) -> sqlx::Result<MostPlayedHeroes> {
@@ -393,6 +432,7 @@ mod tests {
     use crate::db::test_utils::pool;
     use crate::types::player::Player;
     use crate::types::replay::{NewReplayPlayer, NewScore};
+    use crate::types::stats::BestMetric;
 
     #[tokio::test]
     async fn profile_career_starts_empty() {
@@ -619,6 +659,52 @@ mod tests {
                 (HeroRole::MeleeAssassin, 0, 0, 0),
                 (HeroRole::RangedAssassin, 0, 0, 0),
             ]
+        );
+    }
+
+    #[tokio::test]
+    async fn session_bests_reads_the_owner_games() {
+        let pool = pool().await;
+        let game = |index: i64, hero_damage| {
+            let mut game = hero_game(
+                &format!("g{index}"),
+                (index + 1) * 1000,
+                Mode::QuickMatch,
+                "cursed_hollow",
+                "Wizard",
+                false,
+            );
+            game.replay.duration = 600;
+            game.replay_players[0].score = NewScore {
+                hero_damage: Some(hero_damage),
+                ..Default::default()
+            };
+            game
+        };
+
+        for index in 0..10 {
+            insert_bundle(&pool, game(index, 50_000)).await.unwrap();
+        }
+        let start = DateTime::from_timestamp(11_000, 0).unwrap();
+        assert!(session_bests(&pool, start).await.unwrap().is_empty());
+
+        insert_bundle(&pool, game(10, 60_000)).await.unwrap();
+        let bests = session_bests(&pool, start).await.unwrap();
+        let read: Vec<_> = bests
+            .iter()
+            .map(|best| {
+                (
+                    best.metric,
+                    best.career,
+                    best.hero.as_str(),
+                    best.value,
+                    best.previous,
+                )
+            })
+            .collect();
+        assert_eq!(
+            read,
+            [(BestMetric::HeroDamage, true, "Wizard", 60_000.0, 50_000.0)]
         );
     }
 

@@ -13,9 +13,11 @@ export function useSetEventRetention() {
         mutationFn: setEventRetention,
         onSuccess: (_, years) => {
             // Set rather than refetched, so the old value can't show again meanwhile.
-            queryClient.setQueryData(settingsQuery.queryKey, {
-                eventRetentionYears: years,
-            });
+            queryClient.setQueryData(
+                settingsQuery.queryKey,
+                (settings) =>
+                    settings && { ...settings, eventRetentionYears: years },
+            );
 
             return Promise.all([
                 queryClient.invalidateQueries({

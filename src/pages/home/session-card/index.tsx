@@ -1,17 +1,20 @@
 import classNames from "classnames";
 import {
     Award,
+    Crown,
     Flame,
     Gamepad2,
     Timer,
     TrendingDown,
     Trophy,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { type MouseEvent, type ReactNode, useState } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
 import { SessionDelta } from "@/components";
+import { useBestTiles } from "@/hooks/useBestTiles";
 import { useProfileScore } from "@/hooks/useProfileScore";
+import { useSessionBests } from "@/hooks/useSessionBests";
 import { useSessionRecord } from "@/hooks/useSessionRecord";
 import { GemIcon } from "@/pages/profile/score-card/gem";
 import {
@@ -23,6 +26,8 @@ import {
 import {
     Card,
     CardHeader,
+    ChipButton,
+    ChipGroup,
     EmptyState,
     ErrorMessage,
     Eyebrow,
@@ -40,9 +45,12 @@ import {
     sessionRateChange,
     winRate,
 } from "@/utils/hero-stats";
+import { BestRow } from "./best-row";
 import { HeroTile } from "./hero-tile";
 
 import styles from "./styles.module.css";
+
+type ListTab = "heroes" | "bests";
 
 const win = (chunks: ReactNode) => <span className={styles.win}>{chunks}</span>;
 
@@ -57,6 +65,12 @@ export function SessionCard() {
     const format = useFormatter();
     const { data, error } = useSessionRecord();
     const { data: score } = useProfileScore("all");
+    const { data: sessionBests } = useSessionBests();
+    const { fromSessionBest } = useBestTiles();
+    const [tab, setTab] = useState<ListTab>("heroes");
+
+    const onTabClick = (e: MouseEvent<HTMLButtonElement>) =>
+        setTab(e.currentTarget.value as ListTab);
 
     const since = data && format.dateTime(new Date(data.started), TIME_FORMAT);
     const played = !!data && data.games.length > 0;
@@ -108,6 +122,28 @@ export function SessionCard() {
               : rated !== null
                 ? t("careerScore", { score: rated })
                 : null;
+
+    const beaten = sessionBests ?? [];
+
+    // A career best run still going shows on the streak tile instead of in the list.
+    const lastDecided = data?.games.find((game) => game.win !== null);
+    const runningBest = streak?.win
+        ? beaten.find(
+              (best) =>
+                  best.career &&
+                  best.metric === "winStreak" &&
+                  best.replayId === lastDecided?.replayId,
+          )
+        : undefined;
+    const streakBest = runningBest && fromSessionBest(runningBest);
+
+    const bests = beaten
+        .filter((best) => best !== runningBest)
+        .map(fromSessionBest)
+        .sort((a, b) => Number(b.career) - Number(a.career));
+
+    // Falls back to the heroes once no best is left to show.
+    const shownTab = bests.length > 0 ? tab : "heroes";
 
     const record = played && (
         <Typography as="p" display mono className={styles.record}>
@@ -236,8 +272,13 @@ export function SessionCard() {
                                           ? styles.winTone
                                           : styles.lossTone
                                 }
-                                value={streak?.length ?? "-"}
-                                detail={streak && t("inARow")}
+                                value={
+                                    streakBest?.value ?? streak?.length ?? "-"
+                                }
+                                detail={
+                                    streakBest?.detail ??
+                                    (streak && t("inARow"))
+                                }
                             />
 
                             <StatTile
@@ -281,19 +322,61 @@ export function SessionCard() {
                     <section
                         className={classNames(styles.section, styles.heroes)}
                     >
-                        <Eyebrow>{t("heroes")}</Eyebrow>
-                        <ul className={styles.tiles}>
-                            {data.heroes.map((hero) => (
-                                <HeroTile
-                                    key={hero.heroId}
-                                    hero={hero}
-                                    scoring={scoring}
-                                    score={score?.heroes.find(
-                                        (row) => row.heroId === hero.heroId,
-                                    )}
-                                />
-                            ))}
-                        </ul>
+                        {bests.length > 0 ? (
+                            <div className={styles.tabs}>
+                                <ChipGroup label={t("lists")}>
+                                    <ChipButton
+                                        value="heroes"
+                                        icon={<Crown />}
+                                        count={data.heroes.length}
+                                        pressed={shownTab === "heroes"}
+                                        onClick={onTabClick}
+                                    >
+                                        {t("heroes")}
+                                    </ChipButton>
+                                    <ChipButton
+                                        value="bests"
+                                        icon={<Trophy />}
+                                        count={bests.length}
+                                        pressed={shownTab === "bests"}
+                                        onClick={onTabClick}
+                                    >
+                                        {t("newBests")}
+                                    </ChipButton>
+                                </ChipGroup>
+                            </div>
+                        ) : (
+                            <Eyebrow>{t("heroes")}</Eyebrow>
+                        )}
+                        {shownTab === "bests" ? (
+                            <ul className={styles.tiles}>
+                                {bests.map((best) => (
+                                    <BestRow
+                                        key={best.key}
+                                        best={best}
+                                        portrait={
+                                            data.heroes.find(
+                                                (hero) =>
+                                                    hero.heroId === best.heroId,
+                                            )?.portrait ?? null
+                                        }
+                                    />
+                                ))}
+                            </ul>
+                        ) : (
+                            <ul className={styles.tiles}>
+                                {data.heroes.map((hero) => (
+                                    <HeroTile
+                                        key={hero.heroId}
+                                        hero={hero}
+                                        scoring={scoring}
+                                        score={score?.heroes.find(
+                                            (row) => row.heroId === hero.heroId,
+                                        )}
+                                    />
+                                ))}
+                            </ul>
+                        )}
                     </section>
                 </div>
             )}

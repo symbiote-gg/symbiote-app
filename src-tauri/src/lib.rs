@@ -11,11 +11,12 @@ use commands::settings::{
 };
 use commands::stats::{
     get_most_played_heroes, get_party_sizes, get_played_maps, get_played_modes, get_profile_bests,
-    get_profile_career, get_profile_score, get_recent_form, get_role_records, get_session_record,
+    get_profile_career, get_profile_score, get_recent_form, get_role_records, get_session_bests,
+    get_session_record,
 };
 use retention::EventRetention;
 use tauri::webview::PageLoadEvent;
-use tauri::Manager;
+use tauri::{Manager, WindowEvent};
 use types::settings::{ReplaysFolder, SessionStart};
 
 mod commands;
@@ -26,8 +27,10 @@ mod profile_score;
 mod recent_form;
 mod retention;
 mod role_performances;
+mod session_bests;
 mod standouts;
 mod timeline;
+mod tray;
 mod types;
 
 const ACCOUNTS_DIR_ENV: &str = "SYMBIOTE_ACCOUNTS_DIR";
@@ -68,10 +71,7 @@ pub fn run() {
 
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-        if let Some(window) = app.get_webview_window("main") {
-            let _ = window.unminimize();
-            let _ = window.set_focus();
-        }
+        tray::show(app);
     }));
 
     builder
@@ -87,6 +87,9 @@ pub fn run() {
             log::info!("database ready in {:?}", started.elapsed());
             let settings = tauri::async_runtime::block_on(db::settings::get(&pool))?;
             app.manage(EventRetention::new(settings.event_retention_years));
+            if let Err(e) = tray::create(app.handle()) {
+                log::error!("failed to add the tray icon: {e}");
+            }
             let purge_app = app.handle().clone();
             let purge_pool = pool.clone();
             tauri::async_runtime::spawn(async move {
@@ -103,6 +106,15 @@ pub fn run() {
             }
             app.manage(ReplaysFolder(dir));
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                // Without a tray icon, a hidden window couldn't be brought back.
+                if tray::has_tray(window.app_handle()) {
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+            }
         })
         .on_page_load(|webview, payload| {
             // A reload drops the frontend's channels without unsubscribing them.
@@ -124,6 +136,7 @@ pub fn run() {
             get_recent_form,
             get_role_records,
             get_session_record,
+            get_session_bests,
             get_most_played_heroes,
             get_played_maps,
             get_played_modes,
@@ -139,6 +152,13 @@ pub fn run() {
             get_replays_folder,
             open_replays_folder
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|_app, _event| {
+            // Clicking the dock icon brings back a window closed to the tray.
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = _event {
+                tray::show(_app);
+            }
+        });
 }

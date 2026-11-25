@@ -6,7 +6,7 @@ use crate::types::replay::Mode;
 use crate::types::settings::SessionStart;
 use crate::types::stats::{
     MapStat, MostPlayedHeroes, PartySize, ProfileBests, ProfileCareer, ProfileScore, RecentForm,
-    RoleRecord, ScoreScope, SessionRecord,
+    RoleRecord, ScoreScope, SessionBest, SessionRecord,
 };
 
 /// Sums up the owner's career across every hero.
@@ -67,6 +67,15 @@ pub async fn get_session_record(
     session: State<'_, SessionStart>,
 ) -> Result<SessionRecord> {
     Ok(crate::db::stats::session_record(&pool, session.0).await?)
+}
+
+/// Returns the bests the owner beat since the app was opened, newest first.
+#[tauri::command]
+pub async fn get_session_bests(
+    pool: State<'_, SqlitePool>,
+    session: State<'_, SessionStart>,
+) -> Result<Vec<SessionBest>> {
+    Ok(crate::db::stats::session_bests(&pool, session.0).await?)
 }
 
 const MAX_MOST_PLAYED_HEROES: i64 = 200;

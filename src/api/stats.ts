@@ -214,6 +214,35 @@ export type SessionRecord = {
 export const getSessionRecord = () =>
     invoke<SessionRecord>("get_session_record");
 
+export type BestMetric =
+    | "heroDamage"
+    | "siegeDamage"
+    | "healing"
+    | "damageTaken"
+    | "xp"
+    | "takedowns"
+    | "fastestWin"
+    | "fewestDeathsWin"
+    | "winStreak";
+
+/** A best the owner beat this session. */
+export type SessionBest = {
+    metric: BestMetric;
+    /** Beaten across every hero, otherwise only on the hero. */
+    career: boolean;
+    heroId: number;
+    hero: string;
+    value: number;
+    /** The best before the session. */
+    previous: number;
+    /** The game that set it, the last of the run for a win streak. */
+    replayId: number;
+    timestamp: string;
+};
+
+/** Newest first. */
+export const getSessionBests = () => invoke<SessionBest[]>("get_session_bests");
+
 export const getMostPlayedHeroes = (limit: number) =>
     invoke<MostPlayedHeroes>("get_most_played_heroes", { limit });
 

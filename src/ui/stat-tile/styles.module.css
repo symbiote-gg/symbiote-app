@@ -47,6 +47,10 @@
     @apply flex min-w-0 shrink-0 items-center gap-2.5;
 }
 
+.names {
+    @apply flex min-w-0 flex-col gap-1;
+}
+
 .badge {
     @apply flex size-6 shrink-0 items-center justify-center rounded-md border;
     border-color: color-mix(
@@ -66,6 +70,18 @@
     @apply size-3.5;
 }
 
+.badge.large {
+    @apply size-12 rounded-lg;
+}
+
+.badge.large svg {
+    @apply size-6;
+}
+
+.head:has(.large) {
+    @apply gap-5;
+}
+
 .label {
     @apply truncate;
 }
@@ -74,8 +90,12 @@
     @apply leading-none font-bold;
 }
 
+.row .head {
+    @apply shrink;
+}
+
 .row .value {
-    @apply text-xl;
+    @apply shrink-0 text-xl;
 }
 
 .panel .value {

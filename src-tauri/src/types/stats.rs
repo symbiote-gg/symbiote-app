@@ -240,6 +240,39 @@ pub struct SessionGame {
     pub mvp: bool,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum BestMetric {
+    HeroDamage,
+    SiegeDamage,
+    Healing,
+    DamageTaken,
+    Xp,
+    Takedowns,
+    /// The shortest win, its length in seconds as the value.
+    FastestWin,
+    FewestDeathsWin,
+    /// The value is the number of games.
+    WinStreak,
+}
+
+/// A best the owner beat this session.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionBest {
+    pub metric: BestMetric,
+    /// Beaten across every hero, otherwise only on the hero.
+    pub career: bool,
+    pub hero_id: i64,
+    pub hero: String,
+    pub value: f64,
+    /// The best before the session.
+    pub previous: f64,
+    /// The game that set it, the last of the run for a win streak.
+    pub replay_id: i64,
+    pub timestamp: DateTime<Utc>,
+}
+
 /// What one of the owner's games scored out of 100.
 #[derive(Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]

@@ -42,6 +42,8 @@
             "avgScore": "Avg score",
             "careerScore": "Career {score}",
             "avgPartial": "{scored} of {games} games scored",
+            "newBests": "New bests",
+            "lists": "Session lists",
             "empty": {
                 "title": "No games yet",
                 "body": "Play a game with the app open to start a session. Your win rate, score and streaks are tracked against your career."
@@ -60,7 +62,12 @@
         "heroMeta": "{hero} on {map}, {date}",
         "streak": "games in a row, until {date}",
         "fastestWin": "Fastest win",
-        "takedowns": "Most takedowns"
+        "takedowns": "Most takedowns",
+        "session": {
+            "careerBest": "Career best",
+            "careerWas": "Career best, was {previous}",
+            "heroWas": "Hero best, was {previous}"
+        }
     },
     "profile": {
         "header": {

@@ -43,6 +43,31 @@
     @apply grid grid-cols-3 gap-3;
 }
 
+/* Keeps the chips at their width in the column. */
+.tabs {
+    @apply self-start;
+}
+
+.bestPortrait {
+    @apply ring-1 ring-fg/25;
+}
+
+.bestMeta {
+    @apply flex min-w-0 items-center gap-2;
+}
+
+.bestHero {
+    @apply truncate text-fg/80;
+}
+
+.bestPrevious {
+    @apply -mr-1.5 inline-flex items-center gap-1 text-sm font-medium text-fg-muted;
+}
+
+.bestPrevious svg {
+    @apply size-3.5;
+}
+
 .winTone {
     --tone: var(--color-win);
 }
@@ -77,9 +102,23 @@
     @apply flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain;
 }
 
+.tile,
+.bestTile {
+    @apply rounded-lg border border-tile-line bg-surface-2 bg-linear-150 from-accent/16 to-transparent to-55% transition-colors hover:bg-tile-hover;
+}
+
 .tile {
     --accent: var(--hero-accent, var(--color-primary-text));
-    @apply grid grid-cols-[auto_minmax(0,1fr)_8.5rem_5.5rem] items-center gap-x-5 rounded-lg border border-tile-line bg-surface-2 bg-linear-150 from-accent/16 to-transparent to-55% p-4 transition-colors hover:bg-tile-hover;
+    @apply grid grid-cols-[auto_minmax(0,1fr)_8.5rem_5.5rem] items-center gap-x-5 p-4;
+}
+
+.bestTile {
+    --accent: var(--tone);
+    @apply flex min-h-20.5 items-center;
+}
+
+.bestStat {
+    @apply flex-1;
 }
 
 .tile .portrait {
