@@ -1,7 +1,9 @@
-import { queryOptions } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 
 import { portraitSrc } from "@/utils/portraits";
-import { type HeroDetail, getHeroDetail } from "../heroes";
+import { type HeroDetail, getHeroDetail, getHeroList } from "../heroes";
+import type { ReplayFilters } from "../replays";
+import { queryKeys } from "./keys";
 import { preloadImage } from "./preload";
 
 const headerArt = (hero: HeroDetail) =>
@@ -16,11 +18,18 @@ const headerArt = (hero: HeroDetail) =>
 
 export const heroDetailQuery = (heroId: number) =>
     queryOptions({
-        queryKey: ["stats", "heroes", "detail", heroId],
+        queryKey: [...queryKeys.stats, "heroes", "detail", heroId],
         // Resolve with the header art decoded, so the page doesn't paint before it.
         queryFn: async () => {
             const hero = await getHeroDetail(heroId);
             if (hero) await Promise.all(headerArt(hero).map(preloadImage));
             return hero;
         },
+    });
+
+export const heroListQuery = (filters: ReplayFilters) =>
+    queryOptions({
+        queryKey: [...queryKeys.stats, "heroes", "list", filters],
+        placeholderData: keepPreviousData,
+        queryFn: () => getHeroList(filters),
     });

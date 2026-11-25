@@ -1,10 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import { Trophy } from "lucide-react";
 import { useTranslations } from "use-intl";
 
+import { profileBestsQuery } from "@/api/queries";
 import type { ScoreScope } from "@/api/stats";
 import { BestTiles, BestTilesSkeleton } from "@/components";
 import { useBestTiles } from "@/hooks/useBestTiles";
-import { useProfileBests } from "@/hooks/useProfileBests";
 import { Card, CardHeader } from "@/ui";
 
 const TILES = 6;
@@ -16,7 +17,7 @@ export interface ProfileBestsProps {
 export function ProfileBests({ scope }: ProfileBestsProps) {
     const t = useTranslations("profile.bests");
     const { fromGame, fromStreak } = useBestTiles();
-    const { data: bests, error } = useProfileBests(scope);
+    const { data: bests, error } = useQuery(profileBestsQuery(scope));
 
     if (error) return null;
 

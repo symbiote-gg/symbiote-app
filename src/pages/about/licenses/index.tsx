@@ -1,8 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import type { ThirdPartyPackage } from "@/api/licenses";
-import { useThirdPartyLicenses } from "@/hooks/useThirdPartyLicenses";
+import { thirdPartyLicensesQuery } from "@/api/queries";
 import { APP_LICENSE, APP_LICENSE_URL } from "@/legal";
 import {
     Card,
@@ -25,7 +26,7 @@ const matches = (pkg: ThirdPartyPackage, query: string) =>
 
 export function Licenses() {
     const t = useTranslations("about.licenses");
-    const { data, error } = useThirdPartyLicenses();
+    const { data, error } = useQuery(thirdPartyLicensesQuery);
     const [query, setQuery] = useState("");
     const [expanded, setExpanded] = useState(false);
     const deferredQuery = useDeferredValue(query.trim().toLowerCase());

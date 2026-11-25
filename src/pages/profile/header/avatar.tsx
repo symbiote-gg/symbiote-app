@@ -1,6 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "use-intl";
 
-import { useProfileScore } from "@/hooks/useProfileScore";
+import { profileScoreQuery } from "@/api/queries";
 import { Chip, Typography } from "@/ui";
 import { TIERS, rankTone, tierIndex } from "../score-card/tiers";
 
@@ -13,7 +14,7 @@ export interface AvatarProps {
 
 export function Avatar({ name, level }: AvatarProps) {
     const t = useTranslations("profile.header");
-    const { data } = useProfileScore("all");
+    const { data } = useQuery(profileScoreQuery("all"));
     const score = data?.career ?? null;
 
     const tone =

@@ -17,9 +17,8 @@ import {
     type ReplaySortColumn,
     listReplays,
 } from "../replays";
+import { queryKeys } from "./keys";
 import { preloadImage } from "./preload";
-
-export const REPLAY_LISTS_KEY = ["replays", "recent-replays", "list"] as const;
 
 export type ReplayListData = InfiniteData<ReplayPage, ReplayCursor | null>;
 
@@ -61,7 +60,7 @@ export const replaysQuery = (
     sort = DEFAULT_REPLAY_SORT,
 ) =>
     infiniteQueryOptions({
-        queryKey: [...REPLAY_LISTS_KEY, filters, sort],
+        queryKey: [...queryKeys.replayLists, filters, sort],
         // The full list is kept while off screen, so coming back doesn't show an empty list
         // while it refetches. Filtered and sorted ones expire, or every combination tried
         // would stay cached and be refetched on each ingest.

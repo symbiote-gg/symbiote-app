@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import classNames from "classnames";
 import {
     Award,
@@ -11,11 +12,13 @@ import {
 import { type MouseEvent, type ReactNode, useState } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
+import {
+    profileScoreQuery,
+    sessionBestsQuery,
+    sessionRecordQuery,
+} from "@/api/queries";
 import { SessionDelta } from "@/components";
 import { useBestTiles } from "@/hooks/useBestTiles";
-import { useProfileScore } from "@/hooks/useProfileScore";
-import { useSessionBests } from "@/hooks/useSessionBests";
-import { useSessionRecord } from "@/hooks/useSessionRecord";
 import { GemIcon } from "@/pages/profile/score-card/gem";
 import {
     TIERS,
@@ -63,9 +66,9 @@ export function SessionCard() {
     const career = useTranslations("career");
     const scoreT = useTranslations("profile.score");
     const format = useFormatter();
-    const { data, error } = useSessionRecord();
-    const { data: score } = useProfileScore("all");
-    const { data: sessionBests } = useSessionBests();
+    const { data, error } = useQuery(sessionRecordQuery);
+    const { data: score } = useQuery(profileScoreQuery("all"));
+    const { data: sessionBests } = useQuery(sessionBestsQuery);
     const { fromSessionBest } = useBestTiles();
     const [tab, setTab] = useState<ListTab>("heroes");
 

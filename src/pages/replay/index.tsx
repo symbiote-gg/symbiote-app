@@ -1,10 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "use-intl";
 import { useParams } from "wouter";
 
+import { replayQuery, standoutsQuery } from "@/api/queries";
 import type { ReplayDetail as ReplayDetailData } from "@/api/replays";
 import { BackLink, Page } from "@/components";
-import { useReplay } from "@/hooks/useReplay";
-import { useStandouts } from "@/hooks/useStandouts";
 import { ErrorMessage } from "@/ui";
 import { DeathMap } from "./death-map";
 import { Header } from "./header";
@@ -38,9 +38,9 @@ const scoreboardTeam = (
 export function ReplayDetail() {
     const t = useTranslations("replay");
     const { replayId } = useParams<{ replayId: string }>();
-    const { data: replay, error } = useReplay(Number(replayId));
+    const { data: replay, error } = useQuery(replayQuery(Number(replayId)));
 
-    const standouts = useStandouts(Number(replayId));
+    const standouts = useQuery(standoutsQuery(Number(replayId)));
     const result = standouts.data ?? null;
 
     const loading = !replay && !error;

@@ -1,7 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { Map as MapIcon } from "lucide-react";
 import { useTranslations } from "use-intl";
 
-import { usePlayedMaps } from "@/hooks/usePlayedMaps";
+import { playedMapsQuery } from "@/api/queries";
 import { Combobox } from "@/ui";
 
 import styles from "./styles.module.css";
@@ -18,7 +19,7 @@ export interface MapFilterProps {
 
 export function MapFilter({ value, onChange }: MapFilterProps) {
     const t = useTranslations("filters.map");
-    const { data } = usePlayedMaps();
+    const { data } = useQuery(playedMapsQuery);
 
     const options: MapOption[] = (data ?? []).map((map) => ({
         value: map.id,

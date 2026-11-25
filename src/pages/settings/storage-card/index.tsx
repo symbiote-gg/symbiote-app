@@ -1,11 +1,10 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import classNames from "classnames";
 import { Info, RefreshCw, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
-import { retentionPreviewQuery } from "@/api/queries";
-import { useDatabaseStats } from "@/hooks/useDatabaseStats";
+import { databaseStatsQuery, retentionPreviewQuery } from "@/api/queries";
 import { useFormatSize } from "@/hooks/useFormatSize";
 import { useIngesting } from "@/hooks/useIngestProgress";
 import { useRetentionPreviews } from "@/hooks/useRetentionPreviews";
@@ -44,7 +43,7 @@ export function StorageCard({ years }: StorageCardProps) {
     const format = useFormatter();
     const formatSize = useFormatSize();
     const queryClient = useQueryClient();
-    const { data: stats } = useDatabaseStats();
+    const { data: stats } = useQuery(databaseStatsQuery);
     const retention = useSetEventRetention();
     const importing = useIngesting();
     const [pending, setPending] = useState<Retention | null>(null);

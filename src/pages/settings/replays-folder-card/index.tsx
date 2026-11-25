@@ -1,8 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { Folder } from "lucide-react";
 import { useFormatter, useTranslations } from "use-intl";
 
+import { replaysFolderQuery } from "@/api/queries";
 import { useOpenReplaysFolder } from "@/hooks/useOpenReplaysFolder";
-import { useReplaysFolder } from "@/hooks/useReplaysFolder";
 import {
     Button,
     Card,
@@ -20,7 +21,7 @@ export function ReplaysFolderCard() {
     const t = useTranslations("settings.replaysFolder");
     const format = useFormatter();
     const playedAt = usePlayedAt();
-    const { data: folder, error } = useReplaysFolder();
+    const { data: folder, error } = useQuery(replaysFolderQuery);
     const open = useOpenReplaysFolder();
 
     const onOpen = () => open.mutate();

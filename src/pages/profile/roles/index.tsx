@@ -1,10 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import classNames from "classnames";
 import { Swords } from "lucide-react";
 import { useTranslations } from "use-intl";
 
+import { roleRecordsQuery } from "@/api/queries";
 import { HERO_ROLES } from "@/api/replays";
 import type { RoleRecord, ScoreScope } from "@/api/stats";
-import { useRoleRecords } from "@/hooks/useRoleRecords";
 import {
     Card,
     CardHeader,
@@ -24,7 +25,7 @@ export interface RolesProps {
 
 export function Roles({ scope }: RolesProps) {
     const t = useTranslations("profile.roles");
-    const { data: records, error } = useRoleRecords(scope);
+    const { data: records, error } = useQuery(roleRecordsQuery(scope));
 
     const header = (
         <CardHeader

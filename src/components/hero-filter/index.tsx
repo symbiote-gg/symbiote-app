@@ -1,9 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
 import { ShieldUser } from "lucide-react";
 import { useTranslations } from "use-intl";
 
+import { ALL_HEROES, mostPlayedHeroesQuery } from "@/api/queries";
 import type { HeroRole } from "@/api/replays";
 import type { HeroStat } from "@/api/stats";
-import { ALL_HEROES, useMostPlayedHeroes } from "@/hooks/useMostPlayedHeroes";
 import { Combobox } from "@/ui";
 import { HeroPortrait } from "../hero-portrait";
 
@@ -23,7 +24,7 @@ export interface HeroFilterProps {
 
 export function HeroFilter({ value, roles, onChange }: HeroFilterProps) {
     const t = useTranslations("filters.hero");
-    const { data } = useMostPlayedHeroes(ALL_HEROES);
+    const { data } = useQuery(mostPlayedHeroesQuery(ALL_HEROES));
 
     const options: HeroOption[] = (data?.heroes ?? [])
         .filter(

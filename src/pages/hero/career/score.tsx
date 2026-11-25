@@ -1,7 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { TriangleAlert } from "lucide-react";
 import { useTranslations } from "use-intl";
 
-import { useProfileScore } from "@/hooks/useProfileScore";
+import { profileScoreQuery } from "@/api/queries";
 import { GemIcon } from "@/pages/profile/score-card/gem";
 import { TIERS, rankTone, tierIndex } from "@/pages/profile/score-card/tiers";
 import { HeroPanel } from "@/pages/profile/score-heroes/hero-panel";
@@ -19,7 +20,7 @@ export interface HeroScoreProps {
 export function HeroScore({ heroId, hero }: HeroScoreProps) {
     const t = useTranslations("hero.score");
     const tiers = useTranslations("profile.score.tier");
-    const { data, isPending } = useProfileScore("all");
+    const { data, isPending } = useQuery(profileScoreQuery("all"));
 
     if (isPending) return <ScoreSkeleton />;
 

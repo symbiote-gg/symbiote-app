@@ -1,8 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { Swords } from "lucide-react";
 import { useTranslations } from "use-intl";
 
+import { ALL_HEROES, mostPlayedHeroesQuery } from "@/api/queries";
 import { HERO_ROLES, type HeroRole } from "@/api/replays";
-import { ALL_HEROES, useMostPlayedHeroes } from "@/hooks/useMostPlayedHeroes";
 import { MultiSelect } from "@/ui";
 
 export interface RoleFilterProps {
@@ -13,7 +14,7 @@ export interface RoleFilterProps {
 export function RoleFilter({ value, onChange }: RoleFilterProps) {
     const t = useTranslations("filters");
     const roles = useTranslations("roles");
-    const { data } = useMostPlayedHeroes(ALL_HEROES);
+    const { data } = useQuery(mostPlayedHeroesQuery(ALL_HEROES));
 
     const options = HERO_ROLES.filter((role) =>
         data?.heroes.some((hero) => hero.role === role),

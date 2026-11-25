@@ -1,8 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { Gamepad2 } from "lucide-react";
 import { useTranslations } from "use-intl";
 
+import { playedModesQuery } from "@/api/queries";
 import type { Mode } from "@/api/replays";
-import { usePlayedModes } from "@/hooks/usePlayedModes";
 import { MultiSelect } from "@/ui";
 
 const MODES: readonly Mode[] = [
@@ -26,7 +27,7 @@ export interface ModeFilterProps {
 export function ModeFilter({ value, onChange }: ModeFilterProps) {
     const t = useTranslations("filters");
     const modes = useTranslations("modes");
-    const { data } = usePlayedModes();
+    const { data } = useQuery(playedModesQuery);
 
     const options = MODES.filter((mode) => data?.includes(mode)).map(
         (mode) => ({ value: mode, label: modes(mode) }),

@@ -1,9 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
 import classNames from "classnames";
 import { Circle, UserRoundGroup } from "lucide-react";
 import { useTranslations } from "use-intl";
 
+import { partySizesQuery } from "@/api/queries";
 import type { PartySize as Party, ScoreScope } from "@/api/stats";
-import { usePartySizes } from "@/hooks/usePartySizes";
 import {
     Card,
     CardHeader,
@@ -25,7 +26,7 @@ export interface PartySizeProps {
 
 export function PartySize({ scope }: PartySizeProps) {
     const t = useTranslations("profile.partySize");
-    const { data: parties, error } = usePartySizes(scope);
+    const { data: parties, error } = useQuery(partySizesQuery(scope));
 
     const header = (
         <CardHeader

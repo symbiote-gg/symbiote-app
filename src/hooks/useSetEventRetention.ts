@@ -1,10 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { databaseStatsQuery, settingsQuery } from "@/api/queries";
+import { databaseStatsQuery, queryKeys, settingsQuery } from "@/api/queries";
 import { setEventRetention } from "@/api/settings";
-
-const REPLAY_DETAILS_KEY = ["replays", "detail"];
-const RETENTION_PREVIEWS_KEY = ["retentionPreview"];
 
 export function useSetEventRetention() {
     const queryClient = useQueryClient();
@@ -24,10 +21,10 @@ export function useSetEventRetention() {
                     queryKey: databaseStatsQuery.queryKey,
                 }),
                 queryClient.invalidateQueries({
-                    queryKey: RETENTION_PREVIEWS_KEY,
+                    queryKey: queryKeys.retentionPreviews,
                 }),
                 queryClient.invalidateQueries({
-                    queryKey: REPLAY_DETAILS_KEY,
+                    queryKey: queryKeys.replayDetails,
                 }),
             ]);
         },

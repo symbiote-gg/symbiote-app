@@ -1,10 +1,11 @@
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Clapperboard } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslations } from "use-intl";
 
+import { replaysQuery } from "@/api/queries";
 import { ReplayListHeader, ReplayRow } from "@/components";
 import { useAppearGate } from "@/hooks/useAppearGate";
-import { useReplays } from "@/hooks/useReplays";
 import {
     ButtonLink,
     Card,
@@ -20,7 +21,7 @@ const RECENT_REPLAYS_LIMIT = 50;
 
 export function RecentReplaysCard() {
     const t = useTranslations("home.replays");
-    const { data, error } = useReplays();
+    const { data, error } = useInfiniteQuery(replaysQuery());
 
     // The replays page may have loaded more pages into the shared cache.
     const replays = useMemo(

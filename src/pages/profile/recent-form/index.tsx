@@ -1,10 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import { CalendarClock, Hexagon, Swords } from "lucide-react";
 import { useState } from "react";
 import { useTranslations } from "use-intl";
 
+import { recentFormQuery } from "@/api/queries";
 import type { HeroRole } from "@/api/replays";
 import type { ScoreScope } from "@/api/stats";
-import { useRecentForm } from "@/hooks/useRecentForm";
 import { Card, CardHeader, EmptyState, Select } from "@/ui";
 import { Radar } from "./radar";
 
@@ -17,7 +18,7 @@ export interface RecentFormProps {
 export function RecentForm({ scope }: RecentFormProps) {
     const t = useTranslations("profile.recentForm");
     const tRoles = useTranslations("roles");
-    const { data, error } = useRecentForm(scope);
+    const { data, error } = useQuery(recentFormQuery(scope));
     const [role, setRole] = useState<HeroRole | null>(null);
     const [roleScope, setRoleScope] = useState(scope);
 

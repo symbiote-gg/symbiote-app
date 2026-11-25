@@ -1,8 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
+import { profileCareerQuery } from "@/api/queries";
 import { CareerTiles, Motes, TimePanel } from "@/components";
-import { useProfileCareer } from "@/hooks/useProfileCareer";
 import { Chip, ErrorMessage, Typography, WinRate, rollingChunks } from "@/ui";
 import { isJudged, winRate } from "@/utils/hero-stats";
 import { ROLE_ICONS } from "@/utils/role-icons";
@@ -24,7 +25,7 @@ export function ProfileHeader() {
     const t = useTranslations("profile.header");
     const career = useTranslations("career");
     const roles = useTranslations("roles");
-    const { data, error } = useProfileCareer();
+    const { data, error } = useQuery(profileCareerQuery);
 
     if (error) return <ErrorMessage error={error} />;
     if (!data) return <ProfileHeaderSkeleton />;

@@ -1,9 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
 import { History as HistoryIcon } from "lucide-react";
 import { type MouseEvent, useId, useState } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
+import { profileScoreQuery } from "@/api/queries";
 import type { ScorePoint, ScoreScope } from "@/api/stats";
-import { useProfileScore } from "@/hooks/useProfileScore";
 import {
     Card,
     CardHeader,
@@ -119,7 +120,7 @@ export interface ScoreHistoryProps {
 
 export function ScoreHistory({ scope }: ScoreHistoryProps) {
     const t = useTranslations("profile.score.history");
-    const { data, error } = useProfileScore(scope);
+    const { data, error } = useQuery(profileScoreQuery(scope));
 
     if (error) return <ErrorMessage error={error} />;
     if (!data) return <HistorySkeleton />;

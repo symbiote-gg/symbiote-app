@@ -1,8 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { ChartScatter } from "lucide-react";
 import { useTranslations } from "use-intl";
 
+import { profileScoreQuery } from "@/api/queries";
 import type { HeroScoreRow, ScoreScope } from "@/api/stats";
-import { useProfileScore } from "@/hooks/useProfileScore";
 import { Card, CardHeader, ErrorMessage } from "@/ui";
 import { Dots } from "./dots";
 import { HeroesSkeleton } from "./skeleton";
@@ -25,7 +26,7 @@ export interface ScoreHeroesProps {
 }
 
 export function ScoreHeroes({ scope }: ScoreHeroesProps) {
-    const { data, error } = useProfileScore(scope);
+    const { data, error } = useQuery(profileScoreQuery(scope));
 
     if (error) return <ErrorMessage error={error} />;
     if (!data) return <HeroesSkeleton />;

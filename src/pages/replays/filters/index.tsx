@@ -1,5 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "use-intl";
 
+import { ALL_HEROES, mostPlayedHeroesQuery } from "@/api/queries";
 import type { HeroRole, Mode } from "@/api/replays";
 import {
     DateFilter,
@@ -10,7 +12,6 @@ import {
     ResultFilter,
     RoleFilter,
 } from "@/components";
-import { ALL_HEROES, useMostPlayedHeroes } from "@/hooks/useMostPlayedHeroes";
 import type { DateRange } from "@/utils/date-range";
 import { type FilterState, NO_FILTERS, activeFilters } from "./state";
 
@@ -21,7 +22,7 @@ export interface FiltersProps {
 
 export function Filters({ value, onChange }: FiltersProps) {
     const t = useTranslations("replays.filters");
-    const { data } = useMostPlayedHeroes(ALL_HEROES);
+    const { data } = useQuery(mostPlayedHeroesQuery(ALL_HEROES));
 
     const onModes = (modes: Mode[]) => onChange({ ...value, modes });
     const onMaps = (maps: string[]) => onChange({ ...value, maps });

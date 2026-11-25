@@ -1,11 +1,13 @@
+import { useQuery } from "@tanstack/react-query";
+
+import { settingsQuery } from "@/api/queries";
 import { Page } from "@/components";
-import { useSettings } from "@/hooks/useSettings";
 import { ErrorMessage } from "@/ui";
 import { ReplaysFolderCard } from "./replays-folder-card";
 import { StorageCard } from "./storage-card";
 
 export function Settings() {
-    const { data: settings, error } = useSettings();
+    const { data: settings, error } = useQuery(settingsQuery);
 
     return (
         <Page>

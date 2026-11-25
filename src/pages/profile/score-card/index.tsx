@@ -1,10 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import { Gamepad2, Gauge } from "lucide-react";
 import { useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
+import { profileScoreQuery } from "@/api/queries";
 import type { ScoreScope } from "@/api/stats";
 import { useLastShownScore } from "@/hooks/useLastShownScore";
-import { useProfileScore } from "@/hooks/useProfileScore";
 import {
     Card,
     CardHeader,
@@ -35,7 +36,7 @@ export function ScoreCard({ scope, onScopeChange }: ScoreCardProps) {
     const t = useTranslations("profile.score");
     const [announcement, setAnnouncement] = useState("");
     const overview = useRef<HTMLDivElement>(null);
-    const { data, error } = useProfileScore(scope);
+    const { data, error } = useQuery(profileScoreQuery(scope));
     const [from, remember] = useLastShownScore(data?.scope);
     const [settled, setSettled] = useState<{
         scope: ScoreScope;

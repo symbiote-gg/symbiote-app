@@ -1,10 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import { SearchX, ShieldUser } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslations } from "use-intl";
 
+import { heroListQuery } from "@/api/queries";
 import { Page } from "@/components";
 import { useAppearGate } from "@/hooks/useAppearGate";
-import { useHeroList } from "@/hooks/useHeroList";
 import {
     Button,
     Card,
@@ -30,7 +31,7 @@ export function Heroes() {
     const t = useTranslations("heroes");
     const [filters, setFilters] = useState(saved.filters);
     const query = useMemo(() => toReplayFilters(filters), [filters]);
-    const { data, error, isPlaceholderData } = useHeroList(query);
+    const { data, error, isPlaceholderData } = useQuery(heroListQuery(query));
 
     const heroes = useMemo(
         () => (data ? pickHeroes(data.heroes, filters) : []),

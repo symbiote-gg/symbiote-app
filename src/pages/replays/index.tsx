@@ -1,3 +1,4 @@
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Clapperboard, SearchX } from "lucide-react";
 import {
     type UIEvent,
@@ -8,11 +9,11 @@ import {
 } from "react";
 import { useTranslations } from "use-intl";
 
+import { replaysQuery } from "@/api/queries";
 import { DEFAULT_REPLAY_SORT, type ReplaySort } from "@/api/replays";
 import { Page, ReplayListHeader } from "@/components";
 import { useAppearGate } from "@/hooks/useAppearGate";
 import { useIngesting } from "@/hooks/useIngestProgress";
-import { useReplays } from "@/hooks/useReplays";
 import {
     Button,
     Card,
@@ -50,7 +51,7 @@ export function Replays() {
         fetchNextPage,
         refetch,
         isPlaceholderData,
-    } = useReplays(query, sort);
+    } = useInfiniteQuery(replaysQuery(query, sort));
     const ingesting = useIngesting();
 
     const replays = useMemo(

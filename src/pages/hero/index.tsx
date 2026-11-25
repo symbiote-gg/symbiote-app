@@ -1,10 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import classNames from "classnames";
 import type { CSSProperties } from "react";
 import { useTranslations } from "use-intl";
 import { useParams } from "wouter";
 
+import { heroDetailQuery } from "@/api/queries";
 import { BackLink, Page } from "@/components";
-import { useHeroDetail } from "@/hooks/useHeroDetail";
 import { EmptyState, ErrorMessage } from "@/ui";
 import { Awards } from "./awards";
 import { Bests } from "./bests";
@@ -26,7 +27,7 @@ import styles from "./styles.module.css";
 export function HeroDetail() {
     const t = useTranslations("hero");
     const { heroId } = useParams<{ heroId: string }>();
-    const { data: hero, error } = useHeroDetail(Number(heroId));
+    const { data: hero, error } = useQuery(heroDetailQuery(Number(heroId)));
     const loading = hero === undefined && !error;
 
     const accent = hero?.accent

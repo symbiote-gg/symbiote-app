@@ -1,6 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "use-intl";
 
-import { useProfileScore } from "@/hooks/useProfileScore";
+import { profileScoreQuery } from "@/api/queries";
 import { ScoreHistoryCard } from "@/pages/profile/score-history";
 import { ErrorMessage } from "@/ui";
 
@@ -11,7 +12,7 @@ export interface HeroScoreHistoryProps {
 
 export function HeroScoreHistory({ heroId, hero }: HeroScoreHistoryProps) {
     const t = useTranslations("hero.scoreHistory");
-    const { data, error } = useProfileScore("all");
+    const { data, error } = useQuery(profileScoreQuery("all"));
 
     if (error) return <ErrorMessage error={error} />;
 
