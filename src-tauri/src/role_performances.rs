@@ -3,6 +3,10 @@
 
 use std::cmp::Reverse;
 
+use crate::rating::heroes::{LOST_VIKINGS, PUSHERS};
+use crate::rating::{
+    death_share, points, round_to_total, side, team_totals, TeamMember, TeamTotals, Weights,
+};
 use crate::types::hero::HeroRole;
 use crate::types::replay::ReplayPlayerDetail;
 use crate::types::role_performances::RoleStat::{
@@ -14,9 +18,6 @@ use crate::types::role_performances::{
     HeroScore, RolePerformance, RoleScore, ScorePart, Sides, StatAverage, StatColumn,
     UnscoredReason, UnscoredStat, Verdict,
 };
-
-/// How much each stat counts toward a hero's score, up to 3.
-pub(crate) type Weights = &'static [(RoleStat, u8)];
 
 const ROLE_ORDER: [HeroRole; 6] = [
     HeroRole::Tank,
@@ -83,12 +84,11 @@ fn role_weights(role: HeroRole) -> Weights {
 
 /// Full weights for heroes their role's miss, by slug, in place of the role's:
 /// pushers toward siege, shielders toward protection. Stats outside the role score
-/// the hero but stay out of the role's columns. A hand-kept list, as the role data doesn't say.
+/// the hero but stay out of the role's columns.
 fn hero_weights(slug: &str) -> Option<Weights> {
     Some(match slug {
         "Abathur" => &[(Xp, 3), (Protection, 2), (SiegeDamage, 2), (DeathShare, 1)],
-        "Azmodan" | "Probius" | "Sylvanas" | "WitchDoctor" | "Zagara" => PUSHER_WEIGHTS,
-        "LostVikings" => &[
+        LOST_VIKINGS => &[
             (SiegeDamage, 3),
             (Xp, 2),
             (KillParticipation, 2),
@@ -109,6 +109,8 @@ fn hero_weights(slug: &str) -> Option<Weights> {
             (Xp, 1),
             (DeathShare, 1),
         ],
+        // After the pushers with weights of their own.
+        _ if PUSHERS.contains(&slug) => PUSHER_WEIGHTS,
         _ => return None,
     })
 }
@@ -120,24 +122,6 @@ pub(crate) fn weights(slug: &str, role: HeroRole) -> Weights {
 
 fn weights_for(player: &ReplayPlayerDetail, role: HeroRole) -> Weights {
     weights(&player.hero_slug, role)
-}
-
-/// Each team's sums the team relative stats are read against, so a team's kill lead
-/// doesn't lift all its roles at once, nor a lost fight's damage sink them. A team's
-/// deaths are also the other team's kills.
-#[derive(Default)]
-pub(crate) struct TeamTotals {
-    pub deaths: [i64; 2],
-    pub damage_taken: [i64; 2],
-    pub teamfight_damage_taken: [i64; 2],
-}
-
-/// A player as their team's sums read them.
-pub(crate) trait TeamMember {
-    fn team(&self) -> i64;
-    fn deaths(&self) -> Option<i64>;
-    fn damage_taken(&self) -> Option<i64>;
-    fn teamfight_damage_taken(&self) -> Option<i64>;
 }
 
 impl TeamMember for ReplayPlayerDetail {
@@ -156,22 +140,6 @@ impl TeamMember for ReplayPlayerDetail {
     fn teamfight_damage_taken(&self) -> Option<i64> {
         self.teamfight_damage_taken
     }
-}
-
-pub(crate) fn team_totals(players: &[impl TeamMember]) -> TeamTotals {
-    let mut totals = TeamTotals::default();
-    for player in players {
-        let side = side(player);
-        totals.deaths[side] += player.deaths().unwrap_or(0);
-        totals.damage_taken[side] += player.damage_taken().unwrap_or(0);
-        totals.teamfight_damage_taken[side] += player.teamfight_damage_taken().unwrap_or(0);
-    }
-
-    totals
-}
-
-pub(crate) fn side(player: &impl TeamMember) -> usize {
-    usize::from(player.team() == 1)
 }
 
 fn percent(part: i64, whole: i64) -> i64 {
@@ -220,12 +188,6 @@ fn value(player: &ReplayPlayerDetail, stat: RoleStat, totals: &TeamTotals) -> Op
     }
 }
 
-/// A death added to the hero and five to the team, pulling few deaths toward an even
-/// fifth so a team that barely died doesn't swing it, and keeping no deaths defined.
-pub(crate) fn death_share(deaths: i64, team_deaths: i64) -> f64 {
-    (deaths + 1) as f64 / (team_deaths + 5) as f64
-}
-
 /// The stat as scored, unrounded.
 fn rate(player: &ReplayPlayerDetail, stat: RoleStat, totals: &TeamTotals) -> Option<f64> {
     match stat {
@@ -269,10 +231,6 @@ fn share(
 
     let top = rates.fold(0.0, f64::max);
     (top > 0.0).then(|| rate / top)
-}
-
-fn points(score: f64) -> u8 {
-    (score * 100.0).round() as u8
 }
 
 fn mean(values: impl IntoIterator<Item = f64>) -> Option<f64> {
@@ -352,23 +310,6 @@ fn part_points(parts: &[ScorePart], total_weight: u32, score: f64) -> Vec<u8> {
         .collect();
 
     round_to_total(&raw, points(score))
-}
-
-/// Rounds each value by largest remainder, so they sum to `total` rather than
-/// drifting a point off it.
-pub(crate) fn round_to_total(raw: &[f64], total: u8) -> Vec<u8> {
-    let mut rounded: Vec<u8> = raw.iter().map(|r| r.floor() as u8).collect();
-
-    let floored: u8 = rounded.iter().sum();
-    let leftover = usize::from(total.saturating_sub(floored));
-
-    let mut by_remainder: Vec<usize> = (0..raw.len()).collect();
-    by_remainder.sort_by(|&a, &b| (raw[b] - raw[b].floor()).total_cmp(&(raw[a] - raw[a].floor())));
-    for &index in by_remainder.iter().take(leftover) {
-        rounded[index] += 1;
-    }
-
-    rounded
 }
 
 fn score_side(
@@ -902,5 +843,26 @@ mod tests {
         let same = supports(&[support(1, 0, "Abathur"), support(2, 1, "Abathur")]);
         assert!(!same.kits_differ);
         assert_eq!(same.score.verdict, Some(Verdict::Even));
+    }
+
+    #[test]
+    fn pushers_keep_weights_of_their_own() {
+        assert_eq!(
+            weights("Dehaka", HeroRole::Bruiser),
+            weights("Sonya", HeroRole::Bruiser)
+        );
+        assert_eq!(
+            weights("Sylvanas", HeroRole::RangedAssassin),
+            PUSHER_WEIGHTS
+        );
+        assert_eq!(weights("Probius", HeroRole::RangedAssassin), PUSHER_WEIGHTS);
+        assert_eq!(
+            weights("SgtHammer", HeroRole::RangedAssassin),
+            PUSHER_WEIGHTS
+        );
+        assert_eq!(weights("Ragnaros", HeroRole::Bruiser), PUSHER_WEIGHTS);
+        assert_ne!(weights("Murky", HeroRole::MeleeAssassin), PUSHER_WEIGHTS);
+        assert_ne!(weights(LOST_VIKINGS, HeroRole::Support), PUSHER_WEIGHTS);
+        assert_ne!(weights("Abathur", HeroRole::Support), PUSHER_WEIGHTS);
     }
 }

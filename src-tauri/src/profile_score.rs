@@ -6,16 +6,16 @@ use std::borrow::Borrow;
 use std::collections::HashMap;
 
 use chrono::{DateTime, TimeDelta, Utc};
-use sqlx::FromRow;
 
-use crate::role_performances::{
-    death_share, round_to_total, side, team_totals, TeamMember, TeamTotals, Weights,
+use crate::rating::baseline::Baseline;
+use crate::rating::heroes::{LOST_VIKINGS, PUSHERS};
+use crate::rating::{
+    game_totals, points, rate, round_to_total, GameTotals, PlayerGame, Weights, STAT_COUNT,
 };
 use crate::types::hero::HeroRole;
 use crate::types::role_performances::RoleStat::{
-    self, DamageTakenShare, DeathShare, HardCc, Healing, HeroDamage, KillParticipation,
-    MercCaptures, Protection, SiegeDamage, TeamfightDamageTakenShare, TeamfightHeroDamageShare,
-    TimeDeadShare, Xp,
+    self, DeathShare, HardCc, Healing, HeroDamage, KillParticipation, MercCaptures, Protection,
+    SiegeDamage, TeamfightDamageTakenShare, TeamfightHeroDamageShare, TimeDeadShare, Xp,
 };
 use crate::types::stats::{
     GameScore, HeroScoreRow, PillarMax, ProfileScore, ScorePillar, ScorePillarId, ScorePoint,
@@ -25,20 +25,6 @@ use crate::types::stats::{
 const WINDOW: usize = 50;
 
 const MIN_GAMES: usize = 10;
-
-/// Same hero samples weigh `n / (n + BLEND_SAMPLES)` against the role's. The owner's
-/// own games are left out and a hero can't repeat on a team, so a hero the owner
-/// mostly plays is only sampled from mirror picks.
-const BLEND_SAMPLES: f64 = 30.0;
-
-/// Kits sit higher or lower in their role than their players' skill alone would put
-/// them, so a hero's rank in the role is shifted back by where its samples sit, the
-/// shift trusted `n / (n + OFFSET_SAMPLES)`. With few mirror samples, a main is
-/// otherwise scored on the kit more than on their play.
-const OFFSET_SAMPLES: f64 = 5.0;
-
-/// Under this many samples in the role there's no one to rank against.
-const MIN_ROLE_SAMPLES: usize = 30;
 
 const PILLARS: [(ScorePillarId, &[RoleStat]); 4] = [
     (
@@ -61,10 +47,6 @@ const PILLARS: [(ScorePillarId, &[RoleStat]); 4] = [
 /// Each pillar's share of a game, in [`PILLARS`] order. Survival is kept small so
 /// staying alive doesn't outscore doing anything while alive.
 const PILLAR_SHARES: [f64; 4] = [0.30, 0.15, 0.30, 0.25];
-
-/// A stat most of a hero's players never put a number on isn't in its kit, so it
-/// goes unscored rather than handing out a tie in the middle.
-pub(crate) const NOT_IN_KIT: f64 = 0.75;
 
 /// Each pillar's stats weighed against each other, in [`PILLARS`] order. A pillar's
 /// worth is fixed by [`PILLAR_SHARES`], so a role's key stats only lean within
@@ -98,9 +80,7 @@ fn pillar_weights(slug: &str, role: HeroRole) -> [Weights; 4] {
     let map: Weights = match slug {
         // Most Abathur games take no camp, so captures would go unscored anyway.
         "Abathur" => &[(Xp, 3), (SiegeDamage, 2)],
-        "Azmodan" | "LostVikings" | "Murky" | "Probius" | "Sylvanas" | "WitchDoctor" | "Zagara" => {
-            &[(Xp, 1), (SiegeDamage, 3), (MercCaptures, 1)]
-        }
+        _ if PUSHERS.contains(&slug) => &[(Xp, 1), (SiegeDamage, 3), (MercCaptures, 1)],
         _ if role == HeroRole::RangedAssassin => &[(Xp, 2), (SiegeDamage, 2), (MercCaptures, 1)],
         _ => &[(Xp, 2), (SiegeDamage, 1), (MercCaptures, 1)],
     };
@@ -112,261 +92,9 @@ pub(crate) fn survival_weights(slug: &str) -> Weights {
     match slug {
         // Time dead adds up all three Vikings' timers, while scoreboard deaths
         // only count full wipes.
-        "LostVikings" => &[(DeathShare, 1)],
+        LOST_VIKINGS => &[(DeathShare, 1)],
         _ => &[(DeathShare, 2), (TimeDeadShare, 1)],
     }
-}
-
-/// A player's game, in the order games were played, a game's players together.
-#[derive(Debug, Clone, FromRow)]
-#[cfg_attr(test, derive(Default))]
-pub struct PlayerGame {
-    pub game_id: i64,
-    pub timestamp: DateTime<Utc>,
-    pub duration: i64,
-    pub team: i64,
-    pub hero_id: i64,
-    pub hero_slug: String,
-    pub hero_role: Option<HeroRole>,
-    pub takedowns: Option<i64>,
-    pub deaths: Option<i64>,
-    pub hero_damage: Option<i64>,
-    pub siege_damage: Option<i64>,
-    pub healing: Option<i64>,
-    pub damage_taken: Option<i64>,
-    pub teamfight_damage_taken: Option<i64>,
-    pub teamfight_hero_damage: Option<i64>,
-    pub xp: Option<i64>,
-    pub hard_cc: Option<i64>,
-    pub protection: Option<i64>,
-    pub time_dead_secs: Option<f64>,
-    pub merc_captures: Option<i64>,
-    pub is_owner: bool,
-    pub is_ai: bool,
-}
-
-impl TeamMember for PlayerGame {
-    fn team(&self) -> i64 {
-        self.team
-    }
-
-    fn deaths(&self) -> Option<i64> {
-        self.deaths
-    }
-
-    fn damage_taken(&self) -> Option<i64> {
-        self.damage_taken
-    }
-
-    fn teamfight_damage_taken(&self) -> Option<i64> {
-        self.teamfight_damage_taken
-    }
-}
-
-/// A game's team sums, with the ones replay role scores don't read.
-pub(crate) struct GameTotals {
-    team: TeamTotals,
-    time_dead: [f64; 2],
-    teamfight_hero_damage: [i64; 2],
-}
-
-pub(crate) fn game_totals(game: &[PlayerGame]) -> GameTotals {
-    let mut time_dead = [0.0; 2];
-    let mut teamfight_hero_damage = [0; 2];
-    for player in game {
-        let side = side(player);
-        time_dead[side] += player.time_dead_secs.unwrap_or(0.0);
-        teamfight_hero_damage[side] += player.teamfight_hero_damage.unwrap_or(0);
-    }
-
-    GameTotals {
-        team: team_totals(game),
-        time_dead,
-        teamfight_hero_damage,
-    }
-}
-
-/// Seconds dead standing in for one death in [`time_dead_share`].
-const DEATH_SECS: f64 = 30.0;
-
-/// Like [`death_share`], with every player given one more death's worth of time.
-fn time_dead_share(secs: f64, team_secs: f64) -> f64 {
-    (secs + DEATH_SECS) / (team_secs + 5.0 * DEATH_SECS)
-}
-
-pub(crate) fn lower_is_better(stat: RoleStat) -> bool {
-    matches!(stat, DeathShare | TimeDeadShare)
-}
-
-/// The stat as ranked: raw stats per minute so game length doesn't count, the team
-/// relative ones as in a replay's role scores.
-pub(crate) fn rate(player: &PlayerGame, stat: RoleStat, totals: &GameTotals) -> Option<f64> {
-    let side = side(player);
-    let team = &totals.team;
-    let per_minute = |value: Option<i64>| {
-        (player.duration > 0).then_some(value? as f64 * 60.0 / player.duration as f64)
-    };
-    let share = |part: Option<i64>, team: i64| (team > 0).then_some(part? as f64 / team as f64);
-
-    match stat {
-        HeroDamage => per_minute(player.hero_damage),
-        SiegeDamage => per_minute(player.siege_damage),
-        Healing => per_minute(player.healing),
-        Xp => per_minute(player.xp),
-        HardCc => per_minute(player.hard_cc),
-        Protection => per_minute(player.protection),
-        KillParticipation => share(player.takedowns, team.deaths[1 - side]),
-        // No pillar weighs it: team role reads damage taken in fights only.
-        DamageTakenShare => None,
-        TeamfightDamageTakenShare => share(
-            player.teamfight_damage_taken,
-            team.teamfight_damage_taken[side],
-        ),
-        DeathShare => Some(death_share(player.deaths?, team.deaths[side])),
-        TimeDeadShare => Some(time_dead_share(
-            player.time_dead_secs?,
-            totals.time_dead[side],
-        )),
-        MercCaptures => per_minute(player.merc_captures),
-        TeamfightHeroDamageShare => share(
-            player.teamfight_hero_damage,
-            totals.teamfight_hero_damage[side],
-        ),
-    }
-}
-
-/// `pillars` keeps its sums at each stat's discriminant. The match stops the build
-/// when a stat is added, so the count is checked with it.
-const STAT_COUNT: usize = match TeamfightHeroDamageShare {
-    HeroDamage
-    | SiegeDamage
-    | Healing
-    | DamageTakenShare
-    | TeamfightDamageTakenShare
-    | Xp
-    | HardCc
-    | Protection
-    | KillParticipation
-    | DeathShare
-    | TimeDeadShare
-    | MercCaptures
-    | TeamfightHeroDamageShare => TeamfightHeroDamageShare as usize + 1,
-};
-
-/// Other players' sorted rates, by hero and by role.
-#[derive(Default)]
-struct Baselines {
-    heroes: HashMap<(i64, RoleStat), Vec<f64>>,
-    roles: HashMap<(HeroRole, RoleStat), Vec<f64>>,
-    hero_games: HashMap<i64, usize>,
-    hero_roles: HashMap<i64, HeroRole>,
-    /// How far above the middle of its role a hero's samples rank, already shrunk by
-    /// their count.
-    kit_offsets: HashMap<(i64, RoleStat), f64>,
-}
-
-impl Baselines {
-    fn add(&mut self, player: &PlayerGame, role: HeroRole, totals: &GameTotals) {
-        *self.hero_games.entry(player.hero_id).or_default() += 1;
-        self.hero_roles.insert(player.hero_id, role);
-
-        for &stat in PILLARS.iter().flat_map(|(_, stats)| stats.iter()) {
-            let Some(rate) = rate(player, stat, totals) else {
-                continue;
-            };
-
-            self.heroes
-                .entry((player.hero_id, stat))
-                .or_default()
-                .push(rate);
-            self.roles.entry((role, stat)).or_default().push(rate);
-        }
-    }
-
-    fn sort(&mut self) {
-        for rates in self.heroes.values_mut().chain(self.roles.values_mut()) {
-            rates.sort_by(f64::total_cmp);
-        }
-
-        for (&(hero_id, stat), hero_rates) in &self.heroes {
-            let Some(role_rates) = self
-                .hero_roles
-                .get(&hero_id)
-                .and_then(|&role| self.roles.get(&(role, stat)))
-            else {
-                continue;
-            };
-
-            let samples = hero_rates.len() as f64;
-            let mean_rank = hero_rates.iter().map(|&r| rank(role_rates, r)).sum::<f64>() / samples;
-            let trust = samples / (samples + OFFSET_SAMPLES);
-            self.kit_offsets
-                .insert((hero_id, stat), (mean_rank - 0.5) * trust);
-        }
-    }
-
-    fn hero_games(&self, hero_id: i64) -> usize {
-        self.hero_games.get(&hero_id).copied().unwrap_or(0)
-    }
-
-    /// How much the stat's rank is read against the hero's players rather than the
-    /// role's, from the hero's samples of that stat.
-    fn hero_blend(&self, hero_id: i64, stat: RoleStat) -> f64 {
-        self.heroes
-            .get(&(hero_id, stat))
-            .map_or(0.0, |rates| hero_weight(rates.len()))
-    }
-
-    /// The share of other players the rate does better than, from 0 to 1.
-    fn percentile(&self, hero_id: i64, role: HeroRole, stat: RoleStat, rate: f64) -> Option<f64> {
-        let role_rates = self.roles.get(&(role, stat))?;
-        if role_rates.len() < MIN_ROLE_SAMPLES {
-            return None;
-        }
-
-        let hero_rates = self.heroes.get(&(hero_id, stat));
-        let weight = self.hero_blend(hero_id, stat);
-
-        let zeros = weight * hero_rates.map_or(0.0, |rates| zero_share(rates))
-            + (1.0 - weight) * zero_share(role_rates);
-        if zeros > NOT_IN_KIT {
-            return None;
-        }
-
-        let in_role = rank(role_rates, rate);
-        let blended = match hero_rates {
-            Some(hero_rates) => {
-                let offset = self.kit_offsets.get(&(hero_id, stat)).copied();
-                let in_role = (in_role - offset.unwrap_or(0.0)).clamp(0.0, 1.0);
-                weight * rank(hero_rates, rate) + (1.0 - weight) * in_role
-            }
-            None => in_role,
-        };
-
-        Some(if lower_is_better(stat) {
-            1.0 - blended
-        } else {
-            blended
-        })
-    }
-}
-
-pub(crate) fn hero_weight(samples: usize) -> f64 {
-    let samples = samples as f64;
-    samples / (samples + BLEND_SAMPLES)
-}
-
-/// The share of `sorted` under the rate, ties counting half so a rate everyone
-/// shares sits in the middle.
-pub(crate) fn rank(sorted: &[f64], rate: f64) -> f64 {
-    let below = sorted.partition_point(|&r| r < rate);
-    let up_to = sorted.partition_point(|&r| r <= rate);
-
-    (below + up_to) as f64 / (2 * sorted.len()) as f64
-}
-
-pub(crate) fn zero_share(sorted: &[f64]) -> f64 {
-    sorted.partition_point(|&r| r <= 0.0) as f64 / sorted.len() as f64
 }
 
 /// One of the owner's games: its score from 0 to 1 and each stat's weight in it
@@ -387,7 +115,7 @@ fn score_game(
     player: &PlayerGame,
     role: HeroRole,
     totals: &GameTotals,
-    baselines: &Baselines,
+    baseline: &Baseline,
 ) -> Option<ScoredGame> {
     let ranked: Vec<(f64, Vec<_>)> = pillar_weights(&player.hero_slug, role)
         .iter()
@@ -397,7 +125,7 @@ fn score_game(
                 .iter()
                 .filter_map(|&(stat, weight)| {
                     let rate = rate(player, stat, totals)?;
-                    let percentile = baselines.percentile(player.hero_id, role, stat, rate)?;
+                    let percentile = baseline.percentile(player.hero_id, role, stat, rate)?;
                     Some((stat, f64::from(weight), percentile))
                 })
                 .collect();
@@ -426,7 +154,7 @@ fn score_game(
     let score = parts.iter().map(|&(_, weight, p)| weight * p).sum();
     let hero_weight = parts
         .iter()
-        .map(|&(stat, weight, _)| weight * baselines.hero_blend(player.hero_id, stat))
+        .map(|&(stat, weight, _)| weight * baseline.hero_blend(player.hero_id, stat))
         .sum();
 
     Some(ScoredGame {
@@ -438,10 +166,6 @@ fn score_game(
         hero_weight,
         parts,
     })
-}
-
-fn points(score: f64) -> u8 {
-    (score * 100.0).round() as u8
 }
 
 /// Takes points back from stats rounded over their max, giving them to the stats
@@ -523,7 +247,7 @@ fn pillars(games: &[&ScoredGame], score: u8) -> Vec<ScorePillar> {
 fn hero_rows(
     games: &[ScoredGame],
     heroes: Vec<ScoredHero>,
-    baselines: &Baselines,
+    baseline: &Baseline,
     session_start: DateTime<Utc>,
 ) -> Vec<HeroScoreRow> {
     let mut by_hero: HashMap<i64, Vec<&ScoredGame>> = HashMap::new();
@@ -547,7 +271,7 @@ fn hero_rows(
                 portrait: hero.portrait,
                 games: hero_games.len(),
                 score,
-                hero_samples: baselines.hero_games(hero.id),
+                hero_samples: baseline.hero_games(hero.id),
                 hero_weight: weight,
                 session_change: session_change(hero_games, session_start, 1),
                 pillars: pillars(hero_games, score),
@@ -572,26 +296,20 @@ pub fn compute(
 
     let totals: Vec<_> = games.iter().map(|&game| game_totals(game)).collect();
 
-    let mut baselines = Baselines::default();
-    let mut baseline_players = 0;
-    for (game, totals) in games.iter().zip(&totals) {
-        for player in game.iter().filter(|p| !p.is_owner && !p.is_ai) {
-            if let Some(role) = player.hero_role {
-                baselines.add(player, role, totals);
-                baseline_players += 1;
-            }
-        }
-    }
-    baselines.sort();
+    let stats: Vec<RoleStat> = PILLARS
+        .iter()
+        .flat_map(|(_, stats)| stats.iter().copied())
+        .collect();
+    let baseline = Baseline::peers(games.iter().copied().zip(&totals), &stats);
 
     let scored: Vec<_> = games
         .iter()
         .zip(&totals)
         .flat_map(|(game, totals)| {
-            let baselines = &baselines;
+            let baseline = &baseline;
             game.iter()
                 .filter(|p| p.is_owner)
-                .filter_map(move |owner| score_game(owner, owner.hero_role?, totals, baselines))
+                .filter_map(move |owner| score_game(owner, owner.hero_role?, totals, baseline))
         })
         .collect();
 
@@ -621,7 +339,7 @@ pub fn compute(
             })
             .collect(),
         eligible_games,
-        baseline_players,
+        baseline_players: baseline.players(),
         min_games: MIN_GAMES,
         window: WINDOW,
         pillars: career.map_or_else(Vec::new, |career| pillars(&career_games, career)),
@@ -634,7 +352,7 @@ pub fn compute(
             })
             .collect(),
         heroes: if career.is_some() {
-            hero_rows(&scored, heroes, &baselines, session_start)
+            hero_rows(&scored, heroes, &baseline, session_start)
         } else {
             Vec::new()
         },
@@ -711,6 +429,7 @@ fn history<G: Borrow<ScoredGame>>(games: &[G]) -> Vec<ScorePoint> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::rating::baseline::hero_weight;
 
     const JAINA: i64 = 1;
     const VALLA: i64 = 2;
@@ -777,14 +496,6 @@ mod tests {
     }
 
     #[test]
-    fn ties_rank_in_the_middle() {
-        assert_eq!(rank(&[1.0, 2.0, 2.0, 3.0], 2.0), 0.5);
-        assert_eq!(rank(&[5.0], 5.0), 0.5);
-        assert_eq!(rank(&[5.0], 6.0), 1.0);
-        assert_eq!(rank(&[5.0], 4.0), 0.0);
-    }
-
-    #[test]
     fn baselines_leave_out_the_owner_and_ai() {
         let mut players = games(12, |_| 90_000);
         for game in players.chunks_mut(5) {
@@ -795,56 +506,6 @@ mod tests {
         let score = compute(&players, heroes(), NO_SESSION);
         assert_eq!(stat(&score, HeroDamage).percentile, 1.0);
         assert_eq!(score.baseline_players, 12 * 3);
-    }
-
-    #[test]
-    fn few_same_hero_samples_lean_on_the_role() {
-        let mut baselines = Baselines::default();
-        let role = HeroRole::RangedAssassin;
-        baselines
-            .roles
-            .insert((role, HeroDamage), (1..=40).map(f64::from).collect());
-
-        let unseen = baselines.percentile(JAINA, role, HeroDamage, 10.5);
-        assert_eq!(unseen, Some(0.25));
-
-        // As many samples as the blend's own count weigh half.
-        baselines
-            .heroes
-            .insert((JAINA, HeroDamage), vec![1.0; BLEND_SAMPLES as usize]);
-        let seen = baselines.percentile(JAINA, role, HeroDamage, 10.5);
-        assert_eq!(seen, Some(0.5 * 1.0 + 0.5 * 0.25));
-    }
-
-    #[test]
-    fn a_kit_above_its_role_is_pulled_back() {
-        let mut baselines = Baselines::default();
-        let role = HeroRole::RangedAssassin;
-        baselines
-            .roles
-            .insert((role, HeroDamage), (1..=40).map(f64::from).collect());
-        baselines
-            .heroes
-            .insert((JAINA, HeroDamage), (31..=40).map(f64::from).collect());
-        baselines.hero_roles.insert(JAINA, role);
-        baselines.sort();
-
-        // Jaina's samples rank 0.875 in the role on average, trusted 10 / 15, so her
-        // rank in the role is shifted down by 0.25. Her median player ranks 0.5 among
-        // Jainas and 0.875 in the role, weighing 10 / 40 and 30 / 40.
-        let median = baselines.percentile(JAINA, role, HeroDamage, 35.5).unwrap();
-        let expected = 0.25 * 0.5 + 0.75 * (0.875 - 0.25);
-        assert!((median - expected).abs() < 1e-9, "{median}");
-    }
-
-    #[test]
-    fn a_thin_role_ranks_nothing() {
-        let mut baselines = Baselines::default();
-        let role = HeroRole::RangedAssassin;
-        let rates = (1..MIN_ROLE_SAMPLES).map(|r| r as f64).collect();
-        baselines.roles.insert((role, HeroDamage), rates);
-
-        assert_eq!(baselines.percentile(JAINA, role, HeroDamage, 10.0), None);
     }
 
     #[test]
@@ -930,22 +591,6 @@ mod tests {
     fn lost_vikings_survive_on_deaths_alone() {
         let [_, survival, ..] = pillar_weights("LostVikings", HeroRole::Support);
         assert_eq!(survival, &[(DeathShare, 1)]);
-    }
-
-    #[test]
-    fn a_stat_outside_the_kit_goes_unscored() {
-        let mut baselines = Baselines::default();
-        let role = HeroRole::RangedAssassin;
-        let mostly_zero = (0..40).map(|i| if i < 35 { 0.0 } else { 100.0 }).collect();
-        baselines.roles.insert((role, Healing), mostly_zero);
-
-        assert_eq!(baselines.percentile(JAINA, role, Healing, 50.0), None);
-
-        // A hero whose players do heal outweighs the role.
-        baselines
-            .heroes
-            .insert((JAINA, Healing), vec![100.0; 4 * BLEND_SAMPLES as usize]);
-        assert!(baselines.percentile(JAINA, role, Healing, 50.0).is_some());
     }
 
     #[test]

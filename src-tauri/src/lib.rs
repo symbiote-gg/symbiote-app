@@ -24,6 +24,7 @@ mod db;
 mod error;
 mod ingester;
 mod profile_score;
+mod rating;
 mod recent_form;
 mod retention;
 mod role_performances;

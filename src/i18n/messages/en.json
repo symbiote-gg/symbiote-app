@@ -337,7 +337,7 @@
                 "damageTaken": "of your team's damage taken",
                 "healing": "of your team's healing",
                 "xp": "of your team's experience",
-                "killParticipation": "of your team's takedowns",
+                "killParticipation": "of the enemy team's deaths",
                 "timeDead": "of an average {duration} game"
             }
         },

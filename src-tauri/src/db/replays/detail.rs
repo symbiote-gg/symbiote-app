@@ -2,6 +2,7 @@ use hots_replay_parser::summary::LOOPS_PER_SECOND;
 use sqlx::types::Json;
 use sqlx::{FromRow, SqlitePool};
 
+use crate::rating::kill_participation;
 use crate::role_performances;
 use crate::timeline;
 use crate::types::replay::{AwardInfo, ReplayDetail, ReplayPlayerDetail, TalentPick, TeamSummary};
@@ -166,7 +167,7 @@ pub async fn get_detail(
     detail.teams = team_summaries(&detail.players, &detail.timeline, xp);
     detail.kill_log =
         timeline::kill_log::build(&detail.timeline, &detail.players, detail.replay.owner_slot);
-    detail.owner_kill_participation = kill_participation(&detail);
+    detail.owner_kill_participation = owner_kill_participation(&detail);
     detail.role_performances =
         role_performances::compare(&detail.players, detail.replay.owner_team, detail.hero_role);
 
@@ -233,15 +234,13 @@ fn winner(detail: &ReplayDetail) -> Option<u8> {
     })
 }
 
-/// Counts deaths landed by structures or minions too, as the owner could take part.
-fn kill_participation(detail: &ReplayDetail) -> Option<f64> {
+fn owner_kill_participation(detail: &ReplayDetail) -> Option<f64> {
     let owner = detail
         .players
         .iter()
         .find(|p| p.slot == detail.replay.owner_slot)?;
     let enemy_deaths = detail.teams.get(usize::from(owner.team == 0))?.deaths;
-    let takedowns = owner.kills.unwrap_or(0) + owner.assists.unwrap_or(0);
-    (enemy_deaths > 0).then(|| (takedowns as f64 / enemy_deaths as f64).min(1.0))
+    kill_participation(owner.takedowns?, enemy_deaths)
 }
 
 #[cfg(test)]
@@ -311,6 +310,7 @@ mod tests {
         game.replay_players[0].score = NewScore {
             kills: Some(2),
             assists: Some(1),
+            takedowns: Some(3),
             ..Default::default()
         };
         game.players.push(Player {

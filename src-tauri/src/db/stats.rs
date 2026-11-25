@@ -3,7 +3,8 @@ use sqlx::{SqliteConnection, SqlitePool};
 
 use crate::db::hero_stats;
 use crate::db::scope::Scope;
-use crate::profile_score::{self, PlayerGame};
+use crate::profile_score;
+use crate::rating::PlayerGame;
 use crate::session_bests::{self, BestGame};
 use crate::types::hero::HeroRole;
 use crate::types::replay::Mode;

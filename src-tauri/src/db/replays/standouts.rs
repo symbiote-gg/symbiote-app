@@ -2,7 +2,8 @@ use sqlx::{FromRow, SqliteConnection, SqlitePool};
 
 use super::detail::fetch_event_rows;
 use crate::db::scope::Scope;
-use crate::standouts::{GameData, StandoutsInput, LOST_VIKINGS};
+use crate::rating::heroes::LOST_VIKINGS;
+use crate::standouts::{GameData, StandoutsInput};
 use crate::timeline;
 use crate::types::hero::HeroRole;
 

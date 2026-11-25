@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use sqlx::{SqliteConnection, SqlitePool};
 
 use crate::db::scope::Scope;
-use crate::standouts::CHEAP_DEATH_HEROES;
+use crate::rating::heroes::CHEAP_DEATH_HEROES;
 use crate::types::hero_stats::{
     AwardCount, GameLength, HeroBest, HeroBests, HeroDetail, HeroGame, HeroInfo, HeroTotals,
     MapRecord, TalentRecord, TrendPoint, WinStreak,
@@ -71,16 +71,17 @@ pub async fn totals(conn: &mut SqliteConnection, scope: Scope) -> sqlx::Result<H
                  orp.kills, orp.deaths, orp.assists, orp.takedowns, orp.hero_damage,
                  orp.siege_damage, orp.healing, orp.self_healing, orp.damage_taken, orp.xp_contribution,
                  orp.regen_globes, orp.merc_camp_captures,
-                 SUM(tp.kills) AS team_kills,
+                 (SELECT SUM(ep.deaths) FROM games_players ep
+                     WHERE ep.game_id = r.game_id AND ep.team <> orp.team) AS enemy_deaths,
                  SUM(tp.hero_damage) AS team_hero_damage,
                  SUM(tp.siege_damage) AS team_siege_damage,
                  SUM(tp.damage_taken) AS team_damage_taken,
                  SUM(tp.healing) AS team_healing,
                  SUM(tp.xp_contribution) AS team_xp",
     );
-    // Shares average each game's share, so a zero team total drops that game out. Team
-    // kills sum the scoreboard's SoloKill: tracker kills miss Leoric's killer and enemy
-    // Deaths only counts full wipes.
+    // Shares average each game's share, so a zero team total drops that game out. Kill
+    // participation is `rating::kill_participation`: takedowns over the enemy team's
+    // scoreboard deaths.
     query.push(
         " JOIN games_players tp ON tp.game_id = r.game_id AND tp.team = orp.team
          GROUP BY r.id)
@@ -109,8 +110,7 @@ pub async fn totals(conn: &mut SqliteConnection, scope: Scope) -> sqlx::Result<H
              AVG(damage_taken) AS avg_damage_taken,
              AVG(xp_contribution) AS avg_xp,
              AVG(time_dead_secs) AS avg_time_dead_secs,
-             AVG(MIN(1.0, takedowns * 1.0 / NULLIF(team_kills, 0)))
-                 AS kill_participation,
+             AVG(takedowns * 1.0 / NULLIF(enemy_deaths, 0)) AS kill_participation,
              AVG(hero_damage * 1.0 / NULLIF(team_hero_damage, 0))
                  AS share_hero_damage,
              AVG(siege_damage * 1.0 / NULLIF(team_siege_damage, 0))
@@ -473,7 +473,7 @@ mod tests {
 
     use super::*;
     use crate::db::replays::test_utils::{hero_game, insert_bundle};
-    use crate::db::test_utils::{pool, seeded_pool};
+    use crate::db::test_utils::{pool, seeded_pool, GameBuilder};
     use crate::types::hero::Hero;
     use crate::types::player::Player;
     use crate::types::replay::{Mode, NewReplayBundle, NewReplayPlayer, NewScore, NewTalent};
@@ -625,6 +625,7 @@ mod tests {
         with_player(&mut a, "enemy", 1, "Rogue");
         a.replay_players[2].score = NewScore {
             kills: Some(10),
+            deaths: Some(8),
             hero_damage: Some(9000),
             healing: Some(5000),
             xp_contribution: Some(9000),
@@ -655,7 +656,8 @@ mod tests {
 
         let totals = hero_detail(&pool, wizard).await.unwrap().unwrap().totals;
 
-        // Game a's 6 takedowns over 4 team kills cap at 1, game b's are 2 of 4.
+        // Game a's 6 takedowns are of 8 enemy deaths. No enemy died in game b, so it
+        // has no kill participation to average.
         assert_eq!(totals.kill_participation, Some(0.75));
         assert_eq!(totals.share_hero_damage, Some(0.375));
         assert_eq!(totals.share_xp, Some(0.25));
@@ -1141,5 +1143,32 @@ mod tests {
         assert!(detail.lengths.iter().all(|length| length.games == 0));
 
         assert!(hero_detail(&pool, wizard + 100).await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn kill_participation_matches_the_rating() {
+        let pool = seeded_pool().await;
+        let game = GameBuilder::new("a").build();
+        let owner = game
+            .replay_players
+            .iter()
+            .find(|p| p.toon == "owner")
+            .unwrap();
+        let takedowns = owner.score.takedowns.unwrap();
+        let enemy_deaths: i64 = game
+            .replay_players
+            .iter()
+            .filter(|p| p.team != owner.team)
+            .filter_map(|p| p.score.deaths)
+            .sum();
+        insert_bundle(&pool, game).await.unwrap();
+
+        let mut conn = pool.acquire().await.unwrap();
+        let totals = totals(&mut conn, Scope::career()).await.unwrap();
+
+        assert_eq!(
+            totals.kill_participation,
+            crate::rating::kill_participation(takedowns, enemy_deaths)
+        );
     }
 }

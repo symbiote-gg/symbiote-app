@@ -1,15 +1,11 @@
 //! The owner's last weeks against the weeks before, each part of their game ranked
 //! among their own games: 50 is their usual game.
 
-use std::collections::HashMap;
-
 use chrono::{DateTime, TimeDelta, Utc};
 
-use crate::profile_score::{
-    game_totals, hero_weight, lower_is_better, rank, rate, survival_weights, zero_share,
-    PlayerGame, NOT_IN_KIT,
-};
-use crate::role_performances::Weights;
+use crate::profile_score::survival_weights;
+use crate::rating::baseline::{Baseline, MIN_OWN_GAMES};
+use crate::rating::{game_totals, rate, PlayerGame, Weights};
 use crate::types::hero::HeroRole;
 use crate::types::role_performances::RoleStat;
 use crate::types::stats::{FormAxis, FormAxisRow, FormWindows, RecentForm, RoleForm};
@@ -17,9 +13,6 @@ use crate::types::stats::{FormAxis, FormAxisRow, FormWindows, RecentForm, RoleFo
 const WINDOW_DAYS: i64 = 28;
 
 const MIN_GAMES: usize = 5;
-
-/// Under this many of the owner's games in a role there's no usual game to rank against.
-const MIN_BASELINE_GAMES: usize = 10;
 
 const AXES: [FormAxis; 6] = [
     FormAxis::HeroDamage,
@@ -68,71 +61,6 @@ impl OwnerGame<'_> {
     }
 }
 
-/// The owner's own sorted rates, by hero and by role.
-#[derive(Default)]
-struct Baselines {
-    heroes: HashMap<(i64, RoleStat), Vec<f64>>,
-    roles: HashMap<(HeroRole, RoleStat), Vec<f64>>,
-    role_games: HashMap<HeroRole, usize>,
-}
-
-impl Baselines {
-    fn new(games: &[OwnerGame]) -> Self {
-        let mut baselines = Self::default();
-        for game in games {
-            *baselines.role_games.entry(game.role).or_default() += 1;
-
-            for &(stat, rate) in &game.rates {
-                baselines
-                    .heroes
-                    .entry((game.player.hero_id, stat))
-                    .or_default()
-                    .push(rate);
-                baselines
-                    .roles
-                    .entry((game.role, stat))
-                    .or_default()
-                    .push(rate);
-            }
-        }
-
-        for rates in baselines
-            .heroes
-            .values_mut()
-            .chain(baselines.roles.values_mut())
-        {
-            rates.sort_by(f64::total_cmp);
-        }
-
-        baselines
-    }
-
-    /// The share of the owner's own games the rate does better than, read against
-    /// the hero's games more the more of them there are.
-    fn percentile(&self, hero_id: i64, role: HeroRole, stat: RoleStat, rate: f64) -> Option<f64> {
-        if self.role_games.get(&role).copied().unwrap_or(0) < MIN_BASELINE_GAMES {
-            return None;
-        }
-
-        let role_rates = self.roles.get(&(role, stat))?;
-        let hero_rates = self.heroes.get(&(hero_id, stat))?;
-        let weight = hero_weight(hero_rates.len());
-
-        let zeros = weight * zero_share(hero_rates) + (1.0 - weight) * zero_share(role_rates);
-        if zeros > NOT_IN_KIT {
-            return None;
-        }
-
-        let blended = weight * rank(hero_rates, rate) + (1.0 - weight) * rank(role_rates, rate);
-
-        Some(if lower_is_better(stat) {
-            1.0 - blended
-        } else {
-            blended
-        })
-    }
-}
-
 struct ScoredGame {
     role: HeroRole,
     ended: DateTime<Utc>,
@@ -141,13 +69,13 @@ struct ScoredGame {
 
 /// A game the owner's role has too few games to rank still counts toward the window,
 /// with every axis unrated.
-fn score_game(game: &OwnerGame, baselines: &Baselines) -> ScoredGame {
+fn score_game(game: &OwnerGame, baseline: &Baseline) -> ScoredGame {
     let axes = AXES.map(|axis| {
         let ranked: Vec<_> = axis_weights(axis, &game.player.hero_slug)
             .iter()
             .filter_map(|&(stat, weight)| {
                 let percentile =
-                    baselines.percentile(game.player.hero_id, game.role, stat, game.rate(stat)?)?;
+                    baseline.percentile(game.player.hero_id, game.role, stat, game.rate(stat)?)?;
                 Some((f64::from(weight), percentile))
             })
             .collect();
@@ -203,10 +131,15 @@ fn windows<'a>(games: impl Iterator<Item = &'a ScoredGame>, now: DateTime<Utc>) 
 /// Ranks the owner's games in `players` among each other and averages the ones
 /// ended in the four weeks up to `now`, and the four before them.
 pub fn compute(players: &[PlayerGame], now: DateTime<Utc>) -> RecentForm {
-    let owned: Vec<OwnerGame> = players
+    let games: Vec<_> = players
         .chunk_by(|a, b| a.game_id == b.game_id)
-        .flat_map(|game| {
-            let totals = game_totals(game);
+        .map(|game| (game, game_totals(game)))
+        .collect();
+    let baseline = Baseline::own(games.iter().map(|(game, totals)| (*game, totals)), &STATS);
+
+    let owned: Vec<OwnerGame> = games
+        .iter()
+        .flat_map(|(game, totals)| {
             game.iter()
                 .filter(|player| player.is_owner)
                 .filter_map(move |player| {
@@ -216,17 +149,16 @@ pub fn compute(players: &[PlayerGame], now: DateTime<Utc>) -> RecentForm {
                         ended: player.timestamp + TimeDelta::seconds(player.duration),
                         rates: STATS
                             .iter()
-                            .filter_map(|&stat| Some((stat, rate(player, stat, &totals)?)))
+                            .filter_map(|&stat| Some((stat, rate(player, stat, totals)?)))
                             .collect(),
                     })
                 })
         })
         .collect();
 
-    let baselines = Baselines::new(&owned);
     let scored: Vec<_> = owned
         .iter()
-        .map(|game| score_game(game, &baselines))
+        .map(|game| score_game(game, &baseline))
         .collect();
 
     let roles = HeroRole::ALL
@@ -242,7 +174,7 @@ pub fn compute(players: &[PlayerGame], now: DateTime<Utc>) -> RecentForm {
         all: windows(scored.iter(), now),
         roles,
         min_games: MIN_GAMES,
-        min_baseline_games: MIN_BASELINE_GAMES,
+        min_baseline_games: MIN_OWN_GAMES,
         window_days: WINDOW_DAYS,
     }
 }

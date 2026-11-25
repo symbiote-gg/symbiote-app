@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use sqlx::FromRow;
 
-use crate::standouts::CHEAP_DEATH_HEROES;
+use crate::rating::heroes::CHEAP_DEATH_HEROES;
 use crate::types::replay::Mode;
 use crate::types::stats::{BestMetric, ScoreScope, SessionBest};
 

@@ -5,31 +5,10 @@ mod baseline;
 mod metrics;
 mod rules;
 
+use crate::rating::heroes::{CHEAP_DEATH_HEROES, PUSHERS};
 use crate::types::hero::HeroRole;
 use crate::types::standouts::StandoutsResult;
 use crate::types::timeline::Timeline;
-
-/// The Lost Vikings' slug: three heroes on one player.
-pub const LOST_VIKINGS: &str = "LostVikings";
-
-/// Heroes whose job is pushing lanes over joining fights: a hand-kept list, as
-/// the role data doesn't say.
-const PUSH_HEROES: [&str; 10] = [
-    "Abathur",
-    "Azmodan",
-    "Dehaka",
-    LOST_VIKINGS,
-    "Murky",
-    "Necromancer",
-    "Sylvanas",
-    "Tinker",
-    "WitchDoctor",
-    "Zagara",
-];
-
-/// Heroes whose deaths cost only seconds: Murky's respawn is a blink, and a lone
-/// Viking down leaves two still playing. Their time dead says nothing.
-pub const CHEAP_DEATH_HEROES: [&str; 2] = [LOST_VIKINGS, "Murky"];
 
 /// One game's raw data, as the metrics read it.
 pub struct GameData {
@@ -72,7 +51,7 @@ pub fn compute(input: &StandoutsInput) -> StandoutsResult {
     let usual = baseline::aggregate(&games);
     let ctx = rules::RuleContext {
         role: input.hero_role,
-        push: PUSH_HEROES.contains(&input.hero_slug.as_str()),
+        push: PUSHERS.contains(&input.hero_slug.as_str()),
         abathur: input.hero_slug == "Abathur",
         cheap_deaths: CHEAP_DEATH_HEROES.contains(&input.hero_slug.as_str()),
         baseline: usual.as_ref(),
