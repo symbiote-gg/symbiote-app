@@ -1,6 +1,7 @@
 use sqlx::{FromRow, SqliteConnection, SqlitePool};
 
 use super::detail::fetch_event_rows;
+use crate::db::scope::Scope;
 use crate::standouts::{GameData, StandoutsInput, LOST_VIKINGS};
 use crate::timeline;
 use crate::types::hero::HeroRole;
@@ -52,21 +53,20 @@ pub async fn get_standouts_input(
     limit: i64,
 ) -> sqlx::Result<Option<StandoutsLoad>> {
     let mut tx = pool.begin().await?;
-    let Some(current) = sqlx::query_as::<_, CurrentRow>(
+    let mut query = Scope::career().owner_games(
         "SELECT r.duration, r.timestamp, r.owner_hero_id AS hero_id, r.owner_player_id,
              h.slug AS hero_slug, h.role AS hero_role,
              orp.slot AS owner_slot, orp.team AS ally_team,
              orp.time_dead_secs AS owner_time_dead,
-             CAST(orp.minion_damage AS REAL) AS owner_minion_damage
-         FROM replays_view r
-         JOIN heroes h ON h.id = r.owner_hero_id
-         JOIN games_players orp
-             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
-         WHERE r.id = ?",
-    )
-    .bind(id)
-    .fetch_optional(&mut *tx)
-    .await?
+             CAST(orp.minion_damage AS REAL) AS owner_minion_damage",
+    );
+    query
+        .push(" JOIN heroes h ON h.id = r.owner_hero_id WHERE r.id = ")
+        .push_bind(id);
+    let Some(current) = query
+        .build_query_as::<CurrentRow>()
+        .fetch_optional(&mut *tx)
+        .await?
     else {
         return Ok(None);
     };
@@ -74,26 +74,27 @@ pub async fn get_standouts_input(
         return Ok(Some(StandoutsLoad::Expired));
     }
 
-    let candidates = sqlx::query_as::<_, CandidateRow>(
+    // The baseline is the account's own usual, not the owner's other accounts'.
+    let mut query = Scope::career().hero(current.hero_id).owner_games(
         "SELECT r.id, r.duration, orp.slot AS owner_slot, orp.team AS ally_team,
              orp.time_dead_secs AS owner_time_dead,
-             CAST(orp.minion_damage AS REAL) AS owner_minion_damage
-         FROM replays_view r
-         JOIN games_players orp
-             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
-         WHERE r.owner_hero_id = ? AND r.owner_player_id = ? AND r.id <> ?
-             AND r.timestamp >= ? AND r.duration >= ?
-         ORDER BY r.timestamp DESC, r.id DESC
-         LIMIT ?",
-    )
-    .bind(current.hero_id)
-    .bind(current.owner_player_id)
-    .bind(id)
-    .bind(events_cutoff)
-    .bind(MIN_GAME_SECS)
-    .bind(limit)
-    .fetch_all(&mut *tx)
-    .await?;
+             CAST(orp.minion_damage AS REAL) AS owner_minion_damage",
+    );
+    query
+        .push(" WHERE r.owner_player_id = ")
+        .push_bind(current.owner_player_id)
+        .push(" AND r.id <> ")
+        .push_bind(id)
+        .push(" AND r.timestamp >= ")
+        .push_bind(events_cutoff)
+        .push(" AND r.duration >= ")
+        .push_bind(MIN_GAME_SECS)
+        .push(" ORDER BY r.timestamp DESC, r.id DESC LIMIT ")
+        .push_bind(limit);
+    let candidates = query
+        .build_query_as::<CandidateRow>()
+        .fetch_all(&mut *tx)
+        .await?;
 
     let current_game = game_data(
         &mut tx,

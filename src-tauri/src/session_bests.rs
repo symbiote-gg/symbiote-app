@@ -8,7 +8,6 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use sqlx::FromRow;
 
-use crate::profile_score;
 use crate::standouts::CHEAP_DEATH_HEROES;
 use crate::types::replay::Mode;
 use crate::types::stats::{BestMetric, ScoreScope, SessionBest};
@@ -158,7 +157,7 @@ impl Bests {
 /// A hero's best beaten by a game that also beat the career best is left out.
 pub fn compute(games: &[BestGame], session_start: DateTime<Utc>) -> Vec<SessionBest> {
     let start = session_start.timestamp();
-    let career_modes = profile_score::modes(ScoreScope::All);
+    let career_modes = ScoreScope::All.modes();
 
     let mut career = Bests::default();
     let mut heroes: HashMap<i64, Bests> = HashMap::new();

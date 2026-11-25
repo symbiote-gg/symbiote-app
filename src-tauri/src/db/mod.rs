@@ -23,6 +23,7 @@ pub mod maps;
 pub mod parties;
 pub mod players;
 pub mod replays;
+pub mod scope;
 pub mod settings;
 pub mod stats;
 pub mod talents;

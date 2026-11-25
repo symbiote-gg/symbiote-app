@@ -1,7 +1,8 @@
 use chrono::{DateTime, Utc};
-use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
+use sqlx::{SqliteConnection, SqlitePool};
 
 use crate::db::hero_stats;
+use crate::db::scope::Scope;
 use crate::profile_score::{self, PlayerGame};
 use crate::session_bests::{self, BestGame};
 use crate::types::hero::HeroRole;
@@ -32,7 +33,7 @@ pub async fn profile_career(pool: &SqlitePool) -> sqlx::Result<ProfileCareer> {
     .await?;
     let (name, account_level) = identity.unzip();
 
-    let totals = hero_stats::totals(&mut tx, None).await?;
+    let totals = hero_stats::totals(&mut tx, Scope::career()).await?;
     let mvps = mvps(&mut tx).await?;
     let main_role = main_role(&mut tx).await?;
     tx.commit().await?;
@@ -57,40 +58,35 @@ pub async fn profile_bests(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result
 }
 
 async fn mvps(conn: &mut SqliteConnection) -> sqlx::Result<i64> {
-    sqlx::query_scalar(
-        "SELECT COUNT(*)
-         FROM replays r
-         JOIN games_players_awards a
+    let mut query = Scope::career().owner_games("SELECT COUNT(*)");
+    query.push(
+        " JOIN games_players_awards a
              ON a.game_id = r.game_id AND a.player_id = r.owner_player_id
          WHERE a.award = 'mvp'",
-    )
-    .fetch_one(conn)
-    .await
+    );
+    query.build_query_scalar().fetch_one(conn).await
 }
 
 /// The role the owner played the most games as.
 async fn main_role(conn: &mut SqliteConnection) -> sqlx::Result<Option<HeroRole>> {
-    sqlx::query_scalar(
-        "SELECT h.role
-         FROM replays_view r
-         JOIN heroes h ON h.id = r.owner_hero_id
+    let mut query = Scope::career().owner_games("SELECT h.role");
+    query.push(
+        " JOIN heroes h ON h.id = r.owner_hero_id
          WHERE h.role IS NOT NULL
          GROUP BY h.role
          ORDER BY COUNT(*) DESC
          LIMIT 1",
-    )
-    .fetch_optional(conn)
-    .await
+    );
+    query.build_query_scalar().fetch_optional(conn).await
 }
 
-/// Every player of the games the profile score reads, a game's players together and
-/// the games in the order played. A player is the owner in the games they have a
-/// replay of.
+/// Every player of the games in `scope`, a game's players together and the games in
+/// the order played. A player is the owner in the games they have a replay of.
 async fn scored_players(
-    tx: &mut sqlx::SqliteConnection,
-    scope: ScoreScope,
+    conn: &mut SqliteConnection,
+    scope: Scope,
 ) -> sqlx::Result<Vec<PlayerGame>> {
-    let mut query = QueryBuilder::<Sqlite>::new(
+    let mut query = sqlx::QueryBuilder::new(
         "SELECT g.id AS game_id, g.timestamp, g.duration, gp.team, gp.hero_id, h.slug AS hero_slug,
              h.role AS hero_role,
              gp.takedowns AS takedowns,
@@ -122,20 +118,14 @@ async fn scored_players(
          JOIN games_players gp ON gp.game_id = g.id
          JOIN players p ON p.id = gp.player_id
          JOIN heroes h ON h.id = gp.hero_id
-         WHERE g.mode IN (",
+         WHERE g.id IN (",
     );
-
-    let mut modes = query.separated(", ");
-    for &mode in profile_score::modes(scope) {
-        modes.push_bind(mode);
-    }
+    scope.push_game_ids(&mut query);
 
     query
-        .push(") AND g.duration >= ")
-        .push_bind(profile_score::MIN_GAME_SECS)
-        .push(" ORDER BY g.timestamp, g.id")
+        .push(") ORDER BY g.timestamp, g.id")
         .build_query_as::<PlayerGame>()
-        .fetch_all(tx)
+        .fetch_all(conn)
         .await
 }
 
@@ -147,7 +137,7 @@ pub async fn profile_score(
     session_start: DateTime<Utc>,
 ) -> sqlx::Result<ProfileScore> {
     let mut tx = pool.begin().await?;
-    let players = scored_players(&mut tx, scope).await?;
+    let players = scored_players(&mut tx, Scope::of(scope)).await?;
     let heroes = sqlx::query_as::<_, ScoredHero>("SELECT id, name, role, portrait FROM heroes")
         .fetch_all(&mut *tx)
         .await?;
@@ -164,7 +154,7 @@ pub async fn recent_form(
     now: DateTime<Utc>,
 ) -> sqlx::Result<RecentForm> {
     let mut conn = pool.acquire().await?;
-    let players = scored_players(&mut conn, scope).await?;
+    let players = scored_players(&mut conn, Scope::of(scope)).await?;
 
     Ok(crate::recent_form::compute(&players, now))
 }
@@ -177,34 +167,35 @@ pub async fn session_record(
     pool: &SqlitePool,
     session_start: DateTime<Utc>,
 ) -> sqlx::Result<SessionRecord> {
-    let start = session_start.timestamp();
     let mut tx = pool.begin().await?;
 
-    let (career_wins, career_losses): (i64, i64) = sqlx::query_as(
-        "SELECT COALESCE(SUM(owner_win = 1), 0), COALESCE(SUM(owner_win = 0), 0)
-         FROM replays_view",
-    )
-    .fetch_one(&mut *tx)
-    .await?;
+    let (career_wins, career_losses): (i64, i64) = Scope::career()
+        .owner_games("SELECT COALESCE(SUM(r.owner_win = 1), 0), COALESCE(SUM(r.owner_win = 0), 0)")
+        .build_query_as()
+        .fetch_one(&mut *tx)
+        .await?;
 
-    let heroes = sqlx::query_as::<_, SessionHero>(
+    let session = Scope::ended_since_sql(session_start);
+    let mut query = Scope::career().owner_games(&format!(
         "SELECT h.id AS hero_id, h.name, h.portrait, h.accent,
-             SUM(r.timestamp + r.duration >= ?1) AS games,
-             COALESCE(SUM(r.owner_win = 1 AND r.timestamp + r.duration >= ?1), 0) AS wins,
-             COALESCE(SUM(r.owner_win = 0 AND r.timestamp + r.duration >= ?1), 0) AS losses,
+             SUM({session}) AS games,
+             COALESCE(SUM(r.owner_win = 1 AND {session}), 0) AS wins,
+             COALESCE(SUM(r.owner_win = 0 AND {session}), 0) AS losses,
              COALESCE(SUM(r.owner_win = 1), 0) AS career_wins,
-             COALESCE(SUM(r.owner_win = 0), 0) AS career_losses
-         FROM replays_view r
-         JOIN heroes h ON h.id = r.owner_hero_id
+             COALESCE(SUM(r.owner_win = 0), 0) AS career_losses"
+    ));
+    query.push(
+        " JOIN heroes h ON h.id = r.owner_hero_id
          GROUP BY h.id
          HAVING games > 0
          ORDER BY games DESC, h.name",
-    )
-    .bind(start)
-    .fetch_all(&mut *tx)
-    .await?;
+    );
+    let heroes = query
+        .build_query_as::<SessionHero>()
+        .fetch_all(&mut *tx)
+        .await?;
 
-    let games = sqlx::query_as::<_, SessionGame>(
+    let mut query = Scope::career().ended_since(session_start).owner_games(
         "SELECT r.id AS replay_id, r.game_id, r.timestamp, r.duration,
              h.id AS hero_id, h.name AS hero, h.portrait,
              COALESCE(m.name, r.map) AS map,
@@ -214,16 +205,17 @@ pub async fn session_record(
                  WHERE a.game_id = r.game_id
                      AND a.player_id = r.owner_player_id
                      AND a.award = 'mvp'
-             ) AS mvp
-         FROM replays_view r
-         JOIN heroes h ON h.id = r.owner_hero_id
+             ) AS mvp",
+    );
+    query.push(
+        " JOIN heroes h ON h.id = r.owner_hero_id
          LEFT JOIN maps m ON m.id = r.map
-         WHERE r.timestamp + r.duration >= ?
          ORDER BY r.timestamp DESC, r.id DESC",
-    )
-    .bind(start)
-    .fetch_all(&mut *tx)
-    .await?;
+    );
+    let games = query
+        .build_query_as::<SessionGame>()
+        .fetch_all(&mut *tx)
+        .await?;
     tx.commit().await?;
 
     Ok(SessionRecord {
@@ -243,33 +235,32 @@ pub async fn session_bests(
     pool: &SqlitePool,
     session_start: DateTime<Utc>,
 ) -> sqlx::Result<Vec<SessionBest>> {
-    let start = session_start.timestamp();
     let mut tx = pool.begin().await?;
 
     // Skips reading the whole career while no game was played yet.
-    let played: bool = sqlx::query_scalar(
-        "SELECT EXISTS (SELECT 1 FROM replays_view WHERE timestamp + duration >= ?)",
-    )
-    .bind(start)
-    .fetch_one(&mut *tx)
-    .await?;
-    if !played {
+    let mut query = Scope::career()
+        .ended_since(session_start)
+        .owner_games("SELECT 1");
+    query.push(" LIMIT 1");
+    let played: Option<i64> = query.build_query_scalar().fetch_optional(&mut *tx).await?;
+    if played.is_none() {
         return Ok(Vec::new());
     }
 
-    let games = sqlx::query_as::<_, BestGame>(
+    let mut query = Scope::career().owner_games(
         "SELECT r.id AS replay_id, h.id AS hero_id, h.name AS hero, h.slug AS hero_slug,
              h.role = 'healer' AS healer, r.mode, r.timestamp, r.duration, r.owner_win AS win,
              orp.hero_damage, orp.siege_damage, orp.healing, orp.damage_taken,
-             orp.xp_contribution AS xp, orp.takedowns, orp.deaths
-         FROM replays_view r
-         JOIN heroes h ON h.id = r.owner_hero_id
-         JOIN games_players orp
-             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
+             orp.xp_contribution AS xp, orp.takedowns, orp.deaths",
+    );
+    query.push(
+        " JOIN heroes h ON h.id = r.owner_hero_id
          ORDER BY r.timestamp, r.id",
-    )
-    .fetch_all(&mut *tx)
-    .await?;
+    );
+    let games = query
+        .build_query_as::<BestGame>()
+        .fetch_all(&mut *tx)
+        .await?;
     tx.commit().await?;
 
     Ok(session_bests::compute(&games, session_start))
@@ -279,27 +270,33 @@ pub async fn session_bests(
 /// played overall.
 pub async fn most_played_heroes(pool: &SqlitePool, limit: i64) -> sqlx::Result<MostPlayedHeroes> {
     let mut tx = pool.begin().await?;
-    let (played, total): (i64, i64) = sqlx::query_as(
-        "SELECT (SELECT COUNT(DISTINCT owner_hero_id) FROM replays_view),
-             (SELECT COUNT(*) FROM heroes)",
-    )
-    .fetch_one(&mut *tx)
-    .await?;
+    let played: i64 = Scope::career()
+        .owner_games("SELECT COUNT(DISTINCT r.owner_hero_id)")
+        .build_query_scalar()
+        .fetch_one(&mut *tx)
+        .await?;
+    let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM heroes")
+        .fetch_one(&mut *tx)
+        .await?;
 
-    let heroes = sqlx::query_as::<_, HeroStat>(
+    let mut query = Scope::career().owner_games(
         "SELECT h.id AS hero_id, h.name, h.role, h.portrait,
              COUNT(*) AS games,
              COALESCE(SUM(r.owner_win = 1), 0) AS wins,
-             COALESCE(SUM(r.owner_win = 0), 0) AS losses
-         FROM replays_view r
-         JOIN heroes h ON h.id = r.owner_hero_id
-         GROUP BY h.id
-         ORDER BY games DESC, wins DESC, h.name
-         LIMIT ?",
-    )
-    .bind(limit)
-    .fetch_all(&mut *tx)
-    .await?;
+             COALESCE(SUM(r.owner_win = 0), 0) AS losses",
+    );
+    query
+        .push(
+            " JOIN heroes h ON h.id = r.owner_hero_id
+             GROUP BY h.id
+             ORDER BY games DESC, wins DESC, h.name
+             LIMIT ",
+        )
+        .push_bind(limit);
+    let heroes = query
+        .build_query_as::<HeroStat>()
+        .fetch_all(&mut *tx)
+        .await?;
     tx.commit().await?;
 
     Ok(MostPlayedHeroes {
@@ -311,23 +308,25 @@ pub async fn most_played_heroes(pool: &SqlitePool, limit: i64) -> sqlx::Result<M
 
 /// Returns the modes the owner has played.
 pub async fn played_modes(pool: &SqlitePool) -> sqlx::Result<Vec<Mode>> {
-    sqlx::query_scalar("SELECT DISTINCT mode FROM replays_view")
+    Scope::career()
+        .owner_games("SELECT DISTINCT r.mode")
+        .build_query_scalar()
         .fetch_all(pool)
         .await
 }
 
 /// Returns the maps the owner has played on, by name, with how many games on each.
 pub async fn played_maps(pool: &SqlitePool) -> sqlx::Result<Vec<MapStat>> {
-    sqlx::query_as::<_, MapStat>(
+    let mut query = Scope::career().owner_games(
         "SELECT r.map AS id, COALESCE(m.name, r.map) AS name, m.loading_screen,
-             COUNT(*) AS games
-         FROM replays_view r
-         LEFT JOIN maps m ON m.id = r.map
+             COUNT(*) AS games",
+    );
+    query.push(
+        " LEFT JOIN maps m ON m.id = r.map
          GROUP BY r.map
          ORDER BY name",
-    )
-    .fetch_all(pool)
-    .await
+    );
+    query.build_query_as::<MapStat>().fetch_all(pool).await
 }
 
 const MAX_PARTY: i64 = 5;
@@ -337,7 +336,7 @@ const MAX_PARTY: i64 = 5;
 pub async fn party_sizes(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<Vec<PartySize>> {
     // The parser numbers each game's parties itself, so the owner's party is the team
     // mates sharing their number in that game.
-    let mut query = QueryBuilder::<Sqlite>::new(
+    let mut query = Scope::of(scope).owner_games(
         "SELECT CASE WHEN r.owner_party_num IS NULL THEN 1 ELSE (
                  SELECT COUNT(*) FROM games_players gp
                  WHERE gp.game_id = r.game_id AND gp.team = r.owner_team
@@ -345,18 +344,11 @@ pub async fn party_sizes(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<V
              END AS size,
              COUNT(*) AS games,
              COALESCE(SUM(r.owner_win = 1), 0) AS wins,
-             COALESCE(SUM(r.owner_win = 0), 0) AS losses
-         FROM replays_view r
-         WHERE r.mode IN (",
+             COALESCE(SUM(r.owner_win = 0), 0) AS losses",
     );
 
-    let mut modes = query.separated(", ");
-    for &mode in profile_score::modes(scope) {
-        modes.push_bind(mode);
-    }
-
     let played = query
-        .push(") GROUP BY size")
+        .push(" GROUP BY size")
         .build_query_as::<PartySize>()
         .fetch_all(pool)
         .await?;
@@ -385,23 +377,19 @@ pub async fn party_sizes(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<V
 /// Returns the owner's games in the scope's modes by role, roles they never played
 /// included with no games.
 pub async fn role_records(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<Vec<RoleRecord>> {
-    let mut query = QueryBuilder::<Sqlite>::new(
+    let mut query = Scope::of(scope).owner_games(
         "SELECT h.role,
              COUNT(*) AS games,
              COALESCE(SUM(r.owner_win = 1), 0) AS wins,
-             COALESCE(SUM(r.owner_win = 0), 0) AS losses
-         FROM replays_view r
-         JOIN heroes h ON h.id = r.owner_hero_id
-         WHERE h.role IS NOT NULL AND r.mode IN (",
+             COALESCE(SUM(r.owner_win = 0), 0) AS losses",
     );
 
-    let mut modes = query.separated(", ");
-    for &mode in profile_score::modes(scope) {
-        modes.push_bind(mode);
-    }
-
     let played = query
-        .push(") GROUP BY h.role")
+        .push(
+            " JOIN heroes h ON h.id = r.owner_hero_id
+             WHERE h.role IS NOT NULL
+             GROUP BY h.role",
+        )
         .build_query_as::<RoleRecord>()
         .fetch_all(pool)
         .await?;
@@ -429,7 +417,7 @@ pub async fn role_records(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<
 mod tests {
     use super::*;
     use crate::db::replays::test_utils::*;
-    use crate::db::test_utils::pool;
+    use crate::db::test_utils::{pool, seeded_pool, GameBuilder};
     use crate::types::player::Player;
     use crate::types::replay::{NewReplayPlayer, NewScore};
     use crate::types::stats::BestMetric;
@@ -785,7 +773,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn scored_players_skip_other_modes_and_short_games() {
+    async fn scored_players_read_every_player_of_the_scopes_games() {
         let pool = pool().await;
         let game = |name: &str, timestamp, mode, duration| {
             let mut game = hero_game(name, timestamp, mode, "cursed_hollow", "Wizard", true);
@@ -828,32 +816,111 @@ mod tests {
         }
 
         let mut tx = pool.begin().await.unwrap();
-        let players = scored_players(&mut tx, ScoreScope::All).await.unwrap();
+        let players = scored_players(&mut tx, Scope::of(ScoreScope::All))
+            .await
+            .unwrap();
         let read: Vec<_> = players
             .iter()
             .map(|p| (p.is_owner, p.is_ai, p.hero_damage, p.hard_cc))
             .collect();
+        // A remake is short, but still a game played.
         assert_eq!(
             read,
             [
                 (true, false, None, None),
                 (true, false, None, None),
                 (false, true, Some(40_000), Some(12)),
+                (true, false, None, None),
             ]
         );
         assert_ne!(players[0].game_id, players[1].game_id);
         assert_eq!(players[1].game_id, players[2].game_id);
+        assert_ne!(players[2].game_id, players[3].game_id);
 
-        let draft = scored_players(&mut tx, ScoreScope::Draft).await.unwrap();
+        let draft = scored_players(&mut tx, Scope::of(ScoreScope::Draft))
+            .await
+            .unwrap();
         let [ranked] = &draft[..] else {
             panic!("only the ranked game is a draft one");
         };
         assert_eq!(ranked.game_id, players[0].game_id);
 
-        let quick = scored_players(&mut tx, ScoreScope::QuickMatch)
+        let quick = scored_players(&mut tx, Scope::of(ScoreScope::QuickMatch))
             .await
             .unwrap();
         let quick: Vec<_> = quick.iter().map(|p| p.game_id).collect();
-        assert_eq!(quick, [players[1].game_id; 2]);
+        assert_eq!(
+            quick,
+            [players[1].game_id, players[1].game_id, players[3].game_id]
+        );
+    }
+
+    #[tokio::test]
+    async fn profile_cards_read_the_same_games() {
+        let pool = seeded_pool().await;
+        let start = 1_700_000_000;
+        let games = (0..12)
+            .map(|i| GameBuilder::new(&format!("ranked {i}")))
+            .chain((0..3).map(|i| GameBuilder::new(&format!("quick {i}")).mode(Mode::QuickMatch)))
+            .chain((0..2).map(|i| GameBuilder::new(&format!("remake {i}")).secs(300)))
+            .chain((0..2).map(|i| GameBuilder::new(&format!("aram {i}")).mode(Mode::Aram)));
+        for (i, game) in games.enumerate() {
+            let game = game.at(start + i as i64 * 3_600).build();
+            insert_bundle(&pool, game).await.unwrap();
+        }
+        let now = DateTime::from_timestamp(start + 7 * 86_400, 0).unwrap();
+
+        for (scope, expected) in [
+            (ScoreScope::All, 17),
+            (ScoreScope::Draft, 14),
+            (ScoreScope::QuickMatch, 3),
+        ] {
+            let score = profile_score(&pool, scope, now).await.unwrap();
+            let form = recent_form(&pool, scope, now).await.unwrap();
+            let party: i64 = party_sizes(&pool, scope)
+                .await
+                .unwrap()
+                .iter()
+                .map(|size| size.games)
+                .sum();
+            let roles: i64 = role_records(&pool, scope)
+                .await
+                .unwrap()
+                .iter()
+                .map(|role| role.games)
+                .sum();
+
+            assert_eq!(
+                (
+                    score.eligible_games,
+                    form.all.recent_games,
+                    party as usize,
+                    roles as usize,
+                ),
+                (expected, expected, expected, expected),
+                "{scope:?}",
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn scores_a_ranked_career_against_its_peers() {
+        let pool = seeded_pool().await;
+        // The owner plays a ranged assassin, two peers a game, and a role needs 30
+        // samples to rank against.
+        for i in 0..15 {
+            let game = GameBuilder::new(&format!("ranked {i}")).at(1_700_000_000 + i * 3_600);
+            insert_bundle(&pool, game.build()).await.unwrap();
+        }
+        let now = DateTime::from_timestamp(1_800_000_000, 0).unwrap();
+
+        let score = profile_score(&pool, ScoreScope::Draft, now).await.unwrap();
+
+        // Nine peers a game, every one with a role.
+        assert_eq!(score.baseline_players, 15 * 9);
+        assert_eq!(score.career_games, 15);
+        assert!(score.career.is_some());
+        assert_eq!(score.heroes.len(), 1);
+        assert!(!score.pillars.is_empty());
     }
 }

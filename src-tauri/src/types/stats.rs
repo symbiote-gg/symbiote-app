@@ -4,6 +4,7 @@ use sqlx::FromRow;
 
 use super::hero::HeroRole;
 use super::hero_stats::{HeroBest, HeroTotals, WinStreak};
+use super::replay::Mode;
 use super::role_performances::RoleStat;
 
 /// The owner's career across every hero, for the profile header.
@@ -88,6 +89,29 @@ pub enum ScoreScope {
     All,
     Draft,
     QuickMatch,
+}
+
+impl ScoreScope {
+    /// The modes played five against five on a full map. ARAM's single lane inflates
+    /// damage and leaves no XP or siege to choose.
+    pub fn modes(self) -> &'static [Mode] {
+        match self {
+            Self::All => &[
+                Mode::QuickMatch,
+                Mode::UnrankedDraft,
+                Mode::StormLeague,
+                Mode::HeroLeague,
+                Mode::TeamLeague,
+            ],
+            Self::Draft => &[
+                Mode::UnrankedDraft,
+                Mode::StormLeague,
+                Mode::HeroLeague,
+                Mode::TeamLeague,
+            ],
+            Self::QuickMatch => &[Mode::QuickMatch],
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

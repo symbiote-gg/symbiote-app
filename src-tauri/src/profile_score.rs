@@ -12,7 +12,6 @@ use crate::role_performances::{
     death_share, round_to_total, side, team_totals, TeamMember, TeamTotals, Weights,
 };
 use crate::types::hero::HeroRole;
-use crate::types::replay::Mode;
 use crate::types::role_performances::RoleStat::{
     self, DamageTakenShare, DeathShare, HardCc, Healing, HeroDamage, KillParticipation,
     MercCaptures, Protection, SiegeDamage, TeamfightDamageTakenShare, TeamfightHeroDamageShare,
@@ -20,32 +19,8 @@ use crate::types::role_performances::RoleStat::{
 };
 use crate::types::stats::{
     GameScore, HeroScoreRow, PillarMax, ProfileScore, ScorePillar, ScorePillarId, ScorePoint,
-    ScoreScope, ScoreStat, ScoredHero,
+    ScoreStat, ScoredHero,
 };
-
-/// The modes played five against five on a full map. ARAM's single lane inflates
-/// damage and leaves no XP or siege to choose.
-pub fn modes(scope: ScoreScope) -> &'static [Mode] {
-    match scope {
-        ScoreScope::All => &[
-            Mode::QuickMatch,
-            Mode::UnrankedDraft,
-            Mode::StormLeague,
-            Mode::HeroLeague,
-            Mode::TeamLeague,
-        ],
-        ScoreScope::Draft => &[
-            Mode::UnrankedDraft,
-            Mode::StormLeague,
-            Mode::HeroLeague,
-            Mode::TeamLeague,
-        ],
-        ScoreScope::QuickMatch => &[Mode::QuickMatch],
-    }
-}
-
-/// Shorter games are remakes and early leaves.
-pub const MIN_GAME_SECS: i64 = 600;
 
 const WINDOW: usize = 50;
 

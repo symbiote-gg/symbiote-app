@@ -1,13 +1,12 @@
 use chrono::{DateTime, Utc};
-use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool};
+use sqlx::{SqliteConnection, SqlitePool};
 
-use crate::profile_score;
+use crate::db::scope::Scope;
 use crate::standouts::CHEAP_DEATH_HEROES;
 use crate::types::hero_stats::{
     AwardCount, GameLength, HeroBest, HeroBests, HeroDetail, HeroGame, HeroInfo, HeroTotals,
     MapRecord, TalentRecord, TrendPoint, WinStreak,
 };
-use crate::types::replay::Mode;
 use crate::types::stats::{ProfileBests, ScoreScope};
 
 /// The trend covers this many days, ending on the day of the hero's last game.
@@ -37,16 +36,17 @@ pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option
         .fetch_one(&mut *tx)
         .await?;
     let cheap_deaths = CHEAP_DEATH_HEROES.contains(&slug.as_str());
+    let scope = Scope::career().hero(hero_id);
 
-    let totals = totals(&mut tx, Some(hero_id)).await?;
-    let awards = awards(&mut tx, hero_id).await?;
-    let maps = maps(&mut tx, hero_id).await?;
-    let talents = talents(&mut tx, hero_id).await?;
-    let trend = trend(&mut tx, hero_id).await?;
-    let bests = bests(&mut tx, hero_id, cheap_deaths).await?;
-    let best_game = best_game(&mut tx, hero_id).await?;
-    let last_game = last_game(&mut tx, hero_id).await?;
-    let lengths = lengths(&mut tx, hero_id).await?;
+    let totals = totals(&mut tx, scope).await?;
+    let awards = awards(&mut tx, scope).await?;
+    let maps = maps(&mut tx, scope).await?;
+    let talents = talents(&mut tx, scope, hero_id).await?;
+    let trend = trend(&mut tx, scope).await?;
+    let bests = bests(&mut tx, scope, cheap_deaths).await?;
+    let best_game = best_game(&mut tx, scope).await?;
+    let last_game = last_game(&mut tx, scope).await?;
+    let lengths = lengths(&mut tx, scope).await?;
     tx.commit().await?;
 
     Ok(Some(HeroDetail {
@@ -63,39 +63,10 @@ pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option
     }))
 }
 
-/// Starts a query whose `FROM` is the owner's games on `hero_id`, as `r`, after
-/// `select`.
-fn hero_games(select: &str, hero_id: i64) -> QueryBuilder<Sqlite> {
-    owner_games(select, Some(hero_id), None)
-}
-
-/// Like [`hero_games`], over every hero when `hero_id` is `None`, and only in `modes`
-/// when given.
-fn owner_games(select: &str, hero_id: Option<i64>, modes: Option<&[Mode]>) -> QueryBuilder<Sqlite> {
-    let mut query = QueryBuilder::new(select);
-    query.push(" FROM (SELECT * FROM replays_view WHERE 1");
-
-    if let Some(hero_id) = hero_id {
-        query.push(" AND owner_hero_id = ").push_bind(hero_id);
-    }
-
-    if let Some(modes) = modes {
-        query.push(" AND mode IN (");
-        let mut list = query.separated(", ");
-        for &mode in modes {
-            list.push_bind(mode);
-        }
-        query.push(")");
-    }
-
-    query.push(") r");
-    query
-}
-
-/// Sums up the owner's games on `hero_id`, or on every hero when it is `None`.
-pub async fn totals(conn: &mut SqliteConnection, hero_id: Option<i64>) -> sqlx::Result<HeroTotals> {
-    let mut query = owner_games(
-        "WITH owner_games AS (
+/// Sums up the owner's games in `scope`.
+pub async fn totals(conn: &mut SqliteConnection, scope: Scope) -> sqlx::Result<HeroTotals> {
+    let mut query = scope.owner_games(
+        "WITH games AS (
              SELECT r.owner_win, r.duration, r.timestamp, orp.time_dead_secs,
                  orp.kills, orp.deaths, orp.assists, orp.takedowns, orp.hero_damage,
                  orp.siege_damage, orp.healing, orp.self_healing, orp.damage_taken, orp.xp_contribution,
@@ -106,16 +77,12 @@ pub async fn totals(conn: &mut SqliteConnection, hero_id: Option<i64>) -> sqlx::
                  SUM(tp.damage_taken) AS team_damage_taken,
                  SUM(tp.healing) AS team_healing,
                  SUM(tp.xp_contribution) AS team_xp",
-        hero_id,
-        None,
     );
     // Shares average each game's share, so a zero team total drops that game out. Team
     // kills sum the scoreboard's SoloKill: tracker kills miss Leoric's killer and enemy
     // Deaths only counts full wipes.
     query.push(
-        " JOIN games_players orp
-             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
-         JOIN games_players tp ON tp.game_id = r.game_id AND tp.team = orp.team
+        " JOIN games_players tp ON tp.game_id = r.game_id AND tp.team = orp.team
          GROUP BY r.id)
          SELECT COUNT(*) AS games,
              COALESCE(SUM(owner_win = 1), 0) AS wins,
@@ -157,16 +124,14 @@ pub async fn totals(conn: &mut SqliteConnection, hero_id: Option<i64>) -> sqlx::
              AVG(duration) AS avg_duration,
              COALESCE(SUM(duration), 0) AS total_duration,
              COALESCE(SUM(time_dead_secs), 0.0) AS total_time_dead_secs
-         FROM owner_games",
+         FROM games",
     );
     query.build_query_as().fetch_one(conn).await
 }
 
-async fn awards(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<AwardCount>> {
-    let mut query = hero_games(
-        "SELECT rpa.award, a.name, a.description, a.icon, COUNT(*) AS count",
-        hero_id,
-    );
+async fn awards(conn: &mut SqliteConnection, scope: Scope) -> sqlx::Result<Vec<AwardCount>> {
+    let mut query =
+        scope.owner_games("SELECT rpa.award, a.name, a.description, a.icon, COUNT(*) AS count");
     query.push(
         " JOIN games_players_awards rpa
              ON rpa.game_id = r.game_id AND rpa.player_id = r.owner_player_id
@@ -177,13 +142,12 @@ async fn awards(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<A
     query.build_query_as().fetch_all(conn).await
 }
 
-async fn maps(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<MapRecord>> {
-    let mut query = hero_games(
+async fn maps(conn: &mut SqliteConnection, scope: Scope) -> sqlx::Result<Vec<MapRecord>> {
+    let mut query = scope.owner_games(
         "SELECT r.map AS id, COALESCE(m.name, r.map) AS name, m.loading_screen,
              COUNT(*) AS games,
              COALESCE(SUM(r.owner_win = 1), 0) AS wins,
              COALESCE(SUM(r.owner_win = 0), 0) AS losses",
-        hero_id,
     );
     query.push(
         " LEFT JOIN maps m ON m.id = r.map
@@ -193,11 +157,13 @@ async fn maps(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<Map
     query.build_query_as().fetch_all(conn).await
 }
 
-async fn talents(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<TalentRecord>> {
-    let mut query = hero_games(
-        "WITH picks AS (SELECT rpt.tier, rpt.talent_id, r.owner_win",
-        hero_id,
-    );
+/// `hero_id` lists the hero's talents never picked in `scope`.
+async fn talents(
+    conn: &mut SqliteConnection,
+    scope: Scope,
+    hero_id: i64,
+) -> sqlx::Result<Vec<TalentRecord>> {
+    let mut query = scope.owner_games("WITH picks AS (SELECT rpt.tier, rpt.talent_id, r.owner_win");
     query
         .push(
             " JOIN games_players_talents rpt
@@ -223,12 +189,11 @@ async fn talents(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<
     query.build_query_as().fetch_all(conn).await
 }
 
-async fn trend(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<TrendPoint>> {
-    let mut query = hero_games(
-        "WITH owner_games AS (
+async fn trend(conn: &mut SqliteConnection, scope: Scope) -> sqlx::Result<Vec<TrendPoint>> {
+    let mut query = scope.owner_games(
+        "WITH games AS (
              SELECT r.id, r.timestamp, r.owner_win,
                  date(r.timestamp, 'unixepoch', 'localtime') AS day",
-        hero_id,
     );
     // The day cutoff filters the output only: `rates` is unfiltered, so games before
     // the cutoff still feed the career rate.
@@ -238,9 +203,9 @@ async fn trend(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<Tr
              SELECT day, COUNT(*) AS games,
                  COALESCE(SUM(owner_win = 1), 0) AS wins,
                  COALESCE(SUM(owner_win = 0), 0) AS losses
-             FROM owner_games
+             FROM games
              WHERE day >= (SELECT date(MAX(timestamp), 'unixepoch', 'localtime',
-                 '-{back} days') FROM owner_games)
+                 '-{back} days') FROM games)
              GROUP BY day),
          rates AS (
              SELECT day, rate,
@@ -250,7 +215,7 @@ async fn trend(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<Tr
                  SELECT day, timestamp, id,
                      AVG(owner_win) OVER (ORDER BY timestamp, id
                          ROWS UNBOUNDED PRECEDING) AS rate
-                 FROM owner_games
+                 FROM games
                  WHERE owner_win IS NOT NULL))
          SELECT d.day, d.games, d.wins, d.losses, rt.rate
          FROM days d
@@ -310,27 +275,25 @@ const FEWEST_DEATHS_WIN: BestBy = BestBy {
 /// of those heroes' deaths.
 async fn bests(
     conn: &mut SqliteConnection,
-    hero_id: i64,
+    scope: Scope,
     cheap_deaths: bool,
 ) -> sqlx::Result<HeroBests> {
-    let hero_id = Some(hero_id);
-
     let fewest_deaths_win = if cheap_deaths {
         None
     } else {
-        best(conn, hero_id, None, &FEWEST_DEATHS_WIN).await?
+        best(conn, scope, &FEWEST_DEATHS_WIN).await?
     };
 
     Ok(HeroBests {
-        hero_damage: best(conn, hero_id, None, &MOST_HERO_DAMAGE).await?,
-        siege_damage: best(conn, hero_id, None, &MOST_SIEGE_DAMAGE).await?,
-        healing: best(conn, hero_id, None, &MOST_HEALING).await?,
-        damage_taken: best(conn, hero_id, None, &MOST_DAMAGE_TAKEN).await?,
-        xp: best(conn, hero_id, None, &MOST_XP).await?,
-        takedowns: best(conn, hero_id, None, &MOST_TAKEDOWNS).await?,
-        fastest_win: best(conn, hero_id, None, &FASTEST_WIN).await?,
+        hero_damage: best(conn, scope, &MOST_HERO_DAMAGE).await?,
+        siege_damage: best(conn, scope, &MOST_SIEGE_DAMAGE).await?,
+        healing: best(conn, scope, &MOST_HEALING).await?,
+        damage_taken: best(conn, scope, &MOST_DAMAGE_TAKEN).await?,
+        xp: best(conn, scope, &MOST_XP).await?,
+        takedowns: best(conn, scope, &MOST_TAKEDOWNS).await?,
+        fastest_win: best(conn, scope, &FASTEST_WIN).await?,
         fewest_deaths_win,
-        win_streak: win_streak(conn, hero_id, None).await?,
+        win_streak: win_streak(conn, scope).await?,
     })
 }
 
@@ -339,25 +302,23 @@ pub async fn profile_bests(
     conn: &mut SqliteConnection,
     scope: ScoreScope,
 ) -> sqlx::Result<ProfileBests> {
-    let modes = Some(profile_score::modes(scope));
+    let scope = Scope::of(scope);
 
     Ok(ProfileBests {
-        hero_damage: best(conn, None, modes, &MOST_HERO_DAMAGE).await?,
-        siege_damage: best(conn, None, modes, &MOST_SIEGE_DAMAGE).await?,
-        healing: best(conn, None, modes, &MOST_HEALER_HEALING).await?,
-        win_streak: win_streak(conn, None, modes).await?,
-        fastest_win: best(conn, None, modes, &FASTEST_WIN).await?,
-        takedowns: best(conn, None, modes, &MOST_TAKEDOWNS).await?,
+        hero_damage: best(conn, scope, &MOST_HERO_DAMAGE).await?,
+        siege_damage: best(conn, scope, &MOST_SIEGE_DAMAGE).await?,
+        healing: best(conn, scope, &MOST_HEALER_HEALING).await?,
+        win_streak: win_streak(conn, scope).await?,
+        fastest_win: best(conn, scope, &FASTEST_WIN).await?,
+        takedowns: best(conn, scope, &MOST_TAKEDOWNS).await?,
     })
 }
 
-/// Returns the owner's game on `hero_id`, or on any hero when it is `None`, in `modes`
-/// when given, with the best positive value, or the best non-negative one when zero counts. Ties go to the
-/// latest game.
+/// Returns the owner's game in `scope` with the best positive value, or the best
+/// non-negative one when zero counts. Ties go to the latest game.
 async fn best(
     conn: &mut SqliteConnection,
-    hero_id: Option<i64>,
-    modes: Option<&[Mode]>,
+    scope: Scope,
     by: &BestBy,
 ) -> sqlx::Result<Option<HeroBest>> {
     let BestBy {
@@ -367,25 +328,21 @@ async fn best(
         zero,
     } = by;
     // Across heroes, the game names its hero.
-    let (hero, heroes) = match hero_id {
-        Some(_) => ("", ""),
-        None => (
+    let (hero, heroes) = if scope.spans_heroes() {
+        (
             ", h.name AS hero",
             " JOIN heroes h ON h.id = r.owner_hero_id",
-        ),
+        )
+    } else {
+        ("", "")
     };
 
-    let mut query = owner_games(
-        &format!(
-            "SELECT r.id AS replay_id, CAST({value} AS REAL) AS value{hero},
-                 COALESCE(m.name, r.map) AS map, r.timestamp"
-        ),
-        hero_id,
-        modes,
-    );
+    let mut query = scope.owner_games(&format!(
+        "SELECT r.id AS replay_id, CAST({value} AS REAL) AS value{hero},
+             COALESCE(m.name, r.map) AS map, r.timestamp"
+    ));
     query.push(format!(
-        " JOIN games_players orp
-             ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id{heroes}
+        "{heroes}
          LEFT JOIN maps m ON m.id = r.map
          WHERE {value} {} 0{condition}
          ORDER BY value {}, r.timestamp DESC, r.id DESC
@@ -396,72 +353,62 @@ async fn best(
     query.build_query_as().fetch_optional(conn).await
 }
 
-/// Returns the owner's game on `hero_id` with the most kills, with its line. Ties go
-/// to the latest game.
-async fn best_game(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Option<HeroGame>> {
+/// Returns the owner's game in `scope` with the most kills, with its line. Ties go to
+/// the latest game.
+async fn best_game(conn: &mut SqliteConnection, scope: Scope) -> sqlx::Result<Option<HeroGame>> {
     let value = "orp.kills";
     let tail = format!(
         " WHERE {value} > 0
          ORDER BY {value} DESC, r.timestamp DESC, r.id DESC
          LIMIT 1",
     );
-    hero_game(conn, hero_id, &tail).await
+    hero_game(conn, scope, &tail).await
 }
 
-/// Returns the owner's latest game on `hero_id`, with its line.
-async fn last_game(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Option<HeroGame>> {
+/// Returns the owner's latest game in `scope`, with its line.
+async fn last_game(conn: &mut SqliteConnection, scope: Scope) -> sqlx::Result<Option<HeroGame>> {
     hero_game(
         conn,
-        hero_id,
+        scope,
         " ORDER BY r.timestamp DESC, r.id DESC
          LIMIT 1",
     )
     .await
 }
 
-/// Returns the first of the owner's games on `hero_id` picked by `tail`, a `WHERE`
-/// and `ORDER BY` over `r`, `orp` and `m`.
+/// Returns the first of the owner's games in `scope` picked by `tail`, a `WHERE` and
+/// `ORDER BY` over `r`, `orp` and `m`.
 async fn hero_game(
     conn: &mut SqliteConnection,
-    hero_id: i64,
+    scope: Scope,
     tail: &str,
 ) -> sqlx::Result<Option<HeroGame>> {
-    let mut query = hero_games(
+    let mut query = scope.owner_games(
         "SELECT r.id AS replay_id, COALESCE(m.name, r.map) AS map, m.loading_screen,
              r.timestamp, r.duration, r.owner_win,
              COALESCE(orp.kills, 0) AS kills,
              COALESCE(orp.deaths, 0) AS deaths,
              COALESCE(orp.assists, 0) AS assists,
              COALESCE(orp.hero_damage, 0) AS hero_damage",
-        hero_id,
     );
-    query
-        .push(
-            " JOIN games_players orp
-                 ON orp.game_id = r.game_id AND orp.player_id = r.owner_player_id
-             LEFT JOIN maps m ON m.id = r.map",
-        )
-        .push(tail);
+    query.push(" LEFT JOIN maps m ON m.id = r.map").push(tail);
     query.build_query_as().fetch_optional(conn).await
 }
 
 /// Returns the owner's results per game length, split at [`LENGTH_CUTS`].
-async fn lengths(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<GameLength>> {
+async fn lengths(conn: &mut SqliteConnection, scope: Scope) -> sqlx::Result<Vec<GameLength>> {
     let cases: String = LENGTH_CUTS
         .iter()
         .enumerate()
         .map(|(index, cut)| format!(" WHEN r.duration < {cut} THEN {index}"))
         .collect();
-    let mut query = hero_games(
-        &format!(
-            "SELECT CASE{cases} ELSE {} END AS bucket,
-                 COUNT(*),
-                 COALESCE(SUM(r.owner_win = 1), 0),
-                 COALESCE(SUM(r.owner_win = 0), 0)",
-            LENGTH_CUTS.len(),
-        ),
-        hero_id,
-    );
+    let mut query = scope.owner_games(&format!(
+        "SELECT CASE{cases} ELSE {} END AS bucket,
+             COUNT(*),
+             COALESCE(SUM(r.owner_win = 1), 0),
+             COALESCE(SUM(r.owner_win = 0), 0)",
+        LENGTH_CUTS.len(),
+    ));
     query.push(" GROUP BY bucket");
     let rows: Vec<(i64, i64, i64, i64)> = query.build_query_as().fetch_all(conn).await?;
 
@@ -482,14 +429,9 @@ async fn lengths(conn: &mut SqliteConnection, hero_id: i64) -> sqlx::Result<Vec<
         .collect())
 }
 
-/// Returns the owner's longest win streak on `hero_id`, or across every hero when it is
-/// `None`, in `modes` when given.
-async fn win_streak(
-    conn: &mut SqliteConnection,
-    hero_id: Option<i64>,
-    modes: Option<&[Mode]>,
-) -> sqlx::Result<Option<WinStreak>> {
-    let mut query = owner_games("SELECT r.owner_win, r.timestamp", hero_id, modes);
+/// Returns the owner's longest win streak in `scope`.
+async fn win_streak(conn: &mut SqliteConnection, scope: Scope) -> sqlx::Result<Option<WinStreak>> {
+    let mut query = scope.owner_games("SELECT r.owner_win, r.timestamp");
     query.push(" ORDER BY r.timestamp, r.id");
     let results: Vec<(Option<bool>, DateTime<Utc>)> =
         query.build_query_as().fetch_all(conn).await?;
@@ -531,10 +473,10 @@ mod tests {
 
     use super::*;
     use crate::db::replays::test_utils::{hero_game, insert_bundle};
-    use crate::db::test_utils::pool;
+    use crate::db::test_utils::{pool, seeded_pool};
     use crate::types::hero::Hero;
     use crate::types::player::Player;
-    use crate::types::replay::{NewReplayBundle, NewReplayPlayer, NewScore, NewTalent};
+    use crate::types::replay::{Mode, NewReplayBundle, NewReplayPlayer, NewScore, NewTalent};
 
     fn talent(tier: i64, slug: &str) -> NewTalent {
         NewTalent {
@@ -803,7 +745,7 @@ mod tests {
 
     #[tokio::test]
     async fn finds_the_owners_bests_across_heroes() {
-        let pool = pool().await;
+        let pool = seeded_pool().await;
 
         let mut a = hero_game("a", 100, Mode::QuickMatch, "braxis_holdout", "Wizard", true);
         a.replay_players[0].score = NewScore {
@@ -829,10 +771,6 @@ mod tests {
         for game in [a, b, c] {
             insert_bundle(&pool, game).await.unwrap();
         }
-        sqlx::query("UPDATE heroes SET role = 'healer' WHERE slug = 'Tyrande'")
-            .execute(&pool)
-            .await
-            .unwrap();
         let a = replay_id(&pool, "a").await;
         let b = replay_id(&pool, "b").await;
 
@@ -850,7 +788,7 @@ mod tests {
             best(&bests.hero_damage),
             Some((a, 5000.0, "braxis_holdout"))
         );
-        assert_eq!(hero(&bests.hero_damage).as_deref(), Some("Wizard"));
+        assert_eq!(hero(&bests.hero_damage).as_deref(), Some("Li-Ming"));
 
         assert_eq!(best(&bests.healing), Some((b, 4000.0, "cursed_hollow")));
         assert_eq!(best(&bests.fastest_win), Some((b, 600.0, "cursed_hollow")));
