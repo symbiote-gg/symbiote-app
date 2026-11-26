@@ -10,8 +10,20 @@ and this project adheres to
 
 ### Added
 
-- Add the Symbiote score to the profile page, with a score card, a score over
-  time card and a score by hero card.
+- Add a random winning build to the hero page, with a mode filter in the hero
+  page header.
+- Add a most played with card to the profile page, with a mode filter in the
+  profile header.
+- Add a copy hero build button to the replay scoreboard.
+- Add a tray icon, keeping the app watching for replays with its window closed.
+- Show a notification dot on the tray and window icons when new replays wait to
+  be viewed.
+- Add a session card to the homepage, with the bests beaten in the session.
+- Add a score chart to the hero page.
+- Add career bests, recent form, party size and roles cards to the profile page.
+- Add empty states to the replays lists and the heroes page.
+- Add the Symbiote score to the profile page, with a score card, including the
+  score over time, and a score by hero card.
 - Add a career header to the profile page.
 - Show the Symbiote score in the hero page header.
 - Add skeleton loadings to the hero, replay and profile pages.
@@ -69,6 +81,9 @@ and this project adheres to
 
 ### Changed
 
+- Replace the homepage profile and heroes cards with the session card.
+- Move the score over time chart inside the profile score card.
+- Improve the profile page layout.
 - Replace the battleground images with minimap SVGs.
 - Redesign the navigation bar.
 - Redesign the hero cards, making them less noisy.
@@ -102,12 +117,11 @@ and this project adheres to
 - Use a dedicated color for quest talents.
 - Parse fewer replays at once during a bulk ingest, keeping the CPU usage low.
 - Clarify the duel range label in the timeline popover.
-- Redesign the homepage profile card, showing the recent record in win and loss
-  colors and the main role with its icon.
 - Reduce the pages spacings.
 
 ### Fixed
 
+- Fix the card header filters on small screens.
 - Fix the hero card animation issues.
 - Fix the recent replay card not updating when watched replays are ingested.
 - Fix missing icons for a few older talents.
