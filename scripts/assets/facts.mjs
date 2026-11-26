@@ -78,6 +78,7 @@ export const talentFacts = (heroes, fact) =>
                 talents.map((talent) => ({
                     hero_id: heroId,
                     tier: index + 1,
+                    sort: talent.sort,
                     ...fact(talent),
                 })),
             ),
@@ -104,9 +105,18 @@ export function mergeFacts(versions) {
         ).values(),
     ];
 
+    const talentKey = (talent) => `${talent.hero_id}|${talent.id}`;
+    const current = new Set(versions.at(-1).talents.map(talentKey));
+
+    // A removed talent's position in its tier now belongs to another talent,
+    // so a build made of it would pick the wrong one in game.
+    const talents = merge("talents", talentKey).map((talent) =>
+        current.has(talentKey(talent)) ? talent : { ...talent, sort: null },
+    );
+
     return {
         heroes: merge("heroes", (hero) => hero.id),
-        talents: merge("talents", (talent) => `${talent.hero_id}|${talent.id}`),
+        talents,
         awards: merge("awards", (award) => award.id),
         maps: merge("maps", (map) => map.id),
     };

@@ -94,8 +94,8 @@ pub async fn get_detail(
     .await?;
 
     let talents = sqlx::query_as::<_, PlayerTalentRow>(
-        "SELECT rpt.player_id, rpt.tier, rpt.talent_id, t.slug, rpt.gameloop, t.name,
-             t.description, t.icon
+        "SELECT rpt.player_id, rpt.tier, rpt.talent_id, t.slug, rpt.gameloop, t.sort,
+             t.name, t.description, t.icon
          FROM games_players_talents rpt
          JOIN talents t ON t.id = rpt.talent_id
          WHERE rpt.game_id = (SELECT game_id FROM replays WHERE id = ?)

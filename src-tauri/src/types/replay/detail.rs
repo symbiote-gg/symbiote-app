@@ -13,6 +13,8 @@ pub struct TalentPick {
     pub talent_id: i64,
     pub slug: String,
     pub gameloop: i64,
+    /// Position within the tier, 1-based; unknown for talents missing from the catalogue.
+    pub sort: Option<i64>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub icon: Option<String>,

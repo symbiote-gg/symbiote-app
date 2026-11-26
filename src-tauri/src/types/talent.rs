@@ -10,6 +10,8 @@ pub struct TalentFact {
     #[serde(rename = "hero_id")]
     pub hero_slug: String,
     pub tier: i64,
+    /// Position within the tier in the current game version; none once removed from it.
+    pub sort: Option<i64>,
     pub name: String,
     pub description: Option<String>,
     pub icon: Option<String>,

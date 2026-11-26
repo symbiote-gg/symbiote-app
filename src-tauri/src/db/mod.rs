@@ -147,6 +147,7 @@ mod tests {
             slug: "abathur_mastery_pressurized_glands".to_owned(),
             hero_slug: "Abathur".to_owned(),
             tier: 1,
+            sort: Some(1),
             name: name.to_owned(),
             description: None,
             icon: None,

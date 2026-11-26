@@ -575,6 +575,8 @@
         "upvotes": "Upvotes",
         "party": "In party with {members}",
         "talents": "Talents",
+        "copyBuild": "Copy build",
+        "buildCopied": "Copied",
         "timeline": {
             "title": "Timeline",
             "subtitle": "The whole game, beat by beat: fights, objectives, structures and camps for both teams. The level row shows which team hit each talent tier first, and by how much.",

@@ -24,6 +24,18 @@
     @apply size-5;
 }
 
+.iconSm {
+    @apply rounded-md p-1.5;
+}
+
+.iconSm svg {
+    @apply size-4;
+}
+
+.ghost {
+    @apply text-fg-faint hover:bg-tile-hover hover:text-fg disabled:hover:bg-transparent disabled:hover:text-fg-faint;
+}
+
 .primary {
     @apply bg-primary text-primary-ink hover:brightness-110 disabled:hover:brightness-100;
 }

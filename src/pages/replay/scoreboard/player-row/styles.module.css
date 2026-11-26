@@ -96,6 +96,10 @@
     @apply size-9;
 }
 
+.icons .copied {
+    @apply bg-win/15 text-win hover:bg-win/15 hover:text-win;
+}
+
 .emptySlot {
     @apply size-9 shrink-0 rounded-md outline-2 outline-line outline-dashed;
 }

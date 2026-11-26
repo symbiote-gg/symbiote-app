@@ -14,6 +14,7 @@ CREATE TABLE "talents" (
 	"hero_id" INTEGER NOT NULL,
 	"slug" TEXT NOT NULL CHECK (length("slug") BETWEEN 1 AND 96),
 	"tier" INTEGER NOT NULL CHECK ("tier" BETWEEN 1 AND 7),
+	"sort" INTEGER CHECK ("sort" BETWEEN 1 AND 9),
 	"name" TEXT CHECK (length("name") BETWEEN 1 AND 64),
 	"description" TEXT CHECK (length("description") BETWEEN 1 AND 2048),
 	"icon" TEXT CHECK (length("icon") BETWEEN 1 AND 128),

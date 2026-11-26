@@ -1,5 +1,7 @@
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import classNames from "classnames";
-import { CircleChevronUp, UserRoundGroup } from "lucide-react";
+import { Check, CircleChevronUp, Copy, UserRoundGroup } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
@@ -11,13 +13,14 @@ import {
     TalentTooltip,
 } from "@/components";
 import { useFormatStat } from "@/hooks/useFormatStat";
-import { Meter, Tooltip, Typography, sideClasses } from "@/ui";
-import { TIER_LEVELS } from "@/utils/talents";
+import { Button, Meter, Tooltip, Typography, sideClasses } from "@/ui";
+import { TIER_LEVELS, buildCode } from "@/utils/talents";
 import { STATS, type Stat } from "../stats";
 
 import styles from "./styles.module.css";
 
 const TIERS = [1, 2, 3, 4, 5, 6, 7];
+const COPIED_MS = 1500;
 const PARTY_COLORS = [
     styles.party1,
     styles.party2,
@@ -44,6 +47,24 @@ export function PlayerRow({
 }: PlayerRowProps) {
     const t = useTranslations("replay");
     const { compact } = useFormatStat();
+    const [copied, setCopied] = useState(false);
+
+    const build = buildCode(player.heroName, player.talents);
+
+    useEffect(() => {
+        if (!copied) return;
+
+        const timeout = setTimeout(() => setCopied(false), COPIED_MS);
+
+        return () => clearTimeout(timeout);
+    }, [copied]);
+
+    const onCopyBuild = async () => {
+        if (build === null) return;
+
+        await writeText(build);
+        setCopied(true);
+    };
 
     return (
         <div
@@ -134,6 +155,21 @@ export function PlayerRow({
                         </TalentTooltip>
                     );
                 })}
+                {build !== null && (
+                    <Tooltip content={t(copied ? "buildCopied" : "copyBuild")}>
+                        <Button
+                            variant="ghost"
+                            size="iconSm"
+                            aria-label={t("copyBuild")}
+                            onClick={onCopyBuild}
+                            className={classNames({
+                                [styles.copied]: copied,
+                            })}
+                        >
+                            {copied ? <Check /> : <Copy />}
+                        </Button>
+                    </Tooltip>
+                )}
             </span>
             <Typography
                 size="sm"

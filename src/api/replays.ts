@@ -83,6 +83,7 @@ export type TalentPick = {
     talentId: number;
     slug: string;
     gameloop: number;
+    sort: number | null;
     name: string | null;
     description: string | null;
     icon: string | null;

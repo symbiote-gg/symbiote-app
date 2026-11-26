@@ -82,6 +82,7 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .setup(|app| {
             let started = std::time::Instant::now();
             let pool = tauri::async_runtime::block_on(db::init(app.handle()))?;
