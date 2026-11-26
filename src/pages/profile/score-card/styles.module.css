@@ -22,6 +22,26 @@
     @apply w-full;
 }
 
+.historySummary {
+    @apply flex w-full cursor-pointer items-center justify-between gap-4 px-gutter py-3 text-left transition-colors hover:bg-row-hover;
+}
+
+.historySummary:focus-visible {
+    @apply outline-3 -outline-offset-3 outline-primary-text;
+}
+
+.chevron {
+    @apply text-fg-muted transition-transform;
+}
+
+.historySummary[aria-expanded="true"] .chevron {
+    @apply rotate-180;
+}
+
+.historyBody {
+    @apply px-gutter pb-6;
+}
+
 .live {
     @apply sr-only;
 }

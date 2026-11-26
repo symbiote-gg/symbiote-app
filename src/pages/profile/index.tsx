@@ -10,7 +10,6 @@ import { RecentForm } from "./recent-form";
 import { Roles } from "./roles";
 import { ScoreCard } from "./score-card";
 import { ScoreHeroes } from "./score-heroes";
-import { ScoreHistory } from "./score-history";
 
 import styles from "./styles.module.css";
 
@@ -30,7 +29,6 @@ export function Profile() {
                     <PartySize scope={scope} />
                 </div>
             </div>
-            <ScoreHistory scope={scope} />
             <div className={styles.grid}>
                 <div className={styles.wide}>
                     <RecentForm scope={scope} />

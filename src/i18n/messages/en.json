@@ -196,7 +196,7 @@
             },
             "history": {
                 "title": "Score over time",
-                "subtitle": "Your score over the last {window, plural, one {# game} other {# games}}, after each game. Past points can shift as new replays add players to rank against.",
+                "subtitle": "Your score after each game, rated on the {window, plural, one {# game} other {# games}} up to it. Past points can shift as new replays add players to rank against.",
                 "games": "{count, plural, one {# game} other {# games}}",
                 "restDay": "Rest day",
                 "dayLabel": "{date}: score {score}",
@@ -310,7 +310,7 @@
             "smallPool": "{count, plural, =0 {Small pool, vs the role only} one {Small pool, vs # {hero} player} other {Small pool, vs # {hero} players}}"
         },
         "scoreHistory": {
-            "subtitle": "Your {hero} score over the last {window, plural, one {# game} other {# games}}, after each game. Past points can shift as new replays add players to rank against."
+            "subtitle": "Your {hero} score after each game, rated on the {window, plural, one {# game} other {# games}} up to it. Past points can shift as new replays add players to rank against."
         },
         "trend": {
             "title": "Win rate over time",

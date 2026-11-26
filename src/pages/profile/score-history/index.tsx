@@ -1,24 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
 import { History as HistoryIcon } from "lucide-react";
 import { type MouseEvent, useId, useState } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
-import { profileScoreQuery } from "@/api/queries";
-import type { ScorePoint, ScoreScope } from "@/api/stats";
+import type { ScorePoint } from "@/api/stats";
 import {
     Card,
     CardHeader,
     ChipButton,
     ChipDivider,
     ChipGroup,
-    ErrorMessage,
     Typography,
 } from "@/ui";
 import { usePlayedDate } from "@/utils/dates";
 import { TIERS, rankTone, tierIndex, tierRange } from "../score-card/tiers";
 import { RECENT, type Range, type ScoreDay, scoreDays } from "./days";
 import { Hits } from "./hits";
-import { HistorySkeleton } from "./skeleton";
 import { Ticks } from "./ticks";
 
 import styles from "./styles.module.css";
@@ -101,26 +97,6 @@ function span(points: ScorePoint[], range: Range) {
 
 const tierText = (score: number) => rankTone(TIERS[tierIndex(score)].rank);
 
-export interface ScoreHistoryProps {
-    scope: ScoreScope;
-}
-
-export function ScoreHistory({ scope }: ScoreHistoryProps) {
-    const t = useTranslations("profile.score.history");
-    const { data, error } = useQuery(profileScoreQuery(scope));
-
-    if (error) return <ErrorMessage error={error} />;
-    if (!data) return <HistorySkeleton />;
-    if (data.career === null) return null;
-
-    return (
-        <ScoreHistoryCard
-            points={data.history}
-            subtitle={t("subtitle", { window: data.window })}
-        />
-    );
-}
-
 export interface ScoreHistoryCardProps {
     points: ScorePoint[];
     subtitle: string;
@@ -128,13 +104,64 @@ export interface ScoreHistoryCardProps {
 
 export function ScoreHistoryCard({ points, subtitle }: ScoreHistoryCardProps) {
     const t = useTranslations("profile.score");
-    const format = useFormatter();
-    const playedDate = usePlayedDate();
-    const id = useId();
+    const history = useHistory(points);
+
+    return (
+        <Card>
+            <CardHeader
+                size="sm"
+                icon={HistoryIcon}
+                title={t("history.title")}
+                subtitle={subtitle}
+                wrap
+                action={<RangeChips history={history} />}
+            />
+            <div className={styles.body}>
+                <HistoryChart history={history} />
+            </div>
+        </Card>
+    );
+}
+
+export interface ScoreHistoryPanelProps {
+    points: ScorePoint[];
+    subtitle: string;
+}
+
+/** The history without its card, for a section inside another one. */
+export function ScoreHistoryPanel({
+    points,
+    subtitle,
+}: ScoreHistoryPanelProps) {
+    const history = useHistory(points);
+
+    return (
+        <div className={styles.section}>
+            <div className={styles.range}>
+                <Typography size="sm" variant="tertiary">
+                    {subtitle}
+                </Typography>
+                <RangeChips history={history} />
+            </div>
+            <HistoryChart history={history} />
+        </div>
+    );
+}
+
+type History = ReturnType<typeof useHistory>;
+
+function useHistory(points: ScorePoint[]) {
     const [range, setRange] = useState<Range>("all");
 
     const axis = span(points, range);
     const shown = points.filter((point) => time(point) >= axis.start);
+
+    return { points, range, setRange, axis, shown };
+}
+
+function RangeChips({ history }: { history: History }) {
+    const t = useTranslations("profile.score.history.range");
+    const { points, range, setRange } = history;
 
     const onRangeClick = (e: MouseEvent<HTMLButtonElement>) =>
         setRange(e.currentTarget.value as Range);
@@ -150,14 +177,30 @@ export function ScoreHistoryCard({ points, subtitle }: ScoreHistoryCardProps) {
                 value={value}
                 onClick={onRangeClick}
             >
-                {t(`history.range.${value}`)}
+                {t(value)}
             </ChipButton>
         );
     };
 
+    return (
+        <ChipGroup label={t("label")}>
+            {RECENT.map(chip)}
+            <ChipDivider />
+            {chip("all")}
+        </ChipGroup>
+    );
+}
+
+function HistoryChart({ history }: { history: History }) {
+    const t = useTranslations("profile.score.history");
+    const format = useFormatter();
+    const playedDate = usePlayedDate();
+    const id = useId();
+    const { points, axis, shown } = history;
+
     const days = scoreDays(points, axis.start, axis.end);
     const dayLabels = days.map((day) =>
-        t("history.dayLabel", {
+        t("dayLabel", {
             date: playedDate(day.day.format("YYYY-MM-DD")),
             score: day.score,
         }),
@@ -171,32 +214,14 @@ export function ScoreHistoryCard({ points, subtitle }: ScoreHistoryCardProps) {
         });
 
     return (
-        <Card>
-            <CardHeader
-                size="sm"
-                icon={HistoryIcon}
-                title={t("history.title")}
-                subtitle={subtitle}
-                wrap
-                action={
-                    <ChipGroup label={t("history.range.label")}>
-                        {RECENT.map(chip)}
-                        <ChipDivider />
-                        {chip("all")}
-                    </ChipGroup>
-                }
-            />
-            <div className={styles.body}>
-                <Chart
-                    id={id}
-                    points={shown}
-                    days={days}
-                    dayLabels={dayLabels}
-                    {...axis}
-                    formatDate={formatDate}
-                />
-            </div>
-        </Card>
+        <Chart
+            id={id}
+            points={shown}
+            days={days}
+            dayLabels={dayLabels}
+            {...axis}
+            formatDate={formatDate}
+        />
     );
 }
 
