@@ -12,7 +12,7 @@ use commands::settings::{
 use commands::stats::{
     get_most_played_heroes, get_party_sizes, get_played_maps, get_played_modes, get_profile_bests,
     get_profile_career, get_profile_score, get_recent_form, get_role_records, get_session_bests,
-    get_session_record,
+    get_session_record, get_teammates,
 };
 use retention::EventRetention;
 use tauri::webview::PageLoadEvent;
@@ -137,6 +137,7 @@ pub fn run() {
             get_profile_score,
             get_recent_form,
             get_role_records,
+            get_teammates,
             get_session_record,
             get_session_bests,
             get_most_played_heroes,

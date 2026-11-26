@@ -10,7 +10,6 @@ import {
     ChipDivider,
     ChipGroup,
     Skeleton,
-    Stat,
     Typography,
 } from "@/ui";
 import { axis } from "../score-heroes/swarm";
@@ -39,12 +38,6 @@ export function HistorySkeleton() {
     const t = useTranslations("profile.score");
     const id = useId();
 
-    const labels = [
-        t("recent", { count: RECENT_GAMES }),
-        t("history.best"),
-        t("history.lowest"),
-    ];
-
     const chip = (value: Range) => (
         <ChipButton
             key={value}
@@ -63,21 +56,13 @@ export function HistorySkeleton() {
                 icon={HistoryIcon}
                 title={t("history.title")}
                 subtitle={t("history.subtitle", { window: RECENT_GAMES })}
+                wrap
                 action={
-                    <div className={styles.actions}>
-                        <dl className={styles.stats}>
-                            {labels.map((label) => (
-                                <Stat key={label} label={label}>
-                                    <Skeleton className={styles.statBar} />
-                                </Stat>
-                            ))}
-                        </dl>
-                        <ChipGroup label={t("history.range.label")}>
-                            {RECENT.map(chip)}
-                            <ChipDivider />
-                            {chip("all")}
-                        </ChipGroup>
-                    </div>
+                    <ChipGroup label={t("history.range.label")}>
+                        {RECENT.map(chip)}
+                        <ChipDivider />
+                        {chip("all")}
+                    </ChipGroup>
                 }
             />
             <div className={styles.body}>

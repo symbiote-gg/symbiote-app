@@ -90,6 +90,19 @@
             },
             "games": "{count, plural, one {# game} other {# games}}"
         },
+        "scope": {
+            "label": "Mode",
+            "all": "All",
+            "clear": "Clear mode filter",
+            "draft": "Draft",
+            "quickMatch": "Quick Match"
+        },
+        "players": {
+            "title": "Players",
+            "subtitle": "The players you played with most. Win rate is yours, in the games you shared.",
+            "bestDuo": "Best duo",
+            "detail": "{count, plural, one {# game} other {# games}}, mostly {hero}, last {date}"
+        },
         "roles": {
             "title": "Roles",
             "subtitle": "Win rate and games for each role you play.",
@@ -159,14 +172,6 @@
                 "quickMatch": "Unlocks in {count, plural, one {# more Quick Match game} other {# more Quick Match games}}.",
                 "thin": "Your replays don't have enough other players on your roles to compare with yet."
             },
-            "scope": {
-                "label": "Mode",
-                "all": "All",
-                "clear": "Clear mode filter",
-                "draft": "Draft",
-                "quickMatch": "Quick Match"
-            },
-            "recent": "{count, plural, one {Last game} other {Last # games}}",
             "outOf": "of 100",
             "label": "Symbiote score {score} of 100, {rank}, {progress}",
             "notEnough": "Not enough games",
@@ -192,8 +197,6 @@
             "history": {
                 "title": "Score over time",
                 "subtitle": "Your score over the last {window, plural, one {# game} other {# games}}, after each game. Past points can shift as new replays add players to rank against.",
-                "best": "Best",
-                "lowest": "Lowest",
                 "games": "{count, plural, one {# game} other {# games}}",
                 "restDay": "Rest day",
                 "dayLabel": "{date}: score {score}",

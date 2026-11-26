@@ -4,24 +4,6 @@
     @apply px-gutter pb-6;
 }
 
-/* The stats, then the range, wrapping under the title when the card is narrow. */
-.actions {
-    @apply flex flex-wrap items-center justify-end gap-x-8 gap-y-4;
-}
-
-.stats {
-    @apply flex flex-wrap gap-x-8 gap-y-4;
-}
-
-/* Fits "100 May 2026", so a new range doesn't resize the stats and shift the row. */
-.dated {
-    @apply min-w-26;
-}
-
-.stats .value {
-    color: var(--rank-text);
-}
-
 .chart {
     @apply grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)] grid-rows-[16.5rem_auto] gap-x-4 gap-y-3;
 }
@@ -99,10 +81,6 @@
 
 .labelBar {
     @apply w-9;
-}
-
-.statBar {
-    @apply w-16;
 }
 
 .hits {

@@ -5,6 +5,7 @@ import { Page } from "@/components";
 import { ProfileBests } from "./bests";
 import { ProfileHeader } from "./header";
 import { PartySize } from "./party-size";
+import { Players } from "./players";
 import { RecentForm } from "./recent-form";
 import { Roles } from "./roles";
 import { ScoreCard } from "./score-card";
@@ -18,10 +19,17 @@ export function Profile() {
 
     return (
         <Page>
-            <ProfileHeader />
+            <ProfileHeader scope={scope} onScopeChange={setScope} />
             <ProfileBests scope={scope} />
-            <PartySize scope={scope} />
-            <ScoreCard scope={scope} onScopeChange={setScope} />
+            <ScoreCard scope={scope} />
+            <div className={styles.grid}>
+                <div className={styles.narrow}>
+                    <Players scope={scope} />
+                </div>
+                <div className={styles.wide}>
+                    <PartySize scope={scope} />
+                </div>
+            </div>
             <ScoreHistory scope={scope} />
             <div className={styles.grid}>
                 <div className={styles.wide}>

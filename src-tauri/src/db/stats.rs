@@ -11,13 +11,14 @@ use crate::types::replay::Mode;
 use crate::types::stats::{
     HeroStat, MapStat, MostPlayedHeroes, PartySize, ProfileBests, ProfileCareer, ProfileScore,
     RecentForm, RoleRecord, ScoreScope, ScoredHero, SessionBest, SessionGame, SessionHero,
-    SessionRecord,
+    SessionRecord, Teammate,
 };
 
-/// Sums up the owner's career across every hero, with who they play as.
+/// Sums up the owner's career in the scope's modes across every hero, with who they
+/// play as.
 ///
 /// All the figures are read from the same snapshot, so they agree with each other.
-pub async fn profile_career(pool: &SqlitePool) -> sqlx::Result<ProfileCareer> {
+pub async fn profile_career(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<ProfileCareer> {
     let mut tx = pool.begin().await?;
 
     // The owner can play on several accounts; the header names the one with the most
@@ -34,9 +35,10 @@ pub async fn profile_career(pool: &SqlitePool) -> sqlx::Result<ProfileCareer> {
     .await?;
     let (name, account_level) = identity.unzip();
 
-    let totals = hero_stats::totals(&mut tx, Scope::career()).await?;
-    let mvps = mvps(&mut tx).await?;
-    let main_role = main_role(&mut tx).await?;
+    let scope = Scope::of(scope);
+    let totals = hero_stats::totals(&mut tx, scope).await?;
+    let mvps = mvps(&mut tx, scope).await?;
+    let main_role = main_role(&mut tx, scope).await?;
     tx.commit().await?;
 
     Ok(ProfileCareer {
@@ -58,8 +60,8 @@ pub async fn profile_bests(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result
     Ok(bests)
 }
 
-async fn mvps(conn: &mut SqliteConnection) -> sqlx::Result<i64> {
-    let mut query = Scope::career().owner_games("SELECT COUNT(*)");
+async fn mvps(conn: &mut SqliteConnection, scope: Scope) -> sqlx::Result<i64> {
+    let mut query = scope.owner_games("SELECT COUNT(*)");
     query.push(
         " JOIN games_players_awards a
              ON a.game_id = r.game_id AND a.player_id = r.owner_player_id
@@ -69,8 +71,8 @@ async fn mvps(conn: &mut SqliteConnection) -> sqlx::Result<i64> {
 }
 
 /// The role the owner played the most games as.
-async fn main_role(conn: &mut SqliteConnection) -> sqlx::Result<Option<HeroRole>> {
-    let mut query = Scope::career().owner_games("SELECT h.role");
+async fn main_role(conn: &mut SqliteConnection, scope: Scope) -> sqlx::Result<Option<HeroRole>> {
+    let mut query = scope.owner_games("SELECT h.role");
     query.push(
         " JOIN heroes h ON h.id = r.owner_hero_id
          WHERE h.role IS NOT NULL
@@ -414,6 +416,64 @@ pub async fn role_records(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<
     Ok(records)
 }
 
+const TEAMMATES_LIMIT: i64 = 3;
+
+/// Returns the players the owner shared the most games with on their team in the
+/// scope's modes, with the owner's record in those games.
+pub async fn teammates(pool: &SqlitePool, scope: ScoreScope) -> sqlx::Result<Vec<Teammate>> {
+    // AI share a handful of toons across every game and the owner's other accounts
+    // are the owner, so neither is a teammate. A game recorded by two of the owner's
+    // accounts counts once.
+    let mut query = Scope::of(scope).owner_games(
+        "WITH mates AS (
+             SELECT gp.game_id, gp.player_id, gp.hero_id, r.owner_win, r.timestamp,
+                 ROW_NUMBER() OVER (PARTITION BY gp.game_id, gp.player_id ORDER BY r.id) AS copy",
+    );
+    query
+        .push(
+            " JOIN games_players gp
+                 ON gp.game_id = r.game_id AND gp.team = r.owner_team
+                     AND gp.player_id != r.owner_player_id
+             JOIN players p ON p.id = gp.player_id
+             WHERE p.toon NOT LIKE 'ai-%'
+                 AND gp.player_id NOT IN (SELECT owner_player_id FROM replays)
+         ),
+         shared AS (SELECT * FROM mates WHERE copy = 1),
+         ranked AS (
+             SELECT player_id,
+                 COUNT(*) AS games,
+                 COALESCE(SUM(owner_win = 1), 0) AS wins,
+                 COALESCE(SUM(owner_win = 0), 0) AS losses,
+                 MAX(timestamp) AS last_played,
+                 ROW_NUMBER() OVER (
+                     ORDER BY COUNT(*) DESC, MAX(timestamp) DESC, player_id
+                 ) AS rank
+             FROM shared
+             GROUP BY player_id
+         ),
+         picks AS (
+             SELECT player_id, hero_id,
+                 ROW_NUMBER() OVER (
+                     PARTITION BY player_id
+                     ORDER BY COUNT(*) DESC, MAX(timestamp) DESC
+                 ) AS pick
+             FROM shared
+             GROUP BY player_id, hero_id
+         )
+         SELECT k.player_id, p.name, k.games, k.wins, k.losses, k.last_played,
+             h.name AS hero_name, h.portrait AS hero_portrait, h.accent AS hero_accent
+         FROM ranked k
+         JOIN picks c ON c.player_id = k.player_id AND c.pick = 1
+         JOIN players p ON p.id = k.player_id
+         JOIN heroes h ON h.id = c.hero_id
+         WHERE k.rank <= ",
+        )
+        .push_bind(TEAMMATES_LIMIT)
+        .push(" ORDER BY k.rank");
+
+    query.build_query_as::<Teammate>().fetch_all(pool).await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -427,7 +487,7 @@ mod tests {
     async fn profile_career_starts_empty() {
         let pool = pool().await;
 
-        let career = profile_career(&pool).await.unwrap();
+        let career = profile_career(&pool, ScoreScope::All).await.unwrap();
         assert_eq!(career.name, None);
         assert_eq!(career.account_level, None);
         assert_eq!(career.totals.games, 0);
@@ -474,7 +534,7 @@ mod tests {
             insert_bundle(&pool, game).await.unwrap();
         }
 
-        let career = profile_career(&pool).await.unwrap();
+        let career = profile_career(&pool, ScoreScope::All).await.unwrap();
         assert_eq!(career.name.as_deref(), Some("Alt"));
         assert_eq!(career.account_level, Some(812));
         assert_eq!(
@@ -890,6 +950,7 @@ mod tests {
                 .iter()
                 .map(|role| role.games)
                 .sum();
+            let career = profile_career(&pool, scope).await.unwrap();
 
             assert_eq!(
                 (
@@ -897,8 +958,9 @@ mod tests {
                     form.all.recent_games,
                     party as usize,
                     roles as usize,
+                    career.totals.games as usize,
                 ),
-                (expected, expected, expected, expected),
+                (expected, expected, expected, expected, expected),
                 "{scope:?}",
             );
         }
@@ -923,5 +985,67 @@ mod tests {
         assert!(score.career.is_some());
         assert_eq!(score.heroes.len(), 1);
         assert!(!score.pillars.is_empty());
+    }
+
+    #[tokio::test]
+    async fn teammates_rank_by_shared_games() {
+        let pool = seeded_pool().await;
+        let game = |name: &str, timestamp, win: bool| {
+            let mut game = GameBuilder::new(name).at(timestamp).build();
+            game.replay.winner_team = Some(if win { 0 } else { 1 });
+            game
+        };
+        let rename =
+            |game: &mut crate::types::replay::NewReplayBundle, index: usize, toon: &str| {
+                game.players[index].toon = toon.to_owned();
+                game.players[index].name = toon.to_owned();
+                game.replay_players[index].toon = toon.to_owned();
+            };
+
+        let first = game("first", 1000, true);
+        let mut second = game("second", 2000, false);
+        second.replay_players[4].hero_slug = "Zeratul".to_owned();
+        let mut third = game("third", 3000, true);
+        third.replay_players[4].hero_slug = "Zeratul".to_owned();
+        rename(&mut third, 1, "ai-2");
+        rename(&mut third, 6, "rookie");
+        let aram = GameBuilder::new("aram").at(4000).mode(Mode::Aram).build();
+        // The owner's other account recorded the first game too.
+        let alt = GameBuilder::new("first-alt")
+            .at(1000)
+            .recorded_by("first", 0)
+            .build();
+
+        for game in [first, second, third, aram, alt] {
+            insert_bundle(&pool, game).await.unwrap();
+        }
+
+        let mates = teammates(&pool, ScoreScope::All).await.unwrap();
+        let rows = |players: &[Teammate]| -> Vec<_> {
+            players
+                .iter()
+                .map(|player| {
+                    (
+                        player.name.clone(),
+                        player.games,
+                        player.wins,
+                        player.losses,
+                        player.last_played.timestamp(),
+                        player.hero_name.clone(),
+                    )
+                })
+                .collect()
+        };
+
+        assert_eq!(
+            rows(&mates),
+            [
+                ("player-3".into(), 3, 2, 1, 3000, "Zeratul".into()),
+                ("player-4".into(), 3, 2, 1, 3000, "Zeratul".into()),
+                ("player-1".into(), 2, 1, 1, 2000, "Sonya".into()),
+            ]
+        );
+        // Their team, so none of the enemies.
+        assert!(mates.iter().all(|mate| mate.name != "player-5"));
     }
 }

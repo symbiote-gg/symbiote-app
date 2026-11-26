@@ -39,10 +39,7 @@ export function usePlayedAt() {
             return t("yesterday");
         }
 
-        return format.dateTime(
-            date.toDate(),
-            date.isSame(now, "year") ? DATE_FORMAT : FULL_DATE_FORMAT,
-        );
+        return formatDate(format, date);
     };
 }
 
@@ -52,6 +49,24 @@ export function usePlayedDay() {
 
 export function usePlayedDate() {
     return useDayLabel(FULL_DATE_FORMAT);
+}
+
+export function useShortDate() {
+    const format = useFormatter();
+
+    return (timestamp: string) => formatDate(format, dayjs(timestamp));
+}
+
+/** The day and month, with the year too when it isn't this one. */
+function formatDate(
+    format: ReturnType<typeof useFormatter>,
+    date: dayjs.Dayjs,
+    otherYear: typeof MONTH_FORMAT | typeof FULL_DATE_FORMAT = FULL_DATE_FORMAT,
+) {
+    return format.dateTime(
+        date.toDate(),
+        date.isSame(dayjs(), "year") ? DATE_FORMAT : otherYear,
+    );
 }
 
 function useDayLabel(otherYear: typeof MONTH_FORMAT | typeof FULL_DATE_FORMAT) {
@@ -70,10 +85,7 @@ function useDayLabel(otherYear: typeof MONTH_FORMAT | typeof FULL_DATE_FORMAT) {
             return t("yesterday");
         }
 
-        return format.dateTime(
-            date.toDate(),
-            date.isSame(now, "year") ? DATE_FORMAT : otherYear,
-        );
+        return formatDate(format, date, otherYear);
     };
 }
 

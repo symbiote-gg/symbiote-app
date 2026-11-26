@@ -123,8 +123,8 @@ export type ProfileScore = {
     history: ScorePoint[];
 };
 
-export const getProfileCareer = () =>
-    invoke<ProfileCareer>("get_profile_career");
+export const getProfileCareer = (scope: ScoreScope) =>
+    invoke<ProfileCareer>("get_profile_career", { scope });
 
 export type ScoreScope = "all" | "draft" | "quickMatch";
 
@@ -136,6 +136,21 @@ export const getPartySizes = (scope: ScoreScope) =>
 
 export const getRoleRecords = (scope: ScoreScope) =>
     invoke<RoleRecord[]>("get_role_records", { scope });
+
+export type Teammate = {
+    playerId: number;
+    name: string;
+    games: number;
+    wins: number;
+    losses: number;
+    lastPlayed: string;
+    heroName: string;
+    heroPortrait: string | null;
+    heroAccent: string | null;
+};
+
+export const getTeammates = (scope: ScoreScope) =>
+    invoke<Teammate[]>("get_teammates", { scope });
 
 export type FormAxis =
     | "heroDamage"

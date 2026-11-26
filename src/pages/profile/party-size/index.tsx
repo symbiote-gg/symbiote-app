@@ -41,7 +41,7 @@ export function PartySize({ scope }: PartySizeProps) {
 
     if (!parties) {
         return (
-            <Card>
+            <Card className={styles.root}>
                 {header}
                 <ul className={styles.tiles}>
                     {Array.from({ length: MAX_PARTY }, (_, i) => (
@@ -63,7 +63,7 @@ export function PartySize({ scope }: PartySizeProps) {
     if (parties.every((party) => party.games === 0)) return null;
 
     return (
-        <Card>
+        <Card className={styles.root}>
             {header}
             <ul className={styles.tiles}>
                 {parties.map((party) => (

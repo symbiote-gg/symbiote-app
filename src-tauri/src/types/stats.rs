@@ -65,6 +65,22 @@ pub struct RoleRecord {
     pub losses: i64,
 }
 
+/// A player the owner shared games with on their team, and the owner's record in them.
+#[derive(Debug, FromRow, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Teammate {
+    pub player_id: i64,
+    pub name: String,
+    pub games: i64,
+    pub wins: i64,
+    pub losses: i64,
+    pub last_played: DateTime<Utc>,
+    /// The hero they picked most in the shared games.
+    pub hero_name: String,
+    pub hero_portrait: Option<String>,
+    pub hero_accent: Option<String>,
+}
+
 #[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MapStat {

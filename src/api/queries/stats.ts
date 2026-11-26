@@ -13,6 +13,7 @@ import {
     getRoleRecords,
     getSessionBests,
     getSessionRecord,
+    getTeammates,
 } from "../stats";
 import { queryKeys } from "./keys";
 
@@ -26,16 +27,19 @@ export const profileScoreQuery = (scope: ScoreScope) =>
         queryFn: async () => ({ scope, ...(await getProfileScore(scope)) }),
     });
 
-export const profileCareerQuery = queryOptions({
-    queryKey: [...queryKeys.stats, "profile-career"],
-    gcTime: Infinity,
-    queryFn: getProfileCareer,
-});
+export const profileCareerQuery = (scope: ScoreScope) =>
+    queryOptions({
+        queryKey: [...queryKeys.stats, "profile-career", scope],
+        gcTime: Infinity,
+        placeholderData: keepPreviousData,
+        queryFn: () => getProfileCareer(scope),
+    });
 
 export const profileBestsQuery = (scope: ScoreScope) =>
     queryOptions({
         queryKey: [...queryKeys.stats, "profile-bests", scope],
         gcTime: Infinity,
+        placeholderData: keepPreviousData,
         queryFn: () => getProfileBests(scope),
     });
 
@@ -43,6 +47,7 @@ export const partySizesQuery = (scope: ScoreScope) =>
     queryOptions({
         queryKey: [...queryKeys.stats, "party-sizes", scope],
         gcTime: Infinity,
+        placeholderData: keepPreviousData,
         queryFn: () => getPartySizes(scope),
     });
 
@@ -50,7 +55,16 @@ export const roleRecordsQuery = (scope: ScoreScope) =>
     queryOptions({
         queryKey: [...queryKeys.stats, "roles", scope],
         gcTime: Infinity,
+        placeholderData: keepPreviousData,
         queryFn: () => getRoleRecords(scope),
+    });
+
+export const teammatesQuery = (scope: ScoreScope) =>
+    queryOptions({
+        queryKey: [...queryKeys.stats, "teammates", scope],
+        gcTime: Infinity,
+        placeholderData: keepPreviousData,
+        queryFn: () => getTeammates(scope),
     });
 
 export const recentFormQuery = (scope: ScoreScope) =>

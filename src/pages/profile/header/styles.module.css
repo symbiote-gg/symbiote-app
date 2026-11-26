@@ -73,7 +73,12 @@
 }
 
 .result {
-    @apply flex shrink-0 flex-col gap-2 @4xl/career:items-end;
+    @apply flex shrink-0 flex-col items-start gap-2 @4xl/career:items-end;
+}
+
+/* The mode filter sits apart from the figures it scopes. */
+.result .scope {
+    @apply mb-3;
 }
 
 .result .rate {

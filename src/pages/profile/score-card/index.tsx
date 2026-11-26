@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Gamepad2, Gauge } from "lucide-react";
+import { Gauge } from "lucide-react";
 import { useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -10,7 +10,6 @@ import {
     Card,
     CardHeader,
     ErrorMessage,
-    Select,
     Typography,
     rollingChunks,
 } from "@/ui";
@@ -23,16 +22,11 @@ import { type ScoreTier, TIERS, tierProgress } from "./tiers";
 
 import styles from "./styles.module.css";
 
-type ModeScope = Exclude<ScoreScope, "all">;
-
-const SCOPES: readonly ModeScope[] = ["draft", "quickMatch"];
-
 export interface ScoreCardProps {
     scope: ScoreScope;
-    onScopeChange: (scope: ScoreScope) => void;
 }
 
-export function ScoreCard({ scope, onScopeChange }: ScoreCardProps) {
+export function ScoreCard({ scope }: ScoreCardProps) {
     const t = useTranslations("profile.score");
     const [announcement, setAnnouncement] = useState("");
     const overview = useRef<HTMLDivElement>(null);
@@ -82,13 +76,6 @@ export function ScoreCard({ scope, onScopeChange }: ScoreCardProps) {
         settle(up ? TIERS[index].from : TIERS[index + 1].from - 1);
     };
 
-    const onScope = (value: ModeScope | null) => onScopeChange(value ?? "all");
-
-    const scopes = SCOPES.map((value) => ({
-        value,
-        label: t(`scope.${value}`),
-    }));
-
     const unrated = (score: NonNullable<typeof data>) =>
         score.eligibleGames < score.minGames
             ? t(`unrated.${score.scope}`, {
@@ -121,17 +108,6 @@ export function ScoreCard({ scope, onScopeChange }: ScoreCardProps) {
                               num: rollingChunks,
                           })
                         : t("subtitleEmpty")
-                }
-                action={
-                    <Select
-                        icon={<Gamepad2 />}
-                        label={t("scope.label")}
-                        options={scopes}
-                        value={scope === "all" ? null : scope}
-                        emptyLabel={t("scope.all")}
-                        clearLabel={t("scope.clear")}
-                        onChange={onScope}
-                    />
                 }
             />
             {error && <ErrorMessage error={error} />}

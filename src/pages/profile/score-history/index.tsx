@@ -12,7 +12,6 @@ import {
     ChipDivider,
     ChipGroup,
     ErrorMessage,
-    Stat,
     Typography,
 } from "@/ui";
 import { usePlayedDate } from "@/utils/dates";
@@ -100,18 +99,6 @@ function span(points: ScorePoint[], range: Range) {
     return { start, end: Math.max(end, start + DAY) };
 }
 
-/** The point with the highest score, or the lowest, the latest one on a tie. */
-function extreme(
-    points: ScorePoint[],
-    pick: (a: number, b: number) => boolean,
-) {
-    return points.reduce<ScorePoint | null>(
-        (found, point) =>
-            !found || !pick(found.score, point.score) ? point : found,
-        null,
-    );
-}
-
 const tierText = (score: number) => rankTone(TIERS[tierIndex(score)].rank);
 
 export interface ScoreHistoryProps {
@@ -129,8 +116,6 @@ export function ScoreHistory({ scope }: ScoreHistoryProps) {
     return (
         <ScoreHistoryCard
             points={data.history}
-            score={data.score}
-            games={data.games}
             subtitle={t("subtitle", { window: data.window })}
         />
     );
@@ -138,22 +123,10 @@ export function ScoreHistory({ scope }: ScoreHistoryProps) {
 
 export interface ScoreHistoryCardProps {
     points: ScorePoint[];
-    score: number | null;
-    games: number;
     subtitle: string;
 }
 
-interface StatValue {
-    score: number;
-    note: string;
-}
-
-export function ScoreHistoryCard({
-    points,
-    score,
-    games,
-    subtitle,
-}: ScoreHistoryCardProps) {
+export function ScoreHistoryCard({ points, subtitle }: ScoreHistoryCardProps) {
     const t = useTranslations("profile.score");
     const format = useFormatter();
     const playedDate = usePlayedDate();
@@ -162,8 +135,6 @@ export function ScoreHistoryCard({
 
     const axis = span(points, range);
     const shown = points.filter((point) => time(point) >= axis.start);
-    const best = extreme(shown, (found, score) => found > score);
-    const lowest = extreme(shown, (found, score) => found < score);
 
     const onRangeClick = (e: MouseEvent<HTMLButtonElement>) =>
         setRange(e.currentTarget.value as Range);
@@ -199,31 +170,6 @@ export function ScoreHistoryCard({
             year: year ? "numeric" : undefined,
         });
 
-    const stat = (
-        label: string,
-        value: StatValue | null,
-        className?: string,
-    ) => (
-        <Stat
-            label={label}
-            className={className}
-            note={value?.note}
-            style={value ? tierText(value.score) : undefined}
-            valueClassName={value ? styles.value : undefined}
-        >
-            {value?.score ?? "-"}
-        </Stat>
-    );
-
-    const dated = (point: ScorePoint | null) =>
-        point && {
-            score: point.score,
-            note: format.dateTime(new Date(point.timestamp), {
-                month: "short",
-                year: "numeric",
-            }),
-        };
-
     return (
         <Card>
             <CardHeader
@@ -231,33 +177,13 @@ export function ScoreHistoryCard({
                 icon={HistoryIcon}
                 title={t("history.title")}
                 subtitle={subtitle}
+                wrap
                 action={
-                    <div className={styles.actions}>
-                        <dl className={styles.stats}>
-                            {stat(
-                                t("recent", { count: games }),
-                                score === null
-                                    ? null
-                                    : {
-                                          score,
-                                          note: t(
-                                              `tier.${TIERS[tierIndex(score)].tier}`,
-                                          ),
-                                      },
-                            )}
-                            {stat(t("history.best"), dated(best), styles.dated)}
-                            {stat(
-                                t("history.lowest"),
-                                dated(lowest),
-                                styles.dated,
-                            )}
-                        </dl>
-                        <ChipGroup label={t("history.range.label")}>
-                            {RECENT.map(chip)}
-                            <ChipDivider />
-                            {chip("all")}
-                        </ChipGroup>
-                    </div>
+                    <ChipGroup label={t("history.range.label")}>
+                        {RECENT.map(chip)}
+                        <ChipDivider />
+                        {chip("all")}
+                    </ChipGroup>
                 }
             />
             <div className={styles.body}>

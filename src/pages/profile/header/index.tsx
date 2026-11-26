@@ -3,10 +3,12 @@ import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
 import { profileCareerQuery } from "@/api/queries";
+import type { ScoreScope } from "@/api/stats";
 import { CareerTiles, Motes, TimePanel } from "@/components";
 import { Chip, ErrorMessage, Typography, WinRate, rollingChunks } from "@/ui";
 import { isJudged, winRate } from "@/utils/hero-stats";
 import { ROLE_ICONS } from "@/utils/role-icons";
+import { ScopeSelect } from "../scope-select";
 import { Avatar } from "./avatar";
 import { ProfileHeaderSkeleton } from "./skeleton";
 
@@ -21,11 +23,16 @@ const loss = (chunks: ReactNode) => (
     <span className={styles.loss}>{chunks}</span>
 );
 
-export function ProfileHeader() {
+export interface ProfileHeaderProps {
+    scope: ScoreScope;
+    onScopeChange: (scope: ScoreScope) => void;
+}
+
+export function ProfileHeader({ scope, onScopeChange }: ProfileHeaderProps) {
     const t = useTranslations("profile.header");
     const career = useTranslations("career");
     const roles = useTranslations("roles");
-    const { data, error } = useQuery(profileCareerQuery);
+    const { data, error } = useQuery(profileCareerQuery(scope));
 
     if (error) return <ErrorMessage error={error} />;
     if (!data) return <ProfileHeaderSkeleton />;
@@ -38,7 +45,11 @@ export function ProfileHeader() {
             <Motes colors={MOTE_COLORS} className={styles.motes} />
             <div className={styles.identity}>
                 <div className={styles.player}>
-                    <Avatar name={data.name} level={data.accountLevel} />
+                    <Avatar
+                        name={data.name}
+                        level={data.accountLevel}
+                        scope={scope}
+                    />
                     <div className={styles.titles}>
                         {data.mainRole && (
                             <Chip
@@ -55,25 +66,30 @@ export function ProfileHeader() {
                         </Typography>
                     </div>
                 </div>
-                {rate !== null && (
-                    <div className={styles.result}>
-                        <Typography as="p" display className={styles.rate}>
-                            <WinRate
-                                rate={rate}
-                                judged={isJudged(data.wins, data.losses)}
-                            />
-                        </Typography>
-                        <Typography as="p" mono className={styles.record}>
-                            {career.rich("record", {
-                                wins: data.wins,
-                                losses: data.losses,
-                                num: rollingChunks,
-                                win,
-                                loss,
-                            })}
-                        </Typography>
+                <div className={styles.result}>
+                    <div className={styles.scope}>
+                        <ScopeSelect scope={scope} onChange={onScopeChange} />
                     </div>
-                )}
+                    {rate !== null && (
+                        <>
+                            <Typography as="p" display className={styles.rate}>
+                                <WinRate
+                                    rate={rate}
+                                    judged={isJudged(data.wins, data.losses)}
+                                />
+                            </Typography>
+                            <Typography as="p" mono className={styles.record}>
+                                {career.rich("record", {
+                                    wins: data.wins,
+                                    losses: data.losses,
+                                    num: rollingChunks,
+                                    win,
+                                    loss,
+                                })}
+                            </Typography>
+                        </>
+                    )}
+                </div>
             </div>
             <div className={styles.body}>
                 <TimePanel totals={data} mvps={data.mvps} />

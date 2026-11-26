@@ -24,8 +24,6 @@ export function HeroScoreHistory({ heroId, hero }: HeroScoreHistoryProps) {
     return (
         <ScoreHistoryCard
             points={row.history}
-            score={row.history[row.history.length - 1].score}
-            games={Math.min(row.games, data.window)}
             subtitle={t("subtitle", { hero, window: data.window })}
         />
     );

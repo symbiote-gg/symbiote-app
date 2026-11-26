@@ -6,13 +6,16 @@ use crate::types::replay::Mode;
 use crate::types::settings::SessionStart;
 use crate::types::stats::{
     MapStat, MostPlayedHeroes, PartySize, ProfileBests, ProfileCareer, ProfileScore, RecentForm,
-    RoleRecord, ScoreScope, SessionBest, SessionRecord,
+    RoleRecord, ScoreScope, SessionBest, SessionRecord, Teammate,
 };
 
-/// Sums up the owner's career across every hero.
+/// Sums up the owner's career in the scope's modes across every hero.
 #[tauri::command]
-pub async fn get_profile_career(pool: State<'_, SqlitePool>) -> Result<ProfileCareer> {
-    Ok(crate::db::stats::profile_career(&pool).await?)
+pub async fn get_profile_career(
+    pool: State<'_, SqlitePool>,
+    scope: ScoreScope,
+) -> Result<ProfileCareer> {
+    Ok(crate::db::stats::profile_career(&pool, scope).await?)
 }
 
 /// Returns the owner's bests in the scope's modes across every hero.
@@ -99,4 +102,13 @@ pub async fn get_played_modes(pool: State<'_, SqlitePool>) -> Result<Vec<Mode>> 
 #[tauri::command]
 pub async fn get_played_maps(pool: State<'_, SqlitePool>) -> Result<Vec<MapStat>> {
     Ok(crate::db::stats::played_maps(&pool).await?)
+}
+
+/// Returns the players the owner played with most in the scope's modes.
+#[tauri::command]
+pub async fn get_teammates(
+    pool: State<'_, SqlitePool>,
+    scope: ScoreScope,
+) -> Result<Vec<Teammate>> {
+    Ok(crate::db::stats::teammates(&pool, scope).await?)
 }
