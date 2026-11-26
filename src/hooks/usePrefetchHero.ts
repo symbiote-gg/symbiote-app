@@ -7,6 +7,6 @@ export function usePrefetchHero(heroId: number) {
     const queryClient = useQueryClient();
 
     return useHoverPrefetch(() => {
-        queryClient.query(heroDetailQuery(heroId)).catch(noop);
+        queryClient.query(heroDetailQuery(heroId, "all")).catch(noop);
     });
 }

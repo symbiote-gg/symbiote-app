@@ -5,6 +5,7 @@ import { useTranslations } from "use-intl";
 
 import type { BuildKey } from "@/api/heroes";
 import { randomBuildQuery } from "@/api/queries";
+import type { ScoreScope } from "@/api/stats";
 import { Button, Dropdown } from "@/ui";
 import { BuildPanel } from "./build-panel";
 
@@ -15,12 +16,14 @@ import styles from "./styles.module.css";
 let rolls = 0;
 const nextRoll = () => ++rolls;
 
-const lastShown = new Map<number, BuildKey>();
+const lastShown = new Map<string, BuildKey>();
+const shownKey = (heroId: number, scope: ScoreScope) => `${heroId}:${scope}`;
 
 export interface RandomBuildProps {
     heroId: number;
     hero: string;
     accent: string | null;
+    scope: ScoreScope;
     className?: string;
 }
 
@@ -28,6 +31,7 @@ export function RandomBuild({
     heroId,
     hero,
     accent,
+    scope,
     className,
 }: RandomBuildProps) {
     const t = useTranslations("hero.randomBuild");
@@ -36,21 +40,32 @@ export function RandomBuild({
     const [open, setOpen] = useState(false);
     const [roll, setRoll] = useState(nextRoll);
     const [revealed, setRevealed] = useState<number | null>(null);
-    const [exclude, setExclude] = useState(() => lastShown.get(heroId) ?? null);
+    const [exclude, setExclude] = useState(
+        () => lastShown.get(shownKey(heroId, scope)) ?? null,
+    );
+
+    // A build drawn in another scope may not be in this one, so leave out the last
+    // one shown here instead.
+    const [excludeScope, setExcludeScope] = useState(scope);
+    if (excludeScope !== scope) {
+        setExcludeScope(scope);
+        setExclude(lastShown.get(shownKey(heroId, scope)) ?? null);
+    }
+
     const {
         data: build,
         isPlaceholderData,
         dataUpdatedAt,
-    } = useQuery(randomBuildQuery(heroId, roll, exclude));
+    } = useQuery(randomBuildQuery(heroId, scope, roll, exclude));
 
     useEffect(() => {
-        if (build) {
-            lastShown.set(heroId, {
+        if (build && !isPlaceholderData) {
+            lastShown.set(shownKey(heroId, scope), {
                 gameId: build.gameId,
                 playerId: build.playerId,
             });
         }
-    }, [heroId, build]);
+    }, [heroId, scope, build, isPlaceholderData]);
 
     if (!build) return null;
 

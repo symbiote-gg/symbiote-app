@@ -64,18 +64,20 @@
     @apply bg-scrim-soft;
 }
 
-/* Tinted with the hero's accent so it shows on any splash. Opaque mixes rather than
+/* Ends the identity row on the right, or sits under the figures when they stack.
+   Tinted with the hero's accent so it shows on any splash. Opaque mixes rather than
    alpha: translucent fills snap at the end of a fade in WebKitGTK. */
-.top .buildTrigger {
+.identity .buildTrigger {
+    @apply self-start @4xl/career:ml-auto @4xl/career:self-end;
     background: color-mix(in oklab, var(--accent) 22%, var(--color-surface));
     border-color: color-mix(in oklab, var(--accent) 55%, var(--color-line));
 }
 
-.top .buildTrigger:hover {
+.identity .buildTrigger:hover {
     background: color-mix(in oklab, var(--accent) 32%, var(--color-surface));
 }
 
-.top .buildTrigger svg {
+.identity .buildTrigger svg {
     color: var(--accent);
 }
 
@@ -110,6 +112,16 @@
 
 .identity {
     @apply flex min-w-0 flex-col gap-6 px-gutter pt-6 pb-6 @4xl/career:flex-row @4xl/career:items-center @4xl/career:gap-10;
+}
+
+.identity,
+.body {
+    @apply transition-opacity;
+}
+
+/* The figures dim while another scope loads, not the mode filter above them. */
+.root[aria-busy="true"] > :is(.identity, .body) {
+    @apply stale delay-200;
 }
 
 .hero {

@@ -18,8 +18,13 @@ const MIN_WIN_STREAK: i64 = 2;
 /// Where [`lengths`] splits games, in seconds.
 const LENGTH_CUTS: [i64; 3] = [15 * 60, 20 * 60, 25 * 60];
 
-/// Returns the owner's stats on a hero, or `None` if the hero doesn't exist. All of them are read from the same snapshot.
-pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option<HeroDetail>> {
+/// Returns the owner's stats on a hero in `scope`, or `None` if the hero doesn't exist.
+/// All of them are read from the same snapshot.
+pub async fn hero_detail(
+    pool: &SqlitePool,
+    hero_id: i64,
+    scope: ScoreScope,
+) -> sqlx::Result<Option<HeroDetail>> {
     let mut tx = pool.begin().await?;
     let Some(hero) = sqlx::query_as::<_, HeroInfo>(
         "SELECT id AS hero_id, name, role, portrait, banner, accent
@@ -36,7 +41,7 @@ pub async fn hero_detail(pool: &SqlitePool, hero_id: i64) -> sqlx::Result<Option
         .fetch_one(&mut *tx)
         .await?;
     let cheap_deaths = CHEAP_DEATH_HEROES.contains(&slug.as_str());
-    let scope = Scope::career().hero(hero_id);
+    let scope = Scope::of(scope).hero(hero_id);
 
     let totals = totals(&mut tx, scope).await?;
     let awards = awards(&mut tx, scope).await?;
@@ -487,7 +492,14 @@ mod tests {
     }
 
     async fn insert_games(pool: &SqlitePool) -> i64 {
-        let mut a = hero_game("a", 400, Mode::Aram, "braxis_holdout", "Wizard", true);
+        let mut a = hero_game(
+            "a",
+            400,
+            Mode::StormLeague,
+            "braxis_holdout",
+            "Wizard",
+            true,
+        );
         a.replay_players[0].score = NewScore {
             kills: Some(4),
             takedowns: Some(10),
@@ -550,7 +562,10 @@ mod tests {
         let pool = pool().await;
         let wizard = insert_games(&pool).await;
 
-        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
+        let detail = hero_detail(&pool, wizard, ScoreScope::All)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(detail.hero.name, "Wizard");
 
         let totals = &detail.totals;
@@ -654,7 +669,11 @@ mod tests {
             .await
             .unwrap();
 
-        let totals = hero_detail(&pool, wizard).await.unwrap().unwrap().totals;
+        let totals = hero_detail(&pool, wizard, ScoreScope::All)
+            .await
+            .unwrap()
+            .unwrap()
+            .totals;
 
         // Game a's 6 takedowns are of 8 enemy deaths. No enemy died in game b, so it
         // has no kill participation to average.
@@ -685,7 +704,10 @@ mod tests {
         let a = replay_id(&pool, "a").await;
         let b = replay_id(&pool, "b").await;
 
-        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
+        let detail = hero_detail(&pool, wizard, ScoreScope::All)
+            .await
+            .unwrap()
+            .unwrap();
         let bests = &detail.bests;
         assert_eq!(best(&bests.hero_damage), Some((b, 3000.0, "cursed_hollow")));
         assert_eq!(best(&bests.takedowns), Some((a, 10.0, "braxis_holdout")));
@@ -732,7 +754,11 @@ mod tests {
         let a = replay_id(&pool, "a").await;
         let b = replay_id(&pool, "b").await;
 
-        let bests = hero_detail(&pool, wizard).await.unwrap().unwrap().bests;
+        let bests = hero_detail(&pool, wizard, ScoreScope::All)
+            .await
+            .unwrap()
+            .unwrap()
+            .bests;
         assert_eq!(
             best(&bests.fewest_deaths_win),
             Some((b, 0.0, "cursed_hollow"))
@@ -853,7 +879,11 @@ mod tests {
             .await
             .unwrap();
 
-        let bests = hero_detail(&pool, murky).await.unwrap().unwrap().bests;
+        let bests = hero_detail(&pool, murky, ScoreScope::All)
+            .await
+            .unwrap()
+            .unwrap()
+            .bests;
         assert!(bests.fewest_deaths_win.is_none());
     }
 
@@ -863,7 +893,10 @@ mod tests {
         let wizard = insert_games(&pool).await;
         let a = replay_id(&pool, "a").await;
 
-        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
+        let detail = hero_detail(&pool, wizard, ScoreScope::All)
+            .await
+            .unwrap()
+            .unwrap();
         let game = detail.best_game.unwrap();
         assert_eq!(game.replay_id, a);
         assert_eq!((game.map.as_str(), game.duration), ("braxis_holdout", 62));
@@ -888,7 +921,10 @@ mod tests {
         insert_bundle(&pool, e).await.unwrap();
         let e = replay_id(&pool, "e").await;
 
-        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
+        let detail = hero_detail(&pool, wizard, ScoreScope::All)
+            .await
+            .unwrap()
+            .unwrap();
         let game = detail.last_game.unwrap();
         assert_eq!(game.replay_id, e);
         assert_eq!(game.map, "cursed_hollow");
@@ -927,7 +963,10 @@ mod tests {
         }
         let wizard = wizard_id(&pool).await;
 
-        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
+        let detail = hero_detail(&pool, wizard, ScoreScope::All)
+            .await
+            .unwrap()
+            .unwrap();
         let lengths: Vec<_> = detail
             .lengths
             .iter()
@@ -1034,7 +1073,10 @@ mod tests {
         }
         let wizard = wizard_id(&pool).await;
 
-        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
+        let detail = hero_detail(&pool, wizard, ScoreScope::All)
+            .await
+            .unwrap()
+            .unwrap();
         let rows = trend_rows(&detail);
         assert_eq!(rows.len(), 11);
         assert_eq!(rows[0], (local_day(start).as_str(), 1, 0, 1, Some(0.0)));
@@ -1085,7 +1127,10 @@ mod tests {
         }
         let wizard = wizard_id(&pool).await;
 
-        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
+        let detail = hero_detail(&pool, wizard, ScoreScope::All)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(
             trend_rows(&detail),
             [
@@ -1115,7 +1160,10 @@ mod tests {
 
         // The old loss is before the cutoff, so it has no point, but it still
         // feeds the career rate.
-        let detail = hero_detail(&pool, wizard).await.unwrap().unwrap();
+        let detail = hero_detail(&pool, wizard, ScoreScope::All)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(
             trend_rows(&detail),
             [(local_day(late).as_str(), 1, 1, 0, Some(0.5))]
@@ -1133,7 +1181,10 @@ mod tests {
         .await
         .unwrap();
 
-        let detail = hero_detail(&pool, nova).await.unwrap().unwrap();
+        let detail = hero_detail(&pool, nova, ScoreScope::All)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(detail.totals.games, 0);
         assert_eq!(detail.totals.avg_kills, None);
         assert!(detail.maps.is_empty());
@@ -1142,7 +1193,48 @@ mod tests {
         assert!(detail.best_game.is_none() && detail.last_game.is_none());
         assert!(detail.lengths.iter().all(|length| length.games == 0));
 
-        assert!(hero_detail(&pool, wizard + 100).await.unwrap().is_none());
+        assert!(hero_detail(&pool, wizard + 100, ScoreScope::All)
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn keeps_a_hero_to_the_scopes_modes() {
+        let pool = pool().await;
+        let wizard = insert_games(&pool).await;
+        let aram = hero_game("aram", 500, Mode::Aram, "braxis_holdout", "Wizard", true);
+        insert_bundle(&pool, aram).await.unwrap();
+
+        let pool = &pool;
+        let games = |scope| async move {
+            let detail = hero_detail(pool, wizard, scope).await.unwrap().unwrap();
+            let maps: Vec<_> = detail
+                .maps
+                .iter()
+                .map(|m| (m.id.clone(), m.games))
+                .collect();
+            (detail.totals.games, maps)
+        };
+
+        assert_eq!(
+            games(ScoreScope::All).await,
+            (
+                3,
+                vec![
+                    ("cursed_hollow".to_owned(), 2),
+                    ("braxis_holdout".to_owned(), 1)
+                ]
+            )
+        );
+        assert_eq!(
+            games(ScoreScope::Draft).await,
+            (1, vec![("braxis_holdout".to_owned(), 1)])
+        );
+        assert_eq!(
+            games(ScoreScope::QuickMatch).await,
+            (2, vec![("cursed_hollow".to_owned(), 2)])
+        );
     }
 
     #[tokio::test]

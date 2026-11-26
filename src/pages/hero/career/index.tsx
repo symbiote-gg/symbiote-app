@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
 import type { HeroDetail } from "@/api/heroes";
+import type { ScoreScope } from "@/api/stats";
 import {
     BackLink,
     CareerTiles,
@@ -10,6 +11,7 @@ import {
     TimePanel,
 } from "@/components";
 import { useImageFallback } from "@/hooks/useImageFallback";
+import { ScopeSelect } from "@/pages/profile/scope-select";
 import { Chip, Typography, WinRate, rollingChunks } from "@/ui";
 import { MIN_TEAM_SHARE, isJudged, winRate } from "@/utils/hero-stats";
 import { ROLE_ICONS } from "@/utils/role-icons";
@@ -26,9 +28,13 @@ const loss = (chunks: ReactNode) => (
 
 export interface CareerProps {
     hero: HeroDetail;
+    scope: ScoreScope;
+    /** Whether `hero` is still another scope's while this one's loads. */
+    stale: boolean;
+    onScopeChange: (scope: ScoreScope) => void;
 }
 
-export function Career({ hero }: CareerProps) {
+export function Career({ hero, scope, stale, onScopeChange }: CareerProps) {
     const t = useTranslations("hero");
     const career = useTranslations("career");
     const roles = useTranslations("roles");
@@ -40,7 +46,7 @@ export function Career({ hero }: CareerProps) {
         hero.shareHealing !== null && hero.shareHealing >= MIN_TEAM_SHARE;
 
     return (
-        <header className={styles.root}>
+        <header className={styles.root} aria-busy={stale}>
             {hero.banner && !failed && (
                 <img
                     src={`/game/heroportraits/${hero.banner}`}
@@ -57,13 +63,7 @@ export function Career({ hero }: CareerProps) {
                     label={t("back")}
                     className={styles.tool}
                 />
-                <RandomBuild
-                    key={hero.heroId}
-                    heroId={hero.heroId}
-                    hero={hero.name}
-                    accent={hero.accent}
-                    className={styles.buildTrigger}
-                />
+                <ScopeSelect scope={scope} onChange={onScopeChange} />
             </div>
             <div className={styles.identity}>
                 <div className={styles.hero}>
@@ -110,7 +110,19 @@ export function Career({ hero }: CareerProps) {
                         </Typography>
                     </div>
                 )}
-                <HeroScore heroId={hero.heroId} hero={hero.name} />
+                <HeroScore
+                    heroId={hero.heroId}
+                    hero={hero.name}
+                    scope={scope}
+                />
+                <RandomBuild
+                    key={hero.heroId}
+                    heroId={hero.heroId}
+                    hero={hero.name}
+                    accent={hero.accent}
+                    scope={scope}
+                    className={styles.buildTrigger}
+                />
             </div>
             {hero.games > 0 && (
                 <div className={styles.body}>

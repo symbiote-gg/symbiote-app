@@ -3,6 +3,7 @@ import { TriangleAlert } from "lucide-react";
 import { useTranslations } from "use-intl";
 
 import { profileScoreQuery } from "@/api/queries";
+import type { ScoreScope } from "@/api/stats";
 import { GemIcon } from "@/pages/profile/score-card/gem";
 import { TIERS, rankTone, tierIndex } from "@/pages/profile/score-card/tiers";
 import { HeroPanel } from "@/pages/profile/score-heroes/hero-panel";
@@ -15,12 +16,13 @@ import styles from "./styles.module.css";
 export interface HeroScoreProps {
     heroId: number;
     hero: string;
+    scope: ScoreScope;
 }
 
-export function HeroScore({ heroId, hero }: HeroScoreProps) {
+export function HeroScore({ heroId, hero, scope }: HeroScoreProps) {
     const t = useTranslations("hero.score");
     const tiers = useTranslations("profile.score.tier");
-    const { data, isPending } = useQuery(profileScoreQuery("all"));
+    const { data, isPending } = useQuery(profileScoreQuery(scope));
 
     if (isPending) return <ScoreSkeleton />;
 

@@ -35,7 +35,14 @@ export function ProfileHeader({ scope, onScopeChange }: ProfileHeaderProps) {
     const { data, error } = useQuery(profileCareerQuery(scope));
 
     if (error) return <ErrorMessage error={error} />;
-    if (!data) return <ProfileHeaderSkeleton />;
+    if (!data) {
+        return (
+            <ProfileHeaderSkeleton
+                scope={scope}
+                onScopeChange={onScopeChange}
+            />
+        );
+    }
     if (!data.name) return null;
 
     const rate = winRate(data.wins, data.losses);

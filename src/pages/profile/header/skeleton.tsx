@@ -12,8 +12,10 @@ import {
 } from "lucide-react";
 import { useTranslations } from "use-intl";
 
+import type { ScoreScope } from "@/api/stats";
 import { TimePanelSkeleton } from "@/components";
 import { Skeleton, StatTile, Typography } from "@/ui";
+import { ScopeSelect } from "../scope-select";
 
 import styles from "./styles.module.css";
 
@@ -30,7 +32,15 @@ const TILES = [
     { key: "camps", icon: Tent },
 ] as const;
 
-export function ProfileHeaderSkeleton() {
+export interface ProfileHeaderSkeletonProps {
+    scope: ScoreScope;
+    onScopeChange: (scope: ScoreScope) => void;
+}
+
+export function ProfileHeaderSkeleton({
+    scope,
+    onScopeChange,
+}: ProfileHeaderSkeletonProps) {
     const career = useTranslations("career");
 
     return (
@@ -46,6 +56,9 @@ export function ProfileHeaderSkeleton() {
                     </div>
                 </div>
                 <div className={styles.result}>
+                    <div className={styles.scope}>
+                        <ScopeSelect scope={scope} onChange={onScopeChange} />
+                    </div>
                     <Typography as="p" display className={styles.rate}>
                         <Skeleton className={styles.rateBar} />
                     </Typography>

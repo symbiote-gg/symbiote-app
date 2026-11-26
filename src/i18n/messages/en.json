@@ -303,7 +303,15 @@
     "hero": {
         "back": "Heroes",
         "notFound": "This hero does not exist.",
-        "noGames": "No games on {hero} yet.",
+        "noGames": {
+            "title": "No Quick Match or draft games on {hero}",
+            "body": "Hero stats leave out ARAM and other modes."
+        },
+        "noScopeGames": {
+            "title": "No {mode} games on {hero}",
+            "body": "Try another mode, or show them all.",
+            "showAll": "Show all modes"
+        },
         "randomBuild": {
             "trigger": "Random build",
             "label": "A random full build another player won with",

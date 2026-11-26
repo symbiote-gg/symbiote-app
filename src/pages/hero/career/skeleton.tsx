@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 import { useTranslations } from "use-intl";
 
+import type { ScoreScope } from "@/api/stats";
 import { BackLink, TimePanelSkeleton } from "@/components";
+import { ScopeSelect } from "@/pages/profile/scope-select";
 import { Skeleton, StatTile, Typography } from "@/ui";
 
 import styles from "./styles.module.css";
@@ -30,7 +32,12 @@ const TILES = [
     { key: "camps", icon: Tent },
 ] as const;
 
-export function CareerSkeleton() {
+export interface CareerSkeletonProps {
+    scope: ScoreScope;
+    onScopeChange: (scope: ScoreScope) => void;
+}
+
+export function CareerSkeleton({ scope, onScopeChange }: CareerSkeletonProps) {
     const t = useTranslations("hero");
     const career = useTranslations("career");
 
@@ -42,6 +49,7 @@ export function CareerSkeleton() {
                     label={t("back")}
                     className={styles.tool}
                 />
+                <ScopeSelect scope={scope} onChange={onScopeChange} />
             </div>
             <div className={styles.identity}>
                 <div className={styles.hero}>

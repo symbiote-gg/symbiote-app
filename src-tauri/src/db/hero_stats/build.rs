@@ -1,8 +1,9 @@
 use chrono::{DateTime, Utc};
-use sqlx::{FromRow, SqlitePool};
+use sqlx::{FromRow, QueryBuilder, SqlitePool};
 
 use crate::types::hero_stats::{BuildKey, RandomBuild};
 use crate::types::replay::TalentPick;
+use crate::types::stats::ScoreScope;
 
 #[derive(FromRow)]
 struct BuildMeta {
@@ -16,35 +17,50 @@ struct BuildMeta {
 /// `hero_id`, or `None` if there's none. A build only counts when every pick still has
 /// its place in its tier, so its code imports the same talents in game.
 ///
-/// `exclude` goes last, so a reroll lands on another build whenever there is one.
+/// Only games in `scope`'s modes count. `exclude` goes last, so a reroll lands on
+/// another build whenever there is one.
 pub async fn random_build(
     pool: &SqlitePool,
     hero_id: i64,
+    scope: ScoreScope,
     exclude: Option<BuildKey>,
 ) -> sqlx::Result<Option<RandomBuild>> {
     let mut tx = pool.begin().await?;
 
     // AI share a handful of toons and play fixed builds, so they aren't players here.
-    let Some(key) = sqlx::query_as::<_, BuildKey>(
+    let mut query = QueryBuilder::new(
         "SELECT gp.game_id, gp.player_id
          FROM games_players gp
          JOIN games g ON g.id = gp.game_id AND g.winner_team = gp.team
          JOIN players p ON p.id = gp.player_id
-         WHERE gp.hero_id = ?
-             AND p.toon NOT LIKE 'ai-%'
+         WHERE gp.hero_id = ",
+    );
+    query.push_bind(hero_id).push(
+        " AND p.toon NOT LIKE 'ai-%'
              AND gp.player_id NOT IN (SELECT owner_player_id FROM replays)
              AND (SELECT COUNT(*) FROM games_players_talents gpt
                  JOIN talents t ON t.id = gpt.talent_id
                  WHERE gpt.game_id = gp.game_id AND gpt.player_id = gp.player_id
                      AND t.sort IS NOT NULL) = 7
-         ORDER BY (gp.game_id IS ? AND gp.player_id IS ?), RANDOM()
-         LIMIT 1",
-    )
-    .bind(hero_id)
-    .bind(exclude.map(|key| key.game_id))
-    .bind(exclude.map(|key| key.player_id))
-    .fetch_optional(&mut *tx)
-    .await?
+             AND g.mode IN (",
+    );
+
+    let mut modes = query.separated(", ");
+    for &mode in scope.modes() {
+        modes.push_bind(mode);
+    }
+
+    query
+        .push(") ORDER BY (gp.game_id IS ")
+        .push_bind(exclude.map(|key| key.game_id))
+        .push(" AND gp.player_id IS ")
+        .push_bind(exclude.map(|key| key.player_id))
+        .push("), RANDOM() LIMIT 1");
+
+    let Some(key) = query
+        .build_query_as::<BuildKey>()
+        .fetch_optional(&mut *tx)
+        .await?
     else {
         return Ok(None);
     };
@@ -91,7 +107,7 @@ mod tests {
     use super::*;
     use crate::db::replays::test_utils::{hex, insert_bundle};
     use crate::db::test_utils::{seeded_pool, GameBuilder};
-    use crate::types::replay::{NewReplayBundle, NewTalent};
+    use crate::types::replay::{Mode, NewReplayBundle, NewTalent};
 
     /// The roster index of team 0's Muradin, who wins with the owner.
     const WINNER: usize = 0;
@@ -141,7 +157,7 @@ mod tests {
         let pool = seeded_pool().await;
         insert(&pool, vec![game("a", WINNER, 7)]).await;
 
-        let build = random_build(&pool, muradin(&pool).await, None)
+        let build = random_build(&pool, muradin(&pool).await, ScoreScope::All, None)
             .await
             .unwrap()
             .expect("a build");
@@ -159,10 +175,12 @@ mod tests {
         other_account.replay.owner_toon = "player-0".to_owned();
         insert(&pool, vec![game("a", WINNER, 7), other_account]).await;
 
-        assert!(random_build(&pool, muradin(&pool).await, None)
-            .await
-            .unwrap()
-            .is_none());
+        assert!(
+            random_build(&pool, muradin(&pool).await, ScoreScope::All, None)
+                .await
+                .unwrap()
+                .is_none()
+        );
     }
 
     #[tokio::test]
@@ -170,10 +188,12 @@ mod tests {
         let pool = seeded_pool().await;
         insert(&pool, vec![game("a", LOSER, 7), game("b", WINNER, 6)]).await;
 
-        assert!(random_build(&pool, muradin(&pool).await, None)
-            .await
-            .unwrap()
-            .is_none());
+        assert!(
+            random_build(&pool, muradin(&pool).await, ScoreScope::All, None)
+                .await
+                .unwrap()
+                .is_none()
+        );
     }
 
     #[tokio::test]
@@ -185,7 +205,38 @@ mod tests {
             .await
             .unwrap();
 
-        assert!(random_build(&pool, muradin(&pool).await, None)
+        assert!(
+            random_build(&pool, muradin(&pool).await, ScoreScope::All, None)
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+
+    #[tokio::test]
+    async fn keeps_to_the_scopes_modes() {
+        let pool = seeded_pool().await;
+        let mut quick = game("a", WINNER, 7);
+        quick.replay.mode = Mode::QuickMatch;
+        let mut aram = game("b", WINNER, 7);
+        aram.replay.mode = Mode::Aram;
+        insert(&pool, vec![quick, aram]).await;
+        let hero_id = muradin(&pool).await;
+
+        let quick_id = random_build(&pool, hero_id, ScoreScope::QuickMatch, None)
+            .await
+            .unwrap()
+            .expect("a build")
+            .key
+            .game_id;
+        for _ in 0..10 {
+            let build = random_build(&pool, hero_id, ScoreScope::All, None)
+                .await
+                .unwrap()
+                .expect("a build");
+            assert_eq!(build.key.game_id, quick_id);
+        }
+        assert!(random_build(&pool, hero_id, ScoreScope::Draft, None)
             .await
             .unwrap()
             .is_none());
@@ -197,9 +248,12 @@ mod tests {
         insert(&pool, vec![game("a", WINNER, 7), game("b", WINNER, 7)]).await;
         let hero_id = muradin(&pool).await;
 
-        let first = random_build(&pool, hero_id, None).await.unwrap().unwrap();
+        let first = random_build(&pool, hero_id, ScoreScope::All, None)
+            .await
+            .unwrap()
+            .unwrap();
         for _ in 0..10 {
-            let next = random_build(&pool, hero_id, Some(first.key))
+            let next = random_build(&pool, hero_id, ScoreScope::All, Some(first.key))
                 .await
                 .unwrap()
                 .unwrap();
@@ -213,8 +267,11 @@ mod tests {
         insert(&pool, vec![game("a", WINNER, 7)]).await;
         let hero_id = muradin(&pool).await;
 
-        let first = random_build(&pool, hero_id, None).await.unwrap().unwrap();
-        let next = random_build(&pool, hero_id, Some(first.key))
+        let first = random_build(&pool, hero_id, ScoreScope::All, None)
+            .await
+            .unwrap()
+            .unwrap();
+        let next = random_build(&pool, hero_id, ScoreScope::All, Some(first.key))
             .await
             .unwrap()
             .unwrap();

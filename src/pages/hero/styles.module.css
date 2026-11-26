@@ -7,7 +7,13 @@
 }
 
 .grid {
-    @apply grid grid-cols-12 gap-stack;
+    @apply grid grid-cols-12 gap-stack transition-opacity;
+}
+
+/* Another scope's stats while this one's load. Delayed so a fast fetch swaps them
+   without a dim flash. */
+.grid[aria-busy="true"] {
+    @apply stale delay-200;
 }
 
 .grid > * {
