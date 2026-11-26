@@ -93,8 +93,14 @@ pub async fn watch_replay(app: AppHandle, pool: State<'_, SqlitePool>, id: i64) 
 }
 
 #[tauri::command]
-pub async fn mark_replay_as_seen(pool: State<'_, SqlitePool>, id: i64) -> Result<()> {
-    Ok(crate::db::replays::mark_seen(&pool, id).await?)
+pub async fn mark_replay_as_seen(
+    app: AppHandle,
+    pool: State<'_, SqlitePool>,
+    id: i64,
+) -> Result<()> {
+    crate::db::replays::mark_seen(&pool, id).await?;
+    crate::tray::refresh_dot(&app, &pool).await;
+    Ok(())
 }
 
 #[tauri::command]

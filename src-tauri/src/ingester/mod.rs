@@ -334,6 +334,7 @@ async fn store(
                 Err(e) => log::error!("failed to read the other replays of {id}'s game: {e}"),
             }
         }
+        crate::tray::refresh_dot(&app, &pool).await;
         log::debug!("stored {size} replays in {:?}", started.elapsed());
     }
 }

@@ -30,6 +30,13 @@ pub async fn mark_seen(pool: &SqlitePool, id: i64) -> sqlx::Result<()> {
     Ok(())
 }
 
+/// Whether any stored replay is still waiting to be viewed.
+pub async fn has_new(executor: impl SqliteExecutor<'_>) -> sqlx::Result<bool> {
+    sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM replays WHERE is_new = 1)")
+        .fetch_one(executor)
+        .await
+}
+
 /// Returns the other accounts' replays of replay `id`'s game.
 pub async fn sibling_ids(executor: impl SqliteExecutor<'_>, id: i64) -> sqlx::Result<Vec<i64>> {
     sqlx::query_scalar(
@@ -93,5 +100,25 @@ mod tests {
         assert_eq!(replays, 2);
         assert!(last_import.is_some());
         assert_eq!(oldest_game, DateTime::from_timestamp(100, 0));
+    }
+
+    #[tokio::test]
+    async fn tells_when_a_replay_waits_to_be_viewed() {
+        let pool = pool().await;
+        assert!(!has_new(&pool).await.unwrap());
+
+        insert_bundle(&pool, bundle("seen", 1000)).await.unwrap();
+        assert!(!has_new(&pool).await.unwrap());
+
+        let mut new = bundle("new", 1000);
+        new.replay.game_key = hex("other game");
+        new.replay.is_new = true;
+        let InsertOutcome::Inserted(id) = insert_bundle(&pool, new).await.unwrap() else {
+            panic!("the new replay wasn't inserted");
+        };
+        assert!(has_new(&pool).await.unwrap());
+
+        mark_seen(&pool, id).await.unwrap();
+        assert!(!has_new(&pool).await.unwrap());
     }
 }

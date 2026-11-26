@@ -97,6 +97,11 @@ pub fn run() {
             tauri::async_runtime::spawn(async move {
                 retention::purge_expired(&purge_app, &purge_pool).await;
             });
+            let dot_app = app.handle().clone();
+            let dot_pool = pool.clone();
+            tauri::async_runtime::spawn(async move {
+                tray::refresh_dot(&dot_app, &dot_pool).await;
+            });
             app.manage(pool);
             app.manage(SessionStart(chrono::Utc::now()));
             app.manage(ingester::IngestSubscribers::default());
