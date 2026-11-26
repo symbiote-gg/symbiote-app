@@ -1,7 +1,13 @@
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 
 import { portraitSrc } from "@/utils/portraits";
-import { type HeroDetail, getHeroDetail, getHeroList } from "../heroes";
+import {
+    type BuildKey,
+    type HeroDetail,
+    getHeroDetail,
+    getHeroList,
+    getRandomBuild,
+} from "../heroes";
 import type { ReplayFilters } from "../replays";
 import { queryKeys } from "./keys";
 import { preloadImage } from "./preload";
@@ -32,4 +38,18 @@ export const heroListQuery = (filters: ReplayFilters) =>
         queryKey: [...queryKeys.stats, "heroes", "list", filters],
         placeholderData: keepPreviousData,
         queryFn: () => getHeroList(filters),
+    });
+
+/** Each `roll` draws another build than `exclude`, the one shown before it. */
+export const randomBuildQuery = (
+    heroId: number,
+    roll: number,
+    exclude: BuildKey | null,
+) =>
+    queryOptions({
+        queryKey: [...queryKeys.randomBuilds, heroId, roll],
+        placeholderData: keepPreviousData,
+        // Each mount draws its own roll, so past ones are never read again.
+        gcTime: 0,
+        queryFn: () => getRandomBuild(heroId, exclude),
     });

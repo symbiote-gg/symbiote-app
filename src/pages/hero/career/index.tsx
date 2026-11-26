@@ -13,6 +13,7 @@ import { useImageFallback } from "@/hooks/useImageFallback";
 import { Chip, Typography, WinRate, rollingChunks } from "@/ui";
 import { MIN_TEAM_SHARE, isJudged, winRate } from "@/utils/hero-stats";
 import { ROLE_ICONS } from "@/utils/role-icons";
+import { RandomBuild } from "./random-build";
 import { HeroScore } from "./score";
 
 import styles from "./styles.module.css";
@@ -55,6 +56,13 @@ export function Career({ hero }: CareerProps) {
                     href="/heroes"
                     label={t("back")}
                     className={styles.tool}
+                />
+                <RandomBuild
+                    key={hero.heroId}
+                    heroId={hero.heroId}
+                    hero={hero.name}
+                    accent={hero.accent}
+                    className={styles.buildTrigger}
                 />
             </div>
             <div className={styles.identity}>

@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import type { Award, HeroRole, ReplayFilters } from "./replays";
+import type { Award, HeroRole, ReplayFilters, TalentPick } from "./replays";
 
 export type HeroSummary = {
     heroId: number;
@@ -172,3 +172,23 @@ export type HeroDetail = CareerTotals & {
 
 export const getHeroDetail = (heroId: number) =>
     invoke<HeroDetail | null>("get_hero_detail", { heroId });
+
+/** Identifies one player's line in one game. */
+export type BuildKey = {
+    gameId: number;
+    playerId: number;
+};
+
+/** A full build another player won a game with. */
+export type RandomBuild = BuildKey & {
+    /** The first of the owner's replays of the game. */
+    replayId: number;
+    playerName: string;
+    /** The map's name. */
+    map: string;
+    timestamp: string;
+    talents: TalentPick[];
+};
+
+export const getRandomBuild = (heroId: number, exclude: BuildKey | null) =>
+    invoke<RandomBuild | null>("get_random_build", { heroId, exclude });

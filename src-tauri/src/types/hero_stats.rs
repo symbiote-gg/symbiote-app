@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
 use super::hero::HeroRole;
-use super::replay::AwardInfo;
+use super::replay::{AwardInfo, TalentPick};
 
 /// A hero the owner played, with their totals on it.
 #[derive(Debug, FromRow, Serialize)]
@@ -219,4 +219,28 @@ pub struct HeroDetail {
     pub last_game: Option<HeroGame>,
     /// Shortest first, every length whether played or not.
     pub lengths: Vec<GameLength>,
+}
+
+/// Identifies one player's line in one game.
+#[derive(Debug, Clone, Copy, FromRow, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BuildKey {
+    pub game_id: i64,
+    pub player_id: i64,
+}
+
+/// A full build another player won a game with.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RandomBuild {
+    #[serde(flatten)]
+    pub key: BuildKey,
+    /// The first of the owner's replays of the game.
+    pub replay_id: i64,
+    pub player_name: String,
+    /// The map's name.
+    pub map: String,
+    pub timestamp: DateTime<Utc>,
+    /// Tier order.
+    pub talents: Vec<TalentPick>,
 }

@@ -8,9 +8,10 @@ export const queryKeys = {
     replayDetails: ["replays", "detail"],
     standouts: ["replays", "standouts"],
     settings: ["settings"],
-    replaysFolder: ["replaysFolder"],
-    retentionPreviews: ["retentionPreview"],
+    replaysFolder: ["replays-folder"],
+    retentionPreviews: ["retention-preview"],
     licenses: ["licenses"],
+    randomBuilds: ["random-builds"],
 } as const;
 
 export type QueryFamily = keyof typeof queryKeys;
@@ -37,6 +38,8 @@ export const INGEST_REFRESH: Record<QueryFamily, IngestRefresh> = {
     replaysFolder: "never",
     retentionPreviews: "never",
     licenses: "never",
+    // Each roll is its own key, so a refetch would only swap the build on show.
+    randomBuilds: "never",
 };
 
 /** The keys of the families refreshed after an ingest as `refresh` says. */

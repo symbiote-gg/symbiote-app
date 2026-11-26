@@ -28,6 +28,7 @@ export * from "./result-chip";
 export * from "./result-filter";
 export * from "./role-filter";
 export * from "./session-delta";
+export * from "./talent-build";
 export * from "./talent-description";
 export * from "./talent-tooltip";
 export * from "./team-portrait";

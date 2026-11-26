@@ -304,6 +304,16 @@
         "back": "Heroes",
         "notFound": "This hero does not exist.",
         "noGames": "No games on {hero} yet.",
+        "randomBuild": {
+            "trigger": "Random build",
+            "label": "A random full build another player won with",
+            "wonBy": "{player}'s winning build",
+            "meta": "{map}, {date}",
+            "reroll": "Reroll",
+            "copy": "Copy build",
+            "copied": "Copied",
+            "openReplay": "Open replay"
+        },
         "score": {
             "suffix": " career score",
             "pool": "{count, plural, =0 {vs the role only} one {vs # {hero} player} other {vs # {hero} players}}",

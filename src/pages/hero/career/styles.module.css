@@ -64,6 +64,50 @@
     @apply bg-scrim-soft;
 }
 
+/* Tinted with the hero's accent so it shows on any splash. Opaque mixes rather than
+   alpha: translucent fills snap at the end of a fade in WebKitGTK. */
+.top .buildTrigger {
+    background: color-mix(in oklab, var(--accent) 22%, var(--color-surface));
+    border-color: color-mix(in oklab, var(--accent) 55%, var(--color-line));
+}
+
+.top .buildTrigger:hover {
+    background: color-mix(in oklab, var(--accent) 32%, var(--color-surface));
+}
+
+.top .buildTrigger svg {
+    color: var(--accent);
+}
+
+.buildPanel {
+    @apply flex flex-col gap-4 p-4;
+}
+
+.buildSource {
+    @apply flex flex-col gap-1;
+}
+
+.buildTalents {
+    @apply flex items-center gap-2;
+}
+
+.buildActions {
+    @apply flex items-center gap-2;
+}
+
+.buildActions .buildCopy {
+    @apply ml-auto;
+}
+
+/* Both labels share one cell, so the button keeps the longer one's width. */
+.copyLabels {
+    @apply grid *:col-start-1 *:row-start-1;
+}
+
+.copyLabels [data-shown="false"] {
+    @apply invisible;
+}
+
 .identity {
     @apply flex min-w-0 flex-col gap-6 px-gutter pt-6 pb-6 @4xl/career:flex-row @4xl/career:items-center @4xl/career:gap-10;
 }

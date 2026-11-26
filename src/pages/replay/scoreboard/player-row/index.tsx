@@ -1,26 +1,17 @@
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import classNames from "classnames";
 import { Check, CircleChevronUp, Copy, UserRoundGroup } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import type { ReplayPlayerDetail } from "@/api/replays";
-import {
-    AwardPills,
-    GameIcon,
-    HeroPortrait,
-    Kad,
-    TalentTooltip,
-} from "@/components";
+import { AwardPills, HeroPortrait, Kad, TalentBuild } from "@/components";
+import { useCopyText } from "@/hooks/useCopyText";
 import { useFormatStat } from "@/hooks/useFormatStat";
 import { Button, Meter, Tooltip, Typography, sideClasses } from "@/ui";
-import { TIER_LEVELS, buildCode } from "@/utils/talents";
+import { buildCode } from "@/utils/talents";
 import { STATS, type Stat } from "../stats";
 
 import styles from "./styles.module.css";
 
-const TIERS = [1, 2, 3, 4, 5, 6, 7];
-const COPIED_MS = 1500;
 const PARTY_COLORS = [
     styles.party1,
     styles.party2,
@@ -47,23 +38,12 @@ export function PlayerRow({
 }: PlayerRowProps) {
     const t = useTranslations("replay");
     const { compact } = useFormatStat();
-    const [copied, setCopied] = useState(false);
+    const [copied, copy] = useCopyText();
 
     const build = buildCode(player.heroName, player.talents);
 
-    useEffect(() => {
-        if (!copied) return;
-
-        const timeout = setTimeout(() => setCopied(false), COPIED_MS);
-
-        return () => clearTimeout(timeout);
-    }, [copied]);
-
-    const onCopyBuild = async () => {
-        if (build === null) return;
-
-        await writeText(build);
-        setCopied(true);
+    const onCopyBuild = () => {
+        if (build !== null) copy(build);
     };
 
     return (
@@ -131,30 +111,7 @@ export function PlayerRow({
                 </span>
             </span>
             <span className={styles.icons}>
-                {TIERS.map((tier) => {
-                    const talent = player.talents.find(
-                        (pick) => pick.tier === tier,
-                    );
-                    if (!talent) {
-                        return <span key={tier} className={styles.emptySlot} />;
-                    }
-
-                    return (
-                        <TalentTooltip
-                            key={tier}
-                            talent={talent}
-                            level={TIER_LEVELS[tier - 1]}
-                        >
-                            <GameIcon
-                                category="abilitytalents"
-                                icon={talent.icon}
-                                label={talent.name ?? talent.slug}
-                                framed
-                                className={styles.talent}
-                            />
-                        </TalentTooltip>
-                    );
-                })}
+                <TalentBuild talents={player.talents} />
                 {build !== null && (
                     <Tooltip content={t(copied ? "buildCopied" : "copyBuild")}>
                         <Button

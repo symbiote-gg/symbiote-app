@@ -40,7 +40,7 @@ const overshoot = (progress: number, [from, peak, to]: number[]) =>
 
 /** Drives inline styles frame by frame: WebKitGTK slows Web Animations under load. */
 export function tween(
-    el: HTMLElement,
+    el: HTMLElement | SVGElement,
     props: string[],
     duration: number,
     delay: number,

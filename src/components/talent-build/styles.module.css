@@ -1,0 +1,30 @@
+@reference "@/index.css";
+
+.talent {
+    @apply size-9;
+}
+
+/* Framed like a talent icon, tinted with the accent in scope. Opaque mixes rather
+   than alpha: translucent fills snap at the end of a fade in WebKitGTK. */
+.back {
+    --back-stripe: color-mix(
+        in oklab,
+        var(--accent, var(--color-primary)) 30%,
+        var(--color-surface-2)
+    );
+    --back-base: color-mix(
+        in oklab,
+        var(--accent, var(--color-primary)) 18%,
+        var(--color-surface-2)
+    );
+    @apply size-9 shrink-0 rounded-md ring-2 ring-fg-muted/60;
+    background: repeating-linear-gradient(
+        45deg,
+        var(--back-stripe) 0 3px,
+        var(--back-base) 3px 6px
+    );
+}
+
+.empty {
+    @apply size-9 shrink-0 rounded-md outline-2 outline-line outline-dashed;
+}
