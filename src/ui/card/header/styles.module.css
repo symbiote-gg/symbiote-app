@@ -8,6 +8,18 @@
     @apply border-b border-line;
 }
 
+.wrap {
+    @apply flex-wrap;
+}
+
+.wrap .titles {
+    @apply grow basis-80;
+}
+
+.wrap > :not(.titles) {
+    @apply max-w-full;
+}
+
 .titles {
     @apply flex min-w-0 flex-col gap-1;
 }

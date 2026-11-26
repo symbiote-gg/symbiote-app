@@ -190,6 +190,7 @@ export function DeathMap({
                         title={t("title")}
                         subtitle={t("subtitle")}
                         divided
+                        wrap
                         action={
                             <Controls
                                 layerCount={layers.length}

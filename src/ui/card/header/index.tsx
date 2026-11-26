@@ -16,6 +16,7 @@ export interface CardHeaderProps {
     meta?: ReactNode;
     action?: ReactNode;
     divided?: boolean;
+    wrap?: boolean;
     size?: CardHeaderSize;
 }
 
@@ -27,12 +28,14 @@ export function CardHeader({
     meta,
     action,
     divided,
+    wrap,
     size = "md",
 }: CardHeaderProps) {
     return (
         <header
             className={classNames(styles.root, styles[size], {
                 [styles.divided]: divided,
+                [styles.wrap]: wrap,
             })}
         >
             <div className={styles.titles}>

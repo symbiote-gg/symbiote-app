@@ -95,6 +95,7 @@ export function Timeline({
                 size="sm"
                 title={t("title")}
                 subtitle={t("subtitle")}
+                wrap
                 action={
                     <Filters
                         hidden={hidden}
