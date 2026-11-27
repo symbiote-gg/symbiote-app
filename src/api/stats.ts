@@ -201,6 +201,8 @@ export type SessionHero = {
     losses: number;
     careerWins: number;
     careerLosses: number;
+    careerSessionWins: number;
+    careerSessionLosses: number;
 };
 
 export type SessionGame = {
@@ -222,6 +224,8 @@ export type SessionRecord = {
     duration: number;
     careerWins: number;
     careerLosses: number;
+    careerSessionWins: number;
+    careerSessionLosses: number;
     heroes: SessionHero[];
     games: SessionGame[];
 };

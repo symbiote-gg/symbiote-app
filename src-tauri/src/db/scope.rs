@@ -48,6 +48,19 @@ impl Scope {
         format!("(r.timestamp + r.duration >= {})", start.timestamp())
     }
 
+    /// The condition [`Scope::of`] keeps games by, over `r`, for counting a scope's
+    /// games beside the rest in one query.
+    pub fn modes_sql(scope: ScoreScope) -> String {
+        let modes = scope
+            .modes()
+            .iter()
+            .map(|mode| format!("'{}'", mode.as_str()))
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        format!("(r.mode IN ({modes}))")
+    }
+
     pub fn spans_heroes(&self) -> bool {
         self.hero_id.is_none()
     }
@@ -80,7 +93,7 @@ impl Scope {
             query.push(" AND mode IN (");
             let mut list = query.separated(", ");
             for &mode in modes {
-                list.push_bind(mode);
+                list.push_bind(mode.as_str());
             }
             query.push(")");
         }
@@ -148,6 +161,38 @@ mod tests {
             names(&pool, Scope::of(ScoreScope::QuickMatch)).await,
             ["quick"]
         );
+    }
+
+    #[tokio::test]
+    async fn the_modes_condition_keeps_what_the_scope_keeps() {
+        let pool = seeded_pool().await;
+        insert(
+            &pool,
+            vec![
+                GameBuilder::new("ranked").at(100),
+                GameBuilder::new("quick").at(200).mode(Mode::QuickMatch),
+                GameBuilder::new("aram").at(300).mode(Mode::Aram),
+            ],
+        )
+        .await;
+
+        for scope in [ScoreScope::All, ScoreScope::Draft, ScoreScope::QuickMatch] {
+            let mut query = Scope::career().owner_games("SELECT r.path");
+            query.push(format!(" WHERE {}", Scope::modes_sql(scope)));
+            query.push(" ORDER BY r.timestamp, r.id");
+            let paths: Vec<String> = query.build_query_scalar().fetch_all(&pool).await.unwrap();
+
+            let mut expected = Scope::of(scope).owner_games("SELECT r.path");
+            expected.push(" ORDER BY r.timestamp, r.id");
+            let expected: Vec<String> = expected
+                .build_query_scalar()
+                .fetch_all(&pool)
+                .await
+                .unwrap();
+
+            assert!(!paths.is_empty());
+            assert_eq!(paths, expected);
+        }
     }
 
     #[tokio::test]

@@ -172,20 +172,36 @@ pub async fn session_record(
 ) -> sqlx::Result<SessionRecord> {
     let mut tx = pool.begin().await?;
 
-    let (career_wins, career_losses): (i64, i64) = Scope::career()
-        .owner_games("SELECT COALESCE(SUM(r.owner_win = 1), 0), COALESCE(SUM(r.owner_win = 0), 0)")
+    let session = Scope::ended_since_sql(session_start);
+
+    let (career_wins, career_losses, career_session_wins, career_session_losses): (
+        i64,
+        i64,
+        i64,
+        i64,
+    ) = Scope::of(ScoreScope::All)
+        .owner_games(&format!(
+            "SELECT COALESCE(SUM(r.owner_win = 1), 0), COALESCE(SUM(r.owner_win = 0), 0),
+                 COALESCE(SUM(r.owner_win = 1 AND {session}), 0),
+                 COALESCE(SUM(r.owner_win = 0 AND {session}), 0)"
+        ))
         .build_query_as()
         .fetch_one(&mut *tx)
         .await?;
 
-    let session = Scope::ended_since_sql(session_start);
+    // Every mode counts toward the session, only the career ones toward the career.
+    let career = Scope::modes_sql(ScoreScope::All);
     let mut query = Scope::career().owner_games(&format!(
         "SELECT h.id AS hero_id, h.name, h.portrait, h.accent,
              SUM({session}) AS games,
              COALESCE(SUM(r.owner_win = 1 AND {session}), 0) AS wins,
              COALESCE(SUM(r.owner_win = 0 AND {session}), 0) AS losses,
-             COALESCE(SUM(r.owner_win = 1), 0) AS career_wins,
-             COALESCE(SUM(r.owner_win = 0), 0) AS career_losses"
+             COALESCE(SUM(r.owner_win = 1 AND {career}), 0) AS career_wins,
+             COALESCE(SUM(r.owner_win = 0 AND {career}), 0) AS career_losses,
+             COALESCE(SUM(r.owner_win = 1 AND {career} AND {session}), 0)
+                 AS career_session_wins,
+             COALESCE(SUM(r.owner_win = 0 AND {career} AND {session}), 0)
+                 AS career_session_losses"
     ));
     query.push(
         " JOIN heroes h ON h.id = r.owner_hero_id
@@ -228,6 +244,8 @@ pub async fn session_record(
         duration: games.iter().map(|game| game.duration).sum(),
         career_wins,
         career_losses,
+        career_session_wins,
+        career_session_losses,
         heroes,
         games,
     })
@@ -775,11 +793,17 @@ mod tests {
         let mut other = game("other", 7000, "Tyrande", true);
         other.replay_players[0].awards = vec![];
 
+        // Off the career, so left out of its rate.
+        let mut aram = game("aram", 6500, "Wizard", true);
+        aram.replay.mode = Mode::Aram;
+        aram.replay_players[0].awards = vec![];
+
         for game in [
             game("earlier", 1000, "Wizard", true),
             // Started before the session and ended in it.
             game("running", 4500, "Wizard", false),
             game("later", 6000, "Wizard", true),
+            aram,
             other,
         ] {
             insert_bundle(&pool, game).await.unwrap();
@@ -788,9 +812,13 @@ mod tests {
         let start = DateTime::from_timestamp(5000, 0).unwrap();
         let record = session_record(&pool, start).await.unwrap();
         assert_eq!(record.started, start);
-        assert_eq!((record.wins, record.losses), (2, 1));
+        assert_eq!((record.wins, record.losses), (3, 1));
         assert_eq!((record.career_wins, record.career_losses), (3, 1));
-        assert_eq!(record.duration, 3 * 600);
+        assert_eq!(
+            (record.career_session_wins, record.career_session_losses),
+            (2, 1)
+        );
+        assert_eq!(record.duration, 4 * 600);
 
         let heroes: Vec<_> = record
             .heroes
@@ -801,14 +829,15 @@ mod tests {
                     hero.games,
                     (hero.wins, hero.losses),
                     (hero.career_wins, hero.career_losses),
+                    (hero.career_session_wins, hero.career_session_losses),
                 )
             })
             .collect();
         assert_eq!(
             heroes,
             [
-                ("Wizard", 2, (1, 1), (2, 1)),
-                ("Tyrande", 1, (1, 0), (1, 0))
+                ("Wizard", 3, (2, 1), (2, 1), (1, 1)),
+                ("Tyrande", 1, (1, 0), (1, 0), (1, 0))
             ]
         );
 
@@ -821,6 +850,7 @@ mod tests {
             games,
             [
                 ("Tyrande", Some(true), false),
+                ("Wizard", Some(true), false),
                 ("Wizard", Some(true), true),
                 ("Wizard", Some(false), true),
             ]

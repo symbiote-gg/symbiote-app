@@ -21,12 +21,13 @@ export const MIN_TEAM_SHARE = 0.005;
 export function sessionRateChange(
     wins: number,
     losses: number,
-    session: { wins: number; losses: number } | undefined,
+    sessionWins: number,
+    sessionLosses: number,
 ) {
-    if (!session || session.wins + session.losses === 0) return null;
+    if (sessionWins + sessionLosses === 0) return null;
 
     const now = winRate(wins, losses);
-    const before = winRate(wins - session.wins, losses - session.losses);
+    const before = winRate(wins - sessionWins, losses - sessionLosses);
     if (now === null || before === null) return null;
 
     const change = (Math.round(now * 1000) - Math.round(before * 1000)) / 1000;

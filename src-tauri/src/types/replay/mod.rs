@@ -26,6 +26,24 @@ pub enum Mode {
     Unknown,
 }
 
+impl Mode {
+    /// As stored, for writing a mode into SQL by hand.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::QuickMatch => "quick_match",
+            Self::VersusAi => "versus_ai",
+            Self::Brawl => "brawl",
+            Self::UnrankedDraft => "unranked_draft",
+            Self::HeroLeague => "hero_league",
+            Self::TeamLeague => "team_league",
+            Self::StormLeague => "storm_league",
+            Self::Aram => "aram",
+            Self::Custom => "custom",
+            Self::Unknown => "unknown",
+        }
+    }
+}
+
 #[derive(Debug, FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Replay {

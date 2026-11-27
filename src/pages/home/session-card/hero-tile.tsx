@@ -34,7 +34,8 @@ export function HeroTile({ hero, score, scoring }: HeroTileProps) {
     const rateChange = sessionRateChange(
         hero.careerWins,
         hero.careerLosses,
-        hero,
+        hero.careerSessionWins,
+        hero.careerSessionLosses,
     );
     const rated = score && isMain(score) ? score : null;
     const rank = rated && rankTone(TIERS[tierIndex(rated.score)].rank);

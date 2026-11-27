@@ -200,7 +200,8 @@ export function SessionCard() {
                                             sessionRateChange(
                                                 data.careerWins,
                                                 data.careerLosses,
-                                                data,
+                                                data.careerSessionWins,
+                                                data.careerSessionLosses,
                                             ),
                                             "percent",
                                         )}

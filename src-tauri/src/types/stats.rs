@@ -241,9 +241,12 @@ pub struct SessionRecord {
     pub losses: i64,
     /// The session's games' lengths summed, in seconds.
     pub duration: i64,
-    /// Over every game, the session's included.
+    /// Over the games in [`ScoreScope::All`]'s modes, the session's included.
     pub career_wins: i64,
     pub career_losses: i64,
+    /// The session's games counted in the career, to tell the rate before the session.
+    pub career_session_wins: i64,
+    pub career_session_losses: i64,
     /// The heroes played in the session, the most played first.
     pub heroes: Vec<SessionHero>,
     /// Newest first.
@@ -260,8 +263,12 @@ pub struct SessionHero {
     pub games: i64,
     pub wins: i64,
     pub losses: i64,
+    /// Over the games in [`ScoreScope::All`]'s modes, as on the hero page.
     pub career_wins: i64,
     pub career_losses: i64,
+    /// The session's games counted in the career, to tell the rate before the session.
+    pub career_session_wins: i64,
+    pub career_session_losses: i64,
 }
 
 #[derive(Debug, FromRow, Serialize)]
